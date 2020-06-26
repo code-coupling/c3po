@@ -15,7 +15,7 @@ from __future__ import print_function, division
 class physicsDriver(object):
     """ physicsDriver defines and standardizes the functionalities expected by computer codes. It follows the ICOCO standard.
 
-    In order to integrate a new code in C3PO it is necessary to define a class inheriting from physicsDriver and to overload its methods raising exception. 
+    In order to integrate a new code in C3PO it is necessary to define a class inheriting from physicsDriver and to overload its methods raising exception.
     """
 
     def __init__(self):
@@ -35,7 +35,7 @@ class physicsDriver(object):
     def setMPIComm(self, mpicomm):
         """ Give an MPI communicator to the code, for its internal use.
         The communicator should include all the processes to be used by the code.
-        For a sequential run, the call to setMPIComm is optional. 
+        For a sequential run, the call to setMPIComm is optional.
         Should be called before initialize.
 
         :param mpicomm: MPI communicator to be used by the code.
@@ -45,7 +45,7 @@ class physicsDriver(object):
     def init(self):
         """ This method calls initialize but store its return value instead of returning it. The output is accessible with getInitStatus.
 
-        .. warning:: This method, in association with getInitStatus, should always be used inside C3PO instead of initialize which is not adapted to C3PO MPI Master-Workers paradigm. 
+        .. warning:: This method, in association with getInitStatus, should always be used inside C3PO instead of initialize which is not adapted to C3PO MPI Master-Workers paradigm.
         .. warning:: This method should never be redefined: define initialize instead!
         """
         self.initStatus_ = self.initialize()
@@ -53,9 +53,9 @@ class physicsDriver(object):
     def getInitStatus(self):
         """ Returns the output of the last call to initialize made through init.
 
-        :return: True means OK. 
+        :return: True means OK.
 
-        .. warning:: This method, in association with init, should always be used inside C3PO instead of initialize which is not adapted to C3PO MPI Master-Workers paradigm. 
+        .. warning:: This method, in association with init, should always be used inside C3PO instead of initialize which is not adapted to C3PO MPI Master-Workers paradigm.
         .. warning:: This method should never be redefined: define initialize instead!
         """
         return self.initStatus_
@@ -67,7 +67,7 @@ class physicsDriver(object):
         It cannot be called again before terminate has been performed.
         If initialize returns false (or raises an exception), nothing else than terminate can be called.
 
-        :return: True means OK. 
+        :return: True means OK.
 
         ..  warning:: This method is not adapted to MPI Master-Workers paradigm. Init and getInitStatus methods should be used in C3PO instead.
         """
@@ -83,11 +83,11 @@ class physicsDriver(object):
         raise Exception("physicsDriver.terminate : not supported")
 
     def presentTime(self):
-        """ Returns the current time t. 
+        """ Returns the current time t.
         Can be called anytime between initialize and terminate.
         The current time can only change during the call to validateTimeStep.
 
-        :return: the current time t. 
+        :return: the current time t.
         """
         raise Exception("physicsDriver.presentTime : not supported")
 
@@ -174,7 +174,7 @@ class physicsDriver(object):
 
         :return: a tuple(succeed, converged). succeed = False if the computation fails. converged = True if the solution is not evolving any more.
 
-        .. warning:: This method, in association with iterate, should always be used inside C3PO instead of iterateTimeStep. They fit better with MPI use. 
+        .. warning:: This method, in association with iterate, should always be used inside C3PO instead of iterateTimeStep. They fit better with MPI use.
         .. warning:: This method should never be redefined: define iterateTimeStep instead!
         """
         return self.iterateStatus_
@@ -224,7 +224,7 @@ class physicsDriver(object):
         raise Exception("physicsDriver.forget : not supported")
 
     def getInputFieldsNames(self):
-        """ :return: a list of strings identifying input fields. 
+        """ :return: a list of strings identifying input fields.
         """
         raise Exception("physicsDriver.getInputFieldsNames : not supported")
 
@@ -254,7 +254,7 @@ class physicsDriver(object):
         raise Exception("physicsDriver.getOutputFieldsNames : not supported")
 
     def getOutputMEDField(self, name):
-        """ Return the output field corresponding to name from the code. 
+        """ Return the output field corresponding to name from the code.
 
         :param name: string identifying the output field.
         :return: a ParaMEDMEM::MEDCouplingFieldDouble field.
@@ -288,7 +288,7 @@ class physicsDriver(object):
         raise Exception("physicsDriver.getValue is not supported")
 
     def solveTransient(self, tmax):
-        """ Calls the chain of methods which makes the code to advance in time until it reaches the time tmax or computeTimeStep() asks to stop. 
+        """ Calls the chain of methods which makes the code to advance in time until it reaches the time tmax or computeTimeStep() asks to stop.
 
         :param tmax: maximum time to be reached (compared with presentTime()) """
         (dt, stop) = self.computeTimeStep()
@@ -298,9 +298,10 @@ class physicsDriver(object):
             ok = self.getSolveStatus()
             if ok:
                 self.validateTimeStep()
+                (dt, stop) = self.computeTimeStep()
             else:
                 self.abortTimeStep()
                 (dt2, stop) = self.computeTimeStep()
                 if (dt == dt2):
                     raise Exception("physicsDriver.solveTransient : we are about to repeat a failed time-step calculation !")
-            dt = dt2
+                dt = dt2
