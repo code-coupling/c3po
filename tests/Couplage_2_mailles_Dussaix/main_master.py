@@ -40,7 +40,7 @@ ExchangerData2Neutro = C3POMPI.MPIMasterExchanger([ThermoProcess, NeutroProcess]
 
 OneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [ExchangerNeutro2Thermo])
 
-mycoupler = C3PO.GaussSeidelCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
+mycoupler = C3PO.fixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
 mycoupler.setDampingFactor(0.125)
 mycoupler.setConvergenceParameters(1E-5, 100)
 

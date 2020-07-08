@@ -35,7 +35,7 @@ Data2First = C3PO.exchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysi
 
 OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 
-mycoupler = C3PO.GaussSeidelCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
+mycoupler = C3PO.fixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
 mycoupler.setDampingFactor(0.5)
 mycoupler.setConvergenceParameters(1E-5, 100)
 

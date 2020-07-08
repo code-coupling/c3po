@@ -14,7 +14,7 @@ DataCoupler = C3PO.dataManager()
 Physics2Data = C3PO.exchanger(Transformer, [], [], [(myPhysics, str(i)) for i in range(taille)], [(DataCoupler, str(i)) for i in range(taille)])
 Data2Physics = C3PO.exchanger(Transformer, [], [], [(DataCoupler, str(i)) for i in range(taille)], [(myPhysics, str(i)) for i in range(taille)])
 
-CouplerGS = C3PO.GaussSeidelCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
+CouplerGS = C3PO.fixedPointCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
 CouplerGS.setDampingFactor(0.5)
 CouplerAnderson = C3PO.AndersonQRCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
 CouplerAnderson.setOrder(3)

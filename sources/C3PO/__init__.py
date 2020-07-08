@@ -15,7 +15,7 @@ from collaborativeDataManager import collaborativeDataManager
 from exchanger import exchanger
 from coupler import coupler, normChoice
 from tracer import tracer
-from couplers.GaussSeidelCoupler import GaussSeidelCoupler
+from couplers.fixedPointCoupler import fixedPointCoupler
 from couplers.AndersonCoupler import AndersonCoupler
 from couplers.AndersonQRCoupler import AndersonQRCoupler
 from couplers.JFNKCoupler import JFNKCoupler

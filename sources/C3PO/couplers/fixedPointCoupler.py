@@ -8,16 +8,16 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class GaussSeidelCoupler. """
+""" Contains the class fixedPointCoupler. """
 from __future__ import print_function, division
 
 from C3PO.coupler import coupler
 
 
-class GaussSeidelCoupler(coupler):
-    """ GaussSeidelCoupler inherits from coupler and proposes a damped fixed point algorithm.
+class fixedPointCoupler(coupler):
+    """ fixedPointCoupler inherits from coupler and proposes a damped fixed point algorithm.
 
-    The class proposes an algorithm for the resolution of F(X) = X. Thus GaussSeidelCoupler is a coupler working with precisely :
+    The class proposes an algorithm for the resolution of F(X) = X. Thus fixedPointCoupler is a coupler working with precisely :
 
         - A single physicsDriver (possibly a coupler) defining the calculations to be made each time F is called.
         - A single dataManager allowing to manipulate the data to be damped in the coupling (the X).
@@ -35,7 +35,7 @@ class GaussSeidelCoupler(coupler):
     """
 
     def __init__(self, physics, exchangers, dataManager):
-        """ Builds a GaussSeidelCoupler object.
+        """ Builds a fixedPointCoupler object.
 
         :param physics: list of only one physicsDriver (possibly a coupler).
         :param exchangers: list of exactly two exchangers allowing to go from the physicsDriver to the dataManager and vice versa.
@@ -48,11 +48,11 @@ class GaussSeidelCoupler(coupler):
         self.dampingFactor_ = 1.
         self.isConverged_ = False
         if len(physics) != 1:
-            raise Exception("GaussSeidelCoupler.__init__ There must be only one physicsDriver")
+            raise Exception("fixedPointCoupler.__init__ There must be only one physicsDriver")
         if len(exchangers) != 2:
-            raise Exception("GaussSeidelCoupler.__init__ There must be exactly two exchangers")
+            raise Exception("fixedPointCoupler.__init__ There must be exactly two exchangers")
         if len(dataManager) != 1:
-            raise Exception("GaussSeidelCoupler.__init__ There must be only one dataManager")
+            raise Exception("fixedPointCoupler.__init__ There must be only one dataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """ Sets the convergence parameters (tolerance and maximum number of iterations). """
@@ -64,7 +64,7 @@ class GaussSeidelCoupler(coupler):
         self.dampingFactor_ = dampingFactor
 
     def solveTimeStep(self):
-        """ Solves a time step using the damped Gauss-Seidel algorithm. """
+        """ Solves a time step using the damped fixed-point algorithm. """
         iiter = 0
         error = self.tolerance_ + 1.
         physics = self.physicsDrivers_[0]
