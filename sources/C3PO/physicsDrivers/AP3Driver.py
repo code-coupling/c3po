@@ -10,9 +10,6 @@
 
 """ Contains the class AP3Driver. """
 from __future__ import print_function, division
-
-import MEDCoupling
-
 from C3PO.physicsDriver import physicsDriver
 
 
@@ -27,6 +24,9 @@ class AP3Driver(physicsDriver):
         physicsDriver.__init__(self)
         self.neutro_ = ICOCOclass
         self.isInit_ = False
+
+    def setDataFile(self, df):
+        self.neutro_.setDataFile(df)
 
     def initialize(self):
         if not self.isInit_:
