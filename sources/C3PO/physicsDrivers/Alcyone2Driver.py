@@ -48,6 +48,7 @@ class Alcyone2Driver(physicsDriver):
             self.isInit_ = True
             Alcyone2Init(self.Alcyone2_)
             self.Alcyone2_.initialize()
+            pleiades.setVerboseLevel(3)
         return True
 
     def terminate(self):
@@ -101,7 +102,7 @@ class Alcyone2Driver(physicsDriver):
         return fieldNames
 
     def getInputMEDFieldTemplate(self, name):
-        return self.Alcyone2_.getOutputMEDField("Temperature_SGE")
+        return self.Alcyone2_.getOutputMEDField("Temperature_SCE")
 
     def setInputMEDField(self, name, field):
         if name == "LinearPower":
