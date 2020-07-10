@@ -26,7 +26,6 @@ class AP3Driver(physicsDriver):
         """
         physicsDriver.__init__(self)
         self.neutro_ = ICOCOclass
-        self.isSolveSteadyStateAsked_ = False
         self.isInit_ = False
 
     def initialize(self):
@@ -37,7 +36,8 @@ class AP3Driver(physicsDriver):
             return True
 
     def terminate(self):
-        return True
+        self.isInit_ = False
+        return self.neutro_.terminate()
 
     def presentTime(self):
         return self.neutro_.presentTime()
@@ -46,38 +46,28 @@ class AP3Driver(physicsDriver):
         return self.neutro_.computeTimeStep()
 
     def initTimeStep(self, dt):
-        self.isSolveSteadyStateAsked_ = (dt <= 0)
         return self.neutro_.initTimeStep(dt)
 
     def solveTimeStep(self):
-        if self.isSolveSteadyStateAsked_:
-            return self.neutro_.solveSteadyState()
-        else:
-            return self.neutro_.solveTimeStep()
+        return self.neutro_.solveTimeStep()
 
     def validateTimeStep(self):
         self.neutro_.validateTimeStep()
 
     def abortTimeStep(self):
-        if not self.isSolveSteadyStateAsked_:
-            self.neutro_.abortTimeStep()
-        else:
-            pass
+        self.neutro_.abortTimeStep()
 
     def getInputMEDFieldTemplate(self, name):
-        """ Returns an empty field lying on the MEDCouplingMesh object used by APOLLO3. 
-
-        Fields given to APOLLO3 by setInputMEDField must used this mesh.
-        """
-        outputField = MEDCoupling.MEDCouplingFieldDouble(MEDCoupling.ON_CELLS, MEDCoupling.ONE_TIME)
-        outputField.setMesh(self.neutro_.getMesh())
-        return outputField
+        return self.neutro_.getInputMEDFieldTemplate(name)
 
     def setInputMEDField(self, name, field):
-        self.neutro_.setInputMEDField(name=name, fieldMed=field)
+        self.neutro_.setInputMEDField(name, field)
 
     def getOutputMEDField(self, name):
-        return self.neutro_.getOutputMEDField(name=name)
+        return self.neutro_.getOutputMEDField(name)
 
     def setValue(self, name, value):
         self.neutro_.setValue(name, value)
+
+    def getValue(self, name):
+        return self.neutro_.getValue(name)
