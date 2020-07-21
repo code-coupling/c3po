@@ -46,15 +46,16 @@ class MPIFieldRecipient(object):
 
 
 class MPIValueRecipient(object):
-    def __init__(self, sender, storing):
+    def __init__(self, sender, storing, isCollective):
         self.sender_ = sender
         self.storing_ = storing
+        self.isCollective_ = isCollective
 
     def exchange(self):
         MPIComm = self.sender_.MPIComm_
         senderRank = self.sender_.rank_
         if self.isCollective_:
             value = 0
-            self.storing_.store(MPIComm.Bcast(value, root=senderRank))
+            self.storing_.store(MPIComm.bcast(value, root=senderRank))
         else:
             self.storing_.store(MPIComm.recv(source=senderRank, tag=MPITag.data))

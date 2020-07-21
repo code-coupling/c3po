@@ -60,7 +60,7 @@ class MPIValueSender(object):
         for destination in self.destinations_:
             MPIComm = destination.MPIComm_
             if isinstance(destination, MPICollectiveProcess):
-                MPIComm.bcast(value, root=MPIComm.Get_Rank())
+                MPIComm.bcast(value, root=MPIComm.Get_rank())
             else:
                 MPIComm.send(value, dest=destination.rank_, tag=MPITag.data)
         self.storing_.store(value)
