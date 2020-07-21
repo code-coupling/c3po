@@ -13,6 +13,7 @@
 from dataManager import dataManager
 from collaborativeDataManager import collaborativeDataManager
 from exchanger import exchanger
+from collaborativeExchanger import collaborativeExchanger
 from coupler import coupler, normChoice
 from tracer import tracer
 from couplers.fixedPointCoupler import fixedPointCoupler
