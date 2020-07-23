@@ -42,7 +42,7 @@ class MPICollaborativeDataManager(collaborativeDataManager):
             if isinstance(data, MPIRemoteProcess):
                 if not self.isMPI_:
                     if data.MPIComm_ == MPI.COMM_NULL:
-                        raise Exception("MPICollaborativeDataManager.__init__ the local process must be part of the communicator (MPI.COMM_NULL found).")
+                        raise Exception("MPICollaborativeDataManager.__init__ All distant process must be part of the communicator (MPI.COMM_NULL found).")
                     self.isMPI_ = True
                     self.MPIComm_ = data.MPIComm_
                     ranks.append(data.MPIComm_.Get_rank())

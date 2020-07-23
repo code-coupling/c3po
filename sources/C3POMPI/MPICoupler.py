@@ -25,26 +25,36 @@ class MPICoupler(coupler):
     Can replace, without impact, a coupler of a single processor calculation, if the mpi environment is available.
     """
 
-    def __init__(self, physics, exchangers, dataManagers=[]):
+    def __init__(self, physics, exchangers, dataManagers=[], MPIComm=None):
         """ Builds a MPICoupler object.
 
-        Has the same form than coupler but can also contain MPIRemoteProcess objects (and MPICollectiveProcess but that does not imply anything).
+        Has the same form than coupler but can also contain MPIRemoteProcess (and MPICollectiveProcess) objects.
 
-        When at least one MPIRemoteProcess is present, MPICoupler uses collective MPI communications: the object must be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes of that communicator must be involved.
+        When at least one MPIRemoteProcess or MPICollectiveProcess is present, MPICoupler uses collective MPI communications: the object must be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes of this communicator must be involved.
+
+        :param MPIComm: The optional MPIComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess or MPICollectiveProcess are found (if one MPICoupler of the MPI communicator found such an object).
+                        It has to be given to the constructor of the object on all involved processes.
+                        If at least one MPIRemoteProcess or MPICollectiveProcess is present, this MPIComm parameter must be the MPI communicator used by them.
         """
         coupler.__init__(self, physics, exchangers, dataManagers)
-        self.MPIComm_ = -1
+        self.MPIComm_ = None
         self.isMPI_ = False
         for p in physics:
             if isinstance(p, MPIRemoteProcess) or isinstance(p, MPICollectiveProcess):
                 if not self.isMPI_:
                     if p.MPIComm_ == MPI.COMM_NULL:
-                        raise Exception("MPICollaborativeDataManager.__init__ the local process must be part of the communicator (MPI.COMM_NULL found).")
+                        raise Exception("MPICoupler.__init__ All distant process must be part of the communicator (MPI.COMM_NULL found).")
                     self.isMPI_ = True
                     self.MPIComm_ = p.MPIComm_
                 else:
                     if self.MPIComm_ != p.MPIComm_:
                         raise Exception("MPIcoupler.__init__ All distant process must used the same MPI communicator")
+        if MPIComm is not None:
+            if self.MPIComm_ is not None:
+                if MPIComm != self.MPIComm_:
+                    raise Exception("MPIcoupler.__init__ The given MPIComm parameter is not the same than the one used by the MPI process found.")
+            self.MPIComm_ = MPIComm
+            self.isMPI_ = self.MPIComm_.allreduce(self.isMPI_, op=MPI.MAX)
 
     def initialize(self):
         resu = coupler.initialize(self)
