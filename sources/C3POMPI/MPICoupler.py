@@ -32,6 +32,9 @@ class MPICoupler(coupler):
 
         When at least one MPIRemoteProcess or MPICollectiveProcess is present, MPICoupler uses collective MPI communications: the object must be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes of this communicator must be involved.
 
+        :param physics: the list of physicsDrivers objects to be coupled.
+        :param exchangers: the list of exchangers for the coupling.
+        :param dataManagers: the list of dataManagers used in the coupling.
         :param MPIComm: The optional MPIComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess or MPICollectiveProcess are found (if one MPICoupler of the MPI communicator found such an object).
                         It has to be given to the constructor of the object on all involved processes.
                         If at least one MPIRemoteProcess or MPICollectiveProcess is present, this MPIComm parameter must be the MPI communicator used by them.
