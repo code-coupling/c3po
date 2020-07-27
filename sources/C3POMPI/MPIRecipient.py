@@ -19,10 +19,11 @@ from MPITag import MPITag
 
 
 class MPIFieldRecipient(object):
-    def __init__(self, sender, storing, isCollective):
+    def __init__(self, sender, storing, isCollective, isTemplate):
         self.sender_ = sender
         self.storing_ = storing
         self.isCollective_ = isCollective
+        self.isTemplate_ = isTemplate
         self.field_ = 0
 
     def exchange(self):
@@ -33,7 +34,7 @@ class MPIFieldRecipient(object):
                 self.field_ = MPIComm.bcast(self.field_, root=senderRank)
             else:
                 self.field_ = MPIComm.recv(source=senderRank, tag=MPITag.data)
-        else:
+        elif not self.isTemplate_:
             arraySize = self.field_.getArray().getNbOfElems()
             numpyArray = numpy.empty(arraySize)
             if self.isCollective_:

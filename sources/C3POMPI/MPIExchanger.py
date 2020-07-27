@@ -112,7 +112,7 @@ class MPIExchanger(exchanger):
                 if not isinstance(toGet, MPIRemoteProcess):
                     self.MPIexchanges_.append(MPIFieldSender(destinations, shortcutToData(MEDFieldsToGet[i][0], MEDFieldsToGet[i][1]), self.fieldsToGet_[i], False))
                 elif self.dataNeeded_:
-                    self.MPIexchanges_.append(MPIFieldRecipient(toGet, self.fieldsToGet_[i], self.isCollective_))
+                    self.MPIexchanges_.append(MPIFieldRecipient(toGet, self.fieldsToGet_[i], self.isCollective_, False))
         for i in range(len(MEDFieldsToSet)):
             toSet = MEDFieldsToSet[i][0]
             if not isinstance(toSet, MPICollectiveProcess):
@@ -120,7 +120,7 @@ class MPIExchanger(exchanger):
                 if not isinstance(toSet, MPIRemoteProcess):
                     self.MPIexchanges_.append(MPIFieldSender(destinations, shortcutToData(MEDFieldsToSet[i][0], MEDFieldsToSet[i][1]), self.fieldsToSet_[i], True))
                 elif self.dataNeeded_:
-                    self.MPIexchanges_.append(MPIFieldRecipient(toSet, self.fieldsToSet_[i], self.isCollective_))
+                    self.MPIexchanges_.append(MPIFieldRecipient(toSet, self.fieldsToSet_[i], self.isCollective_, True))
         for i in range(len(ValuesToGet)):
             toGet = ValuesToGet[i][0]
             if not isinstance(toGet, MPICollectiveProcess):

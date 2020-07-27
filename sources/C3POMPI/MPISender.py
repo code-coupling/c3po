@@ -38,8 +38,7 @@ class MPIFieldSender(object):
                     MPIComm.bcast(field, root=MPIComm.Get_rank())
                 else:
                     MPIComm.send(field, dest=destination.rank_, tag=MPITag.data)
-
-            else:
+            elif not self.isTemplate_ :
                 npArray = field.getArray().toNumPyArray()
                 if isinstance(destination, MPICollectiveProcess):
                     MPIComm.Bcast([npArray, MPI.DOUBLE], root=MPIComm.Get_rank())
