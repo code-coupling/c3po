@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+import sys
 
 import C3PO
 from physicsScalar import physicsScalar
@@ -18,8 +19,11 @@ class ScalarPhysicsCoupler(C3PO.coupler):
 
 file1 = open("first.log", "w")
 file2 = open("second.log", "w")
-physicsScalar1 = C3PO.tracer(file1)(physicsScalar)
-physicsScalar2 = C3PO.tracer(file2)(physicsScalar)
+file3 = open("listingFirst.log", "w")
+file4 = open("listingSecond.log", "w")
+
+physicsScalar1 = C3PO.tracer(pythonFile = file1, stdoutFile = file3)(physicsScalar)
+physicsScalar2 = C3PO.tracer(pythonFile = file2, stdoutFile = file4)(physicsScalar)
 
 myPhysics = physicsScalar1()
 myPhysics.setOption(1., 0.5)
@@ -47,3 +51,5 @@ mycoupler.terminate()
 
 file1.close()
 file2.close()
+file3.close()
+file4.close()

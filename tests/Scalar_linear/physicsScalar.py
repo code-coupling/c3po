@@ -30,6 +30,7 @@ class physicsScalar(physicsDriver):
     # Solve next time-step problem. Solves a steady state if dt < 0.
     def solveTimeStep(self):
         self.result_ = self.a_ + self.b_ * self.x_
+        print("result =", self.a_, "+", self.b_, "*", self.x_)
         return True
 
     # Abort previous time-step solving.
