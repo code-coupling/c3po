@@ -164,7 +164,6 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None):
         instance2 = myclass2()
 
     """
-    counter = {}
 
     def classWrapper(baseclass):
         if pythonFile is not None:
