@@ -5,6 +5,8 @@ import sys
 import C3PO
 from physicsScalar import physicsScalar
 
+print("Impression necessaire a la bonne redirection des listings (bug ?).")
+
 
 class ScalarPhysicsCoupler(C3PO.coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
@@ -21,9 +23,11 @@ file1 = open("first.log", "w")
 file2 = open("second.log", "w")
 file3 = open("listingFirst.log", "w")
 file4 = open("listingSecond.log", "w")
+file5 = open("listingCoupler.log", "w")
 
 physicsScalar1 = C3PO.tracer(pythonFile = file1, stdoutFile = file3)(physicsScalar)
 physicsScalar2 = C3PO.tracer(pythonFile = file2, stdoutFile = file4)(physicsScalar)
+myfixedPointCoupler = C3PO.tracer(stdoutFile = file5)(C3PO.fixedPointCoupler)
 
 myPhysics = physicsScalar1()
 myPhysics.setOption(1., 0.5)
@@ -39,7 +43,7 @@ Data2First = C3PO.exchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysi
 
 OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 
-mycoupler = C3PO.fixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
+mycoupler = myfixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
 mycoupler.setDampingFactor(0.5)
 mycoupler.setConvergenceParameters(1E-5, 100)
 
@@ -53,3 +57,4 @@ file1.close()
 file2.close()
 file3.close()
 file4.close()
+file5.close()

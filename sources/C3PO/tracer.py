@@ -44,49 +44,49 @@ class tracerMeta(type):
 
     def __init__(self, name, bases, dct):
         type.__init__(self, name, bases, dct)
-        self.MEDinfo_ = {}
-        self.Objectcounter_ = {}
+        self.static_MEDinfo_ = {}
+        self.static_Objectcounter_ = {}
 
     def __new__(metacls, name, bases, dct):
         pythonFile = None
         saveMED = True
         stdout = None
         stderr = None
-        if "meta_pythonFile" not in dct:
+        if "static_pythonFile" not in dct:
             for baseclass in bases:
-                if hasattr(baseclass, "meta_pythonFile"):
-                    pythonFile = baseclass.meta_pythonFile
-                    saveMED = baseclass.meta_saveMED
-                    stdout = baseclass.meta_stdout
-                    stderr = baseclass.meta_stderr
+                if hasattr(baseclass, "static_pythonFile"):
+                    pythonFile = baseclass.static_pythonFile
+                    saveMED = baseclass.static_saveMED
+                    stdout = baseclass.static_stdout
+                    stderr = baseclass.static_stderr
         else:
-            pythonFile = dct["meta_pythonFile"]
-            saveMED = dct["meta_saveMED"]
-            stdout = dct["meta_stdout"]
-            stderr = dct["meta_stderr"]
+            pythonFile = dct["static_pythonFile"]
+            saveMED = dct["static_saveMED"]
+            stdout = dct["static_stdout"]
+            stderr = dct["static_stderr"]
 
         def _wrapper(method):
             def _trace(self, *args, **kwargs):
                 if pythonFile is not None:
                     objectNameBase = "my" + name
-                    if objectNameBase not in self.Objectcounter_:
-                        self.Objectcounter_[objectNameBase] = 0
-                    objectName = "my" + name + str(self.Objectcounter_[objectNameBase])
+                    if objectNameBase not in self.static_Objectcounter_:
+                        self.static_Objectcounter_[objectNameBase] = 0
+                    objectName = "my" + name + str(self.static_Objectcounter_[objectNameBase])
                     string_args = getArgsString(*args, **kwargs)
                     if method.__name__ == "__init__":
-                        self.Objectcounter_[objectNameBase] += 1
-                        objectName = "my" + name + str(self.Objectcounter_[objectNameBase])
+                        self.static_Objectcounter_[objectNameBase] += 1
+                        objectName = "my" + name + str(self.static_Objectcounter_[objectNameBase])
                         pythonFile.write(objectName + " = " + name + string_args + "\n")
                     elif method.__name__ == "setInputMEDField":
                         (name_field, field) = get_setInputMEDField_input(*args, **kwargs)
                         if saveMED:
-                            if name_field not in self.MEDinfo_:
-                                self.MEDinfo_[name_field] = []
-                            nameMEDFile = name_field + str(len(self.MEDinfo_[name_field])) + ".med"
+                            if name_field not in self.static_MEDinfo_:
+                                self.static_MEDinfo_[name_field] = []
+                            nameMEDFile = name_field + str(len(self.static_MEDinfo_[name_field])) + ".med"
                             time, iteration, order = field.getTime()
-                            self.MEDinfo_[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
+                            self.static_MEDinfo_[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
                             MEDLoader.WriteField(nameMEDFile, field, True)
-                            pythonFile.write("field_" + objectName + " = MEDLoader.ReadField" + str(self.MEDinfo_[name_field][-1]) + "\n")
+                            pythonFile.write("field_" + objectName + " = MEDLoader.ReadField" + str(self.static_MEDinfo_[name_field][-1]) + "\n")
                         pythonFile.write(objectName + "." + method.__name__ + "('" + name_field + "', field_" + objectName + ")" + "\n")
                     else:
                         pythonFile.write(objectName + "." + method.__name__ + string_args + "\n")
@@ -143,9 +143,10 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None):
     :param stdoutFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output is redirected there. It has to be closed (file.close()) by caller.
     :param stderrFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is redirected there. It has to be closed (file.close()) by caller.
 
-    .. warning:: The listing redirection seems not to work properly for nested classes.
+    .. warning:: The listing redirection seems to need a prior writing in the standard output (print(whatever)).
 
-    The parameters of tracer are added to the class ("static" attributes) with the names meta_pythonFile and meta_saveMED, meta_stdout and meta_stderr.
+    The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile and static_saveMED, static_stdout and static_stderr.
+    Two additional static attributes are added for internal use: static_MEDinfo_ and static_Objectcounter_.
 
     tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
         @C3PO.tracer(...)
@@ -171,10 +172,10 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None):
             pythonFile.write("from __future__ import print_function, division" + "\n")
             pythonFile.write("from MEDLoader import MEDLoader" + "\n")
             pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
-        baseclass.meta_pythonFile = pythonFile
-        baseclass.meta_saveMED = saveMED
-        baseclass.meta_stdout = stdoutFile
-        baseclass.meta_stderr = stderrFile
+        baseclass.static_pythonFile = pythonFile
+        baseclass.static_saveMED = saveMED
+        baseclass.static_stdout = stdoutFile
+        baseclass.static_stderr = stderrFile
         newclass = tracerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         return newclass
