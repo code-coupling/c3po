@@ -16,6 +16,7 @@ from exchanger import exchanger
 from collaborativeExchanger import collaborativeExchanger
 from coupler import coupler, normChoice
 from tracer import tracer
+from listingWriter import listingWriter
 from couplers.fixedPointCoupler import fixedPointCoupler
 from couplers.AndersonCoupler import AndersonCoupler
 from couplers.AndersonQRCoupler import AndersonQRCoupler

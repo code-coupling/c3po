@@ -11,6 +11,7 @@
 """ Contains the class wrapper tracer. """
 from __future__ import print_function, division
 from types import FunctionType
+import time
 import sys
 import os
 
@@ -52,6 +53,7 @@ class tracerMeta(type):
         saveMED = True
         stdout = None
         stderr = None
+        lWriter = None
         if "static_pythonFile" not in dct:
             for baseclass in bases:
                 if hasattr(baseclass, "static_pythonFile"):
@@ -59,11 +61,13 @@ class tracerMeta(type):
                     saveMED = baseclass.static_saveMED
                     stdout = baseclass.static_stdout
                     stderr = baseclass.static_stderr
+                    lWriter = baseclass.static_lWriter
         else:
             pythonFile = dct["static_pythonFile"]
             saveMED = dct["static_saveMED"]
             stdout = dct["static_stdout"]
             stderr = dct["static_stderr"]
+            lWriter = dct["static_lWriter"]
 
         def _wrapper(method):
             def _trace(self, *args, **kwargs):
@@ -83,7 +87,7 @@ class tracerMeta(type):
                             if name_field not in self.static_MEDinfo_:
                                 self.static_MEDinfo_[name_field] = []
                             nameMEDFile = name_field + str(len(self.static_MEDinfo_[name_field])) + ".med"
-                            time, iteration, order = field.getTime()
+                            timeMED, iteration, order = field.getTime()
                             self.static_MEDinfo_[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
                             MEDLoader.WriteField(nameMEDFile, field, True)
                             pythonFile.write("field_" + objectName + " = MEDLoader.ReadField" + str(self.static_MEDinfo_[name_field][-1]) + "\n")
@@ -91,6 +95,10 @@ class tracerMeta(type):
                     else:
                         pythonFile.write(objectName + "." + method.__name__ + string_args + "\n")
                     pythonFile.flush()
+
+                if lWriter is not None:
+                    if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate", "exchange"]:
+                        lWriter.writeBefore(self, args, method.__name__, time.time())
 
                 prev_idstdout = 0
                 prev_idstderr = 0
@@ -101,7 +109,11 @@ class tracerMeta(type):
                     prev_idstderr = os.dup(sys.stderr.fileno())
                     os.dup2(stderr.fileno(), sys.stderr.fileno())
 
+                start = time.time()
+
                 result = method(self, *args, **kwargs)
+
+                end = time.time()
 
                 if stdout is not None:
                     os.dup2(prev_idstdout, sys.stdout.fileno())
@@ -109,6 +121,10 @@ class tracerMeta(type):
                 if stderr is not None:
                     os.dup2(prev_idstderr, sys.stderr.fileno())
                     os.close(prev_idstderr)
+
+                if lWriter is not None:
+                    if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate", "exchange"]:
+                        lWriter.writeAfter(self, args, result, method.__name__, end, end - start)
 
                 return result
 
@@ -126,7 +142,7 @@ class tracerMeta(type):
         return type.__new__(metacls, name, bases, newDct)
 
 
-def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None):
+def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, listingWriter=None):
     """ tracer is a class wrapper allowing to trace the calls of the methods of the base class. 
 
     It has different functions:
@@ -175,6 +191,7 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None):
         baseclass.static_saveMED = saveMED
         baseclass.static_stdout = stdoutFile
         baseclass.static_stderr = stderrFile
+        baseclass.static_lWriter = lWriter
         newclass = tracerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         return newclass

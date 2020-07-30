@@ -107,3 +107,22 @@ class fixedPointCoupler(coupler):
             print("error : ", error)
 
         return physics.getSolveStatus() and not(error > self.tolerance_)
+
+    #On definit les methodes suivantes pour qu'elles soient vues par tracer.
+    def initialize(self):
+        return coupler.initialize(self)
+
+    def terminate(self):
+        return coupler.terminate(self)
+
+    def computeTimeStep(self):
+        return coupler.computeTimeStep(self)
+
+    def initTimeStep(self, dt):
+        return coupler.initTimeStep(self, dt)
+
+    def validateTimeStep(self):
+        coupler.validateTimeStep(self)
+
+    def abortTimeStep(self):
+        coupler.abortTimeStep(self)

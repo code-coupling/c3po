@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-# This follows the physicsDriver concepts and returns y = a + b*x where a and b are parameters and x can be set as a input scalar.
+# This follows the physicsDriver concepts and returns y = a*(1+t) + b*x where a and b are parameters, x can be set as a input scalar and t is the present time.
 from __future__ import print_function, division
 
 from C3PO.physicsDriver import physicsDriver
 
 
-class physicsScalar(physicsDriver):
+class physicsScalarTransient(physicsDriver):
     def __init__(self):
         physicsDriver.__init__(self)
         self.result_ = 0.
         self.a_ = 0.
         self.b_ = 0.
         self.x_ = 0.
+        self.t_ = 0.
+        self.dt_ = 0.
 
     def setOption(self, a, b):
         self.a_ = a
@@ -19,22 +21,39 @@ class physicsScalar(physicsDriver):
 
     # Initialize the object.
     def initialize(self):
+        self.result_ = 0.
+        self.a_ = 0.
+        self.b_ = 0.
+        self.x_ = 0.
+        self.t_ = 0.
+        self.dt_ = 0.
         return True
 
     def terminate(self):
         return True
 
+    def presentTime(self):
+        return self.t_
+
+    def computeTimeStep(self):
+        return (0.3, self.t_ >= 1.)
+
     def initTimeStep(self, dt):
+        self.dt_ = dt
         return True
 
     # Solve next time-step problem. Solves a steady state if dt < 0.
     def solveTimeStep(self):
-        self.result_ = self.a_ + self.b_ * self.x_
+        self.result_ = self.a_ * (1 + self.t_) + self.b_ * self.x_
+        print("result =", self.a_, "*", (1 + self.t_), "+", self.b_, "*", self.x_)
         return True
+
+    def validateTimeStep(self):
+        self.t_ += self.dt_
 
     # Abort previous time-step solving.
     def abortTimeStep(self):
-        pass
+        self.dt_ = 0.
 
     # Return an output scalar
     def getValue(self, name):
