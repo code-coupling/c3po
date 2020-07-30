@@ -24,7 +24,7 @@ file2 = open("second.log", "w")
 file3 = open("listingFirst.log", "w")
 file4 = open("listingSecond.log", "w")
 file5 = open("listingCoupler.log", "w")
-file6 = open("listingGeneral.log", "w")
+file6 = open("listingGeneral.log", "wb+")
 listingW = C3PO.listingWriter(file6)
 
 physics1 = C3PO.tracer(pythonFile = file1, stdoutFile = file3, listingWriter = listingW)(physicsScalarTransient)
