@@ -191,7 +191,7 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
         baseclass.static_saveMED = saveMED
         baseclass.static_stdout = stdoutFile
         baseclass.static_stderr = stderrFile
-        baseclass.static_lWriter = lWriter
+        baseclass.static_lWriter = listingWriter
         newclass = tracerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         return newclass
