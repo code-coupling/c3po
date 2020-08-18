@@ -11,6 +11,15 @@
 """ Contains the class listingWriter. """
 from __future__ import print_function, division
 
+def getFormattedTime(time):
+    """ For internal use only. """
+    timeToWrite = ""
+    if time > 1.:
+        timeToWrite = "{:.4f}".format(time)
+    else:
+        timeToWrite = "{:.4e}".format(time)
+    return timeToWrite
+
 
 class listingWriter(object):
     e_top = 0
@@ -27,76 +36,69 @@ class listingWriter(object):
     def initialize(self, coupler, physics, exchangers):
         self.coupler_ = coupler
         self.physics_ = [p[0] for p in physics]
-        self.physicsData_ = [[p[1], "", ""] for p in physics] #(name, format_start, format_end)
+        self.physicsData_ = [[p[1], ""] for p in physics] #(name, format)
         self.exchangers_ = [e[0] for e in exchangers]
         self.exchangersData_ = [[e[1], ""] for e in exchangers] #(name, format)
         self.timeInit_ = 0.
         self.timeValid_ = 0.
         self.charPerLine_ = 0
         self.sumCalculationTime_ = 0.
-        self.isMPI_ = False
         
         self.boxFormat = [""]*7
         for p in self.physicsData_:
-            p[1] += "┃{:30}│"
-            p[2] += "┃{:30}│"
-        self.boxFormat[listingWriter.e_top] += "┏{}┯".format("━" * 30)
-        self.boxFormat[listingWriter.e_entete] += "┃{:^30}│".format("In / Out")
-        self.boxFormat[listingWriter.e_closeTop] += "┠{}┼".format("─" * 30)
-        self.boxFormat[listingWriter.e_bilan] += "┃{:^30}│".format("Time step complete")
-        self.boxFormat[listingWriter.e_term] += "┗{}┷".format("━" * 30)
-        self.boxFormat[listingWriter.e_interrupt] += "┠{}┼".format("─" * 30)
-        self.boxFormat[listingWriter.e_continue] += "┠{}┼".format("─" * 30)
+            p[1] += "┃{:^27}│"
+        self.boxFormat[listingWriter.e_top] += "┏{}┯".format("━" * 27)
+        self.boxFormat[listingWriter.e_entete] += "┃{:^27}│".format("In / Out")
+        self.boxFormat[listingWriter.e_closeTop] += "┠{}┼".format("─" * 27)
+        self.boxFormat[listingWriter.e_bilan] += "┃{:^27}│".format("Time step complete")
+        self.boxFormat[listingWriter.e_term] += "┗{}┷".format("━" * 27)
+        self.boxFormat[listingWriter.e_interrupt] += "┠{}┼".format("─" * 27)
+        self.boxFormat[listingWriter.e_continue] += "┠{}┼".format("─" * 27)
         for i, p1 in enumerate(self.physicsData_):
             for j in range(len(self.physicsData_)):
                 if i == j:
-                    p1[1] += "{:^22}│"
-                    p1[2] += "{:^22}│"
+                    p1[1] += "{:^18}│"
                 else:
-                    p1[1] += "                      │"
-                    p1[2] += "                      │"
-            self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━━━━━━━━━━━┯"
-            self.boxFormat[listingWriter.e_entete] += "{:^22}│"
-            self.boxFormat[listingWriter.e_closeTop] += "──────────────────────┼"
-            self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━━━━━━━━━━━┷"
-            self.boxFormat[listingWriter.e_interrupt] += "──────────────────────" + ("┴" if i != (len(self.physicsData_) - 1) else "┼")
-            self.boxFormat[listingWriter.e_continue] += "──────────────────────" + ("┬" if i != (len(self.physicsData_) - 1) else "┼")
+                    p1[1] += "                  │"
+            self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━━━━━━━┯"
+            self.boxFormat[listingWriter.e_entete] += "{:^18.18}│"
+            self.boxFormat[listingWriter.e_closeTop] += "──────────────────┼"
+            self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━━━━━━━┷"
+            self.boxFormat[listingWriter.e_interrupt] += "──────────────────" + ("┴" if i != (len(self.physicsData_) - 1) else "┼")
+            self.boxFormat[listingWriter.e_continue] += "──────────────────" + ("┬" if i != (len(self.physicsData_) - 1) else "┼")
         
-        decalage = (22 + 1) * len(self.physicsData_) - 1
+        decalage = (18 + 1) * len(self.physicsData_) - 1
         self.boxFormat[listingWriter.e_bilan] += "{:^"+str(decalage)+"}│"
-        #self.boxFormat[listingWriter.e_bilan] += " " * decalage + "│"
 
         for p in self.physicsData_:
-            p[1] += "{:9.4e}│"
-            p[2] += "{:9.4e}│"
-        self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━┯"
-        self.boxFormat[listingWriter.e_entete] += " cputime  │"
-        self.boxFormat[listingWriter.e_closeTop] += "──────────┼"
-        self.boxFormat[listingWriter.e_bilan] += "{:9.4e}│"
-        self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━┷"
-        self.boxFormat[listingWriter.e_interrupt] += "──────────┼"
-        self.boxFormat[listingWriter.e_continue] += "──────────┼"
+            p[1] += "{:^12}│"
+        self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━┯"
+        self.boxFormat[listingWriter.e_entete] += "  cputime   │"
+        self.boxFormat[listingWriter.e_closeTop] += "────────────┼"
+        self.boxFormat[listingWriter.e_bilan] += "{:^12}│"
+        self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━┷"
+        self.boxFormat[listingWriter.e_interrupt] += "────────────┼"
+        self.boxFormat[listingWriter.e_continue] += "────────────┼"
 
         for p in self.physicsData_:
-            p[1] += "          ┃\n"
-            p[2] += "{:9.4e}┃\n"
-        self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━┓ Reference time = {:}\n"
-        self.boxFormat[listingWriter.e_entete] += "  cpudt   ┃\n"
-        self.boxFormat[listingWriter.e_closeTop] += "──────────┨\n"
-        self.boxFormat[listingWriter.e_bilan] += "{:9.4e}┃\n"
-        self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━┛\n"
-        self.boxFormat[listingWriter.e_interrupt] += "──────────┨\n"
-        self.boxFormat[listingWriter.e_continue] += "──────────┨\n"
+            p[1] += "{:^12}┃\n"
+        self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━┓ Reference time = {:}\n"
+        self.boxFormat[listingWriter.e_entete] += "   cpudt    ┃\n"
+        self.boxFormat[listingWriter.e_closeTop] += "────────────┨\n"
+        self.boxFormat[listingWriter.e_bilan] += "{:^12}┃\n"
+        self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━┛\n"
+        self.boxFormat[listingWriter.e_interrupt] += "────────────┨\n"
+        self.boxFormat[listingWriter.e_continue] += "────────────┨\n"
 
         self.charPerLine_ = len(self.boxFormat[listingWriter.e_top])
         
         for e in self.exchangersData_:
-            e[1] += "┃{:30}│"
+            e[1] += "┃{:^27.27}│"
             e[1] += "{:-^"+str(decalage)+"}│"
-            e[1] += "{:9.4e}│"
-            e[1] += "{:9.4e}┃\n"
+            e[1] += "{:^12}│"
+            e[1] += "{:^12}┃\n"
 
-    def writeBefore(self, sourceObject, inputTuple, methodName, PresentTime):
+    def writeBefore(self, sourceObject, methodName, PresentTime):
         if sourceObject is self.coupler_ and methodName == "initialize":
             self.listingFile_.write(self.boxFormat[listingWriter.e_top].format("{:10.6f}".format(PresentTime)))
             physicsName = [p[0] for p in self.physicsData_]
@@ -105,82 +107,138 @@ class listingWriter(object):
             self.timeInit_ = PresentTime
             self.timeValid_ = PresentTime
 
-        if self.isMPI_:
-            if sourceObject in self.physics_:
-                ind = self.physics_.index(sourceObject)
-                self.listingFile_.write(self.physicsData_[ind][1].format("{:^30}".format(""), methodName, PresentTime - self.timeInit_))
-
-    def writeAfter(self, sourceObject, inputTuple, outputTuple, methodName, PresentTime, calculationTime, forceToWrite = None):
+    def writeAfter(self, sourceObject, input_var, outputTuple, methodName, PresentTime, calculationTime):
+        PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
+        calculationTimeToWrite = getFormattedTime(calculationTime)
+        
         if sourceObject in self.physics_:
             self.sumCalculationTime_ += calculationTime
 
             ind = self.physics_.index(sourceObject)
             toWrite = ""
-            if forceToWrite is None:
-                if methodName == "computeTimeStep":
-                    toWrite += "dt = "
-                    if outputTuple[0] > 1e2 or outputTuple[0] < 0.1:
-                        toWrite += "{:1e}".format(outputTuple[0])
-                    else:
-                        toWrite += "{:5f}".format(outputTuple[0])
-                    toWrite += " stop = " + ("yes" if outputTuple[1] else "no")
-                elif methodName == "initTimeStep":
-                    toWrite += "dt = "
-                    if inputTuple[0] > 1e2 or inputTuple[0] < 0.1:
-                        toWrite += "{:1e}".format(inputTuple[0])
-                    else:
-                        toWrite += "{:5f}".format(inputTuple[0])
-                    
-                elif methodName == "solveTimeStep":
-                    toWrite += "succed = " + ("yes" if outputTuple else "no")
-                elif methodName == "iterateTimeStep":
-                    toWrite += "succed = " + ("yes" if outputTuple[0] else "no")
-                    toWrite += " converged = " + ("yes" if outputTuple[0] else "no")
-                elif methodName == "validateTimeStep":
-                    toWrite += "time = " + "{:5f}".format(sourceObject.presentTime())
-            else:
-                toWrite = forceToWrite
-            
-            if self.isMPI_:
-                self.listingFile_.seek(-self.charPerLine_, 2)
-                moreThanLastLine = self.listingFile_.read(self.charPerLine_ - 1)
-                LastLine = ""
-                count = 0
-                for c in reversed(moreThanLastLine):
-                    if c == "\n":
-                        break
-                    LastLine += c
-                    count -= 1
-                LastLine = LastLine[::-1]
-                LastLine = LastLine.replace(" ","")
-                lastWords = LastLine.split("│")
-                if len(lastWords) < ind + 2 or lastWords[ind + 1] == methodName:
-                    self.listingFile_.seek(count - 1, 2)
-                    self.listingFile_.write(self.physicsData_[ind][2].format("{:^30}".format(toWrite), methodName, PresentTime - self.timeInit_, calculationTime))
+            if methodName == "computeTimeStep":
+                toWrite += "dt = "
+                if outputTuple[0] > 1e2 or outputTuple[0] < 0.1:
+                    toWrite += "{:.4e}".format(outputTuple[0])
                 else:
-                    self.listingFile_.seek(0, 2)
-                    self.listingFile_.write(self.physicsData_[ind][2].format("{:^30}".format(toWrite), "end " + methodName, PresentTime - self.timeInit_, calculationTime))
-            else:
-                self.listingFile_.write(self.physicsData_[ind][2].format("{:^30}".format(toWrite), methodName, PresentTime - self.timeInit_, calculationTime))
+                    toWrite += "{:.4f}".format(outputTuple[0])
+                toWrite += ", stop = " + ("yes" if outputTuple[1] else "no")
+            elif methodName == "initTimeStep":
+                toWrite += "dt = "
+                if input_var > 1e2 or input_var < 0.1:
+                    toWrite += "{:.4e}".format(input_var)
+                else:
+                    toWrite += "{:.4f}".format(input_var)
+                toWrite += ", ok = " +  ("yes" if outputTuple else "no")
+                
+            elif methodName in ["solveTimeStep", "initialize", "terminate"]:
+                toWrite += "succed = " + ("yes" if outputTuple else "no")
+            elif methodName == "iterateTimeStep":
+                toWrite += "succed = " + ("yes" if outputTuple[0] else "no")
+                toWrite += ", conv. = " + ("yes" if outputTuple[1] else "no")
+            elif methodName == "validateTimeStep":
+                toWrite += "time = " + "{:.4f}".format(sourceObject.presentTime())
+            
+            self.listingFile_.write(self.physicsData_[ind][1].format(toWrite, methodName, PresentTimeToWrite, calculationTimeToWrite))
 
         if sourceObject in self.exchangers_:
             ind = self.exchangers_.index(sourceObject)
-            if forceToWrite is None:
-                self.listingFile_.write(self.exchangersData_[ind][1].format("{:^30.30}".format(self.exchangersData_[ind][0]), methodName, PresentTime - self.timeInit_, calculationTime))
-            else:
-                self.listingFile_.write(self.exchangersData_[ind][1].format("{:^30.30}".format(forceToWrite), methodName, PresentTime - self.timeInit_, calculationTime))
+            self.listingFile_.write(self.exchangersData_[ind][1].format(self.exchangersData_[ind][0], methodName, PresentTimeToWrite, calculationTimeToWrite))
 
         if sourceObject is self.coupler_ and methodName == "validateTimeStep":
+            calculationTimeToWrite = getFormattedTime(PresentTime - self.timeValid_)
+            sumCalculationTimeToWrite = getFormattedTime(self.sumCalculationTime_)
+
             self.listingFile_.write(self.boxFormat[listingWriter.e_interrupt])
-            self.listingFile_.write(self.boxFormat[listingWriter.e_bilan].format("SumCPU = " + "{:9.4e}".format(self.sumCalculationTime_), PresentTime - self.timeInit_, PresentTime - self.timeValid_))  
+            self.listingFile_.write(self.boxFormat[listingWriter.e_bilan].format("SumCPU " + sumCalculationTimeToWrite, PresentTimeToWrite, calculationTimeToWrite))  
             self.listingFile_.write(self.boxFormat[listingWriter.e_continue])
+
             self.timeValid_ = PresentTime
             self.sumCalculationTime_ = 0.
+
         if sourceObject is self.coupler_ and methodName == "terminate":
             self.listingFile_.write(self.boxFormat[listingWriter.e_term])
 
-def mergeListing(listings, newListing):
-    writer = listingWriter(newListing)
+class mergedListingWriter(listingWriter):
+    """ For internal use only. """
+    e_physics_start = 7
+    e_physics_end = 8
+    
+    def __init__(self, listingFile):
+        listingWriter.__init__(self, listingFile)
+    
+    def initialize(self, coupler, physics, exchangers):
+        listingWriter.initialize(self, coupler, physics, exchangers)
+        
+        self.boxFormat.append("")
+        self.boxFormat.append("")
+        self.boxFormat[mergedListingWriter.e_physics_start] += "┃{}│".format(" " * 27)
+        self.boxFormat[mergedListingWriter.e_physics_end] += "┃{:^27}│"
+
+        for p1 in self.physicsData_:
+            self.boxFormat[mergedListingWriter.e_physics_start] += "{:^18}│"
+            self.boxFormat[mergedListingWriter.e_physics_end] += "{:^18}│"
+
+        self.boxFormat[mergedListingWriter.e_physics_start] += "{:^12}│"
+        self.boxFormat[mergedListingWriter.e_physics_end] += "{:^12}│"
+
+        self.boxFormat[mergedListingWriter.e_physics_start] += "            ┃\n"
+        self.boxFormat[mergedListingWriter.e_physics_end] += "{:^12}┃\n"
+            
+    def writeBefore(self, sourceObject, methodName, runningPhysics, PresentTime):
+        if sourceObject in self.physics_:
+            PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
+            ind = self.physics_.index(sourceObject)
+            
+            columnList = [":" if running else "" for running in runningPhysics]
+            columnList[ind] = methodName
+
+            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*(tuple(columnList) + (PresentTimeToWrite,))))
+
+    def writeAfter(self, sourceObject, toWrite, methodName, runningPhysics, PresentTime, calculationTime):
+        PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
+        calculationTimeToWrite = getFormattedTime(calculationTime)
+
+        if sourceObject in self.physics_:
+            columnList = [":" if running else "" for running in runningPhysics]
+
+            self.sumCalculationTime_ += calculationTime
+
+            ind = self.physics_.index(sourceObject)
+           
+            self.listingFile_.seek(-self.charPerLine_, 2)
+            moreThanLastLine = self.listingFile_.read(self.charPerLine_ - 1)
+            LastLine = ""
+            count = 0
+            for c in reversed(moreThanLastLine):
+                if c == "\n":
+                    break
+                LastLine += c
+                count -= 1
+            LastLine = LastLine[::-1]
+            LastLine = LastLine.strip("┃")
+            LastLine = LastLine.replace(" ","")
+            lastWords = LastLine.split("│")
+            lastWords = [word.strip() for word in lastWords]
+            if lastWords[ind + 1] == methodName:
+                self.listingFile_.seek(count - 1, 2)
+                columnList[ind] = methodName
+            else:
+                self.listingFile_.seek(0, 2)
+                columnList[ind] = "end"
+            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
+
+        if sourceObject in self.exchangers_:
+            ind = self.exchangers_.index(sourceObject)
+            self.listingFile_.write(self.exchangersData_[ind][1].format(toWrite, methodName, PresentTimeToWrite, calculationTimeToWrite))
+
+        if sourceObject is self.coupler_ and (methodName == "validateTimeStep" or methodName == "terminate"):
+            listingWriter.writeAfter(self, sourceObject, 0, 0, methodName, PresentTime, calculationTime)
+
+def mergeListing(listingsName, newListingName):
+    listings = [open(lname, "r") for lname in listingsName]
+    newListing = open(newListingName, "wb+")
+    writer = mergedListingWriter(newListing)
     lineNumbers = [sum(1 for _ in l) for l in listings]
     for l in listings:
         l.seek(0)
@@ -212,11 +270,11 @@ def mergeListing(listings, newListing):
     
     myCoupler = 0
     mydumbPhysics = [(i+1, physicsName[i]) for i in range(len(physicsName))]
+    runningPhysics = [False for p in mydumbPhysics]
     myExchanger = len(physicsName)+1
     
     writer.initialize(myCoupler, mydumbPhysics, [(myExchanger, "")])
-    writer.isMPI_ = True
-    writer.writeBefore(myCoupler, 0, "initialize", refTime)
+    listingWriter.writeBefore(writer, myCoupler, "initialize", refTime)
     
     lineWords = [[] for l in listings]
     CurrentTime = [0. for l in listings]
@@ -231,23 +289,25 @@ def mergeListing(listings, newListing):
         l = listings[i]
         lineWords[i] = []
         lineOK = False
-        while not lineOK:
+        done = False
+        while not done:
             if lineCurrentNumbers[i] - 1 < lineNumbers[i]:
-                line = l.readline()
-                words = line.split("│")
+                line = l.readline() 
+                line = line.strip().strip("┃")
+                lineWords[i] = line.split("│")
+                lineWords[i] = [word.strip(' -') for word in lineWords[i]]
                 lineCurrentNumbers[i] += 1
-                lineOK = len(words) > 3 and (len(words[1].strip(' -').split()) == 0 or (words[1].strip(' -').split()[0] != "SumCPU" and (i == 0 or words[1].strip(' -').split()[0] != "exchange")))
-                if lineOK:
-                    lineWords[i] = [word.strip().strip("┃").strip() for word in words]
+                lineOK = len(lineWords[i]) > 3 and (len(lineWords[i][1].split()) == 0 or (lineWords[i][1].split()[0] != "SumCPU" and (i == 0 or lineWords[i][1].split()[0] != "exchange")))
+                done = lineOK
             else:
-                lineOK = True
-        if len(lineWords[i]) == 0:
+                done = True
+        if not lineOK:
             CurrentTime[i] = float('inf')
         else:
             CurrentTime[i] = float(lineWords[i][-2]) + refTimes[i]
             lineNature[i] = -1
-            for j in range(1, len(lineWords[i]) -2):
-                if lineWords[i][j] != "":
+            for j in range(1, len(lineWords[i]) - 2):
+                if lineWords[i][j] != "" and lineWords[i][j] != ":":
                     physicsInd[i] = physicsShift[i] + j - 1
                     word = lineWords[i][j].strip('-').split()[0]
                     if word == "exchange":
@@ -261,8 +321,8 @@ def mergeListing(listings, newListing):
                 lineNature[i] = nature_start
 
     minTime = 0.
-    timeStepValidated = [False for l in listings]
-    lastStarted = ["" for l in listings]
+    timeStepValidated = [False for p in mydumbPhysics]
+    lastStarted = ["" for p in mydumbPhysics]
     for i in range(len(listings)):
         readOneListingLine(i)
 
@@ -273,42 +333,42 @@ def mergeListing(listings, newListing):
             if t < minTime:
                 minTime = t
                 imin = i
-        if imin > -1:                   
+        if imin > -1:
             if lineNature[imin] == nature_oneLineCalculation:
                 methodName = ""
-                for iword in range(1, len(lineWords[imin])-2):
-                    if lineWords[imin][iword] != "":
+                for iword in range(1, len(lineWords[imin]) - 2):
+                    if lineWords[imin][iword] != "" and lineWords[imin][iword] != ":":
                         methodName = lineWords[imin][iword]
                         lineWords[imin][iword] = "end"
-                lastStarted[imin] = methodName
-                writer.writeBefore(mydumbPhysics[physicsInd[imin]][0], 0, methodName, CurrentTime[imin])
+                lastStarted[physicsInd[imin]] = methodName
+                writer.writeBefore(mydumbPhysics[physicsInd[imin]][0], methodName, runningPhysics, CurrentTime[imin])
+                runningPhysics[physicsInd[imin]] = True
                 CurrentTime[imin] += float(lineWords[imin][-1])
                 lineNature[imin] = nature_end
             else:
                 if lineNature[imin] == nature_end:
-                    writer.writeAfter(mydumbPhysics[physicsInd[imin]][0], 0, 0, lastStarted[imin], CurrentTime[imin], float(lineWords[imin][-1]), forceToWrite = lineWords[imin][0])
-                    if lastStarted[imin] == "validateTimeStep":
-                        timeStepValidated[imin] = True
-                    globalValid = True
-                    for isvalid in timeStepValidated:
-                        globalValid = globalValid and isvalid
-                    if globalValid:
-                        writer.writeAfter(myCoupler, 0, 0, "validateTimeStep", CurrentTime[imin], float(lineWords[imin][-1]))
+                    writer.writeAfter(mydumbPhysics[physicsInd[imin]][0], lineWords[imin][0], lastStarted[physicsInd[imin]], runningPhysics, CurrentTime[imin], float(lineWords[imin][-1]))
+                    runningPhysics[physicsInd[imin]] = False
+                    if lastStarted[physicsInd[imin]] == "validateTimeStep":
+                        timeStepValidated[physicsInd[imin]] = True
+                    if min(timeStepValidated):
+                        writer.writeAfter(myCoupler, "", "validateTimeStep", runningPhysics, CurrentTime[imin], float(lineWords[imin][-1]))
                         for ivalid in range(len(timeStepValidated)):
                             timeStepValidated[ivalid] = False
                 elif lineNature[imin] == nature_exchange:
-                    writer.writeAfter(myExchanger, 0, 0, "exchange", CurrentTime[imin], float(lineWords[imin][-1]), forceToWrite = lineWords[imin][0])
+                    writer.writeAfter(myExchanger, lineWords[imin][0], "exchange", runningPhysics, CurrentTime[imin], float(lineWords[imin][-1]))
                 elif lineNature[imin] == nature_start:
                     methodName = ""
-                    for iword in range(1, lineWords[imin]-2):
-                        if lineWords[imin][iword] != "":
+                    for iword in range(1, len(lineWords[imin]) - 2):
+                        if lineWords[imin][iword] != "" and lineWords[imin][iword] != ":":
                             methodName = lineWords[imin][iword]
-                    lastStarted[imin] = methodName
-                    writer.writeBefore(mydumbPhysics[physicsInd[imin]][0], 0, methodName, CurrentTime[imin])
+                    lastStarted[physicsInd[imin]] = methodName
+                    writer.writeBefore(mydumbPhysics[physicsInd[imin]][0], methodName, runningPhysics, CurrentTime[imin])
+                    runningPhysics[physicsInd[imin]] = True
                 readOneListingLine(imin)
                 
-            
-    writer.writeAfter(myCoupler, 0, 0, "terminate", 0., 0.)
-        
-    
+    writer.writeAfter(myCoupler, "", "terminate", runningPhysics, 0., 0.)
+    for l in listings:
+        l.close()
+    newListing.close()
     

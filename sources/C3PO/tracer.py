@@ -23,6 +23,11 @@ def get_setInputMEDField_input(name, field):
     return (name, field)
 
 
+def get_initTimeStep_input(dt):
+    """ For internal use only. """
+    return dt
+
+
 def getArgsString(*args, **kwargs):
     """ For internal use only. """
     string_args = "("
@@ -97,8 +102,8 @@ class tracerMeta(type):
                     pythonFile.flush()
 
                 if lWriter is not None:
-                    if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate", "exchange"]:
-                        lWriter.writeBefore(self, args, method.__name__, time.time())
+                    if method.__name__ in ["initialize"]:
+                        lWriter.writeBefore(self, method.__name__, time.time())
 
                 prev_idstdout = 0
                 prev_idstderr = 0
@@ -124,7 +129,10 @@ class tracerMeta(type):
 
                 if lWriter is not None:
                     if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate", "exchange"]:
-                        lWriter.writeAfter(self, args, result, method.__name__, end, end - start)
+                        input_var = 0.
+                        if method.__name__ == "initTimeStep":
+                            input_var = get_initTimeStep_input(*args, **kwargs)
+                        lWriter.writeAfter(self, input_var, result, method.__name__, end, end - start)
 
                 return result
 
