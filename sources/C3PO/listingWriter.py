@@ -22,6 +22,9 @@ def getFormattedTime(time):
 
 
 class listingWriter(object):
+    """  listingWriter allows, in association with tracer, to write a global coupling listing file with calculation time measurement.
+    """
+
     e_top = 0
     e_entete = 1
     e_closeTop = 2
@@ -31,9 +34,19 @@ class listingWriter(object):
     e_continue = 6
 
     def __init__(self, listingFile):
+        """ Builds a listingWriter object.
+
+        :param listingFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). It has to be closed (file.close()) by caller.
+        """
         self.listingFile_ = listingFile
         
     def initialize(self, coupler, physics, exchangers):
+        """ Initialize the object. Should be done after the building of all involved objects but before their initialization.
+
+        :param coupler: coupler or related object that drive the calculation, modified with tracer to point on this listingWriter object. The call to the methods initialize, validateTimeStep and terminate of coupler will lead to special treatments.
+        :param physics: a list of tuples (object, name). object should be a physicsDriver, modified with tracer to point on this listingWriter object. A column is created in the listing file for each of them. name allows to identify them.
+        :param exchangers: a list of tuples (object, name). object should be an exchanger object, modified with tracer to point on this listingWriter object. name allows to identify them in the final listing file.
+        """
         self.coupler_ = coupler
         self.physics_ = [p[0] for p in physics]
         self.physicsData_ = [[p[1], ""] for p in physics] #(name, format)
@@ -99,6 +112,7 @@ class listingWriter(object):
             e[1] += "{:^12}┃\n"
 
     def writeBefore(self, sourceObject, methodName, PresentTime):
+        """ For internal use only. """
         if sourceObject is self.coupler_ and methodName == "initialize":
             self.listingFile_.write(self.boxFormat[listingWriter.e_top].format("{:10.6f}".format(PresentTime)))
             physicsName = [p[0] for p in self.physicsData_]
@@ -108,6 +122,7 @@ class listingWriter(object):
             self.timeValid_ = PresentTime
 
     def writeAfter(self, sourceObject, input_var, outputTuple, methodName, PresentTime, calculationTime):
+        """ For internal use only. """
         PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
         calculationTimeToWrite = getFormattedTime(calculationTime)
         
@@ -236,6 +251,11 @@ class mergedListingWriter(listingWriter):
             listingWriter.writeAfter(self, sourceObject, 0, 0, methodName, PresentTime, calculationTime)
 
 def mergeListing(listingsName, newListingName):
+    """ This function allows to merge listing files produced by listingWriter. It is designed to produce a comprehensive view of a MPI calculation.
+
+    :param listingsName: list of the name of the listing files to merge.
+    :param newListingName: name of the file to write.
+    """
     listings = [open(lname, "r") for lname in listingsName]
     newListing = open(newListingName, "wb+")
     writer = mergedListingWriter(newListing)

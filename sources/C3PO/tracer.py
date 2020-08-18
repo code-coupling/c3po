@@ -50,8 +50,8 @@ class tracerMeta(type):
 
     def __init__(self, name, bases, dct):
         type.__init__(self, name, bases, dct)
-        self.static_MEDinfo_ = {}
-        self.static_Objectcounter_ = {}
+        self.static_MEDinfo = {}
+        self.static_Objectcounter = {}
 
     def __new__(metacls, name, bases, dct):
         pythonFile = None
@@ -78,24 +78,24 @@ class tracerMeta(type):
             def _trace(self, *args, **kwargs):
                 if pythonFile is not None:
                     objectNameBase = "my" + name
-                    if objectNameBase not in self.static_Objectcounter_:
-                        self.static_Objectcounter_[objectNameBase] = 0
-                    objectName = "my" + name + str(self.static_Objectcounter_[objectNameBase])
+                    if objectNameBase not in self.static_Objectcounter:
+                        self.static_Objectcounter[objectNameBase] = 0
+                    objectName = "my" + name + str(self.static_Objectcounter[objectNameBase])
                     string_args = getArgsString(*args, **kwargs)
                     if method.__name__ == "__init__":
-                        self.static_Objectcounter_[objectNameBase] += 1
-                        objectName = "my" + name + str(self.static_Objectcounter_[objectNameBase])
+                        self.static_Objectcounter[objectNameBase] += 1
+                        objectName = "my" + name + str(self.static_Objectcounter[objectNameBase])
                         pythonFile.write(objectName + " = " + name + string_args + "\n")
                     elif method.__name__ == "setInputMEDField":
                         (name_field, field) = get_setInputMEDField_input(*args, **kwargs)
                         if saveMED:
-                            if name_field not in self.static_MEDinfo_:
-                                self.static_MEDinfo_[name_field] = []
-                            nameMEDFile = name_field + str(len(self.static_MEDinfo_[name_field])) + ".med"
+                            if name_field not in self.static_MEDinfo:
+                                self.static_MEDinfo[name_field] = []
+                            nameMEDFile = name_field + str(len(self.static_MEDinfo[name_field])) + ".med"
                             timeMED, iteration, order = field.getTime()
-                            self.static_MEDinfo_[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
+                            self.static_MEDinfo[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
                             MEDLoader.WriteField(nameMEDFile, field, True)
-                            pythonFile.write("field_" + objectName + " = MEDLoader.ReadField" + str(self.static_MEDinfo_[name_field][-1]) + "\n")
+                            pythonFile.write("field_" + objectName + " = MEDLoader.ReadField" + str(self.static_MEDinfo[name_field][-1]) + "\n")
                         pythonFile.write(objectName + "." + method.__name__ + "('" + name_field + "', field_" + objectName + ")" + "\n")
                     else:
                         pythonFile.write(objectName + "." + method.__name__ + string_args + "\n")
@@ -155,10 +155,13 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
 
     It has different functions:
 
-        1. It can write all calls of the methods of the base class in a text file in python format in order to allow to replay what happened. 
-        2. It can redirect standard and error outputs in text files.
+        1. It can write all calls of the methods of the base class in a text file in python format in order to allow to replay what happened from the code point of view outside of the coupling.
+        2. It can redirect code standard and error outputs in text files.
+        3. It can contribute (with listingWriter) to the writing of a global coupling listing file with calculation time measurement.
 
-    It works for every class but the first function includes a special treatment of the input MED field of the setInputMEDField method (from physicsDriver for instance). Do not use with a class having a setInputMEDField method with different arguments than a physicsDriver!
+    .. warning:: The listing redirection seems to need a prior writing in the standard output (print(whatever)).
+    .. warning:: tracer can be applied to any class, but it is design for standard C3PO objects: physicsDriver, dataManager and exchanger. It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or outputs).
+    .. warning:: tracer only modify the base class, not its parents. As a consequence, inherited methods are invisible to tracer. Redefine them in the final class if needed.
 
     :param pythonFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script is written there. It has to be closed (file.close()) by caller.
     :param saveMED: This is related to the python file writing.
@@ -166,11 +169,10 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
         - if set to False, the MED field is not stored and the MEDLoader call is not written. Only the setInputMEDField call is written. The replay is not possible.
     :param stdoutFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output is redirected there. It has to be closed (file.close()) by caller.
     :param stderrFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is redirected there. It has to be closed (file.close()) by caller.
-
-    .. warning:: The listing redirection seems to need a prior writing in the standard output (print(whatever)).
-
-    The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile and static_saveMED, static_stdout and static_stderr.
-    Two additional static attributes are added for internal use: static_MEDinfo_ and static_Objectcounter_.
+    :param listingWriter: a listingWriter object which will manage the writing of the coupling listing file. Refer to the documentation of listingWriter.
+    
+    The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile and static_saveMED, static_stdout, static_stderr and static_lWriter.
+    Two additional static attributes are added for internal use: static_MEDinfo and static_Objectcounter.
 
     tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
         @C3PO.tracer(...)
