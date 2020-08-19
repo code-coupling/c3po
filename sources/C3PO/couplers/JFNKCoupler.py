@@ -228,7 +228,7 @@ class JFNKCoupler(coupler):
 
         return physics.getSolveStatus() and not(errorNewton > self.NewtonTolerance_)
 
-    #On definit les methodes suivantes pour qu'elles soient vues par tracer.
+    # On definit les methodes suivantes pour qu'elles soient vues par tracer.
     def initialize(self):
         return coupler.initialize(self)
 

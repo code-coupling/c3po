@@ -108,7 +108,7 @@ class fixedPointCoupler(coupler):
 
         return physics.getSolveStatus() and not(error > self.tolerance_)
 
-    #On definit les methodes suivantes pour qu'elles soient vues par tracer.
+    # On definit les methodes suivantes pour qu'elles soient vues par tracer.
     def initialize(self):
         return coupler.initialize(self)
 

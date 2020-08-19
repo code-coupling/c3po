@@ -170,7 +170,7 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
     :param stdoutFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output is redirected there. It has to be closed (file.close()) by caller.
     :param stderrFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is redirected there. It has to be closed (file.close()) by caller.
     :param listingWriter: a listingWriter object which will manage the writing of the coupling listing file. Refer to the documentation of listingWriter.
-    
+
     The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile and static_saveMED, static_stdout, static_stderr and static_lWriter.
     Two additional static attributes are added for internal use: static_MEDinfo and static_Objectcounter.
 

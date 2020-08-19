@@ -11,6 +11,7 @@
 """ Contains the class listingWriter. """
 from __future__ import print_function, division
 
+
 def getFormattedTime(time):
     """ For internal use only. """
     timeToWrite = ""
@@ -39,7 +40,7 @@ class listingWriter(object):
         :param listingFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). It has to be closed (file.close()) by caller.
         """
         self.listingFile_ = listingFile
-        
+
     def initialize(self, coupler, physics, exchangers):
         """ Initialize the object. Should be done after the building of all involved objects but before their initialization.
 
@@ -49,15 +50,15 @@ class listingWriter(object):
         """
         self.coupler_ = coupler
         self.physics_ = [p[0] for p in physics]
-        self.physicsData_ = [[p[1], ""] for p in physics] #(name, format)
+        self.physicsData_ = [[p[1], ""] for p in physics]  # (name, format)
         self.exchangers_ = [e[0] for e in exchangers]
-        self.exchangersData_ = [[e[1], ""] for e in exchangers] #(name, format)
+        self.exchangersData_ = [[e[1], ""] for e in exchangers]  # (name, format)
         self.timeInit_ = 0.
         self.timeValid_ = 0.
         self.charPerLine_ = 0
         self.sumCalculationTime_ = 0.
-        
-        self.boxFormat = [""]*7
+
+        self.boxFormat = [""] * 7
         for p in self.physicsData_:
             p[1] += "┃{:^27}│"
         for e in self.exchangersData_:
@@ -83,9 +84,9 @@ class listingWriter(object):
             self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━━━━━━━┷"
             self.boxFormat[listingWriter.e_interrupt] += "──────────────────" + ("┴" if i != (len(self.physicsData_) - 1) else "┼")
             self.boxFormat[listingWriter.e_continue] += "──────────────────" + ("┬" if i != (len(self.physicsData_) - 1) else "┼")
-        
+
         decalage = (18 + 1) * len(self.physicsData_) - 1
-        self.boxFormat[listingWriter.e_bilan] += "{:^"+str(decalage)+"}│"
+        self.boxFormat[listingWriter.e_bilan] += "{:^" + str(decalage) + "}│"
 
         for p in self.physicsData_:
             p[1] += "{:^12}│"
@@ -127,7 +128,7 @@ class listingWriter(object):
         """ For internal use only. """
         PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
         calculationTimeToWrite = getFormattedTime(calculationTime)
-        
+
         if sourceObject in self.physics_:
             self.sumCalculationTime_ += calculationTime
 
@@ -146,8 +147,8 @@ class listingWriter(object):
                     toWrite += "{:.4e}".format(input_var)
                 else:
                     toWrite += "{:.4f}".format(input_var)
-                toWrite += ", ok = " +  ("yes" if outputTuple else "no")
-                
+                toWrite += ", ok = " + ("yes" if outputTuple else "no")
+
             elif methodName in ["solveTimeStep", "initialize", "terminate"]:
                 toWrite += "succed = " + ("yes" if outputTuple else "no")
             elif methodName == "iterateTimeStep":
@@ -155,7 +156,7 @@ class listingWriter(object):
                 toWrite += ", conv. = " + ("yes" if outputTuple[1] else "no")
             elif methodName == "validateTimeStep":
                 toWrite += "time = " + "{:.4f}".format(sourceObject.presentTime())
-            
+
             self.listingFile_.write(self.physicsData_[ind][1].format(toWrite, methodName, PresentTimeToWrite, calculationTimeToWrite))
 
         if sourceObject in self.exchangers_:
@@ -169,7 +170,7 @@ class listingWriter(object):
             sumCalculationTimeToWrite = getFormattedTime(self.sumCalculationTime_)
 
             self.listingFile_.write(self.boxFormat[listingWriter.e_interrupt])
-            self.listingFile_.write(self.boxFormat[listingWriter.e_bilan].format("SumCPU " + sumCalculationTimeToWrite, PresentTimeToWrite, calculationTimeToWrite))  
+            self.listingFile_.write(self.boxFormat[listingWriter.e_bilan].format("SumCPU " + sumCalculationTimeToWrite, PresentTimeToWrite, calculationTimeToWrite))
             self.listingFile_.write(self.boxFormat[listingWriter.e_continue])
 
             self.timeValid_ = PresentTime
@@ -186,13 +187,13 @@ class mergedListingWriter(listingWriter):
     e_exchange_start = 9
     e_exchange_end = e_physics_end
     e_exchange_elem = 10
-    
+
     def __init__(self, listingFile):
         listingWriter.__init__(self, listingFile)
-    
+
     def initialize(self, coupler, physics, exchangers):
         listingWriter.initialize(self, coupler, physics, exchangers)
-        
+
         self.boxFormat.append("")
         self.boxFormat.append("")
         self.boxFormat.append("")
@@ -213,7 +214,7 @@ class mergedListingWriter(listingWriter):
         self.boxFormat[mergedListingWriter.e_physics_start] += "            ┃\n"
         self.boxFormat[mergedListingWriter.e_physics_end] += "{:^12}┃\n"
         self.boxFormat[mergedListingWriter.e_exchange_start] += "            ┃\n"
-        
+
         self.boxFormat[mergedListingWriter.e_exchange_elem] += "{:-^18}"
 
     def readLastLine(self):
@@ -228,15 +229,15 @@ class mergedListingWriter(listingWriter):
             count -= 1
         LastLine = LastLine[::-1]
         LastLine = LastLine.strip("┃")
-        LastLine = LastLine.replace(" ","")
-        LastLine = LastLine.replace("-","")
+        LastLine = LastLine.replace(" ", "")
+        LastLine = LastLine.replace("-", "")
         return LastLine.split("│"), count
 
     def writeBefore(self, sourceObject, methodName, runningPhysics, PresentTime):
         if sourceObject in self.physics_:
             PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
             ind = self.physics_.index(sourceObject)
-            
+
             columnList = [":" if running else "" for running in runningPhysics]
             columnList[ind] = methodName
 
@@ -261,7 +262,7 @@ class mergedListingWriter(listingWriter):
             self.sumCalculationTime_ += calculationTime
 
             ind = self.physics_.index(sourceObject)
-           
+
             lastWords, count = self.readLastLine()
             if lastWords[ind + 1] == methodName:
                 self.listingFile_.seek(count - 1, 2)
@@ -313,8 +314,8 @@ def mergeListing(listingsName, newListingName):
     physicsNumber = [0 for l in listings]
     refTimes = [0. for l in listings]
     refTime = float('inf')
-    
-    for i,l in enumerate(listings):
+
+    for i, l in enumerate(listings):
         if lineNumbers[i] > 2:
             line = l.readline()
             words = line.split()
@@ -329,19 +330,19 @@ def mergeListing(listingsName, newListingName):
                 physicsNumber[i] += len(words) - 3
             l.readline()
             lineCurrentNumbers[i] += 3
-    
+
     physicsShift = [0 for l in listings]
     for i in range(1, len(physicsShift)):
-        physicsShift[i] = physicsShift[i-1] + physicsNumber[i-1]
-    
+        physicsShift[i] = physicsShift[i - 1] + physicsNumber[i - 1]
+
     myCoupler = 0
-    mydumbPhysics = [(i+1, physicsName[i]) for i in range(len(physicsName))]
+    mydumbPhysics = [(i + 1, physicsName[i]) for i in range(len(physicsName))]
     runningPhysics = [False for p in mydumbPhysics]
-    myExchanger = len(physicsName)+1
-    
+    myExchanger = len(physicsName) + 1
+
     writer.initialize(myCoupler, mydumbPhysics, [(myExchanger, "")])
     listingWriter.writeBefore(writer, myCoupler, "initialize", refTime)
-    
+
     lineWords = [[] for l in listings]
     CurrentTime = [0. for l in listings]
     lineNature = [-1 for l in listings]
@@ -352,7 +353,7 @@ def mergeListing(listingsName, newListingName):
     nature_exchange_oneline = 3
     nature_start = 4
     nature_end_exchange = 5
-    
+
     def readOneListingLine(i):
         l = listings[i]
         lineWords[i] = []
@@ -361,7 +362,7 @@ def mergeListing(listingsName, newListingName):
         done = False
         while not done:
             if lineCurrentNumbers[i] - 1 < lineNumbers[i]:
-                line = l.readline() 
+                line = l.readline()
                 line = line.strip().strip("┃")
                 lineWords[i] = line.split("│")
                 lineWords[i] = [word.strip() for word in lineWords[i]]
@@ -385,7 +386,7 @@ def mergeListing(listingsName, newListingName):
                             lineNature[i] = nature_exchange_start
                     if lineWords[i][j] == "end":
                         lineNature[i] = nature_end
-                    elif lineWords[i][j].strip('-')  == "end":
+                    elif lineWords[i][j].strip('-') == "end":
                         lineNature[i] = nature_end_exchange
             if lineNature[i] == -1 and lineWords[i][-1] != "":
                 lineNature[i] = nature_oneLineCalculation
@@ -401,7 +402,7 @@ def mergeListing(listingsName, newListingName):
     while minTime < float('inf'):
         minTime = float('inf')
         imin = -1
-        for i,t in enumerate(CurrentTime):
+        for i, t in enumerate(CurrentTime):
             if t < minTime:
                 minTime = t
                 imin = i
@@ -421,7 +422,7 @@ def mergeListing(listingsName, newListingName):
                     lastStarted[ilast] = methodName
                     runningPhysics[ilast] = True
                 CurrentTime[imin] += float(lineWords[imin][-1])
-                
+
             else:
                 if lineNature[imin] == nature_end:
                     writer.writeAfter(mydumbPhysics[physicsInd[imin][0]][0], lineWords[imin][0], lastStarted[physicsInd[imin][0]], runningPhysics, CurrentTime[imin] - float(lineWords[imin][-1]), float(lineWords[imin][-1]))
@@ -454,4 +455,3 @@ def mergeListing(listingsName, newListingName):
     for l in listings:
         l.close()
     newListing.close()
-    

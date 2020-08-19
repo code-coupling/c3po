@@ -20,6 +20,7 @@ class ScalarPhysicsCoupler(C3POMPI.MPICoupler):
         self.physicsDrivers_[1].solve()
         return self.physicsDrivers_[0].getSolveStatus() and self.physicsDrivers_[1].getSolveStatus()
 
+
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
@@ -28,13 +29,13 @@ file2 = open("second.log", "w")
 file3 = open("listingFirst.log", "w")
 file4 = open("listingSecond.log", "w")
 file5 = open("listingCoupler.log", "w")
-file6 = open("listingGeneral"+str(rank)+".log", "wb+")
+file6 = open("listingGeneral" + str(rank) + ".log", "wb+")
 listingW = C3PO.listingWriter(file6)
 
-physics1 = C3PO.tracer(pythonFile = file1, stdoutFile = file3, listingWriter = listingW)(physicsScalarTransient)
-physics2 = C3PO.tracer(pythonFile = file2, stdoutFile = file4, listingWriter = listingW)(physicsScalarTransient)
-C3PO.fixedPointCoupler = C3PO.tracer(stdoutFile = file5, listingWriter = listingW)(C3PO.fixedPointCoupler)
-C3POMPI.MPIExchanger = C3PO.tracer(listingWriter = listingW)(C3POMPI.MPIExchanger)
+physics1 = C3PO.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(physicsScalarTransient)
+physics2 = C3PO.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(physicsScalarTransient)
+C3PO.fixedPointCoupler = C3PO.tracer(stdoutFile=file5, listingWriter=listingW)(C3PO.fixedPointCoupler)
+C3POMPI.MPIExchanger = C3PO.tracer(listingWriter=listingW)(C3POMPI.MPIExchanger)
 
 myPhysics = C3POMPI.MPIRemoteProcess(comm, 0)
 DataCoupler = C3POMPI.MPICollectiveDataManager(comm)
@@ -61,7 +62,7 @@ mycoupler = C3PO.fixedPointCoupler([OneIterationCoupler], [Second2Data, Data2Fir
 mycoupler.setDampingFactor(0.5)
 mycoupler.setConvergenceParameters(1E-5, 100)
 
-listingW.initialize(mycoupler, [(localPhysics, "Physics" + str(rank+1))], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
+listingW.initialize(mycoupler, [(localPhysics, "Physics" + str(rank + 1))], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
 
 mycoupler.init()
 
@@ -72,7 +73,7 @@ else:
 
 mycoupler.solveTransient(2.)
 print(localPhysics.getValue("y"))
-reference = 0. 
+reference = 0.
 if rank == 0:
     reference = round(3.166666, 4)
 else:
