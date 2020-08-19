@@ -150,10 +150,10 @@ class listingWriter(object):
                 toWrite += ", ok = " + ("yes" if outputTuple else "no")
 
             elif methodName in ["solveTimeStep", "initialize", "terminate"]:
-                toWrite += "succed = " + ("yes" if outputTuple else "no")
+                toWrite += "succeed = " + ("yes" if outputTuple else "no")
             elif methodName == "iterateTimeStep":
-                toWrite += "succed = " + ("yes" if outputTuple[0] else "no")
-                toWrite += ", conv. = " + ("yes" if outputTuple[1] else "no")
+                toWrite += "succeed = " + ("yes" if outputTuple[0] else "no")
+                toWrite += ", cv. = " + ("yes" if outputTuple[1] else "no")
             elif methodName == "validateTimeStep":
                 toWrite += "time = " + "{:.4f}".format(sourceObject.presentTime())
 
