@@ -33,7 +33,7 @@ listingW = C3PO.listingWriter(file6)
 
 physics1 = C3PO.tracer(pythonFile = file1, stdoutFile = file3, listingWriter = listingW)(physicsScalarTransient)
 physics2 = C3PO.tracer(pythonFile = file2, stdoutFile = file4, listingWriter = listingW)(physicsScalarTransient)
-newfixedPointCoupler = C3PO.tracer(stdoutFile = file5, listingWriter = listingW)(C3PO.fixedPointCoupler)
+C3PO.fixedPointCoupler = C3PO.tracer(stdoutFile = file5, listingWriter = listingW)(C3PO.fixedPointCoupler)
 C3POMPI.MPIExchanger = C3PO.tracer(listingWriter = listingW)(C3POMPI.MPIExchanger)
 
 myPhysics = C3POMPI.MPIRemoteProcess(comm, 0)
@@ -57,7 +57,7 @@ Data2First = C3POMPI.MPIExchanger(Transformer, [], [], [(DataCoupler, "y")], [(m
 
 OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 
-mycoupler = newfixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
+mycoupler = C3PO.fixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
 mycoupler.setDampingFactor(0.5)
 mycoupler.setConvergenceParameters(1E-5, 100)
 
@@ -71,8 +71,13 @@ else:
     myPhysics2.setOption(3., -1.)
 
 mycoupler.solveTransient(2.)
-#print(myPhysics.getValue("y"), myPhysics2.getValue("y"))
-#assert round(myPhysics.getValue("y"), 4) == round(3.166666, 4) and round(myPhysics2.getValue("y"), 4) == round(2.533333, 4), "Results not good!"
+print(localPhysics.getValue("y"))
+reference = 0. 
+if rank == 0:
+    reference = round(3.166666, 4)
+else:
+    reference = round(2.533333, 4)
+assert round(localPhysics.getValue("y"), 4) == reference, "Results not good!"
 
 mycoupler.terminate()
 
@@ -82,3 +87,9 @@ file3.close()
 file4.close()
 file5.close()
 file6.close()
+
+if rank == 0:
+    nameListing1 = "listingGeneral0.log"
+    nameListing2 = "listingGeneral1.log"
+    filegeneral = "listingGeneralMerged.log"
+    C3PO.mergeListing([nameListing1, nameListing2], filegeneral)

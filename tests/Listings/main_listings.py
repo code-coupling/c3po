@@ -24,12 +24,12 @@ file2 = open("second.log", "w")
 file3 = open("listingFirst.log", "w")
 file4 = open("listingSecond.log", "w")
 file5 = open("listingCoupler.log", "w")
-file6 = open("listingGeneral.log", "wb+")
+file6 = open("listingGeneral2.log", "wb+")
 listingW = C3PO.listingWriter(file6)
 
 physics1 = C3PO.tracer(pythonFile = file1, stdoutFile = file3, listingWriter = listingW)(physicsScalarTransient)
 physics2 = C3PO.tracer(pythonFile = file2, stdoutFile = file4, listingWriter = listingW)(physicsScalarTransient)
-newfixedPointCoupler = C3PO.tracer(stdoutFile = file5, listingWriter = listingW)(C3PO.fixedPointCoupler)
+C3PO.fixedPointCoupler = C3PO.tracer(stdoutFile = file5, listingWriter = listingW)(C3PO.fixedPointCoupler)
 C3PO.exchanger = C3PO.tracer(listingWriter = listingW)(C3PO.exchanger)
 
 myPhysics = physics1()
@@ -44,7 +44,7 @@ Data2First = C3PO.exchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysi
 
 OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 
-mycoupler = newfixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
+mycoupler = C3PO.fixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
 mycoupler.setDampingFactor(0.5)
 mycoupler.setConvergenceParameters(1E-5, 100)
 

@@ -132,7 +132,7 @@ class tracerMeta(type):
                         input_var = 0.
                         if method.__name__ == "initTimeStep":
                             input_var = get_initTimeStep_input(*args, **kwargs)
-                        lWriter.writeAfter(self, input_var, result, method.__name__, end, end - start)
+                        lWriter.writeAfter(self, input_var, result, method.__name__, start, end - start)
 
                 return result
 
