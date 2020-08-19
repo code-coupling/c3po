@@ -47,7 +47,7 @@ class MPIRemoteProcess(physicsDriver, dataManager):
         return self.t_
 
     def computeTimeStep(self):
-        return (self.dt_, False)
+        return (self.dt_, True)
 
     def initTimeStep(self, dt):
         self.dt_ = dt
