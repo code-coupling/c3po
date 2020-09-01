@@ -264,7 +264,7 @@ class mergedListingWriter(listingWriter):
             ind = self.physics_.index(sourceObject)
 
             lastWords, count = self.readLastLine()
-            if lastWords[ind + 1] == methodName:
+            if len(lastWords) > ind + 1 and lastWords[ind + 1] == methodName:
                 self.listingFile_.seek(count - 1, 2)
                 columnList[ind] = methodName
             else:
