@@ -85,6 +85,12 @@ class coupler(physicsDriver):
             resu = resu and physics.initTimeStep(dt)
         return resu
 
+    def getSolveStatus(self):
+        resu = True
+        for physics in self.physicsDrivers_:
+            resu = resu and physics.getSolveStatus()
+        return resu
+
     def validateTimeStep(self):
         for physics in self.physicsDrivers_:
             physics.validateTimeStep()

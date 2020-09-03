@@ -18,7 +18,7 @@ class ScalarPhysicsCoupler(C3POMPI.MPICoupler):
         self.physicsDrivers_[0].solve()
         self.exchangers_[0].exchange()
         self.physicsDrivers_[1].solve()
-        return self.physicsDrivers_[0].getSolveStatus() and self.physicsDrivers_[1].getSolveStatus()
+        return self.getSolveStatus()
 
 
 comm = MPI.COMM_WORLD
