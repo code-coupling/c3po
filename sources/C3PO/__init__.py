@@ -10,17 +10,17 @@
 
 """ Import user non-MPI C3PO objects. """
 
-from dataManager import dataManager
-from collaborativeDataManager import collaborativeDataManager
-from exchanger import exchanger
-from collaborativeExchanger import collaborativeExchanger
-from coupler import coupler, normChoice
-from tracer import tracer
-from listingWriter import listingWriter, mergeListing
-from couplers.fixedPointCoupler import fixedPointCoupler
-from couplers.AndersonCoupler import AndersonCoupler
-from couplers.AndersonQRCoupler import AndersonQRCoupler
-from couplers.JFNKCoupler import JFNKCoupler
-from exchangeMethods.directMatching import directMatching
-from exchangeMethods.sharedRemapping import sharedRemapping, remapper
-from exchangeMethods.sharedRemappingMulti1D3D import sharedRemappingMulti1D3D, Multi1D3DRemapper
+from .dataManager import dataManager
+from .collaborativeDataManager import collaborativeDataManager
+from .exchanger import exchanger
+from .collaborativeExchanger import collaborativeExchanger
+from .coupler import coupler, normChoice
+from .tracer import tracer
+from .listingWriter import listingWriter, mergeListing
+from .couplers.fixedPointCoupler import fixedPointCoupler
+from .couplers.AndersonCoupler import AndersonCoupler
+from .couplers.AndersonQRCoupler import AndersonQRCoupler
+from .couplers.JFNKCoupler import JFNKCoupler
+from .exchangeMethods.directMatching import directMatching
+from .exchangeMethods.sharedRemapping import sharedRemapping, remapper
+from .exchangeMethods.sharedRemappingMulti1D3D import sharedRemappingMulti1D3D, Multi1D3DRemapper

@@ -11,7 +11,7 @@
 """ Contains the class coupler. """
 from __future__ import print_function, division
 
-from physicsDriver import physicsDriver
+from .physicsDriver import physicsDriver
 
 
 class normChoice(object):

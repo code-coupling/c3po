@@ -15,7 +15,7 @@ import time
 import sys
 import os
 
-from MEDLoader import MEDLoader
+import MEDLoader as ml
 
 
 def get_setInputMEDField_input(name, field):
@@ -36,13 +36,21 @@ def getArgsString(*args, **kwargs):
         if isinstance(arg, str):
             str_arg = "'" + arg + "'"
         string_args += str_arg + ","
-    for nameattr, arg in kwargs.iteritems():
+    for nameattr, arg in kwargs.items():
         str_arg = str(arg)
         if isinstance(arg, str):
             str_arg = "'" + arg + "'"
         string_args += nameattr + " = " + str_arg + ","
     string_args += ")"
     return string_args
+
+
+def WriteField_MC789(n, f, b):
+    try:
+        writeField = ml.MEDLoader.WriteField
+    except:
+        writeField = ml.WriteField
+    writeField(n, f, b)
 
 
 class tracerMeta(type):
@@ -94,7 +102,7 @@ class tracerMeta(type):
                             nameMEDFile = name_field + str(len(self.static_MEDinfo[name_field])) + ".med"
                             timeMED, iteration, order = field.getTime()
                             self.static_MEDinfo[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
-                            MEDLoader.WriteField(nameMEDFile, field, True)
+                            WriteField_MC789(nameMEDFile, field, True)
                             pythonFile.write("field_" + objectName + " = MEDLoader.ReadField" + str(self.static_MEDinfo[name_field][-1]) + "\n")
                         pythonFile.write(objectName + "." + method.__name__ + "('" + name_field + "', field_" + objectName + ")" + "\n")
                     else:
@@ -142,7 +150,7 @@ class tracerMeta(type):
             return _trace
 
         newDct = {}
-        for nameattr, method in dct.iteritems():
+        for nameattr, method in dct.items():
             if type(method) is FunctionType:
                 newDct[nameattr] = _wrapper(method)
             else:
@@ -151,7 +159,7 @@ class tracerMeta(type):
 
 
 def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, listingWriter=None):
-    """ tracer is a class wrapper allowing to trace the calls of the methods of the base class. 
+    """ tracer is a class wrapper allowing to trace the calls of the methods of the base class.
 
     It has different functions:
 
@@ -165,7 +173,7 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
 
     :param pythonFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script is written there. It has to be closed (file.close()) by caller.
     :param saveMED: This is related to the python file writing.
-        - if set to True (default value), every time setInputMEDField is called, the input MED field is stored in an independant .med file, and MEDLoader reading call is written in the output file. 
+        - if set to True (default value), every time setInputMEDField is called, the input MED field is stored in an independant .med file, and MEDLoader reading call is written in the output file.
         - if set to False, the MED field is not stored and the MEDLoader call is not written. Only the setInputMEDField call is written. The replay is not possible.
     :param stdoutFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output is redirected there. It has to be closed (file.close()) by caller.
     :param stderrFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is redirected there. It has to be closed (file.close()) by caller.
@@ -176,7 +184,7 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
 
     tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
         @C3PO.tracer(...)
-        class myclass(...): 
+        class myclass(...):
             ...
 
     or it can be used in order to redefined only locally the class like that:
@@ -195,7 +203,7 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
         if pythonFile is not None:
             pythonFile.write("# -*- coding: utf-8 -*-" + "\n")
             pythonFile.write("from __future__ import print_function, division" + "\n")
-            pythonFile.write("from MEDLoader import MEDLoader" + "\n")
+            pythonFile.write("import MEDLoader as ml" + "\n")
             pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
         baseclass.static_pythonFile = pythonFile
         baseclass.static_saveMED = saveMED
