@@ -50,6 +50,8 @@ class PBC(C3.Problem_Cathare, physicsDriver):
             separator = "_"
         if name.split(separator)[0] == "ROWLAND":
             return self.get_rowland(*(name.split(separator)[1:]))
+        elif name.split(separator)[0] == "WEIGHTEDVOL":
+            return self.get_weighted_volume(*(name.split(separator)[1:]))
         else: return C3.Problem_Cathare.getOutputMEDField(self, name)
 
     def get_rowland(self, cname, loc):
@@ -60,6 +62,13 @@ class PBC(C3.Problem_Cathare, physicsDriver):
         fs *= 5. / 9.
         fc.getArray().addEqual(fs.getArray())
         return fc
+
+    def get_weighted_volume(self, cname, loc, irad=-1):
+
+        f = self.getOutputMEDField(build_name("VOLMED", cname, loc, irad))
+        f *=  float(self.getIValue("IWPOI@{}".format(cname)))
+
+        return f
 
     def getOutputMEDField(self, name):
         if name.startswith("reconstruction"):
@@ -109,21 +118,6 @@ class PBC(C3.Problem_Cathare, physicsDriver):
         ch = self.getOutputMEDField(name)
         ch *= 0.0
         return ch
-
-    def compute_fuel_volume(self, list_of_wa):
-
-        fields = []
-        for cname in list_of_wa.split("//"):
-            field = self.getOutputMEDField("reconstruction:CELLS:0__VOLMED__{}".format(cname))
-            iwpoi = float(self.getIValue("IWPOI@{}".format(cname)))
-            field *= iwpoi
-            fields.append(field)
-
-        field = ml.MEDCouplingFieldDouble.MergeFields(fields)
-        field.setName("fuel_volume")
-        ml.MEDLoader.WriteField("volume_uo2.med", field, True)
-
-        return field
 
     def post(self):
         # ecriture des maillages et entete fichier colonne
