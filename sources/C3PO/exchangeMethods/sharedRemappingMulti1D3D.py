@@ -19,7 +19,7 @@ from MEDCouplingRemapper import MEDCouplingRemapper
 class Multi1D3DRemapper(MEDCouplingRemapper):
     """ Allows to share the mesh projection for different sharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
-    def __init__(self, XCoordinates, YCoordinates, indexTable, weights, defaultValue=0.):
+    def __init__(self, XCoordinates, YCoordinates, indexTable, weights):
         """ Builds a Multi1D3DRemapper object.
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.
@@ -30,7 +30,6 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         :param YCoordinates: y coordinates of the inner mesh to build.
         :param indexTable: For each position of the 2D grid (x coordinate changes first), the index of the 1D field to associate. Put -1 to associate to nothing.
         :param weights: Weigh of each 1D field to take into account for extensive variables.
-        :param defaultValue: This is the default value to be assigned, after projection, in the meshes of the target mesh which are not intersected by the source mesh.
         """
         MEDCouplingRemapper.__init__(self)
 
@@ -53,21 +52,27 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         self.innerField_ = MEDCoupling.MEDCouplingFieldDouble(MEDCoupling.ON_CELLS, MEDCoupling.ONE_TIME)
         self.innerField_.setName("3DFieldFromMulti1D")
         self.isInit_ = False
-        self.defaultValue_ = defaultValue
 
-    def initialize(self, Mesh1D, Mesh3D):
+    def initialize(self, Mesh1D, Mesh3D, meshAlignment, axialOffset):
         self.arrayZ_ = Mesh1D.getCoordsAt(0)
         self.innerMesh_.setCoords(self.arrayX_, self.arrayY_, self.arrayZ_)
         self.numberOfCellsIn1D_ = Mesh1D.getNumberOfCells()
         self.innerField_.setMesh(self.innerMesh_)
         array = MEDCoupling.DataArrayDouble()
         array.alloc(self.numberOfCellsIn1D_ * self.numberOf1DPositions_)
-        array.fillWithValue(self.defaultValue_)
+        array.fillWithValue(0.)
         self.innerField_.setArray(array)
+        if meshAlignment:
+            for mesh in [self.innerMesh_, Mesh3D]:
+                [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
+                offset = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
+                mesh.translate(offset)
+        if axialOffset != 0.:
+            self.innerMesh_.translate([0., 0., -axialOffset])
         self.prepare(self.innerMesh_, Mesh3D, "P0P0")
         self.isInit_ = True
 
-    def Build3DField(self, Fields1D):
+    def Build3DField(self, Fields1D, defaultValue):
         if len(Fields1D) > 0:
             self.innerField_.setNature(Fields1D[0].getNature())
         Array3D = self.innerField_.getArray()
@@ -78,10 +83,10 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
                 Array1D *= self.weights_[i]
             for position in self.indexTable_[i]:
                 Array3D.setPartOfValues1(Array1D, position, NbOfElems3D, self.numberOf1DPositions_, 0, 1, 1)
-        return self.transferField(self.innerField_, self.defaultValue_)
+        return self.transferField(self.innerField_, defaultValue)
 
-    def Build1DFields(self, Field3D):
-        self.innerField_ = self.reverseTransferField(Field3D, self.defaultValue_)
+    def Build1DFields(self, Field3D, defaultValue):
+        self.innerField_ = self.reverseTransferField(Field3D, defaultValue)
         Array3D = self.innerField_.getArray()
         Fields1D = []
         for i, List1D in enumerate(self.indexTable_):
@@ -117,32 +122,43 @@ class sharedRemappingMulti1D3D():
     The initialization of the projection method (long operation) is done only once, and can be shared with other instances of sharedRemappingMulti1D3D.
     """
 
-    def __init__(self, remapper, reverse=False):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1.,0.), meshAlignment=False, axialOffset = 0.):
         """ Builds an sharedRemappingMulti1D3D object, to be given to an exchanger object.
 
         :param remapper: A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of sharedRemappingMulti1D3D (its initialization will always be done only once).
         :param reverse: Allows the remapper to be shared with an instance of sharedRemappingMulti1D3D performing the reverse exchange (the projection will be done in the reverse direction if reverse is set to True).
+        :param defaultValue: This is the default value to be assigned, after projection, in the meshes of the target mesh which are not intersected by the source mesh.
+        :param linearTransform: Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
+        :param meshAlignment: If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box" is radially centred on (x = 0., y = 0.) and has zmin = 0.
+        :param axialOffset: Value of the axial offset between the source and the target meshes (>0 means that the source mesh is above the target one). The given value is used to translate "down" the source mesh (after the mesh alignment, if any).
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
+        self.defaultValue_ = defaultValue
+        self.linearTransform_ = linearTransform
+        self.meshAlignment_ = meshAlignment
+        self.axialOffset_ = axialOffset
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         if not self.remapper_.isInit_:
             if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh())
+                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, -self.axialOffset_)
             else:
-                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh())
+                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.axialOffset_)
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         self.initialize(fieldsToGet, fieldsToSet, valuesToGet)
         resu = []
         if self.isReverse_:
             for field3D in fieldsToGet:
-                resu += self.remapper_.Build1DFields(field3D)
+                resu += self.remapper_.Build1DFields(field3D, self.defaultValue_)
         else:
             index_first = 0
             while index_first + len(self.remapper_.indexTable_) <= len(fieldsToGet):
                 Fields1D = [fieldsToGet[index_first + k] for k in range(len(self.remapper_.indexTable_))]
-                resu += [self.remapper_.Build3DField(Fields1D)]
+                resu += [self.remapper_.Build3DField(Fields1D, self.defaultValue_)]
                 index_first += len(self.remapper_.indexTable_)
+        if self.linearTransform_ != (1.,0.):
+            for med in resu:
+                med.applyLin(*(self.linearTransform_))
         return resu, valuesToGet

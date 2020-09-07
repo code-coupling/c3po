@@ -13,12 +13,12 @@ import C3POMPI
 
 class Thermo2Neutro(C3PO.sharedRemapping):
     def __init__(self, remapper):
-        C3PO.sharedRemapping.__init__(self, remapper, False)
+        C3PO.sharedRemapping.__init__(self, remapper, reverse=False)
 
 
 class Neutro2Thermo(C3PO.sharedRemapping):
     def __init__(self, remapper):
-        C3PO.sharedRemapping.__init__(self, remapper, True)
+        C3PO.sharedRemapping.__init__(self, remapper, reverse=True)
 
 
 class OneIterationCoupler(C3POMPI.MPICoupler):

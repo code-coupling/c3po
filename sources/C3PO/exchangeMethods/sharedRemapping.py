@@ -22,7 +22,14 @@ class remapper(MEDCouplingRemapper):
         MEDCouplingRemapper.__init__(self)
         self.isInit_ = False
 
-    def initialize(self, sourceMesh, targetMesh):
+    def initialize(self, sourceMesh, targetMesh, meshAlignment, axialOffset):
+        if meshAlignment:
+            for mesh in [sourceMesh, targetMesh]:
+                [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
+                offset = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
+                mesh.translate(offset)
+        if axialOffset != 0.:
+            sourceMesh.translate([0., 0., -axialOffset])
         self.prepare(sourceMesh, targetMesh, "P0P0")
         self.isInit_ = True
 
@@ -38,25 +45,31 @@ class sharedRemapping(object):
     The initialization of the projection method (long operation) is done only once, and can be shared with other instances of sharedRemapping.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0.):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1.,0.), meshAlignment=False, axialOffset=0.):
         """ Builds an sharedRemapping object, to be given to an exchanger object.
 
         :param remapper: A remapper object (defined in C3PO and inheriting from MEDCouplingRemapper) performing the projection. It can thus be shared with other instances of sharedRemapping (its initialization will always be done only once).
         :param reverse: Allows the remapper to be shared with an instance of sharedRemapping performing the reverse exchange (the projection will be done in the reverse direction if reverse is set to True).
         :param defaultValue: This is the default value to be assigned, after projection, in the meshes of the target mesh which are not intersected by the source mesh.
+        :param linearTransform: Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
+        :param meshAlignment: If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box" is radially centred on (x = 0., y = 0.) and has zmin = 0.
+        :param axialOffset: Value of the axial offset between the source and the target meshes (>0 means that the source mesh is above the target one). The given value is used to translate "down" the source mesh (after the mesh alignment, if any).
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
         self.defaultValue_ = defaultValue
+        self.linearTransform_ = linearTransform
+        self.meshAlignment_ = meshAlignment
+        self.axialOffset_ = axialOffset
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         if len(fieldsToSet) != len(fieldsToGet):
             raise Exception("sharedRemapping.initialize there must be the same number of input and output MED fields")
         if not self.remapper_.isInit_:
             if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh())
+                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, -self.axialOffset_)
             else:
-                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh())
+                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.axialOffset_)
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         self.initialize(fieldsToGet, fieldsToSet, valuesToGet)
@@ -66,4 +79,7 @@ class sharedRemapping(object):
                 TransformedMED.append(self.remapper_.reverseTransferField(fieldsToGet[i], self.defaultValue_))
             else:
                 TransformedMED.append(self.remapper_.transferField(fieldsToGet[i], self.defaultValue_))
+        if self.linearTransform_ != (1.,0.):
+            for med in TransformedMED:
+                med.applyLin(*(self.linearTransform_))
         return TransformedMED, valuesToGet
