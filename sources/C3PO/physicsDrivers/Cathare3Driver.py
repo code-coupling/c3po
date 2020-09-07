@@ -9,7 +9,7 @@ from C3PO.physicsDriver import physicsDriver
 short_name = lambda name: name.split("__")[1] if (name.startswith("reconstruction") or name.startswith("sommewall__")) else name
 
 
-def build_name(keyword, cname, loc, irad):
+def build_name(keyword, cname, loc, irad=-1):
     new_name = "{}@{}@{}".format(keyword, cname, loc)
     if int(irad) > 0:
         new_name += "@{}".format(irad)
@@ -44,6 +44,23 @@ class PBC(C3.Problem_Cathare, physicsDriver):
     def terminate(self):
         C3.Problem_Cathare.terminate(self)
 
+    def getOutputMEDField_driver(self, name):
+        separator = "@"
+        if name.find(separator) == -1:
+            separator = "_"
+        if name.split(separator)[0] == "ROWLAND":
+            return self.get_rowland(*(name.split(separator)[1:]))
+        else: return C3.Problem_Cathare.getOutputMEDField(self, name)
+
+    def get_rowland(self, cname, loc):
+        fc = self.getOutputMEDField(build_name("UO2CTEMP", cname, loc))
+        fs = self.getOutputMEDField(build_name("UO2STEMP", cname, loc))
+
+        fc *= 4. / 9.
+        fs *= 5. / 9.
+        fc.getArray().addEqual(fs.getArray())
+        return fc
+
     def getOutputMEDField(self, name):
         if name.startswith("reconstruction"):
             reco, keyword, listofobjects = name.split("__")
@@ -55,12 +72,12 @@ class PBC(C3.Problem_Cathare, physicsDriver):
                     func = getattr(self, "get_field_on_3D_mesh")
                     fields.append(func(new_name))
                 else:
-                    fields.append(C3.Problem_Cathare.getOutputMEDField(self, new_name))
+                    fields.append(self.getOutputMEDField_driver(new_name))
             field = ml.MEDCouplingFieldDouble.MergeFields(fields)
             field.setName(keyword)
             return field
         else:
-            return C3.Problem_Cathare.getOutputMEDField(self, name)
+            return self.getOutputMEDField_driver(name)
 
     def setInputMEDField(self, name, field):
 
