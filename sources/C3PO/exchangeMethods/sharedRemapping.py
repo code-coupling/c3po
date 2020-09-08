@@ -70,6 +70,9 @@ class sharedRemapping(object):
                 self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.axialOffset_)
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
+        if len(fieldsToSet) != len(fieldsToGet):
+            raise Exception("sharedRemapping : there must be the same number of input and output MED fields")
+
         self.initialize(fieldsToGet, fieldsToSet, valuesToGet)
         TransformedMED = []
         for i in range(len(fieldsToSet)):
