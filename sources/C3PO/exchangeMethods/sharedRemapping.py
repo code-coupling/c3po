@@ -63,8 +63,6 @@ class sharedRemapping(object):
         self.axialOffset_ = axialOffset
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
-        if len(fieldsToSet) != len(fieldsToGet):
-            raise Exception("sharedRemapping.initialize there must be the same number of input and output MED fields")
         if not self.remapper_.isInit_:
             if self.isReverse_:
                 self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, -self.axialOffset_)
