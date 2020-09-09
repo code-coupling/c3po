@@ -22,22 +22,21 @@ class remapper(MEDCouplingRemapper):
         MEDCouplingRemapper.__init__(self)
         self.isInit_ = False
 
-    def initialize(self, sourceMesh, targetMesh, meshAlignment, axialOffset):
+    def initialize(self, sourceMesh, targetMesh, meshAlignment, offset3D):
         if meshAlignment:
             for mesh in [sourceMesh, targetMesh]:
                 [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
                 offset = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
                 mesh.translate(offset)
-        if axialOffset != 0.:
-            sourceMesh.translate([0., 0., -axialOffset])
+        sourceMesh.translate([-x for x in offset3D])
         self.prepare(sourceMesh, targetMesh, "P0P0")
         self.isInit_ = True
 
 
 class sharedRemapping(object):
-    """ The __call__ method of this class projects the input fields one by one before returning them as outputs, in the same order. 
+    """ The __call__ method of this class projects the input fields one by one before returning them as outputs, in the same order.
 
-    The method assumes that all input fields have the same mesh, and produces output fields on identical meshes. 
+    The method assumes that all input fields have the same mesh, and produces output fields on identical meshes.
     This output mesh is the one of the first field passed to the method (obtained by getInputMEDFieldTemplate).
 
     The input scalars are returned in the same order, without modification.
@@ -45,7 +44,7 @@ class sharedRemapping(object):
     The initialization of the projection method (long operation) is done only once, and can be shared with other instances of sharedRemapping.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1.,0.), meshAlignment=False, axialOffset=0.):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.]):
         """ Builds an sharedRemapping object, to be given to an exchanger object.
 
         :param remapper: A remapper object (defined in C3PO and inheriting from MEDCouplingRemapper) performing the projection. It can thus be shared with other instances of sharedRemapping (its initialization will always be done only once).
@@ -53,21 +52,21 @@ class sharedRemapping(object):
         :param defaultValue: This is the default value to be assigned, after projection, in the meshes of the target mesh which are not intersected by the source mesh.
         :param linearTransform: Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
         :param meshAlignment: If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box" is radially centred on (x = 0., y = 0.) and has zmin = 0.
-        :param axialOffset: Value of the axial offset between the source and the target meshes (>0 means that the source mesh is above the target one). The given value is used to translate "down" the source mesh (after the mesh alignment, if any).
+        :param offset: Value of the 3D offset between the source and the target meshes (>0 means that the source mesh is above the target one). The given value is used to translate "down" the source mesh (after the mesh alignment, if any).
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
         self.defaultValue_ = defaultValue
         self.linearTransform_ = linearTransform
         self.meshAlignment_ = meshAlignment
-        self.axialOffset_ = axialOffset
+        self.offset_ = offset
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         if not self.remapper_.isInit_:
             if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, -self.axialOffset_)
+                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_])
             else:
-                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.axialOffset_)
+                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_)
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         if len(fieldsToSet) != len(fieldsToGet):
@@ -80,7 +79,7 @@ class sharedRemapping(object):
                 TransformedMED.append(self.remapper_.reverseTransferField(fieldsToGet[i], self.defaultValue_))
             else:
                 TransformedMED.append(self.remapper_.transferField(fieldsToGet[i], self.defaultValue_))
-        if self.linearTransform_ != (1.,0.):
+        if self.linearTransform_ != (1., 0.):
             for med in TransformedMED:
                 med.applyLin(*(self.linearTransform_))
         return TransformedMED, valuesToGet
