@@ -53,7 +53,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         self.innerField_.setName("3DFieldFromMulti1D")
         self.isInit_ = False
 
-    def initialize(self, Mesh1D, Mesh3D, meshAlignment, axialOffset):
+    def initialize(self, Mesh1D, Mesh3D, meshAlignment, offset):
         self.arrayZ_ = Mesh1D.getCoordsAt(0)
         self.innerMesh_.setCoords(self.arrayX_, self.arrayY_, self.arrayZ_)
         self.numberOfCellsIn1D_ = Mesh1D.getNumberOfCells()
@@ -65,10 +65,10 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         if meshAlignment:
             for mesh in [self.innerMesh_, Mesh3D]:
                 [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
-                offset = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
-                mesh.translate(offset)
-        if axialOffset != 0.:
-            self.innerMesh_.translate([0., 0., -axialOffset])
+                offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
+                mesh.translate(offsettmp)
+        if offset != [0., 0., 0.]:
+            self.innerMesh_.translate([-x for x in offset])
         self.prepare(self.innerMesh_, Mesh3D, "P0P0")
         self.isInit_ = True
 
@@ -122,7 +122,7 @@ class sharedRemappingMulti1D3D():
     The initialization of the projection method (long operation) is done only once, and can be shared with other instances of sharedRemappingMulti1D3D.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1.,0.), meshAlignment=False, axialOffset = 0.):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1.,0.), meshAlignment=False, offset=[0., 0., 0.]):
         """ Builds an sharedRemappingMulti1D3D object, to be given to an exchanger object.
 
         :param remapper: A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of sharedRemappingMulti1D3D (its initialization will always be done only once).
@@ -130,21 +130,21 @@ class sharedRemappingMulti1D3D():
         :param defaultValue: This is the default value to be assigned, after projection, in the meshes of the target mesh which are not intersected by the source mesh.
         :param linearTransform: Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
         :param meshAlignment: If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box" is radially centred on (x = 0., y = 0.) and has zmin = 0.
-        :param axialOffset: Value of the axial offset between the source and the target meshes (>0 means that the source mesh is above the target one). The given value is used to translate "down" the source mesh (after the mesh alignment, if any).
+        :param offset: Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
         self.defaultValue_ = defaultValue
         self.linearTransform_ = linearTransform
         self.meshAlignment_ = meshAlignment
-        self.axialOffset_ = axialOffset
+        self.offset_ = offset
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         if not self.remapper_.isInit_:
             if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, -self.axialOffset_)
+                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_])
             else:
-                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.axialOffset_)
+                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_)
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         self.initialize(fieldsToGet, fieldsToSet, valuesToGet)
