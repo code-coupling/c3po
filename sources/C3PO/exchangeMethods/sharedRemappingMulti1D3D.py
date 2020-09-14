@@ -91,6 +91,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         Fields1D = []
         for i, List1D in enumerate(self.indexTable_):
             Fields1D.append(MEDCoupling.MEDCouplingFieldDouble(MEDCoupling.ON_CELLS, MEDCoupling.ONE_TIME))
+            Fields1D[-1].setName(Field3D.getName())
             Mesh1D = MEDCoupling.MEDCouplingCMesh("Mesh1D")
             Mesh1D.setCoords(self.arrayZ_)
             Fields1D[-1].setMesh(Mesh1D)
