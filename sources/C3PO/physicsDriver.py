@@ -21,7 +21,7 @@ class physicsDriver(object):
     def __init__(self):
         self.initStatus_ = False
         self.solveStatus_ = False
-        self.iterateStatus_ = False
+        self.iterateStatus_ = (False, False)
 
     def setDataFile(self, datafile):
         """ Give the name of a data file to the code.
