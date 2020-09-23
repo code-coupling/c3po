@@ -14,6 +14,7 @@ from mpi4py import MPI
 import numpy
 
 import MEDCoupling
+from MEDLoader import MEDLoader
 
 from MPITag import MPITag
 
@@ -44,6 +45,26 @@ class MPIFieldRecipient(object):
             dataArray = MEDCoupling.DataArrayDouble(numpyArray)
             self.field_.setArray(dataArray)
         self.storing_.store(self.field_)
+
+
+class MPIFileFieldRecipient(object):
+    def __init__(self, sender, storing, isCollective, isTemplate):
+        self.sender_ = sender
+        self.storing_ = storing
+        self.isCollective_ = isCollective
+        self.isTemplate_ = isTemplate
+
+    def exchange(self):
+        MPIComm = self.sender_.MPIComm_
+        senderRank = self.sender_.rank_
+        MEDinfo = ()
+        if self.isCollective_:
+            MEDinfo = MPIComm.bcast(MEDinfo, root=senderRank)
+        else:
+            MEDinfo = MPIComm.recv(source=senderRank, tag=MPITag.data)
+        field = MEDLoader.ReadField(*(MEDinfo[0]))
+        field.setNature(MEDinfo[1])
+        self.storing_.store(field)
 
 
 class MPIValueRecipient(object):

@@ -14,8 +14,8 @@ from __future__ import print_function, division
 from C3PO.exchanger import exchanger, shortcutToData
 from MPIRemoteProcess import MPIRemoteProcess
 from MPICollectiveProcess import MPICollectiveProcess
-from MPISender import MPIFieldSender, MPIValueSender
-from MPIRecipient import MPIFieldRecipient, MPIValueRecipient
+from MPISender import MPIFieldSender, MPIFileFieldSender, MPIValueSender
+from MPIRecipient import MPIFieldRecipient, MPIFileFieldRecipient, MPIValueRecipient
 
 
 class MPIShortcutToData(object):
@@ -54,7 +54,7 @@ class MPIExchanger(exchanger):
     Can replace, without impact, an exchanger of a single processor calculation, if the mpi environment is available.
     """
 
-    def __init__(self, method, MEDFieldsToGet, MEDFieldsToSet, ValuesToGet=[], ValuesToSet=[]):
+    def __init__(self, method, MEDFieldsToGet, MEDFieldsToSet, ValuesToGet=[], ValuesToSet=[], exchangeWithFiles=False):
         """ Builds a MPIExchanger object.
 
         This constructor has the same form as the one of exchanger but can also contain objects of type MPIRemoteProcess and MPICollectiveProcess (and therefore MPICollectiveDataManager).
@@ -110,17 +110,21 @@ class MPIExchanger(exchanger):
             if not isinstance(toGet, MPICollectiveProcess):
                 self.fieldsToGet_[i] = MPIShortcutToData(self.fieldsToGet_[i])
                 if not isinstance(toGet, MPIRemoteProcess):
-                    self.MPIexchanges_.append(MPIFieldSender(destinations, shortcutToData(MEDFieldsToGet[i][0], MEDFieldsToGet[i][1]), self.fieldsToGet_[i], False))
+                    fieldSender = MPIFileFieldSender(destinations, shortcutToData(MEDFieldsToGet[i][0], MEDFieldsToGet[i][1]), self.fieldsToGet_[i], False) if exchangeWithFiles else MPIFieldSender(destinations, shortcutToData(MEDFieldsToGet[i][0], MEDFieldsToGet[i][1]), self.fieldsToGet_[i], False)
+                    self.MPIexchanges_.append(fieldSender)
                 elif self.dataNeeded_:
-                    self.MPIexchanges_.append(MPIFieldRecipient(toGet, self.fieldsToGet_[i], self.isCollective_, False))
+                    fieldRecipient = MPIFileFieldRecipient(toGet, self.fieldsToGet_[i], self.isCollective_, False) if exchangeWithFiles else MPIFieldRecipient(toGet, self.fieldsToGet_[i], self.isCollective_, False)
+                    self.MPIexchanges_.append(fieldRecipient)
         for i in range(len(MEDFieldsToSet)):
             toSet = MEDFieldsToSet[i][0]
             if not isinstance(toSet, MPICollectiveProcess):
                 self.fieldsToSet_[i] = MPIShortcutToData(self.fieldsToSet_[i])
                 if not isinstance(toSet, MPIRemoteProcess):
-                    self.MPIexchanges_.append(MPIFieldSender(destinations, shortcutToData(MEDFieldsToSet[i][0], MEDFieldsToSet[i][1]), self.fieldsToSet_[i], True))
+                    fieldSender = MPIFileFieldSender(destinations, shortcutToData(MEDFieldsToSet[i][0], MEDFieldsToSet[i][1]), self.fieldsToSet_[i], True) if exchangeWithFiles else MPIFieldSender(destinations, shortcutToData(MEDFieldsToSet[i][0], MEDFieldsToSet[i][1]), self.fieldsToSet_[i], True)
+                    self.MPIexchanges_.append(fieldSender)
                 elif self.dataNeeded_:
-                    self.MPIexchanges_.append(MPIFieldRecipient(toSet, self.fieldsToSet_[i], self.isCollective_, True))
+                    fieldRecipient = MPIFileFieldRecipient(toSet, self.fieldsToSet_[i], self.isCollective_, True) if exchangeWithFiles else MPIFieldRecipient(toSet, self.fieldsToSet_[i], self.isCollective_, True)
+                    self.MPIexchanges_.append(fieldRecipient)
         for i in range(len(ValuesToGet)):
             toGet = ValuesToGet[i][0]
             if not isinstance(toGet, MPICollectiveProcess):

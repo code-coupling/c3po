@@ -12,9 +12,12 @@
 from __future__ import print_function, division
 from mpi4py import MPI
 import numpy
+import os
 
 from MPITag import MPITag
 from MPICollectiveProcess import MPICollectiveProcess
+
+from MEDLoader import MEDLoader
 
 
 class MPIFieldSender(object):
@@ -45,6 +48,37 @@ class MPIFieldSender(object):
                 else:
                     MPIComm.Send([npArray, MPI.DOUBLE], dest=destination.rank_, tag=MPITag.data)
         self.isFirstSend_ = False
+        self.storing_.store(field)
+
+
+class MPIFileFieldSender(object):
+    def __init__(self, destinations, dataAccess, storing, isTemplate):
+        self.destinations_ = destinations
+        self.dataAccess_ = dataAccess
+        self.storing_ = storing
+        self.isTemplate_ = isTemplate
+
+    def exchange(self):
+        field = 0
+        if self.isTemplate_:
+            field = self.dataAccess_.getInputMEDFieldTemplate()
+        else:
+            field = self.dataAccess_.getOutputMEDField()
+        num = 0
+        while os.path.exists("ExchangeField_" + str(num) + ".med"):
+            num += 1
+        name_file = "ExchangeField_" + str(num) + ".med"
+        MEDLoader.WriteField("ExchangeField_" + str(num) + ".med", field, True)
+        
+        timeMED, iteration, order = field.getTime()
+        MEDinfo = [(field.getTypeOfField(), os.getcwd() + "/" + name_file, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
+        
+        for destination in self.destinations_:
+            MPIComm = destination.MPIComm_
+            if isinstance(destination, MPICollectiveProcess):
+                MPIComm.bcast(MEDinfo, root=MPIComm.Get_rank())
+            else:
+                MPIComm.send(MEDinfo, dest=destination.rank_, tag=MPITag.data)
         self.storing_.store(field)
 
 
