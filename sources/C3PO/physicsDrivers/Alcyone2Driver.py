@@ -22,6 +22,10 @@ import pleiadesMPI
 
 from ctypes import cdll
 
+import inspect
+
+def dmsg(text_s):
+    print (str(inspect.currentframe().f_back.f_lineno) + '| ' + text_s)
 
 class Alcyone2Driver(PhysicsDriver):
     """ This is the implementation of PhysicsDriver for Alcyone2.
@@ -36,6 +40,7 @@ class Alcyone2Driver(PhysicsDriver):
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpi.COMM_SELF)
         self.dt_factor_ = 1.
         self.isInit_ = False
+        dmsg('A2driver');
 
   #  def setDataFile(self, datafile):
   #      self.Alcyone2_.setDataFile(datafile)
@@ -44,11 +49,16 @@ class Alcyone2Driver(PhysicsDriver):
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpicomm)
 
     def initialize(self):
+        dmsg('A2driver');
         if not self.isInit_:
             self.isInit_ = True
+            dmsg('A2driver');
             Alcyone2Init(self.Alcyone2_)
+            dmsg('A2driver');
             self.Alcyone2_.initialize()
-            pleiades.setVerboseLevel(3)
+            dmsg('A2driver');
+            pleiades.setVerboseLevel(5)
+        dmsg('A2driver');
         return True
 
     def terminate(self):
@@ -59,19 +69,25 @@ class Alcyone2Driver(PhysicsDriver):
         return self.Alcyone2_.presentTime()
 
     def computeTimeStep(self):
+        dmsg('A2driver');
         dt = self.Alcyone2_.computeTimeStep()
+        dmsg('A2driver');
         return (self.dt_factor_ * dt, False)
 
     def initTimeStep(self, dt):
+        dmsg('A2driver');
         if dt <= 0:
             dt = 0.001  # Tres specifique a notre cas test !
         self.Alcyone2_.initTimeStep(dt)
+        dmsg('A2driver');
         return True
 
     def solveTimeStep(self):
+        dmsg('A2driver');
         resu = self.Alcyone2_.solveTimeStep()
         if not resu:
             self.dt_factor_ *= 0.5
+        dmsg('A2driver');
         return resu
 
     def validateTimeStep(self):
