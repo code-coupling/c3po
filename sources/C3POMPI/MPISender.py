@@ -14,8 +14,8 @@ from mpi4py import MPI
 import numpy
 import os
 
-from MPITag import MPITag
-from MPICollectiveProcess import MPICollectiveProcess
+from .MPITag import MPITag
+from .MPICollectiveProcess import MPICollectiveProcess
 
 from MEDLoader import MEDLoader
 

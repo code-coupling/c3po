@@ -14,7 +14,7 @@ import math
 from mpi4py import MPI
 
 from C3PO.collaborativeDataManager import collaborativeDataManager
-from MPIRemoteProcess import MPIRemoteProcess
+from .MPIRemoteProcess import MPIRemoteProcess
 
 
 class MPICollaborativeDataManager(collaborativeDataManager):

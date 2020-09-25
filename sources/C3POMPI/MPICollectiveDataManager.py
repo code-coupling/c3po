@@ -11,7 +11,7 @@
 """ Contains the class MPICollectiveDataManager. """
 from __future__ import print_function, division
 
-from MPICollectiveProcess import MPICollectiveProcess
+from .MPICollectiveProcess import MPICollectiveProcess
 from C3PO.dataManager import dataManager
 
 

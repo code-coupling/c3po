@@ -16,7 +16,7 @@ import numpy
 import MEDCoupling
 from MEDLoader import MEDLoader
 
-from MPITag import MPITag
+from .MPITag import MPITag
 
 
 class MPIFieldRecipient(object):

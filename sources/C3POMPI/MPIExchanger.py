@@ -12,10 +12,10 @@
 from __future__ import print_function, division
 
 from C3PO.exchanger import exchanger, shortcutToData
-from MPIRemoteProcess import MPIRemoteProcess
-from MPICollectiveProcess import MPICollectiveProcess
-from MPISender import MPIFieldSender, MPIFileFieldSender, MPIValueSender
-from MPIRecipient import MPIFieldRecipient, MPIFileFieldRecipient, MPIValueRecipient
+from .MPIRemoteProcess import MPIRemoteProcess
+from .MPICollectiveProcess import MPICollectiveProcess
+from .MPISender import MPIFieldSender, MPIFileFieldSender, MPIValueSender
+from .MPIRecipient import MPIFieldRecipient, MPIFileFieldRecipient, MPIValueRecipient
 
 
 class MPIShortcutToData(object):

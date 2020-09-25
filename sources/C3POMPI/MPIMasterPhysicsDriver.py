@@ -13,7 +13,7 @@ from __future__ import print_function, division
 from mpi4py import MPI
 
 from C3PO.physicsDriver import physicsDriver
-from MPITag import MPITag
+from .MPITag import MPITag
 
 
 class MPIMasterPhysicsDriver(physicsDriver):

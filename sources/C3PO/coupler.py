@@ -55,13 +55,13 @@ class coupler(physicsDriver):
             physics.init()
         resu = True
         for physics in self.physicsDrivers_:
-            resu = resu and physics.getInitStatus()
+            resu = (resu and physics.getInitStatus())
         return resu
 
     def terminate(self):
         resu = True
         for physics in self.physicsDrivers_:
-            resu = resu and physics.terminate()
+            resu = (resu and physics.terminate())
         return resu
 
     def presentTime(self):
@@ -75,14 +75,14 @@ class coupler(physicsDriver):
             (dtPhysics, stopPhysics) = physics.computeTimeStep()
             if dtPhysics < dt:
                 dt = dtPhysics
-            stop = stop and stopPhysics
+            stop = (stop and stopPhysics)
         return (dt, stop)
 
     def initTimeStep(self, dt):
         self.dt_ = dt
         resu = True
         for physics in self.physicsDrivers_:
-            resu = resu and physics.initTimeStep(dt)
+            resu = (resu and physics.initTimeStep(dt))
         return resu
 
     def getSolveStatus(self):
@@ -102,7 +102,7 @@ class coupler(physicsDriver):
     def isStationary(self):
         resu = True
         for physics in self.physicsDrivers_:
-            resu = resu and physics.isStationary()
+            resu = (resu and physics.isStationary())
         return resu
 
     def setNormChoice(self, choice):

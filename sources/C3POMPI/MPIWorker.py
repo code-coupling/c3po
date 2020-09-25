@@ -12,9 +12,9 @@
 from __future__ import print_function, division
 from mpi4py import MPI
 
-from MPITag import MPITag
-from MPIRemoteProcess import MPIRemoteProcess
-from MPIMasterCollectivePhysicsDriver import MPIMasterCollectivePhysicsDriver
+from .MPITag import MPITag
+from .MPIRemoteProcess import MPIRemoteProcess
+from .MPIMasterCollectivePhysicsDriver import MPIMasterCollectivePhysicsDriver
 
 
 class MPIWorker(object):

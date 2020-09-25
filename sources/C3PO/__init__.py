@@ -11,6 +11,7 @@
 """ Import user non-MPI C3PO objects. """
 
 from .dataManager import dataManager
+from .physicsDriver import physicsDriver
 from .collaborativeDataManager import collaborativeDataManager
 from .exchanger import exchanger
 from .collaborativeExchanger import collaborativeExchanger

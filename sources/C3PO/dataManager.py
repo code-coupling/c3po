@@ -51,7 +51,7 @@ class dataManager(object):
             if abs(scalar) > norm:
                 norm = abs(scalar)
         for MED in self.MEDFields_.values():
-            normMED = MED.normMax()
+            normMED = MED.normMax()[0]
             if normMED > norm:
                 norm = normMED
         return norm
