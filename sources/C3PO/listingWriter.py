@@ -60,32 +60,32 @@ class listingWriter(object):
 
         self.boxFormat = [""] * 7
         for p in self.physicsData_:
-            p[1] += "┃{:^27}│"
+            p[1] += "┃{:^28}│"
         for e in self.exchangersData_:
-            e[1] += "┃{0:^27.27}│"
-        self.boxFormat[listingWriter.e_top] += "┏{}┯".format("━" * 27)
-        self.boxFormat[listingWriter.e_entete] += "┃{:^27}│".format("In / Out")
-        self.boxFormat[listingWriter.e_closeTop] += "┠{}┼".format("─" * 27)
-        self.boxFormat[listingWriter.e_bilan] += "┃{:^27}│".format("Time step complete")
-        self.boxFormat[listingWriter.e_term] += "┗{}┷".format("━" * 27)
-        self.boxFormat[listingWriter.e_interrupt] += "┠{}┼".format("─" * 27)
-        self.boxFormat[listingWriter.e_continue] += "┠{}┼".format("─" * 27)
+            e[1] += "┃{0:^28.28}│"
+        self.boxFormat[listingWriter.e_top] += "┏{}┯".format("━" * 28)
+        self.boxFormat[listingWriter.e_entete] += "┃{:^28}│".format("In / Out")
+        self.boxFormat[listingWriter.e_closeTop] += "┠{}┼".format("─" * 28)
+        self.boxFormat[listingWriter.e_bilan] += "┃{:^28}│".format("Time step complete")
+        self.boxFormat[listingWriter.e_term] += "┗{}┷".format("━" * 28)
+        self.boxFormat[listingWriter.e_interrupt] += "┠{}┼".format("─" * 28)
+        self.boxFormat[listingWriter.e_continue] += "┠{}┼".format("─" * 28)
         for i, p1 in enumerate(self.physicsData_):
             for j in range(len(self.physicsData_)):
                 if i == j:
-                    p1[1] += "{:^18}│"
+                    p1[1] += "{:^22}│"
                 else:
                     p1[1] += "                  │"
             for e in self.exchangersData_:
-                e[1] += "{1:-^18}│"
-            self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━━━━━━━┯"
-            self.boxFormat[listingWriter.e_entete] += "{:^18.18}│"
-            self.boxFormat[listingWriter.e_closeTop] += "──────────────────┼"
-            self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━━━━━━━┷"
-            self.boxFormat[listingWriter.e_interrupt] += "──────────────────" + ("┴" if i != (len(self.physicsData_) - 1) else "┼")
-            self.boxFormat[listingWriter.e_continue] += "──────────────────" + ("┬" if i != (len(self.physicsData_) - 1) else "┼")
+                e[1] += "{1:-^22}│"
+            self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━━━━━━━━━━━┯"
+            self.boxFormat[listingWriter.e_entete] += "{:^22.22}│"
+            self.boxFormat[listingWriter.e_closeTop] += "──────────────────────┼"
+            self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━━━━━━━━━━━┷"
+            self.boxFormat[listingWriter.e_interrupt] += "──────────────────────" + ("┴" if i != (len(self.physicsData_) - 1) else "┼")
+            self.boxFormat[listingWriter.e_continue] += "──────────────────────" + ("┬" if i != (len(self.physicsData_) - 1) else "┼")
 
-        decalage = (18 + 1) * len(self.physicsData_) - 1
+        decalage = (22 + 1) * len(self.physicsData_) - 1
         self.boxFormat[listingWriter.e_bilan] += "{:^" + str(decalage) + "}│"
 
         for p in self.physicsData_:
@@ -93,7 +93,7 @@ class listingWriter(object):
         for e in self.exchangersData_:
             e[1] += "{2:^12}│"
         self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━┯"
-        self.boxFormat[listingWriter.e_entete] += "  cputime   │"
+        self.boxFormat[listingWriter.e_entete] += "    time    │"
         self.boxFormat[listingWriter.e_closeTop] += "────────────┼"
         self.boxFormat[listingWriter.e_bilan] += "{:^12}│"
         self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━┷"
@@ -105,7 +105,7 @@ class listingWriter(object):
         for e in self.exchangersData_:
             e[1] += "{3:^12}┃\n"
         self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━┓ Reference time = {:}\n"
-        self.boxFormat[listingWriter.e_entete] += "   cpudt    ┃\n"
+        self.boxFormat[listingWriter.e_entete] += "     dt     ┃\n"
         self.boxFormat[listingWriter.e_closeTop] += "────────────┨\n"
         self.boxFormat[listingWriter.e_bilan] += "{:^12}┃\n"
         self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━┛\n"
@@ -170,7 +170,7 @@ class listingWriter(object):
             sumCalculationTimeToWrite = getFormattedTime(self.sumCalculationTime_)
 
             self.listingFile_.write(self.boxFormat[listingWriter.e_interrupt])
-            self.listingFile_.write(self.boxFormat[listingWriter.e_bilan].format("SumCPU " + sumCalculationTimeToWrite, PresentTimeToWrite, calculationTimeToWrite))
+            self.listingFile_.write(self.boxFormat[listingWriter.e_bilan].format("SpentTime " + calculationTimeToWrite, PresentTimeToWrite, sumCalculationTimeToWrite))
             self.listingFile_.write(self.boxFormat[listingWriter.e_continue])
 
             self.timeValid_ = PresentTime
@@ -184,9 +184,9 @@ class mergedListingWriter(listingWriter):
     """ For internal use only. """
     e_physics_start = 7
     e_physics_end = 8
-    e_exchange_start = 9
+    e_exchange_start = e_physics_start
     e_exchange_end = e_physics_end
-    e_exchange_elem = 10
+    e_exchange_elem = 9
 
     def __init__(self, listingFile):
         listingWriter.__init__(self, listingFile)
@@ -198,24 +198,24 @@ class mergedListingWriter(listingWriter):
         self.boxFormat.append("")
         self.boxFormat.append("")
         self.boxFormat.append("")
-        self.boxFormat[mergedListingWriter.e_physics_start] += "┃{}│".format(" " * 27)
-        self.boxFormat[mergedListingWriter.e_physics_end] += "┃{:^27}│"
-        self.boxFormat[mergedListingWriter.e_exchange_start] += "┃{:^27}│"
+        self.boxFormat[mergedListingWriter.e_physics_start] += "┃{:^28}│"
+        self.boxFormat[mergedListingWriter.e_physics_end] += "┃{:^28}│"
+       # self.boxFormat[mergedListingWriter.e_exchange_start] += "┃{:^27}│"
 
         for p1 in self.physicsData_:
-            self.boxFormat[mergedListingWriter.e_physics_start] += "{:^18}│"
-            self.boxFormat[mergedListingWriter.e_physics_end] += "{:^18}│"
-            self.boxFormat[mergedListingWriter.e_exchange_start] += "{:^18}│"
+            self.boxFormat[mergedListingWriter.e_physics_start] += "{:^22}│"
+            self.boxFormat[mergedListingWriter.e_physics_end] += "{:^22}│"
+          #  self.boxFormat[mergedListingWriter.e_exchange_start] += "{:^22}│"
 
         self.boxFormat[mergedListingWriter.e_physics_start] += "{:^12}│"
         self.boxFormat[mergedListingWriter.e_physics_end] += "{:^12}│"
-        self.boxFormat[mergedListingWriter.e_exchange_start] += "{:^12}│"
+      #  self.boxFormat[mergedListingWriter.e_exchange_start] += "{:^12}│"
 
-        self.boxFormat[mergedListingWriter.e_physics_start] += "            ┃\n"
-        self.boxFormat[mergedListingWriter.e_physics_end] += "{:^12}┃\n"
-        self.boxFormat[mergedListingWriter.e_exchange_start] += "            ┃\n"
+        self.boxFormat[mergedListingWriter.e_physics_start] += "{:^12}┃\n" 
+        self.boxFormat[mergedListingWriter.e_physics_end] += "            ┃\n"
+     #   self.boxFormat[mergedListingWriter.e_exchange_start] += "{:^12}┃\n" 
 
-        self.boxFormat[mergedListingWriter.e_exchange_elem] += "{:-^18}"
+        self.boxFormat[mergedListingWriter.e_exchange_elem] += "{:-^22}"
 
     def readLastLine(self):
         self.listingFile_.seek(-self.charPerLine_, 2)
@@ -230,71 +230,76 @@ class mergedListingWriter(listingWriter):
         LastLine = LastLine[::-1]
         LastLine = LastLine.strip("┃")
         LastLine = LastLine.replace(" ", "")
-        LastLine = LastLine.replace("-", "")
         return LastLine.split("│"), count
 
-    def writeBefore(self, sourceObject, methodName, runningPhysics, PresentTime):
+    def writeBefore(self, sourceObject, toWrite, methodName, runningPhysics, PresentTime, calculationTime):
         if sourceObject in self.physics_:
-            PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
-            ind = self.physics_.index(sourceObject)
-
-            columnList = [":" if running else "" for running in runningPhysics]
-            columnList[ind] = methodName
-
-            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*(tuple(columnList) + (PresentTimeToWrite,))))
-
-    def writeBeforeExchange(self, sourceObject, toWrite, methodName, involvedPhysics, runningPhysics, PresentTime):
-        if sourceObject in self.exchangers_:
-            PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
-
-            columnList = [":" if running else "" for running in runningPhysics]
-            for ind in involvedPhysics:
-                columnList[ind] = self.boxFormat[mergedListingWriter.e_exchange_elem].format(methodName)
-
-            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite,))))
-
-    def writeAfter(self, sourceObject, toWrite, methodName, runningPhysics, PresentTime, calculationTime):
-        calculationTimeToWrite = getFormattedTime(calculationTime)
-
-        if sourceObject in self.physics_:
-            columnList = [":" if running else "" for running in runningPhysics]
-
+            calculationTimeToWrite = getFormattedTime(calculationTime)
             self.sumCalculationTime_ += calculationTime
-
+            
+            PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
             ind = self.physics_.index(sourceObject)
 
-            lastWords, count = self.readLastLine()
-            if len(lastWords) > ind + 1 and lastWords[ind + 1] == methodName:
-                self.listingFile_.seek(count - 1, 2)
-                columnList[ind] = methodName
-            else:
-                self.listingFile_.seek(0, 2)
-                columnList[ind] = "end"
-                PresentTime += calculationTime
-            PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
-            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
+            columnList = [":" if running else "" for running in runningPhysics]
+            columnList[ind] = methodName + " st."
 
-        if sourceObject is self.coupler_ and (methodName == "validateTimeStep" or methodName == "terminate"):
-            listingWriter.writeAfter(self, sourceObject, 0, 0, methodName, PresentTime, calculationTime)
+            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
 
-    def writeAfterExchange(self, sourceObject, toWrite, methodName, involvedPhysics, runningPhysics, PresentTime, calculationTime):
+    def writeBeforeExchange(self, sourceObject, toWrite, methodName, involvedPhysics, runningPhysics, PresentTime, calculationTime):
         if sourceObject in self.exchangers_:
             PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
             calculationTimeToWrite = getFormattedTime(calculationTime)
 
             columnList = [":" if running else "" for running in runningPhysics]
+            for ind in involvedPhysics:
+                columnList[ind] = self.boxFormat[mergedListingWriter.e_exchange_elem].format(methodName + " st.")
+
+            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
+
+    def writeAfter(self, sourceObject, toWrite, methodName, runningPhysics, PresentTime):
+        if sourceObject in self.physics_:
+            columnList = [":" if running else "" for running in runningPhysics]
+
+            ind = self.physics_.index(sourceObject)
 
             lastWords, count = self.readLastLine()
-            if lastWords[involvedPhysics[0] + 1] == methodName:
+            if len(lastWords) > ind + 1 and lastWords[ind + 1] == methodName + "st.":
+                self.listingFile_.seek(count - 1, 2)
+                columnList[ind] = methodName
+                PresentTime = float(lastWords[-2])
+                calculationTime = float(lastWords[-1])
+                PresentTimeToWrite = getFormattedTime(PresentTime)
+                calculationTimeToWrite = getFormattedTime(calculationTime)
+                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
+            else:
+                self.listingFile_.seek(0, 2)
+                columnList[ind] = "end"
+                PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
+                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite,))))
+
+        if sourceObject is self.coupler_ and (methodName == "validateTimeStep" or methodName == "terminate"):
+            listingWriter.writeAfter(self, sourceObject, 0, 0, methodName, PresentTime, 0.)
+
+    def writeAfterExchange(self, sourceObject, toWrite, methodName, involvedPhysics, runningPhysics, PresentTime):
+        if sourceObject in self.exchangers_:
+            columnList = [":" if running else "" for running in runningPhysics]
+
+            lastWords, count = self.readLastLine()
+            if lastWords[involvedPhysics[0] + 1].strip('-') == methodName + "st.":
                 self.listingFile_.seek(count - 1, 2)
                 for ind in involvedPhysics:
                     columnList[ind] = self.boxFormat[mergedListingWriter.e_exchange_elem].format(methodName)
+                PresentTime = float(lastWords[-2])
+                calculationTime = float(lastWords[-1])
+                PresentTimeToWrite = getFormattedTime(PresentTime)
+                calculationTimeToWrite = getFormattedTime(calculationTime)
+                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
             else:
                 self.listingFile_.seek(0, 2)
                 for ind in involvedPhysics:
                     columnList[ind] = self.boxFormat[mergedListingWriter.e_exchange_elem].format("end")
-
-            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
+                PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
+                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite,))))
 
 
 def mergeListing(listingsName, newListingName):
@@ -367,7 +372,7 @@ def mergeListing(listingsName, newListingName):
                 lineWords[i] = line.split("│")
                 lineWords[i] = [word.strip() for word in lineWords[i]]
                 lineCurrentNumbers[i] += 1
-                lineOK = len(lineWords[i]) > 3 and (len(lineWords[i][1].split()) == 0 or lineWords[i][1].split()[0] != "SumCPU")
+                lineOK = len(lineWords[i]) > 3 and (len(lineWords[i][1].split()) == 0 or lineWords[i][1].split()[0] != "SpentTime")
                 done = lineOK
             else:
                 done = True
@@ -380,18 +385,17 @@ def mergeListing(listingsName, newListingName):
                 if lineWords[i][j] != "" and lineWords[i][j] != ":":
                     physicsInd[i].append(physicsShift[i] + j - 1)
                     if lineWords[i][j].strip('-') == "exchange":
-                        if lineWords[i][-1] != "":
-                            lineNature[i] = nature_exchange_oneline
-                        else:
-                            lineNature[i] = nature_exchange_start
-                    if lineWords[i][j] == "end":
+                        lineNature[i] = nature_exchange_oneline
+                    elif lineWords[i][j].strip('-') == "exchange st.":
+                        lineNature[i] = nature_exchange_start
+                    elif lineWords[i][j] == "end":
                         lineNature[i] = nature_end
                     elif lineWords[i][j].strip('-') == "end":
                         lineNature[i] = nature_end_exchange
-            if lineNature[i] == -1 and lineWords[i][-1] != "":
-                lineNature[i] = nature_oneLineCalculation
+                    elif len(lineWords[i][j].split()) > 1 and lineWords[i][j].split()[1] == "st." :
+                        lineNature[i] = nature_start
             if lineNature[i] == -1:
-                lineNature[i] = nature_start
+                lineNature[i] = nature_oneLineCalculation
 
     minTime = 0.
     timeStepValidated = [False for p in mydumbPhysics]
@@ -413,10 +417,10 @@ def mergeListing(listingsName, newListingName):
                     if lineWords[imin][iword] != "" and lineWords[imin][iword] != ":":
                         methodName = lineWords[imin][iword]
                 if lineNature[imin] == nature_oneLineCalculation:
-                    writer.writeBefore(mydumbPhysics[physicsInd[imin][0]][0], methodName, runningPhysics, CurrentTime[imin])
+                    writer.writeBefore(mydumbPhysics[physicsInd[imin][0]][0], lineWords[imin][0], methodName, runningPhysics, CurrentTime[imin], float(lineWords[imin][-1]))
                     lineNature[imin] = nature_end
                 else:
-                    writer.writeBeforeExchange(myExchanger, lineWords[imin][0], "exchange", physicsInd[imin], runningPhysics, CurrentTime[imin])
+                    writer.writeBeforeExchange(myExchanger, lineWords[imin][0], "exchange", physicsInd[imin], runningPhysics, CurrentTime[imin], float(lineWords[imin][-1]))
                     lineNature[imin] = nature_end_exchange
                 for ilast in physicsInd[imin]:
                     lastStarted[ilast] = methodName
@@ -425,33 +429,33 @@ def mergeListing(listingsName, newListingName):
 
             else:
                 if lineNature[imin] == nature_end:
-                    writer.writeAfter(mydumbPhysics[physicsInd[imin][0]][0], lineWords[imin][0], lastStarted[physicsInd[imin][0]], runningPhysics, CurrentTime[imin] - float(lineWords[imin][-1]), float(lineWords[imin][-1]))
+                    writer.writeAfter(mydumbPhysics[physicsInd[imin][0]][0], lineWords[imin][0], lastStarted[physicsInd[imin][0]], runningPhysics, CurrentTime[imin])
                     runningPhysics[physicsInd[imin][0]] = False
                     if lastStarted[physicsInd[imin][0]] == "validateTimeStep":
                         timeStepValidated[physicsInd[imin][0]] = True
                     if min(timeStepValidated):
-                        writer.writeAfter(myCoupler, "", "validateTimeStep", runningPhysics, CurrentTime[imin] - float(lineWords[imin][-1]), float(lineWords[imin][-1]))
+                        writer.writeAfter(myCoupler, "", "validateTimeStep", runningPhysics, CurrentTime[imin])
                         for ivalid in range(len(timeStepValidated)):
                             timeStepValidated[ivalid] = False
                 elif lineNature[imin] == nature_end_exchange:
-                    writer.writeAfterExchange(myExchanger, lineWords[imin][0], "exchange", physicsInd[imin], runningPhysics, CurrentTime[imin], float(lineWords[imin][-1]))
+                    writer.writeAfterExchange(myExchanger, lineWords[imin][0], "exchange", physicsInd[imin], runningPhysics, CurrentTime[imin])
                     for ilast in physicsInd[imin]:
                         runningPhysics[ilast] = False
                 elif lineNature[imin] == nature_start or lineNature[imin] == nature_exchange_start:
                     methodName = ""
                     for iword in range(1, len(lineWords[imin]) - 2):
                         if lineWords[imin][iword] != "" and lineWords[imin][iword] != ":":
-                            methodName = lineWords[imin][iword]
+                            methodName = lineWords[imin][iword].split()[0]
                     if lineNature[imin] == nature_start:
-                        writer.writeBefore(mydumbPhysics[physicsInd[imin][0]][0], methodName, runningPhysics, CurrentTime[imin])
+                        writer.writeBefore(mydumbPhysics[physicsInd[imin][0]][0], lineWords[imin][0], methodName, runningPhysics, CurrentTime[imin], float(lineWords[imin][-1]))
                     else:
-                        writer.writeBeforeExchange(myExchanger, lineWords[imin][0], "exchange", physicsInd[imin], runningPhysics, CurrentTime[imin])
+                        writer.writeBeforeExchange(myExchanger, lineWords[imin][0], "exchange", physicsInd[imin], runningPhysics, CurrentTime[imin], float(lineWords[imin][-1]))
                     for ilast in physicsInd[imin]:
                         lastStarted[ilast] = methodName
                         runningPhysics[ilast] = True
                 readOneListingLine(imin)
 
-    writer.writeAfter(myCoupler, "", "terminate", runningPhysics, 0., 0.)
+    writer.writeAfter(myCoupler, "", "terminate", runningPhysics, 0.)
     for l in listings:
         l.close()
     newListing.close()
