@@ -57,7 +57,7 @@ class Alcyone2Driver(PhysicsDriver):
             dmsg('A2driver');
             self.Alcyone2_.initialize()
             dmsg('A2driver');
-            pleiades.setVerboseLevel(5)
+            pleiades.setVerboseLevel(1)
         dmsg('A2driver');
         return True
 
