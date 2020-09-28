@@ -75,7 +75,7 @@ class listingWriter(object):
                 if i == j:
                     p1[1] += "{:^22}│"
                 else:
-                    p1[1] += "                  │"
+                    p1[1] += "                      │"
             for e in self.exchangersData_:
                 e[1] += "{1:-^22}│"
             self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━━━━━━━━━━━┯"
@@ -241,7 +241,7 @@ class mergedListingWriter(listingWriter):
             ind = self.physics_.index(sourceObject)
 
             columnList = [":" if running else "" for running in runningPhysics]
-            columnList[ind] = methodName + " st."
+            columnList[ind] = methodName + " start"
 
             self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
 
@@ -252,7 +252,7 @@ class mergedListingWriter(listingWriter):
 
             columnList = [":" if running else "" for running in runningPhysics]
             for ind in involvedPhysics:
-                columnList[ind] = self.boxFormat[mergedListingWriter.e_exchange_elem].format(methodName + " st.")
+                columnList[ind] = self.boxFormat[mergedListingWriter.e_exchange_elem].format(methodName + " start")
 
             self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
 
@@ -263,7 +263,7 @@ class mergedListingWriter(listingWriter):
             ind = self.physics_.index(sourceObject)
 
             lastWords, count = self.readLastLine()
-            if len(lastWords) > ind + 1 and lastWords[ind + 1] == methodName + "st.":
+            if len(lastWords) > ind + 1 and lastWords[ind + 1] == methodName + "start":
                 self.listingFile_.seek(count - 1, 2)
                 columnList[ind] = methodName
                 PresentTime = float(lastWords[-2])
@@ -285,7 +285,7 @@ class mergedListingWriter(listingWriter):
             columnList = [":" if running else "" for running in runningPhysics]
 
             lastWords, count = self.readLastLine()
-            if lastWords[involvedPhysics[0] + 1].strip('-') == methodName + "st.":
+            if lastWords[involvedPhysics[0] + 1].strip('-') == methodName + "start":
                 self.listingFile_.seek(count - 1, 2)
                 for ind in involvedPhysics:
                     columnList[ind] = self.boxFormat[mergedListingWriter.e_exchange_elem].format(methodName)
@@ -386,13 +386,13 @@ def mergeListing(listingsName, newListingName):
                     physicsInd[i].append(physicsShift[i] + j - 1)
                     if lineWords[i][j].strip('-') == "exchange":
                         lineNature[i] = nature_exchange_oneline
-                    elif lineWords[i][j].strip('-') == "exchange st.":
+                    elif lineWords[i][j].strip('-') == "exchange start":
                         lineNature[i] = nature_exchange_start
                     elif lineWords[i][j] == "end":
                         lineNature[i] = nature_end
                     elif lineWords[i][j].strip('-') == "end":
                         lineNature[i] = nature_end_exchange
-                    elif len(lineWords[i][j].split()) > 1 and lineWords[i][j].split()[1] == "st." :
+                    elif len(lineWords[i][j].split()) > 1 and lineWords[i][j].split()[1] == "start" :
                         lineNature[i] = nature_start
             if lineNature[i] == -1:
                 lineNature[i] = nature_oneLineCalculation
