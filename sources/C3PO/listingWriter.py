@@ -123,10 +123,10 @@ class listingWriter(object):
     def writeBefore(self, sourceObject, methodName, PresentTime):
         """ For internal use only. """
         if sourceObject is self.coupler_ and methodName == "initialize":
-            self.listingFile_.write(self.boxFormat[listingWriter.e_top].format("{:10.6f}".format(PresentTime)))
+            self.listingFile_.write(self.boxFormat[listingWriter.e_top].format("{:10.6f}".format(PresentTime)).encode('utf-8'))
             physicsName = [p[0] for p in self.physicsData_]
-            self.listingFile_.write(self.boxFormat[listingWriter.e_entete].format(*physicsName))
-            self.listingFile_.write(self.boxFormat[listingWriter.e_closeTop])
+            self.listingFile_.write(self.boxFormat[listingWriter.e_entete].format(*physicsName).encode('utf-8'))
+            self.listingFile_.write(self.boxFormat[listingWriter.e_closeTop].encode('utf-8'))
             self.timeInit_ = PresentTime
             self.timeValid_ = PresentTime
             self.listingFile_.flush()
@@ -164,11 +164,11 @@ class listingWriter(object):
             elif methodName == "validateTimeStep":
                 toWrite += "time = " + "{:.4f}".format(sourceObject.presentTime())
 
-            self.listingFile_.write(self.physicsData_[ind][1].format(toWrite, methodName, PresentTimeToWrite, calculationTimeToWrite))
+            self.listingFile_.write(self.physicsData_[ind][1].format(toWrite, methodName, PresentTimeToWrite, calculationTimeToWrite).encode('utf-8'))
 
         if sourceObject in self.exchangers_:
             ind = self.exchangers_.index(sourceObject)
-            self.listingFile_.write(self.exchangersData_[ind][1].format(self.exchangersData_[ind][0], methodName, PresentTimeToWrite, calculationTimeToWrite))
+            self.listingFile_.write(self.exchangersData_[ind][1].format(self.exchangersData_[ind][0], methodName, PresentTimeToWrite, calculationTimeToWrite).encode('utf-8'))
 
         if sourceObject is self.coupler_ and methodName == "validateTimeStep":
             PresentTime += calculationTime
@@ -176,15 +176,15 @@ class listingWriter(object):
             calculationTimeToWrite = getFormattedTime(PresentTime - self.timeValid_)
             sumCalculationTimeToWrite = getFormattedTime(self.sumCalculationTime_)
 
-            self.listingFile_.write(self.boxFormat[listingWriter.e_interrupt])
-            self.listingFile_.write(self.boxFormat[listingWriter.e_bilan].format("SpentTime " + calculationTimeToWrite, PresentTimeToWrite, sumCalculationTimeToWrite))
-            self.listingFile_.write(self.boxFormat[listingWriter.e_continue])
+            self.listingFile_.write(self.boxFormat[listingWriter.e_interrupt].encode('utf-8'))
+            self.listingFile_.write(self.boxFormat[listingWriter.e_bilan].format("SpentTime " + calculationTimeToWrite, PresentTimeToWrite, sumCalculationTimeToWrite).encode('utf-8'))
+            self.listingFile_.write(self.boxFormat[listingWriter.e_continue].encode('utf-8'))
 
             self.timeValid_ = PresentTime
             self.sumCalculationTime_ = 0.
 
         if sourceObject is self.coupler_ and methodName == "terminate":
-            self.listingFile_.write(self.boxFormat[listingWriter.e_term])
+            self.listingFile_.write(self.boxFormat[listingWriter.e_term].encode('utf-8'))
 
         self.listingFile_.flush()
 
@@ -228,14 +228,14 @@ class mergedListingWriter(listingWriter):
 
     def readLastLine(self):
         self.listingFile_.seek(-self.charPerLine_, 2)
-        moreThanLastLine = self.listingFile_.read(self.charPerLine_ - 1)
+        moreThanLastLine = self.listingFile_.read(self.charPerLine_ - 1).decode('utf-8', "ignore")
         LastLine = ""
         count = 0
         for c in reversed(moreThanLastLine):
             if c == "\n":
                 break
             LastLine += c
-            count -= 1
+            count -= len(c.encode('utf-8'))
         LastLine = LastLine[::-1]
         LastLine = LastLine.strip("┃")
         LastLine = LastLine.replace(" ", "")
@@ -252,7 +252,7 @@ class mergedListingWriter(listingWriter):
             columnList = [":" if running else "" for running in runningPhysics]
             columnList[ind] = methodName + " start"
 
-            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
+            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))).encode('utf-8'))
 
     def writeBeforeExchange(self, sourceObject, toWrite, methodName, involvedPhysics, runningPhysics, PresentTime, calculationTime):
         if sourceObject in self.exchangers_:
@@ -263,7 +263,7 @@ class mergedListingWriter(listingWriter):
             for ind in involvedPhysics:
                 columnList[ind] = self.boxFormat[mergedListingWriter.e_exchange_elem].format(methodName + " start")
 
-            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
+            self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))).encode('utf-8'))
 
     def writeAfter(self, sourceObject, toWrite, methodName, runningPhysics, PresentTime):
         if sourceObject in self.physics_:
@@ -284,7 +284,7 @@ class mergedListingWriter(listingWriter):
                 self.listingFile_.seek(0, 2)
                 columnList[ind] = "end"
                 PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
-                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite,))))
+                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite,))).encode('utf-8'))
 
         if sourceObject is self.coupler_ and (methodName == "validateTimeStep" or methodName == "terminate"):
             listingWriter.writeAfter(self, sourceObject, 0, 0, methodName, PresentTime, 0.)
@@ -308,7 +308,7 @@ class mergedListingWriter(listingWriter):
                 for ind in involvedPhysics:
                     columnList[ind] = self.boxFormat[mergedListingWriter.e_exchange_elem].format("end")
                 PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
-                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite,))))
+                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite,))).encode('utf-8'))
 
 
 def mergeListing(listingsName, newListingName):
