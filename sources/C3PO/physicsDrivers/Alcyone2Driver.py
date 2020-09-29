@@ -72,7 +72,7 @@ class Alcyone2Driver(PhysicsDriver):
         dmsg('A2driver');
         dt = self.Alcyone2_.computeTimeStep()
         dmsg('A2driver');
-        return (self.dt_factor_ * dt, False)
+        return (self.dt_factor_ * dt, True)
 
     def initTimeStep(self, dt):
         dmsg('A2driver');
