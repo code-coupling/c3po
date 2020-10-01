@@ -19,9 +19,9 @@ class physicsDriver(object):
     """
 
     def __init__(self):
-        self.initStatus_ = False
-        self.solveStatus_ = False
-        self.iterateStatus_ = (False, False)
+        self.initStatus_ = True
+        self.solveStatus_ = True
+        self.iterateStatus_ = (True, True)
 
     def setDataFile(self, datafile):
         """ Give the name of a data file to the code.
