@@ -49,8 +49,14 @@ class listingWriter(object):
         :param exchangers: a list of tuples (object, name). object should be an exchanger object, modified with tracer to point on this listingWriter object. name allows to identify them in the final listing file.
         """
         self.coupler_ = coupler
-        self.physics_ = [p[0] for p in physics]
-        self.physicsData_ = [[p[1], ""] for p in physics]  # (name, format)
+        if not isinstance(self, mergedListingWriter) and not (hasattr(coupler, "static_lWriter") and coupler.static_lWriter is self):
+            raise Exception("listingWriter.initialize : The coupler object is not modified by tracer to point on self.")
+        self.physics_ = []
+        self.physicsData_ = []  
+        for p in physics:
+            if isinstance(self, mergedListingWriter) or (hasattr(p[0], "static_lWriter") and p[0].static_lWriter is self):
+                self.physics_.append(p[0])
+                self.physicsData_.append([p[1], ""])  # (name, format)
         self.exchangers_ = [e[0] for e in exchangers]
         self.exchangersData_ = [[e[1], ""] for e in exchangers]  # (name, format)
         self.timeInit_ = 0.
