@@ -81,7 +81,10 @@ class FLICA4Driver(physicsDriver):
         return self.flica_.getInputFieldsNames()
 
     def getInputMEDFieldTemplate(self, name):
-        return self.getOutputMEDField("LiquidTemperature")
+        if name == "FuelPower":
+            return self.getOutputMEDField("FuelDopplerTemperature")
+        else:
+            return self.getOutputMEDField("LiquidTemperature")
 
     def getOutputFieldsNames(self):
         return self.flica_.getOutputFieldsNames()
