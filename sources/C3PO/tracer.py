@@ -116,9 +116,11 @@ class tracerMeta(type):
                 prev_idstdout = 0
                 prev_idstderr = 0
                 if stdout is not None:
+                    sys.stdout.flush()
                     prev_idstdout = os.dup(sys.stdout.fileno())
                     os.dup2(stdout.fileno(), sys.stdout.fileno())
                 if stderr is not None:
+                    sys.stderr.flush()
                     prev_idstderr = os.dup(sys.stderr.fileno())
                     os.dup2(stderr.fileno(), sys.stderr.fileno())
 
@@ -129,9 +131,11 @@ class tracerMeta(type):
                 end = time.time()
 
                 if stdout is not None:
+                    sys.stdout.flush()
                     os.dup2(prev_idstdout, sys.stdout.fileno())
                     os.close(prev_idstdout)
                 if stderr is not None:
+                    sys.stderr.flush()
                     os.dup2(prev_idstderr, sys.stderr.fileno())
                     os.close(prev_idstderr)
 

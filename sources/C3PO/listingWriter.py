@@ -129,6 +129,7 @@ class listingWriter(object):
             self.listingFile_.write(self.boxFormat[listingWriter.e_closeTop])
             self.timeInit_ = PresentTime
             self.timeValid_ = PresentTime
+            self.listingFile_.flush()
 
     def writeAfter(self, sourceObject, input_var, outputTuple, methodName, PresentTime, calculationTime):
         """ For internal use only. """
@@ -184,6 +185,8 @@ class listingWriter(object):
 
         if sourceObject is self.coupler_ and methodName == "terminate":
             self.listingFile_.write(self.boxFormat[listingWriter.e_term])
+
+        self.listingFile_.flush()
 
 
 class mergedListingWriter(listingWriter):
