@@ -92,14 +92,14 @@ class AndersonCoupler(Coupler):
         iiter = 0
 
         # Init On calcul ici l'etat "0"
-        print("iteration ", iiter)
+#        print("iteration ", iiter)
         physics.solve()
         physics2Data.exchange()
         previousData = data.clone()
         iiter += 1
 
         # Premiere iteration non acceleree
-        print("iteration ", iiter)
+#        print("iteration ", iiter)
         self.abortTimeStep()
         self.initTimeStep(self.dt_)
         data2physics.exchange()
@@ -110,14 +110,14 @@ class AndersonCoupler(Coupler):
         previousData.copy(data)
 
         error = self.getNorm(diffData) / self.getNorm(data)
-        print("error : ", error)
+#        print("error : ", error)
 
         iiter += 1
 
         while error > self.tolerance_ and iiter < self.maxiter_:
             if iiter == 2:
                 print(" -- Anderson Acceleration starts ! ")
-            print("iteration ", iiter)
+#            print("iteration ", iiter)
 
             orderK = min(iiter - 1, self.order_)
 
@@ -149,7 +149,7 @@ class AndersonCoupler(Coupler):
                 previousData.copy(data)
 
             iiter += 1
-            print("error : ", error)
+#            print("error : ", error)
 
         return physics.getSolveStatus() and not(error > self.tolerance_)
 
