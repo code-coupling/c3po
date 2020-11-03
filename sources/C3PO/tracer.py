@@ -103,7 +103,7 @@ class tracerMeta(type):
                             timeMED, iteration, order = field.getTime()
                             self.static_MEDinfo[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
                             WriteField_MC789(nameMEDFile, field, True)
-                            pythonFile.write("field_" + objectName + " = MEDLoader.ReadField" + str(self.static_MEDinfo[name_field][-1]) + "\n")
+                            pythonFile.write("field_" + objectName + " = ReadField_MC789" + str(self.static_MEDinfo[name_field][-1]) + "\n")
                         pythonFile.write(objectName + "." + method.__name__ + "('" + name_field + "', field_" + objectName + ")" + "\n")
                     else:
                         pythonFile.write(objectName + "." + method.__name__ + string_args + "\n")
@@ -209,6 +209,14 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
             pythonFile.write("from __future__ import print_function, division" + "\n")
             pythonFile.write("import MEDLoader as ml" + "\n")
             pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
+
+            pythonFile.write("def ReadField_MC789(*args, **kwargs):" + "\n")
+            pythonFile.write("  try:" + "\n")
+            pythonFile.write("    readField = ml.MEDLoader.ReadField" + "\n")
+            pythonFile.write("  except:" + "\n")
+            pythonFile.write("    readField = ml.ReadField" + "\n")
+            pythonFile.write("  readField(*args, **kwargs)" + "\n" + "\n")
+
         baseclass.static_pythonFile = pythonFile
         baseclass.static_saveMED = saveMED
         baseclass.static_stdout = stdoutFile

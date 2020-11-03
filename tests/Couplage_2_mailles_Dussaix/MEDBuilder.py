@@ -89,7 +89,10 @@ def makeFieldHexa():
     array.setValues(v, len(v), 1)
     f.setArray(array)
     f.setName("Rho")
-    f.setNature(MEDCoupling.IntensiveMaximum)
+    try:
+        f.setNature(MEDCoupling.IntensiveMaximum)
+    except:
+        f.setNature(MEDCoupling.ConservativeVolumic)
     return f
 
 
@@ -131,5 +134,8 @@ def makeFieldCarre():
     array.setValues(v, len(v), 1)
     f.setArray(array)
     f.setName("T")
-    f.setNature(MEDCoupling.ExtensiveMaximum)
+    try:
+        f.setNature(MEDCoupling.ExtensiveMaximum)
+    except:
+        f.setNature(MEDCoupling.Integral)
     return f
