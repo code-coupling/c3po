@@ -37,7 +37,7 @@ class listingWriter(object):
     def __init__(self, listingFile):
         """ Builds a listingWriter object.
 
-        :param listingFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). It has to be closed (file.close()) by caller.
+        :param listingFile: a file object which has to be already open in written-binary mode (file = open("file.txt", "wb")). It has to be closed (file.close()) by caller.
         """
         self.listingFile_ = listingFile
 
@@ -56,9 +56,9 @@ class listingWriter(object):
         for p in physics:
             if isinstance(self, mergedListingWriter) or (hasattr(p[0], "static_lWriter") and p[0].static_lWriter is self):
                 self.physics_.append(p[0])
-                self.physicsData_.append([p[1], ""])  # (name, format)
+                self.physicsData_.append([p[1], u""])  # (name, format)
         self.exchangers_ = [e[0] for e in exchangers]
-        self.exchangersData_ = [[e[1], ""] for e in exchangers]  # (name, format)
+        self.exchangersData_ = [[e[1], u""] for e in exchangers]  # (name, format)
         self.timeInit_ = 0.
         self.timeValid_ = 0.
         self.charPerLine_ = 0
@@ -66,59 +66,60 @@ class listingWriter(object):
 
         self.boxFormat = [""] * 7
         for p in self.physicsData_:
-            p[1] += "┃{:^28}│"
+            p[1] += u"┃{:^28}│"
         for e in self.exchangersData_:
-            e[1] += "┃{0:^28.28}│"
-        self.boxFormat[listingWriter.e_top] += "┏{}┯".format("━" * 28)
-        self.boxFormat[listingWriter.e_entete] += "┃{:^28}│".format("In / Out")
-        self.boxFormat[listingWriter.e_closeTop] += "┠{}┼".format("─" * 28)
-        self.boxFormat[listingWriter.e_bilan] += "┃{:^28}│".format("Time step complete")
-        self.boxFormat[listingWriter.e_term] += "┗{}┷".format("━" * 28)
-        self.boxFormat[listingWriter.e_interrupt] += "┠{}┼".format("─" * 28)
-        self.boxFormat[listingWriter.e_continue] += "┠{}┼".format("─" * 28)
+            e[1] += u"┃{0:^28.28}│"
+        self.boxFormat[listingWriter.e_top] += u"┏{}┯".format(u"━" * 28)
+        self.boxFormat[listingWriter.e_entete] += u"┃{:^28}│".format(u"In / Out")
+        self.boxFormat[listingWriter.e_closeTop] += u"┠{}┼".format(u"─" * 28)
+        self.boxFormat[listingWriter.e_bilan] += u"┃{:^28}│".format(u"Time step complete")
+        self.boxFormat[listingWriter.e_term] += u"┗{}┷".format(u"━" * 28)
+        self.boxFormat[listingWriter.e_interrupt] += u"┠{}┼".format(u"─" * 28)
+        self.boxFormat[listingWriter.e_continue] += u"┠{}┼".format(u"─" * 28)
         for i, p1 in enumerate(self.physicsData_):
             for j in range(len(self.physicsData_)):
                 if i == j:
-                    p1[1] += "{:^22}│"
+                    p1[1] += u"{:^22}│"
                 else:
-                    p1[1] += "                      │"
+                    p1[1] += u"                      │"
             for e in self.exchangersData_:
-                e[1] += "{1:-^22}│"
-            self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━━━━━━━━━━━┯"
-            self.boxFormat[listingWriter.e_entete] += "{:^22.22}│"
-            self.boxFormat[listingWriter.e_closeTop] += "──────────────────────┼"
-            self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━━━━━━━━━━━┷"
-            self.boxFormat[listingWriter.e_interrupt] += "──────────────────────" + ("┴" if i != (len(self.physicsData_) - 1) else "┼")
-            self.boxFormat[listingWriter.e_continue] += "──────────────────────" + ("┬" if i != (len(self.physicsData_) - 1) else "┼")
+                e[1] += u"{1:-^22}│"
+            self.boxFormat[listingWriter.e_top] += u"━━━━━━━━━━━━━━━━━━━━━━┯"
+            self.boxFormat[listingWriter.e_entete] += u"{:^22.22}│"
+            self.boxFormat[listingWriter.e_closeTop] += u"──────────────────────┼"
+            self.boxFormat[listingWriter.e_term] += u"━━━━━━━━━━━━━━━━━━━━━━┷"
+            self.boxFormat[listingWriter.e_interrupt] += u"──────────────────────" + (u"┴" if i != (len(self.physicsData_) - 1) else u"┼")
+            self.boxFormat[listingWriter.e_continue] += u"──────────────────────" + (u"┬" if i != (len(self.physicsData_) - 1) else u"┼")
 
         decalage = (22 + 1) * len(self.physicsData_) - 1
-        self.boxFormat[listingWriter.e_bilan] += "{:^" + str(decalage) + "}│"
+        self.boxFormat[listingWriter.e_bilan] += u"{:^" + str(decalage) + u"}│"
 
         for p in self.physicsData_:
-            p[1] += "{:^12}│"
+            p[1] += u"{:^12}│"
         for e in self.exchangersData_:
-            e[1] += "{2:^12}│"
-        self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━┯"
-        self.boxFormat[listingWriter.e_entete] += "    time    │"
-        self.boxFormat[listingWriter.e_closeTop] += "────────────┼"
-        self.boxFormat[listingWriter.e_bilan] += "{:^12}│"
-        self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━┷"
-        self.boxFormat[listingWriter.e_interrupt] += "────────────┼"
-        self.boxFormat[listingWriter.e_continue] += "────────────┼"
+            e[1] += u"{2:^12}│"
+        self.boxFormat[listingWriter.e_top] += u"━━━━━━━━━━━━┯"
+        self.boxFormat[listingWriter.e_entete] += u"    time    │"
+        self.boxFormat[listingWriter.e_closeTop] += u"────────────┼"
+        self.boxFormat[listingWriter.e_bilan] += u"{:^12}│"
+        self.boxFormat[listingWriter.e_term] += u"━━━━━━━━━━━━┷"
+        self.boxFormat[listingWriter.e_interrupt] += u"────────────┼"
+        self.boxFormat[listingWriter.e_continue] += u"────────────┼"
 
         for p in self.physicsData_:
-            p[1] += "{:^12}┃\n"
+            p[1] += u"{:^12}┃\n"
         for e in self.exchangersData_:
-            e[1] += "{3:^12}┃\n"
-        self.boxFormat[listingWriter.e_top] += "━━━━━━━━━━━━┓ Reference time = {:}\n"
-        self.boxFormat[listingWriter.e_entete] += "     dt     ┃\n"
-        self.boxFormat[listingWriter.e_closeTop] += "────────────┨\n"
-        self.boxFormat[listingWriter.e_bilan] += "{:^12}┃\n"
-        self.boxFormat[listingWriter.e_term] += "━━━━━━━━━━━━┛\n"
-        self.boxFormat[listingWriter.e_interrupt] += "────────────┨\n"
-        self.boxFormat[listingWriter.e_continue] += "────────────┨\n"
+            e[1] += u"{3:^12}┃\n"
+        self.boxFormat[listingWriter.e_top] += u"━━━━━━━━━━━━┓ Reference time = {:}\n"
+        self.boxFormat[listingWriter.e_entete] += u"     dt     ┃\n"
+        self.boxFormat[listingWriter.e_closeTop] += u"────────────┨\n"
+        self.boxFormat[listingWriter.e_bilan] += u"{:^12}┃\n"
+        self.boxFormat[listingWriter.e_term] += u"━━━━━━━━━━━━┛\n"
+        self.boxFormat[listingWriter.e_interrupt] += u"────────────┨\n"
+        self.boxFormat[listingWriter.e_continue] += u"────────────┨\n"
 
-        self.charPerLine_ = len(self.boxFormat[listingWriter.e_top])
+        self.charPerLine_ = len(self.boxFormat[listingWriter.e_top].encode('utf-8'))
+        print(self.charPerLine_)
 
     def writeBefore(self, sourceObject, methodName, PresentTime):
         """ For internal use only. """
@@ -207,24 +208,20 @@ class mergedListingWriter(listingWriter):
         self.boxFormat.append("")
         self.boxFormat.append("")
         self.boxFormat.append("")
-        self.boxFormat[mergedListingWriter.e_physics_start] += "┃{:^28}│"
-        self.boxFormat[mergedListingWriter.e_physics_end] += "┃{:^28}│"
-       # self.boxFormat[mergedListingWriter.e_exchange_start] += "┃{:^27}│"
+        self.boxFormat[mergedListingWriter.e_physics_start] += u"┃{:^28}│"
+        self.boxFormat[mergedListingWriter.e_physics_end] += u"┃{:^28}│"
 
         for p1 in self.physicsData_:
-            self.boxFormat[mergedListingWriter.e_physics_start] += "{:^22}│"
-            self.boxFormat[mergedListingWriter.e_physics_end] += "{:^22}│"
-          #  self.boxFormat[mergedListingWriter.e_exchange_start] += "{:^22}│"
+            self.boxFormat[mergedListingWriter.e_physics_start] += u"{:^22}│"
+            self.boxFormat[mergedListingWriter.e_physics_end] += u"{:^22}│"
 
-        self.boxFormat[mergedListingWriter.e_physics_start] += "{:^12}│"
-        self.boxFormat[mergedListingWriter.e_physics_end] += "{:^12}│"
-      #  self.boxFormat[mergedListingWriter.e_exchange_start] += "{:^12}│"
+        self.boxFormat[mergedListingWriter.e_physics_start] += u"{:^12}│"
+        self.boxFormat[mergedListingWriter.e_physics_end] += u"{:^12}│"
 
-        self.boxFormat[mergedListingWriter.e_physics_start] += "{:^12}┃\n" 
-        self.boxFormat[mergedListingWriter.e_physics_end] += "            ┃\n"
-     #   self.boxFormat[mergedListingWriter.e_exchange_start] += "{:^12}┃\n" 
+        self.boxFormat[mergedListingWriter.e_physics_start] += u"{:^12}┃\n"
+        self.boxFormat[mergedListingWriter.e_physics_end] += u"            ┃\n"
 
-        self.boxFormat[mergedListingWriter.e_exchange_elem] += "{:-^22}"
+        self.boxFormat[mergedListingWriter.e_exchange_elem] += u"{:-^22}"
 
     def readLastLine(self):
         self.listingFile_.seek(-self.charPerLine_, 2)
@@ -237,9 +234,9 @@ class mergedListingWriter(listingWriter):
             LastLine += c
             count -= len(c.encode('utf-8'))
         LastLine = LastLine[::-1]
-        LastLine = LastLine.strip("┃")
+        LastLine = LastLine.strip(u"┃")
         LastLine = LastLine.replace(" ", "")
-        return LastLine.split("│"), count
+        return LastLine.split(u"│"), count
 
     def writeBefore(self, sourceObject, toWrite, methodName, runningPhysics, PresentTime, calculationTime):
         if sourceObject in self.physics_:
@@ -279,7 +276,7 @@ class mergedListingWriter(listingWriter):
                 calculationTime = float(lastWords[-1])
                 PresentTimeToWrite = getFormattedTime(PresentTime)
                 calculationTimeToWrite = getFormattedTime(calculationTime)
-                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
+                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))).encode('utf-8'))
             else:
                 self.listingFile_.seek(0, 2)
                 columnList[ind] = "end"
@@ -302,7 +299,7 @@ class mergedListingWriter(listingWriter):
                 calculationTime = float(lastWords[-1])
                 PresentTimeToWrite = getFormattedTime(PresentTime)
                 calculationTimeToWrite = getFormattedTime(calculationTime)
-                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))))
+                self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))).encode('utf-8'))
             else:
                 self.listingFile_.seek(0, 2)
                 for ind in involvedPhysics:
