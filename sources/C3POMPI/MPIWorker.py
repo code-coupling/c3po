@@ -23,20 +23,20 @@ class MPIWorker(object):
     def __init__(self, physicsDrivers, exchangers, dataManagers, MasterProcess):
         """ Builds a MPIWorker object.
 
-        :param physicsDrivers: List of physicsDrivers. Only one should not be a MPIRemoteProcess : it is the one the worker is responsible for.
-        :param exchangers: List of exchangers handled by the worker. The indices in this list are the numbers identifying the exchangers for the master.
-        :param dataManagers: List of dataManagers handled by the worker. The indices in this list are the numbers identifying the dataManagers for the master.
+        :param physicsDrivers: List of PhysicsDriver. Only one should not be a MPIRemoteProcess : it is the one the worker is responsible for.
+        :param exchangers: List of Exchanger handled by the worker. The indices in this list are the numbers identifying the Exchanger for the master.
+        :param dataManagers: List of DataManager handled by the worker. The indices in this list are the numbers identifying the DataManager for the master.
         :param MasterProcess: Either a MPIRemoteProcess or a MPIMasterCollectivePhysicsDriver identifying the master process. In the first case point-to-point communications are used, in the second case collective communications are used. 
         """
         found = False
         for p in physicsDrivers:
             if not isinstance(p, MPIRemoteProcess):
                 if found:
-                    raise Exception("MPIWorker.__init__ : we found more than one local physicsDriver (not MPIRemoteProcess) : there must be only one.")
+                    raise Exception("MPIWorker.__init__ : we found more than one local PhysicsDriver (not MPIRemoteProcess) : there must be only one.")
                 found = True
                 self.physicsDriver_ = p
         if not found:
-            raise Exception("MPIWorker.__init__ : we did not found any local physicsDriver : there must be one (and only one).")
+            raise Exception("MPIWorker.__init__ : we did not found any local PhysicsDriver : there must be one (and only one).")
         self.MPIComm_ = MasterProcess.MPIComm_
         self.masterRank_ = 0
         self.isCollective_ = False
@@ -71,7 +71,7 @@ class MPIWorker(object):
         """ For internal use only. """
         for id in idList:
             if id >= len(self.dataManagers_):
-                raise Exception("MPIWorker.checkDataID : the asked dataManager does not exist : ID asked : " + str(id) + ", maximum ID : " + str(len(self.dataManagers_) - 1) + ".")
+                raise Exception("MPIWorker.checkDataID : the asked DataManager does not exist : ID asked : " + str(id) + ", maximum ID : " + str(len(self.dataManagers_) - 1) + ".")
 
     def listen(self):
         """ When this method is called, the worker enter a waiting mode for instructions from the master. 

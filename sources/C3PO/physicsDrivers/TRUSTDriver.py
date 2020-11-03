@@ -2,14 +2,14 @@
 from __future__ import print_function, division
 
 import trusticoco_V2 as ti
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 
 
-class PBT(ti.ProblemTrio, physicsDriver):
+class PBT(ti.ProblemTrio, PhysicsDriver):
 
     def __init__(self):
         ti.ProblemTrio.__init__(self)
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
 
     def solveTimeStep(self):
         return ti.ProblemTrio.solveTimeStep(self)

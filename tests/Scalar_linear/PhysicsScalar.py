@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-# This follows the physicsDriver concepts and returns y = a + b*x where a and b are parameters and x can be set as a input scalar.
+# This follows the PhysicsDriver concepts and returns y = a + b*x where a and b are parameters and x can be set as a input scalar.
 from __future__ import print_function, division
 
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 
 
-class physicsScalar(physicsDriver):
+class PhysicsScalar(PhysicsDriver):
     def __init__(self):
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         self.result_ = 0.
         self.a_ = 0.
         self.b_ = 0.
@@ -41,7 +41,7 @@ class physicsScalar(physicsDriver):
         if name == "y":
             return self.result_
         else:
-            raise Exception("physicsScalar.getValue Only y output available.")
+            raise Exception("PhysicsScalar.getValue Only y output available.")
 
     # Import an input scalar. No return.
     def setValue(self, name, value):

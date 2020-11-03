@@ -8,14 +8,14 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class physicsDriver. """
+""" Contains the class PhysicsDriver. """
 from __future__ import print_function, division
 
 
-class physicsDriver(object):
-    """ physicsDriver defines and standardizes the functionalities expected by computer codes. It follows the ICOCO standard.
+class PhysicsDriver(object):
+    """ PhysicsDriver defines and standardizes the functionalities expected by computer codes. It follows the ICOCO standard.
 
-    In order to integrate a new code in C3PO it is necessary to define a class inheriting from physicsDriver and to overload its methods raising exception.
+    In order to integrate a new code in C3PO it is necessary to define a class inheriting from PhysicsDriver and to overload its methods raising exception.
     """
 
     def __init__(self):
@@ -30,7 +30,7 @@ class physicsDriver(object):
 
             :param datafile: name of a data file.
         """
-        raise Exception("physicsDriver.setDataFile : not supported")
+        raise Exception("PhysicsDriver.setDataFile : not supported")
 
     def setMPIComm(self, mpicomm):
         """ Give an MPI communicator to the code, for its internal use.
@@ -40,7 +40,7 @@ class physicsDriver(object):
 
         :param mpicomm: MPI communicator to be used by the code.
         """
-        raise Exception("physicsDriver.setMPIComm : not supported")
+        raise Exception("PhysicsDriver.setMPIComm : not supported")
 
     def init(self):
         """ This method calls initialize but store its return value instead of returning it. The output is accessible with getInitStatus.
@@ -71,7 +71,7 @@ class physicsDriver(object):
 
         ..  warning:: This method is not adapted to MPI Master-Workers paradigm. Init and getInitStatus methods should be used in C3PO instead.
         """
-        raise Exception("physicsDriver.initialize : not supported")
+        raise Exception("PhysicsDriver.initialize : not supported")
 
     def terminate(self):
         """ Terminate the computation, free the memory and save whatever needs to be saved.
@@ -80,7 +80,7 @@ class physicsDriver(object):
 
         :return: True means OK.
         """
-        raise Exception("physicsDriver.terminate : not supported")
+        raise Exception("PhysicsDriver.terminate : not supported")
 
     def presentTime(self):
         """ Returns the current time t.
@@ -89,7 +89,7 @@ class physicsDriver(object):
 
         :return: the current time t.
         """
-        raise Exception("physicsDriver.presentTime : not supported")
+        raise Exception("PhysicsDriver.presentTime : not supported")
 
     def computeTimeStep(self):
         """ Returns two data : the preferred time step for this code and a boolean = True if the code wants to stop.
@@ -98,7 +98,7 @@ class physicsDriver(object):
 
         :return: a tuple (dt, stop). dt is the preferred time step for this code and stop = True if the code wants to stop.
         """
-        raise Exception("physicsDriver.computeTimeStep : not supported")
+        raise Exception("PhysicsDriver.computeTimeStep : not supported")
 
     def initTimeStep(self, dt):
         """ Give the next time step to the code.
@@ -109,7 +109,7 @@ class physicsDriver(object):
         :param dt: next time step size.
         :return: False if dt is not compatible with the code time scheme.
         """
-        raise Exception("physicsDriver.initTimeStep : not supported")
+        raise Exception("PhysicsDriver.initTimeStep : not supported")
 
     def solve(self):
         """ This method calls solveTimeStep but store its return value instead of returning it. The output is accessible with getSolveStatus.
@@ -138,28 +138,28 @@ class physicsDriver(object):
 
         ..  warning:: This method is not adapted to MPI Master-Workers paradigm. solve and getSolveStatus methods should be used in C3PO instead.
         """
-        raise Exception("physicsDriver.solveTimeStep : not supported")
+        raise Exception("PhysicsDriver.solveTimeStep : not supported")
 
     def validateTimeStep(self):
         """ Validate the computation performed by solveTimeStep.
         Can be called whenever the computation time step is defined.
         After this call, the present time has been advanced to the end of the computation time step, and the computation time step is undefined, so the input and output data are not accessible any more.
         """
-        raise Exception("physicsDriver.validateTimeStep : not supported")
+        raise Exception("PhysicsDriver.validateTimeStep : not supported")
 
     def abortTimeStep(self):
         """ Abort the computation on the current time-step.
         Can be called whenever the computation timestep is defined, instead of validateTimeStep.
         After this call, the present time is left unchanged, and the computation time step is undefined, so the input and output data are not accessible any more.
         """
-        raise Exception("physicsDriver.abortTimeStep : not supported")
+        raise Exception("PhysicsDriver.abortTimeStep : not supported")
 
     def isStationary(self):
         """ Can be called whenever the computation time step is defined.
 
         :return: true if the solution is constant on the computation time step. If the solution has not been computed, the return value is of course not meaningful.
         """
-        raise Exception("physicsDriver.isStationary : not supported")
+        raise Exception("PhysicsDriver.isStationary : not supported")
 
     def iterate(self):
         """ This method calls iterateTimeStep but store its return value instead of returning it. The output is accessible with getIterateStatus.
@@ -189,7 +189,7 @@ class physicsDriver(object):
 
         ..  warning:: This method is not adapted to MPI Master-Workers paradigm. iterate and getIterateStatus methods should be used in C3PO instead.
         """
-        raise Exception("physicsDriver.iterateTimeStep : not supported")
+        raise Exception("PhysicsDriver.iterateTimeStep : not supported")
 
     def save(self, label, method):
         """ Save the state of the code.
@@ -200,7 +200,7 @@ class physicsDriver(object):
 
         .. note:: If save has already been called with the same two arguments, the saved state is overwritten.
         """
-        raise Exception("physicsDriver.save : not supported")
+        raise Exception("PhysicsDriver.save : not supported")
 
     def restore(self, label, method):
         """ Restore a state previously saved with the same couple of arguments.
@@ -210,7 +210,7 @@ class physicsDriver(object):
         :param label: an integer identifying, in association with method, the saved state to restore.
         :param method: a string identifying, in association with label, the saved state to restore.
         """
-        raise Exception("physicsDriver.restore : not supported")
+        raise Exception("PhysicsDriver.restore : not supported")
 
     def forget(self, label, method):
         """Forget a state previously saved with the same couple of arguments.
@@ -221,12 +221,12 @@ class physicsDriver(object):
         :param label: an integer identifying, in association with method, the saved state to forget.
         :param method: a string identifying, in association with label, the saved state to forget.
         """
-        raise Exception("physicsDriver.forget : not supported")
+        raise Exception("PhysicsDriver.forget : not supported")
 
     def getInputFieldsNames(self):
         """ :return: a list of strings identifying input fields.
         """
-        raise Exception("physicsDriver.getInputFieldsNames : not supported")
+        raise Exception("PhysicsDriver.getInputFieldsNames : not supported")
 
     def getInputMEDFieldTemplate(self, name):
         """ Get a template of the field expected by the code for a given name.
@@ -235,7 +235,7 @@ class physicsDriver(object):
         :param name: string identifying the asked MEDFieldTemplate.
         :return: a ParaMEDMEM::MEDCouplingFieldDouble field.
         """
-        raise Exception("physicsDriver.getInputMEDFieldTemplate : not supported")
+        raise Exception("PhysicsDriver.getInputMEDFieldTemplate : not supported")
 
     def setInputMEDField(self, name, field):
         """ Provide the input field corresponding to name to the code.
@@ -246,12 +246,12 @@ class physicsDriver(object):
         :param name: string identifying the input field.
         :param field: a ParaMEDMEM::MEDCouplingFieldDouble field.
         """
-        raise Exception("physicsDriver.setInputMEDField : not supported")
+        raise Exception("PhysicsDriver.setInputMEDField : not supported")
 
     def getOutputFieldsNames(self):
         """ :return: a list of strings identifying output fields.
         """
-        raise Exception("physicsDriver.getOutputFieldsNames : not supported")
+        raise Exception("PhysicsDriver.getOutputFieldsNames : not supported")
 
     def getOutputMEDField(self, name):
         """ Return the output field corresponding to name from the code.
@@ -259,12 +259,12 @@ class physicsDriver(object):
         :param name: string identifying the output field.
         :return: a ParaMEDMEM::MEDCouplingFieldDouble field.
         """
-        raise Exception("physicsDriver.getOutputMEDField : not supported")
+        raise Exception("PhysicsDriver.getOutputMEDField : not supported")
 
     def getInputValuesNames(self):
         """ :return: a list of strings identifying input scalars.
         """
-        raise Exception("physicsDriver.getInputValuesNames : not supported")
+        raise Exception("PhysicsDriver.getInputValuesNames : not supported")
 
     def setValue(self, name, value):
         """ Provide the input scalar value corresponding to name to the code.
@@ -272,12 +272,12 @@ class physicsDriver(object):
         :param name: string identifying the input scalar.
         :param value: a scalar.
         """
-        raise Exception("physicsDriver.setValue is not supported")
+        raise Exception("PhysicsDriver.setValue is not supported")
 
     def getOutputValuesNames(self):
         """ :return: a list of strings identifying output scalars.
         """
-        raise Exception("physicsDriver.getOutputValuesNames : not supported")
+        raise Exception("PhysicsDriver.getOutputValuesNames : not supported")
 
     def getValue(self, name):
         """ Return the output scalar corresponding to name from the code.
@@ -285,7 +285,7 @@ class physicsDriver(object):
         :param name: string identifying the output scalar.
         :return: a scalar.
         """
-        raise Exception("physicsDriver.getValue is not supported")
+        raise Exception("PhysicsDriver.getValue is not supported")
 
     def solveTransient(self, tmax):
         """ Calls the chain of methods which makes the code to advance in time until it reaches the time tmax or computeTimeStep() asks to stop.
@@ -303,5 +303,5 @@ class physicsDriver(object):
                 self.abortTimeStep()
                 (dt2, stop) = self.computeTimeStep()
                 if (dt == dt2):
-                    raise Exception("physicsDriver.solveTransient : we are about to repeat a failed time-step calculation !")
+                    raise Exception("PhysicsDriver.solveTransient : we are about to repeat a failed time-step calculation !")
                 dt = dt2

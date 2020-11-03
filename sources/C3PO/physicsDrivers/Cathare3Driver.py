@@ -3,7 +3,7 @@ from __future__ import print_function, division
 
 import MEDLoader as ml
 import Cathare_opt as C3
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 
 
 short_name = lambda name: name.split("__")[1] if (name.startswith("reconstruction") or name.startswith("sommewall__")) else name
@@ -16,10 +16,10 @@ def build_name(keyword, cname, loc, irad=-1):
     return new_name
 
 
-class PBC(C3.Problem_Cathare, physicsDriver):
+class PBC(C3.Problem_Cathare, PhysicsDriver):
     def __init__(self):
         C3.Problem_Cathare.__init__(self)
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         self.io = 0
 
     def solveTimeStep(self):

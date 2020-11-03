@@ -8,14 +8,14 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class dataManager. """
+""" Contains the class DataManager. """
 from __future__ import print_function, division
 import numpy
 import math
 
 
-class dataManager(object):
-    """ dataManager stores and manipulates data outside of components (ie physicsDriver implementations). This allows certain coupling techniques or time schemes to be implemented. 
+class DataManager(object):
+    """ DataManager stores and manipulates data outside of components (ie PhysicsDriver implementations). This allows certain coupling techniques or time schemes to be implemented. 
 
     Data are scalars or MED fields, identified by their names.
     """
@@ -31,12 +31,12 @@ class dataManager(object):
 
     def cloneEmpty(self):
         """ Returns a clone of self without copying the data. """
-        output = dataManager()
+        output = DataManager()
         output.MEDFieldTemplates_ = self.MEDFieldTemplates_
         return output
 
     def copy(self, other):
-        """ If self and other are two dataManager with the same list of data copy values of other in self. """
+        """ If self and other are two DataManager with the same list of data copy values of other in self. """
         self.checkBeforeOperator(other)
         for name in self.values_.keys():
             self.values_[name] = other.values_[name]
@@ -73,16 +73,16 @@ class dataManager(object):
     def checkBeforeOperator(self, other):
         """ Make basic checks before the call of an operator: same data names between self and other. """
         if len(self.values_.keys()) != len(other.values_.keys()) or len(self.MEDFields_.keys()) != len(other.MEDFields_.keys()):
-            raise Exception("dataManager.checkBeforeOperator : we cannot call an operator between two dataManager with different number of stored data.")
+            raise Exception("DataManager.checkBeforeOperator : we cannot call an operator between two DataManager with different number of stored data.")
         for name in self.values_.keys():
             if not(name in other.values_.keys()):
-                raise Exception("dataManager.checkBeforeOperator : we cannot call an operator between two dataManager with different data.")
+                raise Exception("DataManager.checkBeforeOperator : we cannot call an operator between two DataManager with different data.")
         for name in self.MEDFields_.keys():
             if not(name in other.MEDFields_.keys()):
-                raise Exception("dataManager.checkBeforeOperator : we cannot call an operator between two dataManager with different data.")
+                raise Exception("DataManager.checkBeforeOperator : we cannot call an operator between two DataManager with different data.")
 
     def __add__(self, other):
-        """ If self and other are two dataManager with the same list of data: returns a new (coherent with self) dataManager where the data are added. """
+        """ If self and other are two DataManager with the same list of data: returns a new (coherent with self) DataManager where the data are added. """
         self.checkBeforeOperator(other)
         new_data = self.cloneEmpty()
         for name in self.values_.keys():
@@ -93,7 +93,7 @@ class dataManager(object):
         return new_data
 
     def __iadd__(self, other):
-        """ If self and other are two dataManager with the same list of data: modifies in place self with data added to other (and return self). """
+        """ If self and other are two DataManager with the same list of data: modifies in place self with data added to other (and return self). """
         self.checkBeforeOperator(other)
         for name in self.values_.keys():
             self.values_[name] += other.values_[name]
@@ -102,7 +102,7 @@ class dataManager(object):
         return self
 
     def __sub__(self, other):
-        """ If self and other are two dataManager with the same list of data: returns a new (coherent with self) dataManager where the data are substracted. """
+        """ If self and other are two DataManager with the same list of data: returns a new (coherent with self) dataManager where the data are substracted. """
         self.checkBeforeOperator(other)
         new_data = self.cloneEmpty()
         for name in self.values_.keys():
@@ -113,7 +113,7 @@ class dataManager(object):
         return new_data
 
     def __isub__(self, other):
-        """ If self and other are two dataManager with the same list of data: modifies in place self with data substracted to other (and return self). """
+        """ If self and other are two DataManager with the same list of data: modifies in place self with data substracted to other (and return self). """
         self.checkBeforeOperator(other)
         for name in self.values_.keys():
             self.values_[name] -= other.values_[name]
@@ -122,7 +122,7 @@ class dataManager(object):
         return self
 
     def __mul__(self, scalar):
-        """ Returns a new (coherent with self) dataManager where the data are multiplicated by scalar. """
+        """ Returns a new (coherent with self) DataManager where the data are multiplicated by scalar. """
         new_data = self.cloneEmpty()
         for name in self.values_.keys():
             new_data.values_[name] = scalar * self.values_[name]
@@ -139,7 +139,7 @@ class dataManager(object):
         return self
 
     def imuladd(self, scalar, other):
-        """ If self and other are two dataManager with the same list of data: modifies in place self with data added to other * scalar (and return self).
+        """ If self and other are two DataManager with the same list of data: modifies in place self with data added to other * scalar (and return self).
 
         To do so, other *= scalar and other *= 1./scalar are done.
         """
@@ -152,7 +152,7 @@ class dataManager(object):
         return self
 
     def dot(self, other):
-        """ If self and other are two dataManager with the same list of data: returns the scalar product (sum of the product of every elements) of this and other."""
+        """ If self and other are two DataManager with the same list of data: returns the scalar product (sum of the product of every elements) of this and other."""
         self.checkBeforeOperator(other)
         result = 0.
         for name in self.values_.keys():
@@ -173,7 +173,7 @@ class dataManager(object):
     def getOutputMEDField(self, name):
         """ Returns the MED field of name name previously stored. If there is not throw an exception. """
         if name not in self.MEDFields_.keys():
-            raise Exception("dataManager.getOutputMEDField unknown field " + name)
+            raise Exception("DataManager.getOutputMEDField unknown field " + name)
         return self.MEDFields_[name]
 
     def setValue(self, name, value):
@@ -183,7 +183,7 @@ class dataManager(object):
     def getValue(self, name):
         """ Returns the scalar of name name previously stored. If there is not throw an exception. """
         if name not in self.values_.keys():
-            raise Exception("dataManager.getValue unknown value " + name)
+            raise Exception("DataManager.getValue unknown value " + name)
         return self.values_[name]
 
     def setInputMEDFieldTemplate(self, name, field):

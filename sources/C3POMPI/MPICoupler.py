@@ -12,34 +12,34 @@
 from __future__ import print_function, division
 from mpi4py import MPI
 
-from C3PO.coupler import coupler
+from C3PO.Coupler import Coupler
 from .MPIRemoteProcess import MPIRemoteProcess
 from .MPICollectiveProcess import MPICollectiveProcess
 
 
-class MPICoupler(coupler):
-    """ This is the version for collaborative MPI of coupler. The MPI functionalities are used for some collective operations.
+class MPICoupler(Coupler):
+    """ This is the version for collaborative MPI of Coupler. The MPI functionalities are used for some collective operations.
 
-    Inherits from coupler.
+    Inherits from Coupler.
 
-    Can replace, without impact, a coupler of a single processor calculation, if the mpi environment is available.
+    Can replace, without impact, a Coupler of a single processor calculation, if the mpi environment is available.
     """
 
     def __init__(self, physics, exchangers, dataManagers=[], MPIComm=None):
         """ Builds a MPICoupler object.
 
-        Has the same form than coupler but can also contain MPIRemoteProcess (and MPICollectiveProcess) objects.
+        Has the same form than Coupler but can also contain MPIRemoteProcess (and MPICollectiveProcess) objects.
 
         When at least one MPIRemoteProcess or MPICollectiveProcess is present, MPICoupler uses collective MPI communications: the object must be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes of this communicator must be involved.
 
-        :param physics: the list of physicsDrivers objects to be coupled.
-        :param exchangers: the list of exchangers for the coupling.
-        :param dataManagers: the list of dataManagers used in the coupling.
+        :param physics: the list of PhysicsDriver objects to be coupled.
+        :param exchangers: the list of Exchanger for the coupling.
+        :param dataManagers: the list of DataManager used in the coupling.
         :param MPIComm: The optional MPIComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess or MPICollectiveProcess are found (if one MPICoupler of the MPI communicator found such an object).
                         It has to be given to the constructor of the object on all involved processes.
                         If at least one MPIRemoteProcess or MPICollectiveProcess is present, this MPIComm parameter must be the MPI communicator used by them.
         """
-        coupler.__init__(self, physics, exchangers, dataManagers)
+        Coupler.__init__(self, physics, exchangers, dataManagers)
         self.MPIComm_ = None
         self.isMPI_ = False
         for p in physics:
@@ -60,44 +60,44 @@ class MPICoupler(coupler):
             self.isMPI_ = self.MPIComm_.allreduce(self.isMPI_, op=MPI.MAX)
 
     def initialize(self):
-        resu = coupler.initialize(self)
+        resu = Coupler.initialize(self)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def terminate(self):
-        resu = coupler.terminate(self)
+        resu = Coupler.terminate(self)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def computeTimeStep(self):
-        (dt, stop) = coupler.computeTimeStep(self)
+        (dt, stop) = Coupler.computeTimeStep(self)
         if self.isMPI_:
             dt = self.MPIComm_.allreduce(dt, op=MPI.MIN)
             stop = self.MPIComm_.allreduce(stop, op=MPI.MIN)
         return (dt, stop)
 
     def initTimeStep(self, dt):
-        resu = coupler.initTimeStep(self, dt)
+        resu = Coupler.initTimeStep(self, dt)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def getSolveStatus(self):
-        resu = coupler.getSolveStatus(self)
+        resu = Coupler.getSolveStatus(self)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def isStationary(self):
-        resu = coupler.isStationary(self)
+        resu = Coupler.isStationary(self)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def getIterateStatus(self):
-        (succeed, converged) = coupler.getIterateStatus(self)
+        (succeed, converged) = Coupler.getIterateStatus(self)
         if self.isMPI_:
             succeed = self.MPIComm_.allreduce(succeed, op=MPI.MIN)
             converged = self.MPIComm_.allreduce(converged, op=MPI.MIN)

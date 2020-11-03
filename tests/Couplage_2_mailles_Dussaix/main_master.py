@@ -9,9 +9,9 @@ import C3PO
 import C3POMPI
 
 
-class OneIterationCoupler(C3PO.coupler):
+class OneIterationCoupler(C3PO.Coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
-        C3PO.coupler.__init__(self, physics, exchangers, dataManagers)
+        C3PO.Coupler.__init__(self, physics, exchangers, dataManagers)
 
     def solveTimeStep(self):
         self.physicsDrivers_[0].solve()
@@ -40,7 +40,7 @@ ExchangerData2Neutro = C3POMPI.MPIMasterExchanger([ThermoProcess, NeutroProcess]
 
 OneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [ExchangerNeutro2Thermo])
 
-mycoupler = C3PO.fixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
+mycoupler = C3PO.FixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
 mycoupler.setDampingFactor(0.125)
 mycoupler.setConvergenceParameters(1E-5, 100)
 

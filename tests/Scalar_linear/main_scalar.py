@@ -3,12 +3,12 @@ from __future__ import print_function
 import sys
 
 import C3PO
-from physicsScalar import physicsScalar
+from PhysicsScalar import PhysicsScalar
 
 
-class ScalarPhysicsCoupler(C3PO.coupler):
+class ScalarPhysicsCoupler(C3PO.Coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
-        C3PO.coupler.__init__(self, physics, exchangers, dataManagers)
+        C3PO.Coupler.__init__(self, physics, exchangers, dataManagers)
 
     def solveTimeStep(self):
         self.physicsDrivers_[0].solve()
@@ -17,21 +17,21 @@ class ScalarPhysicsCoupler(C3PO.coupler):
         return self.getSolveStatus()
 
 
-myPhysics = physicsScalar()
+myPhysics = PhysicsScalar()
 myPhysics.setOption(1., 0.5)
-myPhysics2 = physicsScalar()
+myPhysics2 = PhysicsScalar()
 myPhysics2.setOption(3., -1.)
 
-Transformer = C3PO.directMatching()
+Transformer = C3PO.DirectMatching()
 
-DataCoupler = C3PO.dataManager()
-First2Second = C3PO.exchanger(Transformer, [], [], [(myPhysics, "y")], [(myPhysics2, "x")])
-Second2Data = C3PO.exchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
-Data2First = C3PO.exchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "x")])
+DataCoupler = C3PO.DataManager()
+First2Second = C3PO.Exchanger(Transformer, [], [], [(myPhysics, "y")], [(myPhysics2, "x")])
+Second2Data = C3PO.Exchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
+Data2First = C3PO.Exchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "x")])
 
 OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 
-mycoupler = C3PO.fixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
+mycoupler = C3PO.FixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
 mycoupler.setDampingFactor(0.5)
 mycoupler.setConvergenceParameters(1E-5, 100)
 

@@ -3,18 +3,18 @@ from __future__ import print_function
 import numpy as np
 
 import C3PO
-from physicsMatrix import physicsMatrix
+from PhysicsMatrix import PhysicsMatrix
 
-myPhysics = physicsMatrix()
+myPhysics = PhysicsMatrix()
 taille = myPhysics.getValue("taille")
 
-Transformer = C3PO.directMatching()
+Transformer = C3PO.DirectMatching()
 
-DataCoupler = C3PO.dataManager()
-Physics2Data = C3PO.exchanger(Transformer, [], [], [(myPhysics, str(i)) for i in range(taille)], [(DataCoupler, str(i)) for i in range(taille)])
-Data2Physics = C3PO.exchanger(Transformer, [], [], [(DataCoupler, str(i)) for i in range(taille)], [(myPhysics, str(i)) for i in range(taille)])
+DataCoupler = C3PO.DataManager()
+Physics2Data = C3PO.Exchanger(Transformer, [], [], [(myPhysics, str(i)) for i in range(taille)], [(DataCoupler, str(i)) for i in range(taille)])
+Data2Physics = C3PO.Exchanger(Transformer, [], [], [(DataCoupler, str(i)) for i in range(taille)], [(myPhysics, str(i)) for i in range(taille)])
 
-CouplerGS = C3PO.fixedPointCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
+CouplerGS = C3PO.FixedPointCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
 CouplerGS.setDampingFactor(0.5)
 CouplerAnderson = C3PO.AndersonQRCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
 CouplerAnderson.setOrder(3)

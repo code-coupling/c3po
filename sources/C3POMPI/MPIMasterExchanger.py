@@ -18,7 +18,7 @@ from .MPICollectiveProcess import MPICollectiveProcess
 
 
 class MPIMasterExchanger(object):
-    """ This class is used by the master to control remote exchangers. It can, in addition, be in charge of a local one (allowing the master to participate to the calculation).
+    """ This class is used by the master to control remote Exchanger. It can, in addition, be in charge of a local one (allowing the master to participate to the calculation).
 
     The exchange() method of MPIMasterExchanger commands workers to exchange data.
     """
@@ -27,8 +27,8 @@ class MPIMasterExchanger(object):
         """ Builds a MPIMasterExchanger object.
 
         :param workerProcesses: The list of MPIRemoteProcess or MPICollectiveProcess identifying the remote processes involved in the exchange. In the case of MPICollectiveProcess, the MPIComm must include all the workers + the master, and only them.
-        :param IdExchangerWorker: Common number identifying this exchanger in the involved workers (see MPIWorker).
-        :param localExchanger: a exchanger the MPIMasterExchanger object will run in the same time than the workers. It enables the master to contribute to a collective computation.
+        :param IdExchangerWorker: Common number identifying this Exchanger in the involved workers (see MPIWorker).
+        :param localExchanger: a Exchanger the MPIMasterExchanger object will run in the same time than the workers. It enables the master to contribute to a collective computation.
         """
         self.workerProcesses_ = workerProcesses
         self.IdExchangerWorker_ = IdExchangerWorker

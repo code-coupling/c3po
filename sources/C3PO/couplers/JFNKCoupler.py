@@ -13,7 +13,7 @@ from __future__ import print_function, division
 import math
 import numpy as np
 
-from C3PO.coupler import coupler
+from C3PO.Coupler import Coupler
 
 
 def solveTriang(A, b):
@@ -31,8 +31,8 @@ def solveTriang(A, b):
     return resu
 
 
-class JFNKCoupler(coupler):
-    """ JFNKCoupler inherits from coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm. This is a Newton algorithm using a Krylov (GMRES) method for the linear system solving.
+class JFNKCoupler(Coupler):
+    """ JFNKCoupler inherits from Coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm. This is a Newton algorithm using a Krylov (GMRES) method for the linear system solving.
 
     The Jacobian matrix is not computed, but the product of the jacobian matrix with a vector v is approximated by a Taylor formula (J_u is the jacobian of F at the point u):
 
@@ -40,11 +40,11 @@ class JFNKCoupler(coupler):
 
     epsilon is a parameter of the algorithm. Its default value is 1E-4. Call setEpsilon to change it
 
-    JFNKCoupler is a coupler working with precisely :
+    JFNKCoupler is a Coupler working with precisely :
 
-        - A single physicsDriver (possibly a coupler) defining the calculations to be made each time F is called. 
-        - A single dataManager allowing to manipulate the data to be considered in the coupling.
-        - Two exchangers allowing to go from the physicsDrivers to the dataManager and vice versa.
+        - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called. 
+        - A single DataManager allowing to manipulate the data to be considered in the coupling.
+        - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
 
     As the Newton algorithm solves for F(X) = 0, in order to be coherent with the fixed point coupling algorithms, F(x) is defined as F(X) = f(X) - X, where f is the output of the physicsDriver.    
 
@@ -60,12 +60,12 @@ class JFNKCoupler(coupler):
     def __init__(self, physics, exchangers, dataManager):
         """ Builds a JFNKCoupler object.
 
-        :param physics: list of only one physicsDriver (possibly a coupler).
-        :param exchangers: list of exactly two exchangers allowing to go from the physicsDriver to the dataManager and vice versa.
-        :param dataManager: list of only one dataManager.
+        :param physics: list of only one PhysicsDriver (possibly a Coupler).
+        :param exchangers: list of exactly two Exchanger allowing to go from the physicsDriver to the DataManager and vice versa.
+        :param dataManager: list of only one DataManager.
 
         """
-        coupler.__init__(self, physics, exchangers, dataManager)
+        Coupler.__init__(self, physics, exchangers, dataManager)
         self.NewtonTolerance_ = 1.E-6
         self.NewtonMaxIter_ = 10
         self.KrylovTolerance_ = 1.E-4
@@ -74,11 +74,11 @@ class JFNKCoupler(coupler):
         self.isConverged_ = False
 
         if len(physics) != 1:
-            raise Exception("JFNKCoupler.__init__ There must be only one physicsDriver")
+            raise Exception("JFNKCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:
-            raise Exception("JFNKCoupler.__init__ There must be exactly two exchangers")
+            raise Exception("JFNKCoupler.__init__ There must be exactly two Exchanger")
         if len(dataManager) != 1:
-            raise Exception("JFNKCoupler.__init__ There must be only one dataManager")
+            raise Exception("JFNKCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """ Sets the convergence parameters (tolerance and maximum number of iterations). """
@@ -95,7 +95,7 @@ class JFNKCoupler(coupler):
         self.epsilon_ = epsilon
 
     def solveTimeStep(self):
-        """ Solves a time step using the fixed point algorithm with Anderson acceleration. """
+        """ Solves a time step using Jacobian-Free Newton Krylov algorithm. """
 
         physics = self.physicsDrivers_[0]
         physics2Data = self.exchangers_[0]
@@ -228,21 +228,21 @@ class JFNKCoupler(coupler):
 
         return physics.getSolveStatus() and not(errorNewton > self.NewtonTolerance_)
 
-    # On definit les methodes suivantes pour qu'elles soient vues par tracer.
+    # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
     def initialize(self):
-        return coupler.initialize(self)
+        return Coupler.initialize(self)
 
     def terminate(self):
-        return coupler.terminate(self)
+        return Coupler.terminate(self)
 
     def computeTimeStep(self):
-        return coupler.computeTimeStep(self)
+        return Coupler.computeTimeStep(self)
 
     def initTimeStep(self, dt):
-        return coupler.initTimeStep(self, dt)
+        return Coupler.initTimeStep(self, dt)
 
     def validateTimeStep(self):
-        coupler.validateTimeStep(self)
+        Coupler.validateTimeStep(self)
 
     def abortTimeStep(self):
-        coupler.abortTimeStep(self)
+        Coupler.abortTimeStep(self)

@@ -10,18 +10,18 @@
 
 """ Contains the class AP3Driver. """
 from __future__ import print_function, division
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 
 
-class AP3Driver(physicsDriver):
-    """ This is the implementation of physicsDriver for APOLLO3. """
+class AP3Driver(PhysicsDriver):
+    """ This is the implementation of PhysicsDriver for APOLLO3. """
 
     def __init__(self, ICOCOclass):
         """ Builds a AP3Driver object.
 
         :param ICOCOclass: Object implementing the ICOCO interface for APOLLO3.
         """
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         self.neutro_ = ICOCOclass
         self.isInit_ = False
 

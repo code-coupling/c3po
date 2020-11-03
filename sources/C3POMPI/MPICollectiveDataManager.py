@@ -12,15 +12,15 @@
 from __future__ import print_function, division
 
 from .MPICollectiveProcess import MPICollectiveProcess
-from C3PO.dataManager import dataManager
+from C3PO.DataManager import DataManager
 
 
-class MPICollectiveDataManager(dataManager, MPICollectiveProcess):
-    """ This is the collective MPI version of the dataManager. All processes have all data locally.
+class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
+    """ This is the collective MPI version of the DataManager. All processes have all data locally.
 
-    Inherits from dataManager and MPICollectiveProcess.
+    Inherits from DataManager and MPICollectiveProcess.
 
-    Can replace, without impact, a dataManager of a single processor calculation, if the mpi environment is available.
+    Can replace, without impact, a DataManager of a single processor calculation, if the mpi environment is available.
     """
 
     def __init__(self, MPIComm):
@@ -28,7 +28,7 @@ class MPICollectiveDataManager(dataManager, MPICollectiveProcess):
 
         :param MPIComm: MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all processes of this MPI communicator must be involed in the MPICollectiveDataManager).
         """
-        dataManager.__init__(self)
+        DataManager.__init__(self)
         MPICollectiveProcess.__init__(self, MPIComm)
 
     def cloneEmpty(self):

@@ -5,20 +5,20 @@ from mpi4py import MPI
 import MEDCoupling
 import MEDLoader
 
-from neutroDriver import neutroDriver
-from thermoDriver import thermoDriver
+from NeutroDriver import NeutroDriver
+from ThermoDriver import ThermoDriver
 import C3PO
 import C3POMPI
 
 
-class Thermo2Neutro(C3PO.sharedRemapping):
+class Thermo2Neutro(C3PO.SharedRemapping):
     def __init__(self, remapper):
-        C3PO.sharedRemapping.__init__(self, remapper, reverse=False)
+        C3PO.SharedRemapping.__init__(self, remapper, reverse=False)
 
 
-class Neutro2Thermo(C3PO.sharedRemapping):
+class Neutro2Thermo(C3PO.SharedRemapping):
     def __init__(self, remapper):
-        C3PO.sharedRemapping.__init__(self, remapper, reverse=True)
+        C3PO.SharedRemapping.__init__(self, remapper, reverse=True)
 
 
 class OneIterationCoupler(C3POMPI.MPICoupler):
@@ -40,10 +40,10 @@ DataCoupler = C3POMPI.MPICollectiveDataManager(comm)
 myNeutroDriver = C3POMPI.MPIRemoteProcess(comm, 1)
 
 if rank == 0:
-    myThermoDriver = thermoDriver()
+    myThermoDriver = ThermoDriver()
 
 elif rank == 1:
-    myNeutroDriver = neutroDriver()
+    myNeutroDriver = NeutroDriver()
 
 myThermoDriver.init()
 myThermoDriver.setValue("Vv_Vl", 10.)
@@ -51,8 +51,8 @@ myThermoDriver.setValue("Vv_Vl", 10.)
 myNeutroDriver.init()
 myNeutroDriver.setValue("meanT", 1000.)
 
-basicTransformer = C3PO.remapper()
-Thermo2DataTransformer = C3PO.directMatching()
+basicTransformer = C3PO.Remapper()
+Thermo2DataTransformer = C3PO.DirectMatching()
 Data2NeutroTransformer = Thermo2Neutro(basicTransformer)
 Neutro2ThermoTransformer = Neutro2Thermo(basicTransformer)
 
@@ -63,7 +63,7 @@ ExchangerData2Neutro = C3POMPI.MPIExchanger(Data2NeutroTransformer, [(DataCouple
 
 OneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [ExchangerNeutro2Thermo])
 
-mycoupler = C3PO.fixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
+mycoupler = C3PO.FixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
 mycoupler.setDampingFactor(0.125)
 mycoupler.setConvergenceParameters(1E-5, 100)
 

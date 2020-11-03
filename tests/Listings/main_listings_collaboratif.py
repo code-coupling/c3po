@@ -5,7 +5,7 @@ from mpi4py import MPI
 
 import C3PO
 import C3POMPI
-from physicsScalarTransient import physicsScalarTransient
+from PhysicsScalarTransient import PhysicsScalarTransient
 
 print("Impression necessaire a la bonne redirection des listings (bug ?).")
 
@@ -30,12 +30,12 @@ file3 = open("listingFirst.log", "w")
 file4 = open("listingSecond.log", "w")
 file5 = open("listingCoupler.log", "w")
 file6 = open("listingGeneral" + str(rank) + ".log", "wb+")
-listingW = C3PO.listingWriter(file6)
+listingW = C3PO.ListingWriter(file6)
 
-physics1 = C3PO.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(physicsScalarTransient)
-physics2 = C3PO.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(physicsScalarTransient)
-C3PO.fixedPointCoupler = C3PO.tracer(stdoutFile=file5, listingWriter=listingW)(C3PO.fixedPointCoupler)
-C3POMPI.MPIExchanger = C3PO.tracer(listingWriter=listingW)(C3POMPI.MPIExchanger)
+Physics1 = C3PO.Tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
+Physics2 = C3PO.Tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
+C3PO.FixedPointCoupler = C3PO.Tracer(stdoutFile=file5, listingWriter=listingW)(C3PO.FixedPointCoupler)
+C3POMPI.MPIExchanger = C3PO.Tracer(listingWriter=listingW)(C3POMPI.MPIExchanger)
 
 myPhysics = C3POMPI.MPIRemoteProcess(comm, 0)
 DataCoupler = C3POMPI.MPICollectiveDataManager(comm)
@@ -43,14 +43,14 @@ myPhysics2 = C3POMPI.MPIRemoteProcess(comm, 1)
 localPhysics = 0
 
 if rank == 0:
-    myPhysics = physics1()
+    myPhysics = Physics1()
     localPhysics = myPhysics
 
 elif rank == 1:
-    myPhysics2 = physics2()
+    myPhysics2 = Physics2()
     localPhysics = myPhysics2
 
-Transformer = C3PO.directMatching()
+Transformer = C3PO.DirectMatching()
 
 First2Second = C3POMPI.MPIExchanger(Transformer, [], [], [(myPhysics, "y")], [(myPhysics2, "x")])
 Second2Data = C3POMPI.MPIExchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
@@ -58,7 +58,7 @@ Data2First = C3POMPI.MPIExchanger(Transformer, [], [], [(DataCoupler, "y")], [(m
 
 OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 
-mycoupler = C3PO.fixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
+mycoupler = C3PO.FixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
 mycoupler.setDampingFactor(0.5)
 mycoupler.setConvergenceParameters(1E-5, 100)
 

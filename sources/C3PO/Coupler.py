@@ -8,13 +8,13 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class coupler. """
+""" Contains the class Coupler. """
 from __future__ import print_function, division
 
-from .physicsDriver import physicsDriver
+from .PhysicsDriver import PhysicsDriver
 
 
-class normChoice(object):
+class NormChoice(object):
     """ Enum definition of norm choice.
 
     Values :
@@ -25,29 +25,29 @@ class normChoice(object):
     norm2 = 1
 
 
-class coupler(physicsDriver):
-    """ This is the base class for defining a coupling. This definition uses physicsDrivers, dataManagers and exchangers. 
+class Coupler(PhysicsDriver):
+    """ This is the base class for defining a coupling. This definition of a coupling uses PhysicsDriver, DataManager and Exchanger objects. 
 
-    coupler inherits from physicsDriver which allows to define a coupling of couplings! 
+    Coupler inherits from PhysicsDriver which allows to define a coupling of couplings! 
 
-    Most of the methods inherited from physicsDriver are overloaded by calls to the same methods of the coupled physicsDrivers.
+    Most of the methods inherited from PhysicsDriver are overloaded by calls to the same methods of the coupled PhysicsDriver.
 
     A user needs to define his own class inheriting from coupling and defining the solveTimeStep() method in order to define the sequence of calculations and exchanges to be made at each time step.
-    It may also be necessary to overload the methods inherited from physicsDriver allowing access to data (MED or scalar) if one wishes to make coupling of couplings.
+    It may also be necessary to overload the methods inherited from PhysicsDriver allowing access to data (MED or scalar) if one wishes to make coupling of couplings.
     """
 
     def __init__(self, physics, exchangers, dataManagers=[]):
-        """ Builds an coupler object.
+        """ Builds an Coupler object.
 
-        :param physics: the list of physicsDrivers objects to be coupled.
-        :param exchangers: the list of exchangers for the coupling.
-        :param dataManagers: the list of dataManagers used in the coupling.
+        :param physics: the list of PhysicsDriver objects to be coupled.
+        :param exchangers: the list of Exchanger for the coupling.
+        :param dataManagers: the list of DataManager used in the coupling.
         """
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         self.physicsDrivers_ = physics
         self.exchangers_ = exchangers
         self.dataManagers_ = dataManagers
-        self.norm_ = normChoice.normMax
+        self.norm_ = NormChoice.normMax
         self.dt_ = 1.e30
 
     def initialize(self):
@@ -109,16 +109,16 @@ class coupler(physicsDriver):
         """ Allows to choose a norm for future use. 
 
         Possible choices are :
-            - normChoice.normMax : infinite norm. This is the default choice.
-            - normChoice.norm2 : norm 2 ( sqrt(sum_i(val[i] * val[i])) ).
+            - NormChoice.normMax : infinite norm. This is the default choice.
+            - NormChoice.norm2 : norm 2 ( sqrt(sum_i(val[i] * val[i])) ).
         """
         self.norm_ = choice
 
     def getNorm(self, data):
-        """ Return the norm of data (a dataManager) choosen by setNormChoice. """
-        if self.norm_ == normChoice.normMax:
+        """ Return the norm of data (a DataManager) choosen by setNormChoice. """
+        if self.norm_ == NormChoice.normMax:
             return data.normMax()
-        elif self.norm_ == normChoice.norm2:
+        elif self.norm_ == NormChoice.norm2:
             return data.norm2()
         else:
-            raise Exception("coupler.getNorm The required norm is unknown.")
+            raise Exception("Coupler.getNorm The required norm is unknown.")

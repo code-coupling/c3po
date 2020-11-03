@@ -17,17 +17,17 @@ from .MPITag import MPITag
 
 
 class MPIMasterCollectiveDataManager(object):
-    """ This class is used by the master to control a set of remote dataManagers. It can, in addition, be in charge of a local one. This class is well suited to steer a code using an internal collaborative MPI parallelization.
+    """ This class is used by the master to control a set of remote DataManager. It can, in addition, be in charge of a local one. This class is well suited to steer a code using an internal collaborative MPI parallelization.
 
-    MPIMasterCollectiveDataManager implements the data manipulation methods of dataManager by instructing the workers to execute them.
+    MPIMasterCollectiveDataManager implements the data manipulation methods of DataManager by instructing the workers to execute them.
     """
 
     def __init__(self, MPIMasterCollectivephysicsD, IdDataWorker, localDataManager=None):
         """ Builds a MPIMasterCollectiveDataManager object.
 
-        :param MPIMasterCollectivephysicsD: The MPIMasterCollectivePhysicsDriver object driving the physicsDrivers executed by the workers responsible of the remote dataManagers.
-        :param IdDataWorker: Number identifying the dataManager in the workers (see MPIWorker).
-        :param localDataManager: a dataManager the MPIMasterCollectiveDataManager object will use together with the remote ones handle by the workers. It enables the master to contribute to a collective computation.
+        :param MPIMasterCollectivephysicsD: The MPIMasterCollectivePhysicsDriver object driving the PhysicsDriver executed by the workers responsible of the remote DataManager.
+        :param IdDataWorker: Number identifying the DataManager in the workers (see MPIWorker).
+        :param localDataManager: a DataManager the MPIMasterCollectiveDataManager object will use together with the remote ones handle by the workers. It enables the master to contribute to a collective computation.
         """
         self.physicsDriver_ = MPIMasterCollectivephysicsD
         self.MPIComm_ = MPIMasterCollectivephysicsD.getCommunicator()

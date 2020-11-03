@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class wrapper tracer. """
+""" Contains the class wrapper Tracer. """
 from __future__ import print_function, division
 from types import FunctionType
 import time
@@ -53,7 +53,7 @@ def WriteField_MC789(n, f, b):
     writeField(n, f, b)
 
 
-class tracerMeta(type):
+class TracerMeta(type):
     """ Metaclass defined for internal use only. """
 
     def __init__(self, name, bases, dct):
@@ -162,18 +162,18 @@ class tracerMeta(type):
         return type.__new__(metacls, name, bases, newDct)
 
 
-def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, listingWriter=None):
-    """ tracer is a class wrapper allowing to trace the calls of the methods of the base class.
+def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, listingWriter=None):
+    """ Tracer is a class wrapper allowing to trace the calls of the methods of the base class.
 
     It has different functions:
 
         1. It can write all calls of the methods of the base class in a text file in python format in order to allow to replay what happened from the code point of view outside of the coupling.
         2. It can redirect code standard and error outputs in text files.
-        3. It can contribute (with listingWriter) to the writing of a global coupling listing file with calculation time measurement.
+        3. It can contribute (with ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
 
     .. warning:: The listing redirection seems to need a prior writing in the standard output (print(whatever)).
-    .. warning:: tracer can be applied to any class, but it is design for standard C3PO objects: physicsDriver, dataManager and exchanger. It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or outputs).
-    .. warning:: tracer only modify the base class, not its parents. As a consequence, inherited methods are invisible to tracer. Redefine them in the final class if needed.
+    .. warning:: Tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger. It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or outputs).
+    .. warning:: Tracer only modify the base class, not its parents. As a consequence, inherited methods are invisible to Tracer. Redefine them in the final class if needed.
 
     :param pythonFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script is written there. It has to be closed (file.close()) by caller.
     :param saveMED: This is related to the python file writing.
@@ -181,25 +181,25 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
         - if set to False, the MED field is not stored and the MEDLoader call is not written. Only the setInputMEDField call is written. The replay is not possible.
     :param stdoutFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output is redirected there. It has to be closed (file.close()) by caller.
     :param stderrFile: a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is redirected there. It has to be closed (file.close()) by caller.
-    :param listingWriter: a listingWriter object which will manage the writing of the coupling listing file. Refer to the documentation of listingWriter.
+    :param listingWriter: a ListingWriter object which will manage the writing of the coupling listing file. Refer to the documentation of ListingWriter.
 
-    The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveMED, static_stdout, static_stderr and static_lWriter.
+    The parameters of Tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveMED, static_stdout, static_stderr and static_lWriter.
     Two additional static attributes are added for internal use: static_MEDinfo and static_Objectcounter.
 
-    tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
-        @C3PO.tracer(...)
-        class myclass(...):
+    Tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
+        @C3PO.Tracer(...)
+        class Myclass(...):
             ...
 
     or it can be used in order to redefined only locally the class like that:
-        myclass = C3PO.tracer(...)(myclass)
+        Myclass = C3PO.Tracer(...)(Myclass)
 
-    tracer cannot distinguish different instance of the same class. The name of the instance created in the python file changes each time the __init__ method is called. This means that when a new instance is created, tracer assumes that the previous ones are not used any more. If this is not the case, put the ouput of each instance in its own output file :
+    Tracer cannot distinguish different instance of the same class. The name of the instance created in the python file changes each time the __init__ method is called. This means that when a new instance is created, Tracer assumes that the previous ones are not used any more. If this is not the case, put the ouput of each instance in its own output file :
 
-        myclass1 = C3PO.tracer(pythonFile=file1, ...)(myclass)
-        myclass2 = C3PO.tracer(pythonFile=file2, ...)(myclass)
-        instance1 = myclass1()
-        instance2 = myclass2()
+        Myclass1 = C3PO.Tracer(pythonFile=file1, ...)(Myclass)
+        Myclass2 = C3PO.Tracer(pythonFile=file2, ...)(Myclass)
+        instance1 = Myclass1()
+        instance2 = Myclass2()
 
     """
 
@@ -222,7 +222,7 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
         baseclass.static_stdout = stdoutFile
         baseclass.static_stderr = stderrFile
         baseclass.static_lWriter = listingWriter
-        newclass = tracerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
+        newclass = TracerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         return newclass
     return classWrapper

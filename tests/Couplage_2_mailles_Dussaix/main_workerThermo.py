@@ -2,30 +2,30 @@
 from __future__ import print_function, division
 import mpi4py.MPI as mpi
 
-from thermoDriver import thermoDriver
+from ThermoDriver import ThermoDriver
 import C3PO
 import C3POMPI
 
 
-class Thermo2Neutro(C3PO.sharedRemapping):
+class Thermo2Neutro(C3PO.SharedRemapping):
     def __init__(self, remapper):
-        C3PO.sharedRemapping.__init__(self, remapper, reverse=False)
+        C3PO.SharedRemapping.__init__(self, remapper, reverse=False)
 
 
-class Neutro2Thermo(C3PO.sharedRemapping):
+class Neutro2Thermo(C3PO.SharedRemapping):
     def __init__(self, remapper):
-        C3PO.sharedRemapping.__init__(self, remapper, reverse=True)
+        C3PO.SharedRemapping.__init__(self, remapper, reverse=True)
 
 
 comm = mpi.COMM_WORLD
 
 myNeutroDriver = C3POMPI.MPIRemoteProcess(comm, 2)
-myThermoDriver = thermoDriver()
+myThermoDriver = ThermoDriver()
 MasterProcess = C3POMPI.MPIRemoteProcess(comm, 0)
-DataCoupler = C3PO.dataManager()
+DataCoupler = C3PO.DataManager()
 
-basicTransformer = C3PO.remapper()
-Thermo2DataTransformer = C3PO.directMatching()
+basicTransformer = C3PO.Remapper()
+Thermo2DataTransformer = C3PO.DirectMatching()
 Data2NeutroTransformer = Thermo2Neutro(basicTransformer)
 Neutro2ThermoTransformer = Neutro2Thermo(basicTransformer)
 

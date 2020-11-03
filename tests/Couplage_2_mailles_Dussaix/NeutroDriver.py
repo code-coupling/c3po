@@ -7,12 +7,12 @@ import numpy
 import MEDCoupling
 
 import MEDBuilder
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 
 
-class neutroDriver(physicsDriver):
+class NeutroDriver(PhysicsDriver):
     def __init__(self):
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         self.densities_ = [1., 1.]
         self.MEDResu_ = 0
         self.meanT_ = 1.
@@ -48,7 +48,7 @@ class neutroDriver(physicsDriver):
         if name == "Temperatures":
             return self.MEDResu_
         else:
-            raise Exception("neutroDriver.getOutputMEDField Only Temperatures output available.")
+            raise Exception("NeutroDriver.getOutputMEDField Only Temperatures output available.")
 
     # Import an input scalar. No return.
     def setInputMEDField(self, name, field):

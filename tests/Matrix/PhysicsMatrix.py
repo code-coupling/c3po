@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-# This follows the physicsDriver concepts and returns y = (a*x + b)/||a*x + b||  where a and b are given (matrix and vector) and x can be set as a scalar inputs.
+# This follows the PhysicsDriver concepts and returns y = (a*x + b)/||a*x + b||  where a and b are given (matrix and vector) and x can be set as a scalar inputs.
 from __future__ import print_function, division
 import numpy as np
 
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 
 
-class physicsMatrix(physicsDriver):
+class PhysicsMatrix(PhysicsDriver):
     def __init__(self):
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         self.taille_ = 4
         self.A_ = np.zeros(shape=(self.taille_, self.taille_))
         self.b_ = np.zeros(shape=(self.taille_))
@@ -72,7 +72,7 @@ class physicsMatrix(physicsDriver):
         if int_name >= 0 and int_name < self.taille_:
             return self.result_[int_name]
         else:
-            raise Exception("physicsMatrix.getValue only outputs between 0 and " + str(self.taille_ - 1) + " available.")
+            raise Exception("PhysicsMatrix.getValue only outputs between 0 and " + str(self.taille_ - 1) + " available.")
 
     # Import an input scalar. No return.
     def setValue(self, name, value):
@@ -80,4 +80,4 @@ class physicsMatrix(physicsDriver):
         if int_name >= 0 and int_name < self.taille_:
             self.x_[int_name] = value
         else:
-            raise Exception("physicsMatrix.setValue only inputs between 0 and " + str(self.taille_ - 1) + " allowed.")
+            raise Exception("PhysicsMatrix.setValue only inputs between 0 and " + str(self.taille_ - 1) + " allowed.")

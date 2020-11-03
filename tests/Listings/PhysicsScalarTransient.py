@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-# This follows the physicsDriver concepts and returns y = a*(1+t) + b*x where a and b are parameters, x can be set as a input scalar and t is the present time.
+# This follows the PhysicsDriver concepts and returns y = a*(1+t) + b*x where a and b are parameters, x can be set as a input scalar and t is the present time.
 from __future__ import print_function, division
 
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 
 
-class physicsScalarTransient(physicsDriver):
+class PhysicsScalarTransient(PhysicsDriver):
     def __init__(self):
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         self.result_ = 0.
         self.a_ = 0.
         self.b_ = 0.

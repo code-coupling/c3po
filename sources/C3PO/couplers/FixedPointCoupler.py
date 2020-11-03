@@ -8,20 +8,20 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class fixedPointCoupler. """
+""" Contains the class FixedPointCoupler. """
 from __future__ import print_function, division
 
-from C3PO.coupler import coupler
+from C3PO.Coupler import Coupler
 
 
-class fixedPointCoupler(coupler):
-    """ fixedPointCoupler inherits from coupler and proposes a damped fixed point algorithm.
+class FixedPointCoupler(Coupler):
+    """ FixedPointCoupler inherits from Coupler and proposes a damped fixed point algorithm.
 
-    The class proposes an algorithm for the resolution of F(X) = X. Thus fixedPointCoupler is a coupler working with precisely :
+    The class proposes an algorithm for the resolution of F(X) = X. Thus FixedPointCoupler is a Coupler working with precisely :
 
-        - A single physicsDriver (possibly a coupler) defining the calculations to be made each time F is called.
-        - A single dataManager allowing to manipulate the data to be damped in the coupling (the X).
-        - Two exchangers allowing to go from the physicsDrivers to the dataManager and vice versa.
+        - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
+        - A single DataManager allowing to manipulate the data to be damped in the coupling (the X).
+        - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
 
     At each iteration we do (with n the iteration number and alpha the damping factor):
 
@@ -35,24 +35,24 @@ class fixedPointCoupler(coupler):
     """
 
     def __init__(self, physics, exchangers, dataManager):
-        """ Builds a fixedPointCoupler object.
+        """ Builds a FixedPointCoupler object.
 
-        :param physics: list of only one physicsDriver (possibly a coupler).
-        :param exchangers: list of exactly two exchangers allowing to go from the physicsDriver to the dataManager and vice versa.
-        :param dataManager: list of only one dataManager.
+        :param physics: list of only one PhysicsDriver (possibly a Coupler).
+        :param exchangers: list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+        :param dataManager: list of only one DataManager.
 
         """
-        coupler.__init__(self, physics, exchangers, dataManager)
+        Coupler.__init__(self, physics, exchangers, dataManager)
         self.tolerance_ = 1.E-6
         self.maxiter_ = 100
         self.dampingFactor_ = 1.
         self.isConverged_ = False
         if len(physics) != 1:
-            raise Exception("fixedPointCoupler.__init__ There must be only one physicsDriver")
+            raise Exception("FixedPointCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:
-            raise Exception("fixedPointCoupler.__init__ There must be exactly two exchangers")
+            raise Exception("FixedPointCoupler.__init__ There must be exactly two Exchanger")
         if len(dataManager) != 1:
-            raise Exception("fixedPointCoupler.__init__ There must be only one dataManager")
+            raise Exception("FixedPointCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """ Sets the convergence parameters (tolerance and maximum number of iterations). """
@@ -108,21 +108,21 @@ class fixedPointCoupler(coupler):
 
         return physics.getSolveStatus() and not(error > self.tolerance_)
 
-    # On definit les methodes suivantes pour qu'elles soient vues par tracer.
+    # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
     def initialize(self):
-        return coupler.initialize(self)
+        return Coupler.initialize(self)
 
     def terminate(self):
-        return coupler.terminate(self)
+        return Coupler.terminate(self)
 
     def computeTimeStep(self):
-        return coupler.computeTimeStep(self)
+        return Coupler.computeTimeStep(self)
 
     def initTimeStep(self, dt):
-        return coupler.initTimeStep(self, dt)
+        return Coupler.initTimeStep(self, dt)
 
     def validateTimeStep(self):
-        coupler.validateTimeStep(self)
+        Coupler.validateTimeStep(self)
 
     def abortTimeStep(self):
-        coupler.abortTimeStep(self)
+        Coupler.abortTimeStep(self)

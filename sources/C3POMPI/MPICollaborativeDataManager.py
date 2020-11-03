@@ -13,24 +13,24 @@ from __future__ import print_function, division
 import math
 from mpi4py import MPI
 
-from C3PO.collaborativeDataManager import collaborativeDataManager
+from C3PO.CollaborativeDataManager import CollaborativeDataManager
 from .MPIRemoteProcess import MPIRemoteProcess
 
 
-class MPICollaborativeDataManager(collaborativeDataManager):
-    """ This is the MPI version of collaborativeDataManager (for collaborative MPI paradigm). It allows to handle a set of dataManager (some of then being remote) as a single one. Exchanges are still to be done with the individual dataManagers.
+class MPICollaborativeDataManager(CollaborativeDataManager):
+    """ This is the MPI version of CollaborativeDataManager (for collaborative MPI paradigm). It allows to handle a set of DataManager (some of then being remote) as a single one. Exchanges are still to be done with the individual DataManager.
 
-    Inherits from collaborativeDataManager.
+    Inherits from CollaborativeDataManager.
 
     When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes of that communicator must be involved.
 
-    Can replace, without impact, a collaborativeDataManager of a single processor calculation, if the mpi environment is available.
+    Can replace, without impact, a CollaborativeDataManager of a single processor calculation, if the mpi environment is available.
     """
 
     def __init__(self, dataManagers):
         """ Builds a MPICollaborativeDataManager object.
 
-        Has the same form than collaborativeDataManager but can also contain MPIRemoteProcess objects.
+        Has the same form than CollaborativeDataManager but can also contain MPIRemoteProcess objects.
 
         When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes of that communicator must be involved.
         """
@@ -57,30 +57,30 @@ class MPICollaborativeDataManager(collaborativeDataManager):
         if len(ranks) != 0:
             if len(ranks) != self.MPIComm_.Get_size():
                 raise Exception("MPICollaborativeDataManager.__init__ All process of the MPI communicator are not involve in the MPICollaborativeDataManager")
-        collaborativeDataManager.__init__(self, localData)
+        CollaborativeDataManager.__init__(self, localData)
 
     def cloneEmpty(self):
-        notMPIoutput = collaborativeDataManager.cloneEmpty(self)
+        notMPIoutput = CollaborativeDataManager.cloneEmpty(self)
         output = MPICollaborativeDataManager(notMPIoutput.dataManagers_)
         output.MPIComm_ = self.MPIComm_
         output.isMPI_ = self.isMPI_
         return output
 
     def normMax(self):
-        norm = collaborativeDataManager.normMax(self)
+        norm = CollaborativeDataManager.normMax(self)
         if self.isMPI_:
             norm = self.MPIComm_.allreduce(norm, op=MPI.MAX)
         return norm
 
     def norm2(self):
-        norm = collaborativeDataManager.norm2(self)
+        norm = CollaborativeDataManager.norm2(self)
         if self.isMPI_:
             norm = self.MPIComm_.allreduce(norm * norm, op=MPI.SUM)
             norm = math.sqrt(norm)
         return norm
 
     def dot(self, other):
-        result = collaborativeDataManager.dot(self, other)
+        result = CollaborativeDataManager.dot(self, other)
         if self.isMPI_:
             result = self.MPIComm_.allreduce(result, op=MPI.SUM)
         return result

@@ -8,20 +8,20 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class collaborativeDataManager. """
+""" Contains the class CollaborativeDataManager. """
 from __future__ import print_function, division
 import math
 
 
-class collaborativeDataManager(object):
-    """ collaborativeDataManager allows to handle a set of dataManager as a single one. Exchanges are still to be done with the individual dataManagers.
+class CollaborativeDataManager(object):
+    """ CollaborativeDataManager allows to handle a set of DataManager as a single one. Exchanges are still to be done with the individual DataManagers.
 
     """
 
     def __init__(self, dataManagers):
-        """ Builds a collaborativeDataManager object.
+        """ Builds a CollaborativeDataManager object.
 
-        :param dataManagers: a list of dataManager.
+        :param dataManagers: a list of DataManager.
         """
         self.dataManagers_ = dataManagers
 
@@ -32,11 +32,11 @@ class collaborativeDataManager(object):
     def cloneEmpty(self):
         """ Returns a clone of self without copying the data. """
         dataClone = [data.cloneEmpty() for data in self.dataManagers_]
-        output = collaborativeDataManager(dataClone)
+        output = CollaborativeDataManager(dataClone)
         return output
 
     def copy(self, other):
-        """ If self and other are two collaborativeDataManager with the same list of data copy values of other in self. """
+        """ If self and other are two CollaborativeDataManager with the same list of data copy values of other in self. """
         self.checkBeforeOperator(other)
         for i, data in enumerate(self.dataManagers_):
             data.copy(other.dataManagers_[i])
@@ -59,12 +59,12 @@ class collaborativeDataManager(object):
         return math.sqrt(norm)
 
     def checkBeforeOperator(self, other):
-        """ Make basic checks before the call of an operator: same number of dataManagers in self and other. """
+        """ Make basic checks before the call of an operator: same number of DataManager in self and other. """
         if len(self.dataManagers_) != len(other.dataManagers_):
-            raise Exception("collaborativeDataManager.checkBeforeOperator : we cannot call an operator between two collaborativeDataManager with different number of dataManagers.")
+            raise Exception("CollaborativeDataManager.checkBeforeOperator : we cannot call an operator between two CollaborativeDataManager with different number of DataManager.")
 
     def __add__(self, other):
-        """ If self and other are two collaborativeDataManager with the same list of data: returns a new (coherent with self) collaborativeDataManager where the data are added. """
+        """ If self and other are two CollaborativeDataManager with the same list of data: returns a new (coherent with self) CollaborativeDataManager where the data are added. """
         self.checkBeforeOperator(other)
         new_data = self.cloneEmpty()
         for i in range(len(self.dataManagers_)):
@@ -72,14 +72,14 @@ class collaborativeDataManager(object):
         return new_data
 
     def __iadd__(self, other):
-        """ If self and other are two collaborativeDataManager with the same list of data: modifies in place self with data added to other (and return self). """
+        """ If self and other are two CollaborativeDataManager with the same list of data: modifies in place self with data added to other (and return self). """
         self.checkBeforeOperator(other)
         for i in range(len(self.dataManagers_)):
             self.dataManagers_[i] += other.dataManagers_[i]
         return self
 
     def __sub__(self, other):
-        """ If self and other are two collaborativeDataManager with the same list of data: returns a new (coherent with self) collaborativeDataManager where the data are substracted. """
+        """ If self and other are two CollaborativeDataManager with the same list of data: returns a new (coherent with self) CollaborativeDataManager where the data are substracted. """
         self.checkBeforeOperator(other)
         new_data = self.cloneEmpty()
         for i in range(len(self.dataManagers_)):
@@ -87,14 +87,14 @@ class collaborativeDataManager(object):
         return new_data
 
     def __isub__(self, other):
-        """ If self and other are two collaborativeDataManager with the same list of data: modifies in place self with data substracted to other (and return self). """
+        """ If self and other are two CollaborativeDataManager with the same list of data: modifies in place self with data substracted to other (and return self). """
         self.checkBeforeOperator(other)
         for i in range(len(self.dataManagers_)):
             self.dataManagers_[i] -= other.dataManagers_[i]
         return self
 
     def __mul__(self, scalar):
-        """ Returns a new (coherent with self) collaborativeDataManager where the data are multiplicated by scalar. """
+        """ Returns a new (coherent with self) CollaborativeDataManager where the data are multiplicated by scalar. """
         new_data = self.cloneEmpty()
         for i in range(len(self.dataManagers_)):
             new_data.dataManagers_[i] = self.dataManagers_[i] * scalar
@@ -107,7 +107,7 @@ class collaborativeDataManager(object):
         return self
 
     def imuladd(self, scalar, other):
-        """ If self and other are two collaborativeDataManager with the same list of data: modifies in place self with data added to other * scalar (and return self).
+        """ If self and other are two CollaborativeDataManager with the same list of data: modifies in place self with data added to other * scalar (and return self).
 
         To do so, other *= scalar and other *= 1./scalar are done.
         """
@@ -120,7 +120,7 @@ class collaborativeDataManager(object):
         return self
 
     def dot(self, other):
-        """ If self and other are two collaborativeDataManager with the same list of data: returns the scalar product (sum of the product of every elements) of this and other."""
+        """ If self and other are two CollaborativeDataManager with the same list of data: returns the scalar product (sum of the product of every elements) of this and other."""
         self.checkBeforeOperator(other)
         result = 0.
         for i in range(len(self.dataManagers_)):

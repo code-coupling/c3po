@@ -14,12 +14,12 @@ from __future__ import print_function, division
 import pyTHEDI as THEDI
 import MEDCoupling
 
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 from THEDIInit import THEDIInit
 
 
-class THEDIDriver(physicsDriver):
-    """ This is the implementation of physicsDriver for THEDI.
+class THEDIDriver(PhysicsDriver):
+    """ This is the implementation of PhysicsDriver for THEDI.
 
     A THEDIInit method must be available. It has to take four inputs:
         - A THEDI.COEUR object to initialize.
@@ -29,7 +29,7 @@ class THEDIDriver(physicsDriver):
     """
 
     def __init__(self):
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         self.isInit_ = False
         self.t_ = 0.
         self.dt_ = 1.e30

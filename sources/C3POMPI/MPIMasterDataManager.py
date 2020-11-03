@@ -17,16 +17,16 @@ from .MPITag import MPITag
 
 
 class MPIMasterDataManager(object):
-    """ This class is used by the master to control a remote dataManager: the data is not transferred to the master.
+    """ This class is used by the master to control a remote DataManager: the data is not transferred to the master.
 
-    MPIMasterDataManager implements the data manipulation methods of dataManager by instructing the worker to execute them. 
+    MPIMasterDataManager implements the data manipulation methods of DataManager by instructing the worker to execute them. 
     """
 
     def __init__(self, MPIMasterphysicsD, IdDataWorker):
         """ Builds a MPIMasterDataManager object.
 
-        :param MPIMasterphysicsD: The MPIMasterPhysicsDriver object driving the physicsDriver executed by the worker responsible of the remote dataManager.
-        :param IdDataWorker: Number identifying the dataManager in the worker (see MPIWorker).
+        :param MPIMasterphysicsD: The MPIMasterPhysicsDriver object driving the PhysicsDriver executed by the worker responsible of the remote DataManager.
+        :param IdDataWorker: Number identifying the DataManager in the worker (see MPIWorker).
         """
         self.physicsDriver_ = MPIMasterphysicsD
         self.MPIComm_ = MPIMasterphysicsD.getCommunicator()

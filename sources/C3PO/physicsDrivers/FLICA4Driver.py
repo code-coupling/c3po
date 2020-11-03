@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class AP3Driver. """
+""" Contains the class FLICA4Driver. """
 from __future__ import print_function, division
 import os
 import sys
@@ -19,16 +19,16 @@ import subprocess
 import FlicaICoCo
 import MEDCoupling
 
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 
 
-class FLICA4Driver(physicsDriver):
-    """ This is the implementation of physicsDriver for FLICA4 (> 1.12.1)"""
+class FLICA4Driver(PhysicsDriver):
+    """ This is the implementation of PhysicsDriver for FLICA4 (> 1.12.1)"""
 
     def __init__(self):
         """ Builds a FLICA4Driver object.
         """
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         self.isInit_ = False
         self.isStationnary_ = False
         self.flica_, self.handle_ = FlicaICoCo.openLib(str(os.path.join(os.getenv("FLICA_SHARED_LIB"), "libflica4.so")))

@@ -13,7 +13,7 @@ from __future__ import print_function, division
 import math
 import numpy as np
 
-from C3PO.coupler import coupler
+from C3PO.Coupler import Coupler
 
 from numpy import array, linspace, sqrt, sin, zeros
 from numpy.linalg import norm
@@ -44,14 +44,14 @@ def deleteQRColumn(Q, R, dataTemp):
     return Q, R
 
 
-class AndersonQRCoupler(coupler):
-    """ AndersonQRCoupler inherits from coupler and proposes a fixed point algorithm with Anderson acceleration (and a special solving method of the internal optimization problem). 
+class AndersonQRCoupler(Coupler):
+    """ AndersonQRCoupler inherits from Coupler and proposes a fixed point algorithm with Anderson acceleration (and a special solving method of the internal optimization problem). 
 
-    The class proposes an algorithm for the resolution of F(X) = X. Thus AndersonCoupler is a coupler working with precisely :
+    The class proposes an algorithm for the resolution of F(X) = X. Thus AndersonCoupler is a Coupler working with precisely :
 
-        - A single physicsDriver (possibly a coupler) defining the calculations to be made each time F is called.
-        - A single dataManager allowing to manipulate the data to be damped in the coupling (the X).
-        - Two exchangers allowing to go from the physicsDrivers to the dataManager and vice versa.
+        - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
+        - A single DataManager allowing to manipulate the data to be damped in the coupling (the X).
+        - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
 
     The first two iterations just do (with n the iteration number):
 
@@ -73,12 +73,12 @@ class AndersonQRCoupler(coupler):
     def __init__(self, physics, exchangers, dataManager):
         """ Builds a AndersonQRCoupler object.
 
-        :param physics: list of only one physicsDriver (possibly a coupler).
-        :param exchangers: list of exactly two exchangers allowing to go from the physicsDriver to the dataManager and vice versa.
-        :param dataManager: list of only one dataManager.
+        :param physics: list of only one physicsDriver (possibly a Coupler).
+        :param exchangers: list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+        :param dataManager: list of only one DataManager.
 
         """
-        coupler.__init__(self, physics, exchangers, dataManager)
+        Coupler.__init__(self, physics, exchangers, dataManager)
         self.tolerance_ = 1.E-6
         self.maxiter_ = 100
         self.order_ = 2
@@ -86,11 +86,11 @@ class AndersonQRCoupler(coupler):
         self.isConverged_ = False
 
         if len(physics) != 1:
-            raise Exception("AndersonQRCoupler.__init__ There must be only one physicsDriver")
+            raise Exception("AndersonQRCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:
-            raise Exception("AndersonQRCoupler.__init__ There must be exactly two exchangers")
+            raise Exception("AndersonQRCoupler.__init__ There must be exactly two Exchanger")
         if len(dataManager) != 1:
-            raise Exception("AndersonQRCoupler.__init__ There must be only one dataManager")
+            raise Exception("AndersonQRCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """ Sets the convergence parameters (tolerance and maximum number of iterations). """
@@ -260,21 +260,21 @@ class AndersonQRCoupler(coupler):
 
         return physics.getSolveStatus() and not(error > self.tolerance_)
 
-    # On definit les methodes suivantes pour qu'elles soient vues par tracer.
+    # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
     def initialize(self):
-        return coupler.initialize(self)
+        return Coupler.initialize(self)
 
     def terminate(self):
-        return coupler.terminate(self)
+        return Coupler.terminate(self)
 
     def computeTimeStep(self):
-        return coupler.computeTimeStep(self)
+        return Coupler.computeTimeStep(self)
 
     def initTimeStep(self, dt):
-        return coupler.initTimeStep(self, dt)
+        return Coupler.initTimeStep(self, dt)
 
     def validateTimeStep(self):
-        coupler.validateTimeStep(self)
+        Coupler.validateTimeStep(self)
 
     def abortTimeStep(self):
-        coupler.abortTimeStep(self)
+        Coupler.abortTimeStep(self)

@@ -14,7 +14,7 @@ import mpi4py.MPI as mpi
 
 import MEDCoupling
 
-from C3PO.physicsDriver import physicsDriver
+from C3PO.PhysicsDriver import PhysicsDriver
 from Alcyone2Init import Alcyone2Init
 
 import pleiades
@@ -23,14 +23,14 @@ import pleiadesMPI
 from ctypes import cdll
 
 
-class Alcyone2Driver(physicsDriver):
-    """ This is the implementation of physicsDriver for Alcyone2.
+class Alcyone2Driver(PhysicsDriver):
+    """ This is the implementation of PhysicsDriver for Alcyone2.
 
     A Alcyone2Init method must be available. It has the internal Alcyone2 object as input.
     """
 
     def __init__(self):
-        physicsDriver.__init__(self)
+        PhysicsDriver.__init__(self)
         cdll.LoadLibrary("libALCYONE.so")
         self.Alcyone2_ = pleiades.createComponent("AlcyoneComponent")
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpi.COMM_SELF)

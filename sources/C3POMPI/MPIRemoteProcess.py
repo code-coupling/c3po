@@ -11,14 +11,14 @@
 """ Contains the class MPIRemoteProcess. """
 from __future__ import print_function, division
 
-from C3PO.physicsDriver import physicsDriver
-from C3PO.dataManager import dataManager
+from C3PO.PhysicsDriver import PhysicsDriver
+from C3PO.DataManager import DataManager
 
 
-class MPIRemoteProcess(physicsDriver, dataManager):
+class MPIRemoteProcess(PhysicsDriver, DataManager):
     """ Identifies a remote process. 
 
-    Inherits from physicsDriver and dataManager but passes most of the methods: it does nothing.
+    Inherits from PhysicsDriver and DataManager but passes most of the methods: it does nothing.
     """
 
     def __init__(self, MPIComm, rank):
@@ -27,8 +27,8 @@ class MPIRemoteProcess(physicsDriver, dataManager):
         :param MPIComm: MPI communicator.
         :param rank: Rank of the remote process on MPIComm.
         """
-        physicsDriver.__init__(self)
-        dataManager.__init__(self)
+        PhysicsDriver.__init__(self)
+        DataManager.__init__(self)
         self.MPIComm_ = MPIComm
         self.rank_ = rank
         self.t_ = 0.
