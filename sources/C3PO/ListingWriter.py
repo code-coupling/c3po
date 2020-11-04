@@ -119,7 +119,6 @@ class ListingWriter(object):
         self.boxFormat[ListingWriter.e_continue] += u"────────────┨\n"
 
         self.charPerLine_ = len(self.boxFormat[ListingWriter.e_top].encode('utf-8'))
-        print(self.charPerLine_)
 
     def writeBefore(self, sourceObject, methodName, PresentTime):
         """ For internal use only. """
