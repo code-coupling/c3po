@@ -14,7 +14,7 @@ from mpi4py import MPI
 import numpy
 
 import MEDCoupling
-from MEDLoader import MEDLoader
+import MEDLoader as ml
 
 from .MPITag import MPITag
 
@@ -62,7 +62,10 @@ class MPIFileFieldRecipient(object):
             MEDinfo = MPIComm.bcast(MEDinfo, root=senderRank)
         else:
             MEDinfo = MPIComm.recv(source=senderRank, tag=MPITag.data)
-        field = MEDLoader.ReadField(*(MEDinfo[0]))
+        try:
+            field = ml.MEDLoader.ReadField(*(MEDinfo[0]))
+        except:
+            field = ml.ReadField(*(MEDinfo[0]))
         field.setNature(MEDinfo[1])
         self.storing_.store(field)
 

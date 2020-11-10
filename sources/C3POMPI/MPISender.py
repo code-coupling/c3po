@@ -17,7 +17,7 @@ import os
 from .MPITag import MPITag
 from .MPICollectiveProcess import MPICollectiveProcess
 
-from MEDLoader import MEDLoader
+import MEDLoader as ml
 
 
 class MPIFieldSender(object):
@@ -68,7 +68,10 @@ class MPIFileFieldSender(object):
         while os.path.exists("ExchangeField_" + str(num) + ".med"):
             num += 1
         name_file = "ExchangeField_" + str(num) + ".med"
-        MEDLoader.WriteField("ExchangeField_" + str(num) + ".med", field, True)
+        try:
+            ml.MEDLoader.WriteField("ExchangeField_" + str(num) + ".med", field, True)
+        except:
+            ml.WriteField("ExchangeField_" + str(num) + ".med", field, True)
         
         timeMED, iteration, order = field.getTime()
         MEDinfo = [(field.getTypeOfField(), os.getcwd() + "/" + name_file, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
