@@ -129,16 +129,16 @@ class AndersonQRCoupler(Coupler):
         # Tolérance sur le conditionnement de R ; valeur par défaut proposée par Ansar, reprise telle quelle
         dropErr = 1.e10
 
-#        print("Initialisation ")
+        print("Initialisation ")
         # Init On calcul ici l'etat "0"
-#        print("iteration ", iiter)
+        print("iteration ", iiter)
         physics.solve()
         physics2Data.exchange()
         previousData = data.clone()
         iiter += 1
 
         # Premiere iteration non acceleree
-#        print("iteration ", iiter)
+        print("iteration ", iiter)
         self.abortTimeStep()
         self.initTimeStep(self.dt_)
         data2physics.exchange()
@@ -151,14 +151,14 @@ class AndersonQRCoupler(Coupler):
         delta = previousData * -1.
 
         error = self.getNorm(diffData) / self.getNorm(data)
-#        print("error : ", error)
+        print("error : ", error)
 
         iiter += 1
 
         while error > self.tolerance_ and iiter < self.maxiter_:
             if iiter == 2:
                 print(" -- Anderson Acceleration starts ! ")
-#            print("iteration ", iiter)
+            print("iteration ", iiter)
 
             self.abortTimeStep()
             self.initTimeStep(self.dt_)
@@ -256,7 +256,7 @@ class AndersonQRCoupler(Coupler):
                 previousData.copy(data)
 
             iiter += 1
-#            print("error : ", error)
+            print("error : ", error)
 
         return physics.getSolveStatus() and not(error > self.tolerance_)
 

@@ -22,11 +22,6 @@ import pleiadesMPI
 
 from ctypes import cdll
 
-import inspect
-
-def dmsg(text_s):
-    print (str(inspect.currentframe().f_back.f_lineno) + '| ' + text_s)
-
 class Alcyone2Driver(PhysicsDriver):
     """ This is the implementation of PhysicsDriver for Alcyone2.
 
