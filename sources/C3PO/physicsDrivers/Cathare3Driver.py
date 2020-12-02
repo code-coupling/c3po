@@ -124,7 +124,7 @@ class PBC(C3.Problem_Cathare, PhysicsDriver):
         if self.io == 0:
             for name in self.post_names["fields"]:
                 field = self.getOutputMEDField(name)
-                ml.MEDLoader.WriteUMesh("{}.med".format(short_name(name)), field.getMesh(), True)
+                ml.WriteUMesh("{}.med".format(short_name(name)), field.getMesh(), True)
 
             with open("suivi_c3.txt", "w") as f:
                 header_names = ["Time"] + self.post_names["fields"] + self.post_names["scalars"]
@@ -135,9 +135,9 @@ class PBC(C3.Problem_Cathare, PhysicsDriver):
             fic.write("{:12.5f} ".format(t))
             for name in self.post_names["fields"]:
                 f = self.getOutputMEDField(name)
-                fic.write("{:12.5g} ".format(f.normMax()))
+                fic.write("{:12.5g} ".format(f.normMax()[0]))
                 f.setTime(t, self.io, 0)
-                ml.MEDLoader.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(short_name(name)), f)
+                ml.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(short_name(name)), f)
             for name in self.post_names["scalars"]:
                 if name.startswith("sommewall__"):
                     _, keyword, listofobjects = name.split("__")
