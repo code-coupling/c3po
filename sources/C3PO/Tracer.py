@@ -109,10 +109,6 @@ class TracerMeta(type):
                         pythonFile.write(objectName + "." + method.__name__ + string_args + "\n")
                     pythonFile.flush()
 
-                if lWriter is not None:
-                    if method.__name__ in ["initialize"]:
-                        lWriter.writeBefore(self, method.__name__, time.time())
-
                 prev_idstdout = 0
                 prev_idstderr = 0
                 if stdout is not None:

@@ -34,7 +34,6 @@ listingW = C3PO.ListingWriter(file6)
 
 Physics1 = C3PO.Tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
 Physics2 = C3PO.Tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
-C3PO.FixedPointCoupler = C3PO.Tracer(stdoutFile=file5, listingWriter=listingW)(C3PO.FixedPointCoupler)
 C3POMPI.MPIExchanger = C3PO.Tracer(listingWriter=listingW)(C3POMPI.MPIExchanger)
 
 myPhysics = C3POMPI.MPIRemoteProcess(comm, 0)
@@ -62,7 +61,7 @@ mycoupler = C3PO.FixedPointCoupler([OneIterationCoupler], [Second2Data, Data2Fir
 mycoupler.setDampingFactor(0.5)
 mycoupler.setConvergenceParameters(1E-5, 100)
 
-listingW.initialize(mycoupler, [(localPhysics, "Physics" + str(rank + 1))], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
+listingW.initialize([(localPhysics, "Physics" + str(rank + 1))], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
 
 mycoupler.init()
 

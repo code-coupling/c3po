@@ -10,6 +10,7 @@
 
 """ Contains the class ListingWriter. """
 from __future__ import print_function, division
+import time
 
 
 def getFormattedTime(time):
@@ -40,17 +41,14 @@ class ListingWriter(object):
         :param listingFile: a file object which has to be already open in written-binary mode (file = open("file.txt", "wb")). It has to be closed (file.close()) by caller.
         """
         self.listingFile_ = listingFile
+        self.autoFormat_ = True
 
-    def initialize(self, coupler, physics, exchangers):
+    def initialize(self, physics, exchangers):
         """ Initialize the object. Should be done after the building of all involved objects but before their initialization.
 
-        :param coupler: Coupler or related object that drive the calculation, modified with Tracer to point on this ListingWriter object. The call to the methods initialize, validateTimeStep and terminate of coupler will lead to special treatments.
         :param physics: a list of tuples (object, name). object should be a PhysicsDriver, modified with Tracer to point on this ListingWriter object. A column is created in the listing file for each of them. name allows to identify them.
         :param exchangers: a list of tuples (object, name). object should be an Exchanger object, modified with Tracer to point on this ListingWriter object. name allows to identify them in the final listing file.
         """
-        self.coupler_ = coupler
-        if not isinstance(self, mergedListingWriter) and not (hasattr(coupler, "static_lWriter") and coupler.static_lWriter is self):
-            raise Exception("listingWriter.initialize : The coupler object is not modified by tracer to point on self.")
         self.physics_ = []
         self.physicsData_ = []  
         for p in physics:
@@ -63,6 +61,8 @@ class ListingWriter(object):
         self.timeValid_ = 0.
         self.charPerLine_ = 0
         self.sumCalculationTime_ = 0.
+        self.validatedPhysics_ = [False for p in self.physics_]
+        self.terminatedPhysics_ = [False for p in self.physics_]
 
         self.boxFormat = [""] * 7
         for p in self.physicsData_:
@@ -120,16 +120,37 @@ class ListingWriter(object):
 
         self.charPerLine_ = len(self.boxFormat[ListingWriter.e_top].encode('utf-8'))
 
-    def writeBefore(self, sourceObject, methodName, PresentTime):
-        """ For internal use only. """
-        if sourceObject is self.coupler_ and methodName == "initialize":
-            self.listingFile_.write(self.boxFormat[ListingWriter.e_top].format("{:10.6f}".format(PresentTime)).encode('utf-8'))
-            physicsName = [p[0] for p in self.physicsData_]
-            self.listingFile_.write(self.boxFormat[ListingWriter.e_entete].format(*physicsName).encode('utf-8'))
-            self.listingFile_.write(self.boxFormat[ListingWriter.e_closeTop].encode('utf-8'))
-            self.timeInit_ = PresentTime
-            self.timeValid_ = PresentTime
-            self.listingFile_.flush()
+        if self.autoFormat_:
+            self.writeInitialize(time.time())
+
+    def writeInitialize(self, PresentTime):
+        self.listingFile_.write(self.boxFormat[ListingWriter.e_top].format("{:10.6f}".format(PresentTime)).encode('utf-8'))
+        physicsName = [p[0] for p in self.physicsData_]
+        self.listingFile_.write(self.boxFormat[ListingWriter.e_entete].format(*physicsName).encode('utf-8'))
+        self.listingFile_.write(self.boxFormat[ListingWriter.e_closeTop].encode('utf-8'))
+        self.timeInit_ = PresentTime
+        self.timeValid_ = PresentTime
+        self.listingFile_.flush()
+
+    def writeValidate(self, timeValid):
+        TimeToWrite = getFormattedTime(timeValid - self.timeInit_)
+        calculationTimeToWrite = getFormattedTime(timeValid - self.timeValid_)
+        sumCalculationTimeToWrite = getFormattedTime(self.sumCalculationTime_)
+
+        self.listingFile_.write(self.boxFormat[ListingWriter.e_interrupt].encode('utf-8'))
+        self.listingFile_.write(self.boxFormat[ListingWriter.e_bilan].format("SpentTime " + calculationTimeToWrite, TimeToWrite, sumCalculationTimeToWrite).encode('utf-8'))
+        self.listingFile_.write(self.boxFormat[ListingWriter.e_continue].encode('utf-8'))
+
+        self.timeValid_ = timeValid
+        self.sumCalculationTime_ = 0.
+        for i in range(len(self.validatedPhysics_)):
+            self.validatedPhysics_[i] = False
+
+    def writeTerminate(self):
+        self.listingFile_.write(self.boxFormat[ListingWriter.e_term].encode('utf-8'))
+
+        for i in range(len(self.terminatedPhysics_)):
+            self.terminatedPhysics_[i] = False
 
     def writeAfter(self, sourceObject, input_var, outputTuple, methodName, PresentTime, calculationTime):
         """ For internal use only. """
@@ -156,13 +177,17 @@ class ListingWriter(object):
                     toWrite += "{:.4f}".format(input_var)
                 toWrite += ", ok = " + ("yes" if outputTuple else "no")
 
-            elif methodName in ["solveTimeStep", "initialize", "terminate"]:
+            elif methodName in ["solveTimeStep", "initialize"]:
                 toWrite += "succeed = " + ("yes" if outputTuple else "no")
+            elif methodName == "terminate":
+                toWrite += "succeed = " + ("yes" if outputTuple else "no")
+                self.terminatedPhysics_[self.physics_.index(sourceObject)] = True
             elif methodName == "iterateTimeStep":
                 toWrite += "succeed = " + ("yes" if outputTuple[0] else "no")
                 toWrite += ", cv. = " + ("yes" if outputTuple[1] else "no")
             elif methodName == "validateTimeStep":
                 toWrite += "time = " + "{:.4f}".format(sourceObject.presentTime())
+                self.validatedPhysics_[self.physics_.index(sourceObject)] = True
 
             self.listingFile_.write(self.physicsData_[ind][1].format(toWrite, methodName, PresentTimeToWrite, calculationTimeToWrite).encode('utf-8'))
 
@@ -170,21 +195,10 @@ class ListingWriter(object):
             ind = self.exchangers_.index(sourceObject)
             self.listingFile_.write(self.exchangersData_[ind][1].format(self.exchangersData_[ind][0], methodName, PresentTimeToWrite, calculationTimeToWrite).encode('utf-8'))
 
-        if sourceObject is self.coupler_ and methodName == "validateTimeStep":
-            PresentTime += calculationTime
-            PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
-            calculationTimeToWrite = getFormattedTime(PresentTime - self.timeValid_)
-            sumCalculationTimeToWrite = getFormattedTime(self.sumCalculationTime_)
-
-            self.listingFile_.write(self.boxFormat[ListingWriter.e_interrupt].encode('utf-8'))
-            self.listingFile_.write(self.boxFormat[ListingWriter.e_bilan].format("SpentTime " + calculationTimeToWrite, PresentTimeToWrite, sumCalculationTimeToWrite).encode('utf-8'))
-            self.listingFile_.write(self.boxFormat[ListingWriter.e_continue].encode('utf-8'))
-
-            self.timeValid_ = PresentTime
-            self.sumCalculationTime_ = 0.
-
-        if sourceObject is self.coupler_ and methodName == "terminate":
-            self.listingFile_.write(self.boxFormat[ListingWriter.e_term].encode('utf-8'))
+        if self.autoFormat_ and min(self.validatedPhysics_):
+            self.writeValidate(PresentTime + calculationTime)
+        if self.autoFormat_ and min(self.terminatedPhysics_):
+            self.writeTerminate()
 
         self.listingFile_.flush()
 
@@ -199,9 +213,10 @@ class mergedListingWriter(ListingWriter):
 
     def __init__(self, listingFile):
         ListingWriter.__init__(self, listingFile)
+        self.autoFormat_ = False
 
-    def initialize(self, coupler, physics, exchangers):
-        ListingWriter.initialize(self, coupler, physics, exchangers)
+    def initialize(self, physics, exchangers):
+        ListingWriter.initialize(self, physics, exchangers)
 
         self.boxFormat.append("")
         self.boxFormat.append("")
@@ -282,9 +297,6 @@ class mergedListingWriter(ListingWriter):
                 PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
                 self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite,))).encode('utf-8'))
 
-        if sourceObject is self.coupler_ and (methodName == "validateTimeStep" or methodName == "terminate"):
-            ListingWriter.writeAfter(self, sourceObject, 0, 0, methodName, PresentTime, 0.)
-
     def writeAfterExchange(self, sourceObject, toWrite, methodName, involvedPhysics, runningPhysics, PresentTime):
         if sourceObject in self.exchangers_:
             columnList = [":" if running else "" for running in runningPhysics]
@@ -345,13 +357,12 @@ def mergeListing(listingsName, newListingName):
     for i in range(1, len(physicsShift)):
         physicsShift[i] = physicsShift[i - 1] + physicsNumber[i - 1]
 
-    myCoupler = 0
     mydumbPhysics = [(i + 1, physicsName[i]) for i in range(len(physicsName))]
     runningPhysics = [False for p in mydumbPhysics]
     myExchanger = len(physicsName) + 1
 
-    writer.initialize(myCoupler, mydumbPhysics, [(myExchanger, "")])
-    ListingWriter.writeBefore(writer, myCoupler, "initialize", refTime)
+    writer.initialize(mydumbPhysics, [(myExchanger, "")])
+    writer.writeInitialize(refTime)
 
     lineWords = [[] for l in listings]
     CurrentTime = [0. for l in listings]
@@ -439,7 +450,7 @@ def mergeListing(listingsName, newListingName):
                     if lastStarted[physicsInd[imin][0]] == "validateTimeStep":
                         timeStepValidated[physicsInd[imin][0]] = True
                     if min(timeStepValidated):
-                        writer.writeAfter(myCoupler, "", "validateTimeStep", runningPhysics, CurrentTime[imin])
+                        writer.writeValidate(CurrentTime[imin])
                         for ivalid in range(len(timeStepValidated)):
                             timeStepValidated[ivalid] = False
                 elif lineNature[imin] == nature_end_exchange:
@@ -460,7 +471,7 @@ def mergeListing(listingsName, newListingName):
                         runningPhysics[ilast] = True
                 readOneListingLine(imin)
 
-    writer.writeAfter(myCoupler, "", "terminate", runningPhysics, 0.)
+    writer.writeTerminate()
     for l in listings:
         l.close()
     newListing.close()
