@@ -93,3 +93,15 @@ if rank == 0:
     nameListing2 = "listingGeneral1.log"
     filegeneral = "listingGeneralMerged.log"
     C3PO.mergeListing([nameListing1, nameListing2], filegeneral)
+
+    dt1 = C3PO.getTotalTimePhysicsDriver("listingGeneralMerged.log", "Physics1")
+    dt2 = C3PO.getTotalTimePhysicsDriver("listingGeneralMerged.log", "Physics2")
+
+    dt3 = C3PO.getTimesExchanger("listingGeneralMerged.log", "1 -> 2", ["Physics1", "Physics2"])
+    dt4 = C3PO.getTimesExchanger("listingGeneralMerged.log", "2 -> Data", ["Physics1", "Physics2"])
+    dt5 = C3PO.getTimesExchanger("listingGeneralMerged.log", "Data -> 1", ["Physics1"])
+
+    print("Temps de calcul : ", dt1, dt2)
+    print("Temps d'echange 1 -> 2 :", dt3)
+    print("Temps d'echange 2 -> Data :", dt4)
+    print("Temps d'echange Data -> 1 :", dt5)

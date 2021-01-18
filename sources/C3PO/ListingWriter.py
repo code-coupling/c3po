@@ -475,3 +475,102 @@ def mergeListing(listingsName, newListingName):
     for l in listings:
         l.close()
     newListing.close()
+
+
+def getTotalTimePhysicsDriver(listingName, PhysicsDriverName, methodNames = ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate"]):
+    """ This function reads a listing file produced by ListingWriter or mergeListing and returns the total time spent by one PhysicsDriver in indicated methods.
+
+    :param listingName: name of the listing file to read.
+    :param PhysicsDriverName: name (given in the listing file) of the PhysicsDriver for which the total time is requested.
+    :param methodNames: list of the names of the methods to take into account. By defaut: everything but "exchange": ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate"].
+
+    :return: The total time spent by the PhysicsDriver in the indicated methods.
+    """
+    listing = open(listingName, "r")
+    lineNumber = sum(1 for _ in listing)
+    listing.seek(0)
+    lineCurrentNumber = 0
+    physicsColumn = -1
+
+    if lineNumber > 2:
+        line = listing.readline()
+        line = listing.readline()
+        words = line.split("│")
+        if len(words) > 3:
+            for iw in range(1, len(words) - 2):
+                if words[iw].strip() == PhysicsDriverName:
+                    physicsColumn = iw
+        listing.readline()
+        lineCurrentNumber += 3
+    if physicsColumn < 0:
+        raise Exception("getTotalTimePhysicsDriver: we do not find the PhysicsDriver " + PhysicsDriverName + " in listing file listingName.")
+
+    sumTime = 0.
+    while lineCurrentNumber < lineNumber:
+        line = listing.readline()
+        lineCurrentNumber += 1
+        words = line.strip().strip('┃').split("│")
+        if len(words) > physicsColumn:
+            resuColumn = words[physicsColumn].strip(' -').split() 
+            if len(resuColumn) > 0 and resuColumn[0] in methodNames:
+                sumTime += float(words[-1].strip())
+
+    return sumTime
+
+
+def getTimesExchanger(listingName, ExchangerName, PhysicsDriverNames):
+    """ This function reads a listing file produced by ListingWriter or mergeListing and returns time information about a chosen exchanger.
+
+    For each PhysicsDriver involved in the exchange, the function distinguishes between exchange time and waiting time. The exchange is assumed to really begin when all involved PhysicsDriver enter the exchange.
+    For each of them, the waiting time is the time spent in the exchange before they all enter it. The exchange time is the time from this "real beginning" to the end of the exchange (from the point of view of each PhysicsDriver).
+
+    :param listingName: name of the listing file to read.
+    :param ExchangerName: name (given in the listing file) of the Exchanger for which time information is requested.
+    :param PhysicsDriverNames: list of the names of the PhysicsDriver (given in the listing file) involved in the Exchanger. They must be really involved!
+
+    :return: A list of len(PhysicsDriverNames) elements, in the same order than PhysicsDriverNames. Each element is a list of two values: first the total exchange time spent by this PhysicsDriver in the Exchanger, then its total waiting time in the Exchanger.
+    """
+    listing = open(listingName, "r")
+    lineNumber = sum(1 for _ in listing)
+    listing.seek(0)
+    lineCurrentNumber = 0
+    physicsColumns = [-1 for p in PhysicsDriverNames]
+
+    if lineNumber > 2:
+        line = listing.readline()
+        line = listing.readline()
+        words = line.split("│")
+        if len(words) > 3:
+            for iw in range(1, len(words) - 2):
+                if words[iw].strip() in PhysicsDriverNames:
+                    physicsColumns[PhysicsDriverNames.index(words[iw].strip())] = iw
+        listing.readline()
+        lineCurrentNumber += 3
+    for p in physicsColumns:
+        if p < 0:
+            raise Exception("getTimesExchanger: we do not find all the PhysicsDrivers of" + str(PhysicsDriverNames) + ".")
+
+    sumTimes = [[0., 0.] for p in PhysicsDriverNames]   #Pour chaque PhysicsDriver on renvoie le temps d'echange (sans l'attente) et le temps d'attente.
+    IntermediateTime = [0. for p in PhysicsDriverNames]
+    isStarted = [False for p in PhysicsDriverNames]
+    while lineCurrentNumber < lineNumber:
+        line = listing.readline()
+        lineCurrentNumber += 1
+        words = line.strip().strip('┃').split("│")
+        if len(words) > 0 and words[0].strip() == ExchangerName:
+            currentTime = float(words[-2].strip())
+            for i, p in enumerate(physicsColumns):
+                resuColumn = words[p].strip(' -').split() 
+                if len(resuColumn) > 0 and resuColumn[0] == "exchange":
+                    IntermediateTime[i] = currentTime
+                    isStarted[i] = True
+                if len(resuColumn) == 1 and resuColumn[0] == "end":
+                    sumTimes[i][0] += currentTime - IntermediateTime[i]
+                if len(resuColumn) == 1 and resuColumn[0] == "exchange":
+                    sumTimes[i][0] += float(words[-1].strip())
+            if min(isStarted):
+                for i in range(len(PhysicsDriverNames)):
+                    isStarted[i] = False
+                    sumTimes[i][1] += currentTime - IntermediateTime[i]
+                    IntermediateTime[i] = currentTime
+    return sumTimes

@@ -17,7 +17,7 @@ from .Exchanger import Exchanger
 from .CollaborativeExchanger import CollaborativeExchanger
 from .Coupler import Coupler, NormChoice
 from .Tracer import Tracer
-from .ListingWriter import ListingWriter, mergeListing
+from .ListingWriter import ListingWriter, mergeListing, getTotalTimePhysicsDriver, getTimesExchanger
 from .couplers.FixedPointCoupler import FixedPointCoupler
 from .couplers.AndersonCoupler import AndersonCoupler
 from .couplers.AndersonQRCoupler import AndersonQRCoupler
