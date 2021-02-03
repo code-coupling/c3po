@@ -53,7 +53,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         self.innerField_.setName("3DFieldFromMulti1D")
         self.isInit_ = False
 
-    def initialize(self, Mesh1D, Mesh3D, meshAlignment, offset):
+    def initialize(self, Mesh1D, Mesh3D, meshAlignment, offset, rescaling):
         self.arrayZ_ = Mesh1D.getCoordsAt(0)
         self.innerMesh_.setCoords(self.arrayX_, self.arrayY_, self.arrayZ_)
         self.numberOfCellsIn1D_ = Mesh1D.getNumberOfCells()
@@ -69,6 +69,8 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
                 mesh.translate(offsettmp)
         if offset != [0., 0., 0.]:
             self.innerMesh_.translate([-x for x in offset])
+        if rescaling != 1.:
+            self.innerMesh_.scale([0. ,0., 0.], 1./rescaling)
         self.prepare(self.innerMesh_, Mesh3D, "P0P0")
         self.isInit_ = True
 
@@ -123,15 +125,16 @@ class SharedRemappingMulti1D3D(object):
     The initialization of the projection method (long operation) is done only once, and can be shared with other instances of SharedRemappingMulti1D3D.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1.,0.), meshAlignment=False, offset=[0., 0., 0.]):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1.,0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
         """ Builds a SharedRemappingMulti1D3D object, to be given to an Exchanger object.
 
         :param remapper: A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of SharedRemappingMulti1D3D (its initialization will always be done only once).
-        :param reverse: Allows the remapper to be shared with an instance of SharedRemappingMulti1D3D performing the reverse exchange (the projection will be done in the reverse direction if reverse is set to True).
+        :param reverse: Allows the remapper to be shared with an instance of SharedRemappingMulti1D3D performing the reverse exchange (the projection will be done in the reverse direction if reverse is set to True). Direct is multi1D -> 3D, reverse is 3D -> multi1D.
         :param defaultValue: This is the default value to be assigned, during the projection, in the meshes of the target mesh which are not intersected by the source mesh.
         :param linearTransform: Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
         :param meshAlignment: If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
         :param offset: Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
+        :param rescaling: Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is expanded compared to the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment or translation, if any.
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
@@ -139,13 +142,16 @@ class SharedRemappingMulti1D3D(object):
         self.linearTransform_ = linearTransform
         self.meshAlignment_ = meshAlignment
         self.offset_ = offset
+        if rescaling <= 0.:
+            raise Exception("SharedRemappingMulti1D3D : rescaling must be > 0!")
+        self.rescaling_ = rescaling
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         if not self.remapper_.isInit_:
             if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_])
+                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_], 1./self.rescaling_)
             else:
-                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_)
+                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_, self.rescaling_)
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         self.initialize(fieldsToGet, fieldsToSet, valuesToGet)

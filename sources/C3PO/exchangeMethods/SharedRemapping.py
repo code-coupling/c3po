@@ -22,7 +22,7 @@ class Remapper(MEDCouplingRemapper):
         MEDCouplingRemapper.__init__(self)
         self.isInit_ = False
 
-    def initialize(self, sourceMesh, targetMesh, meshAlignment, offset):
+    def initialize(self, sourceMesh, targetMesh, meshAlignment, offset, rescaling):
         if meshAlignment:
             for mesh in [sourceMesh, targetMesh]:
                 [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
@@ -30,6 +30,8 @@ class Remapper(MEDCouplingRemapper):
                 mesh.translate(offsettmp)
         if offset != [0., 0., 0.]:
             sourceMesh.translate([-x for x in offset])
+        if rescaling != 1.:
+            sourceMesh.scale([0. ,0., 0.], 1./rescaling)
         self.prepare(sourceMesh, targetMesh, "P0P0")
         self.isInit_ = True
 
@@ -45,7 +47,7 @@ class SharedRemapping(object):
     The initialization of the projection method (long operation) is done only once, and can be shared with other instances of SharedRemapping.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.]):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
         """ Builds an SharedRemapping object, to be given to an Exchanger object.
 
         :param remapper: A Remapper object (defined in C3PO and inheriting from MEDCouplingRemapper) performing the projection. It can thus be shared with other instances of SharedRemapping (its initialization will always be done only once).
@@ -54,6 +56,7 @@ class SharedRemapping(object):
         :param linearTransform: Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
         :param meshAlignment: If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
         :param offset: Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
+        :param rescaling: Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is expanded compared to the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment or translation, if any.
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
@@ -61,13 +64,16 @@ class SharedRemapping(object):
         self.linearTransform_ = linearTransform
         self.meshAlignment_ = meshAlignment
         self.offset_ = offset
+        if rescaling <= 0.:
+            raise Exception("sharedRemapping : rescaling must be > 0!")
+        self.rescaling_ = rescaling
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         if not self.remapper_.isInit_:
             if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_])
+                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_], 1./self.rescaling_)
             else:
-                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_)
+                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_, self.rescaling_)
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         if len(fieldsToSet) != len(fieldsToGet):
