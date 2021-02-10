@@ -41,12 +41,15 @@ def buildName(keyword, cname, loc, irad=-1):
 class CATHARE3Driver(C3, PhysicsDriver):
     """! This is the implementation of PhysicsDriver for CATHARE3. """
 
-    def __init__(self):
+    def __init__(self, dt_post=0.0):
         C3.__init__(self)
         PhysicsDriver.__init__(self)
         self.io = 0
         self._timeShift = 0.
         self._stationaryMode = False
+        self.tpost = -1e8
+        self.dt_post = dt_post
+
 
     def getMEDCouplingMajorVersion(self):
         return mc.MEDCouplingVersionMajMinRel()[0]
@@ -65,7 +68,11 @@ class CATHARE3Driver(C3, PhysicsDriver):
 
     def validateTimeStep(self):
         C3.validateTimeStep(self)
-        self.post()
+        if (self.presentTime() - self.tpost > self.dt_post):
+            self.post(1)
+            self.tpost = self.presentTime()
+        else: self.post(0)
+
 
     def setStationaryMode(self, stationaryMode):
         self._stationaryMode = stationaryMode
@@ -162,7 +169,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
         field *= 0.0
         return field
 
-    def post(self):
+    def post(self, post_med):
         """! INTERNAL """
         # ecriture des maillages et entete fichier colonne
         if self.io == 0:
@@ -180,6 +187,11 @@ class CATHARE3Driver(C3, PhysicsDriver):
             for name in self.post_names["fields"]:
                 field = self.getOutputMEDDoubleField(name)
                 fic.write("{:12.5g} ".format(field.normMax()[0]))
+                if (post_med):
+                    field.setTime(temps, self.io, 0)
+                    mc.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(shortName(name)), field)
+                    self.io += 1
+
                 field.setTime(temps, self.io, 0)
                 mc.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(shortName(name)), field)
             for name in self.post_names["scalars"]:
@@ -194,4 +206,3 @@ class CATHARE3Driver(C3, PhysicsDriver):
                 else:
                     fic.write("{:12.5g} ".format(self.getValue(name)))
             fic.write("\n")
-        self.io += 1
