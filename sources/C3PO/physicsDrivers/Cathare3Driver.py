@@ -2,7 +2,12 @@
 from __future__ import print_function, division
 
 import MEDLoader as ml
-import Cathare_opt as C3
+try:
+    import Cathare_opt
+    import Cathare_opt.Problem_Cathare as C3
+except ImportError:
+    #importation dans Corpus
+    from CATHARE3SWIG import CATHARE3 as C3
 from C3PO.PhysicsDriver import PhysicsDriver
 
 
@@ -16,33 +21,33 @@ def build_name(keyword, cname, loc, irad=-1):
     return new_name
 
 
-class PBC(C3.Problem_Cathare, PhysicsDriver):
+class PBC(C3, PhysicsDriver):
     def __init__(self):
-        C3.Problem_Cathare.__init__(self)
+        C3.__init__(self)
         PhysicsDriver.__init__(self)
         self.io = 0
 
     def solveTimeStep(self):
-        return C3.Problem_Cathare.solveTimeStep(self)
+        return C3.solveTimeStep(self)
 
     def computeTimeStep(self):
-        return C3.Problem_Cathare.computeTimeStep(self)
+        return C3.computeTimeStep(self)
 
     def initTimeStep(self, dt):
-        return C3.Problem_Cathare.initTimeStep(self, dt)
+        return C3.initTimeStep(self, dt)
 
     def validateTimeStep(self):
-        C3.Problem_Cathare.validateTimeStep(self)
+        C3.validateTimeStep(self)
         self.post()
 
     def abortTimeStep(self):
-        return C3.Problem_Cathare.abortTimeStep(self)
+        return C3.abortTimeStep(self)
 
     def initialize(self):
-        return C3.Problem_Cathare.initialize(self)
+        return C3.initialize(self)
 
     def terminate(self):
-        C3.Problem_Cathare.terminate(self)
+        C3.terminate(self)
 
     def getOutputMEDField_driver(self, name):
         separator = "@"
@@ -52,7 +57,7 @@ class PBC(C3.Problem_Cathare, PhysicsDriver):
             return self.get_rowland(*(name.split(separator)[1:]))
         elif name.split(separator)[0] == "WEIGHTEDVOL":
             return self.get_weighted_volume(*(name.split(separator)[1:]))
-        else: return C3.Problem_Cathare.getOutputMEDField(self, name)
+        else: return C3.getOutputMEDField(self, name)
 
     def get_rowland(self, cname, loc):
         fc = self.getOutputMEDField(build_name("UO2CTEMP", cname, loc))
@@ -110,9 +115,9 @@ class PBC(C3.Problem_Cathare, PhysicsDriver):
                     o += nc
 
                     f1d.setArray(local_array)
-                    C3.Problem_Cathare.setInputMEDField(self, new_name, f1d)
+                    C3.setInputMEDField(self, new_name, f1d)
         else:
-            C3.Problem_Cathare.setInputMEDField(self, name, field)
+            C3.setInputMEDField(self, name, field)
 
     def getInputMEDFieldTemplate(self, name):
         ch = self.getOutputMEDField(name)
