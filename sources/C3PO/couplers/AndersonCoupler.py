@@ -58,6 +58,8 @@ class AndersonCoupler(Coupler):
         self.andersonDampingFactor_ = 1.
         self.isConverged_ = False
 
+        if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManager, list):
+            raise Exception("AndersonCoupler.__init__ physics, exchangers and dataManager must be lists!")
         if len(physics) != 1:
             raise Exception("AndersonCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:

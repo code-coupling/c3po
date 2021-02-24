@@ -39,39 +39,40 @@ class Coupler(PhysicsDriver):
     def __init__(self, physics, exchangers, dataManagers=[]):
         """ Builds an Coupler object.
 
-        :param physics: the list of PhysicsDriver objects to be coupled.
-        :param exchangers: the list of Exchanger for the coupling.
-        :param dataManagers: the list of DataManager used in the coupling.
+        :param physics: a list (or dictionary) of PhysicsDriver objects to be coupled.
+        :param exchangers: a list (or dictionary) of Exchanger for the coupling.
+        :param dataManagers: a list (or dictionary) of DataManager used in the coupling.
         """
         PhysicsDriver.__init__(self)
         self.physicsDrivers_ = physics
+        self.physicsDriversList_ = physics if not isinstance(physics, dict) else physics.values()
         self.exchangers_ = exchangers
         self.dataManagers_ = dataManagers
         self.norm_ = NormChoice.normMax
         self.dt_ = 1.e30
 
     def initialize(self):
-        for physics in self.physicsDrivers_:
+        for physics in self.physicsDriversList_:
             physics.init()
         resu = True
-        for physics in self.physicsDrivers_:
+        for physics in self.physicsDriversList_:
             resu = (resu and physics.getInitStatus())
         return resu
 
     def terminate(self):
         resu = True
-        for physics in self.physicsDrivers_:
+        for physics in self.physicsDriversList_:
             resu = (resu and physics.terminate())
         return resu
 
     def presentTime(self):
-        if len(self.physicsDrivers_) > 0:
-            return self.physicsDrivers_[0].presentTime()
+        if len(self.physicsDriversList_) > 0:
+            return self.physicsDriversList_[0].presentTime()
         return 0.
 
     def computeTimeStep(self):
         (dt, stop) = (1.e30, True)
-        for physics in self.physicsDrivers_:
+        for physics in self.physicsDriversList_:
             (dtPhysics, stopPhysics) = physics.computeTimeStep()
             if dtPhysics < dt:
                 dt = dtPhysics
@@ -81,27 +82,27 @@ class Coupler(PhysicsDriver):
     def initTimeStep(self, dt):
         self.dt_ = dt
         resu = True
-        for physics in self.physicsDrivers_:
+        for physics in self.physicsDriversList_:
             resu = (resu and physics.initTimeStep(dt))
         return resu
 
     def getSolveStatus(self):
         resu = True
-        for physics in self.physicsDrivers_:
+        for physics in self.physicsDriversList_:
             resu = resu and physics.getSolveStatus()
         return resu
 
     def validateTimeStep(self):
-        for physics in self.physicsDrivers_:
+        for physics in self.physicsDriversList_:
             physics.validateTimeStep()
 
     def abortTimeStep(self):
-        for physics in self.physicsDrivers_:
+        for physics in self.physicsDriversList_:
             physics.abortTimeStep()
 
     def isStationary(self):
         resu = True
-        for physics in self.physicsDrivers_:
+        for physics in self.physicsDriversList_:
             resu = (resu and physics.isStationary())
         return resu
 

@@ -73,7 +73,7 @@ class AndersonQRCoupler(Coupler):
     def __init__(self, physics, exchangers, dataManager):
         """ Builds a AndersonQRCoupler object.
 
-        :param physics: list of only one physicsDriver (possibly a Coupler).
+        :param physics: list of only one PhysicsDriver (possibly a Coupler).
         :param exchangers: list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
         :param dataManager: list of only one DataManager.
 
@@ -85,6 +85,8 @@ class AndersonQRCoupler(Coupler):
         self.andersonDampingFactor_ = 1.
         self.isConverged_ = False
 
+        if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManager, list):
+            raise Exception("AndersonQRCoupler.__init__ physics, exchangers and dataManager must be lists!")
         if len(physics) != 1:
             raise Exception("AndersonQRCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:

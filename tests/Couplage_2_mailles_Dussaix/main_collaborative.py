@@ -26,9 +26,9 @@ class OneIterationCoupler(C3POMPI.MPICoupler):
         C3POMPI.MPICoupler.__init__(self, physics, exchangers, dataManagers)
 
     def solveTimeStep(self):
-        self.physicsDrivers_[0].solve()
+        self.physicsDrivers_["neutro"].solve()
         self.exchangers_[0].exchange()
-        self.physicsDrivers_[1].solve()
+        self.physicsDrivers_["thermo"].solve()
         return self.getSolveStatus()
 
 
@@ -61,7 +61,7 @@ ExchangerNeutro2Thermo = C3POMPI.MPIExchanger(Neutro2ThermoTransformer, [(myNeut
 ExchangerThermo2Data = C3POMPI.MPIExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(DataCoupler, "Densities")])
 ExchangerData2Neutro = C3POMPI.MPIExchanger(Data2NeutroTransformer, [(DataCoupler, "Densities")], [(myNeutroDriver, "Densities")])
 
-OneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [ExchangerNeutro2Thermo])
+OneIteration = OneIterationCoupler({"neutro": myNeutroDriver, "thermo": myThermoDriver}, [ExchangerNeutro2Thermo])
 
 mycoupler = C3PO.FixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
 mycoupler.setDampingFactor(0.125)

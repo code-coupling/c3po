@@ -47,6 +47,9 @@ class FixedPointCoupler(Coupler):
         self.maxiter_ = 100
         self.dampingFactor_ = 1.
         self.isConverged_ = False
+
+        if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManager, list):
+            raise Exception("FixedPointCoupler.__init__ physics, exchangers and dataManager must be lists!")
         if len(physics) != 1:
             raise Exception("FixedPointCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:
