@@ -23,11 +23,10 @@ from C3PO.PhysicsDriver import PhysicsDriver
 
 
 class FLICA4Driver(PhysicsDriver):
-    """ This is the implementation of PhysicsDriver for FLICA4 (> 1.12.1)"""
+    """ This is the implementation of PhysicsDriver for FLICA4. """
 
     def __init__(self):
-        """ Builds a FLICA4Driver object.
-        """
+        """ Builds a FLICA4Driver object. """
         PhysicsDriver.__init__(self)
         self.isInit_ = False
         self.isStationnary_ = False
