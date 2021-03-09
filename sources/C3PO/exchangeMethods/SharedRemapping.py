@@ -56,7 +56,7 @@ class SharedRemapping(object):
         :param linearTransform: Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
         :param meshAlignment: If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
         :param offset: Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
-        :param rescaling: Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is expanded compared to the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment or translation, if any.
+        :param rescaling: Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment or translation, if any.
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
