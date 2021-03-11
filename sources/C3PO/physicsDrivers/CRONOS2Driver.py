@@ -24,15 +24,6 @@ class ParamKey:
     DMOD = "DMOD"
     PUIS = "PUIS"
 
-class TableKey:
-    """ Keys for the dictionary of the names of CRONOS2 tables """
-    PARAM = "PARAM"
-    DOMAINE = "DOMAINE"
-    FLUXINT = "FLUXINT"
-    PUISS = "PUISS"
-    MW = "MW"
-    PUISS_RELATIVE = "PUISS_RELATIVE" 
-
 class CRONOS2Driver(PhysicsDriver):
     """ This is the implementation of PhysicsDriver for CRONOS2. """
 
@@ -58,16 +49,10 @@ class CRONOS2Driver(PhysicsDriver):
         # The values are set in "initialize" for use in gibiane instructions of CRONOS2 
         self.paramDict_ = {}
 
-        # Dictionary of names of internal CRONOS2 tables 
-        # The keys are defined in TableKey        
-        # The values are set in "initialize" for use in gibiane instructions of CRONOS2 
-        self.tableDict_ = {}
-
-    def setDictionaries(self, paramDict, tableDict):
+    def setParamDict(self, paramDict):
         """ This function is reserved for advanced use only ;
-            do not use setDictionaries unless you know exactly what you are doing"""
+            do not use it unless you know exactly what you are doing"""
         self.paramDict_ = paramDict
-        self.tableDict_ = tableDict
 
     def setDataFile(self, dataFile):
         self.dataFile_ = dataFile
@@ -77,43 +62,24 @@ class CRONOS2Driver(PhysicsDriver):
             # start a session of python Access for CRONOS2
             self.a_ = Access.Access()
             self.a_.begin(10000,0)
-            self.isInit = True
+            self.isInit_ = True
             # run a CRONOS2 input file if defined
             if bool(self.dataFile_):
                 self.a_.evalFile(self.dataFile_)
             # initialize T_C3PO table  
             self.a_.eval("T_C3PO = TABLE: ; T_C3PO.'ITH' = 0 ; T_C3PO.'MED' = TABLE: ;")
-            self.a_.eval("T_C3PO.'paramDict' = TABLE: ; T_C3PO.'tableDict' = TABLE: ; ")
+            self.a_.eval("T_C3PO.'paramDict' = TABLE: ;")
             self.a_.eval("T_C3PO.'paramDict'.'TECO' = 'TECO' ; ")
             self.a_.eval("T_C3PO.'paramDict'.'DMOD' = 'DMOD' ; ")
             self.a_.eval("T_C3PO.'paramDict'.'PUIS' = 'PUISSANCE_W' ; ")
-            self.a_.eval("T_C3PO.'tableDict'.'PARAM' = 'TCOMP' ; ")
-            self.a_.eval("T_C3PO.'tableDict'.'DOMAINE' = 'DOMAINE' ; ")
-            self.a_.eval("T_C3PO.'tableDict'.'FLUXINT' = 'FLUXINT' ; ")
-            self.a_.eval("T_C3PO.'tableDict'.'PUISS' = 'PUIS' ; ")
-            self.a_.eval("T_C3PO.'tableDict'.'MW' = 'MW' ; ")
-            self.a_.eval("T_C3PO.'tableDict'.'PUISS_RELATIVE' = 'PUIS_RELATIVE' ; ")
             # if need be, modify/add relevant T_C3PO variables inside ICOCO_INITIALIZE
             self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INITIALIZE T_IMP T_STR T_OPT T_RES T_C3PO ;") 
             # initialize dictionary values
-            self.a_.eval("STRING_VALUE = T_C3PO.'paramDict'.'TECO' ;")
-            self.paramDict_[ParamKey.TECO] = self.a_.getString("STRING_VALUE") 
-            self.a_.eval("STRING_VALUE = T_C3PO.'paramDict'.'DMOD' ;")
-            self.paramDict_[ParamKey.DMOD] = self.a_.getString("STRING_VALUE") 
-            self.a_.eval("STRING_VALUE = T_C3PO.'paramDict'.'PUIS' ;")
-            self.paramDict_[ParamKey.PUIS] = self.a_.getString("STRING_VALUE") 
-            self.a_.eval("STRING_VALUE = T_C3PO.'tableDict'.'PARAM' ;")
-            self.tableDict_[TableKey.PARAM] = self.a_.getString("STRING_VALUE") 
-            self.a_.eval("STRING_VALUE = T_C3PO.'tableDict'.'DOMAINE' ;")
-            self.tableDict_[TableKey.DOMAINE] = self.a_.getString("STRING_VALUE") 
-            self.a_.eval("STRING_VALUE = T_C3PO.'tableDict'.'FLUXINT' ;")
-            self.tableDict_[TableKey.FLUXINT] = self.a_.getString("STRING_VALUE") 
-            self.a_.eval("STRING_VALUE = T_C3PO.'tableDict'.'PUISS' ;")
-            self.tableDict_[TableKey.PUISS] = self.a_.getString("STRING_VALUE") 
-            self.a_.eval("STRING_VALUE = T_C3PO.'tableDict'.'MW' ;")
-            self.tableDict_[TableKey.MW] = self.a_.getString("STRING_VALUE") 
-            self.a_.eval("STRING_VALUE = T_C3PO.'tableDict'.'PUISS_RELATIVE' ;")
-            self.tableDict_[TableKey.PUISS_RELATIVE] = self.a_.getString("STRING_VALUE") 
+            tc3po_ptr = self.a_.getTabPtr('T_C3PO')
+            param_ptr = self.a_.getTableTabPtr(tc3po_ptr,'paramDict')
+            self.paramDict_[ParamKey.TECO] = self.a_.getTableString(param_ptr,'TECO') 
+            self.paramDict_[ParamKey.DMOD] = self.a_.getTableString(param_ptr,'DMOD') 
+            self.paramDict_[ParamKey.PUIS] = self.a_.getTableString(param_ptr,'PUIS') 
         return True
 
     def terminate(self):
@@ -121,6 +87,10 @@ class CRONOS2Driver(PhysicsDriver):
         self.a_.eval("EDTIME: 'TOUT' ; MEMOIRE: -1 ; ARRET: ;")
         self.a_.end()        
         self.isInit_ = False
+        self.dataFile_ = ""
+        self.t_ = 0
+        self.dt_ = 0
+        self.paramDict_ = {}
         return True
 
     def initTimeStep(self, dt):
@@ -160,21 +130,14 @@ class CRONOS2Driver(PhysicsDriver):
             pass
 
     def getOutputMEDField(self, name):
+        """ The gibiane subroutine ICOCO_GET_OUTPUT_MEDFIELD :
+           - takes as input the name of the MED field in the string T_C3PO.'name' ;
+           - returns the required MED field in the variable T_C3PO.'field_out' of type MEDFIELD. """
+
         if name == ParamKey.PUIS:
-            DOMAINE = self.tableDict_[TableKey.DOMAINE]
-            PUISS_RELATIVE = self.tableDict_[TableKey.PUISS_RELATIVE]
-            MW = self.tableDict_[TableKey.MW] 
-            FLUXINT = self.tableDict_[TableKey.FLUXINT] 
-            PUISS = self.tableDict_[TableKey.PUISS] 
-            PUIS = self.paramDict_[ParamKey.PUIS] 
-            self.a_.eval("GR__ = CGRILLE: 0 T_STR.'"+DOMAINE+"' ;")
-            self.a_.eval("mesh_out = MED_GRID_2_MESH: GR__ ;") 
-            self.a_.eval("PcoreMW = T_OPT.'"+PUISS_RELATIVE+"' * T_OPT.'"+MW+"' ;") 
-            self.a_.eval("PUIS_MW FLUX_ncm2s = NORMALISATION: 0 'PUISSANCE COEUR' PcoreMW T_STR.'"+FLUXINT+"' T_STR.'"+PUISS+"' T_STR.'"+DOMAINE+"' ;") 
-            self.a_.eval("grid_out = CGRILLE: 0 PUIS_MW T_STR.'"+DOMAINE+"' ;") 
-            self.a_.eval("grid_out = FONCTION_GRILLE: 0 grid_out 'PUISSANCE INTEGREE' 'FINAL' '"+PUIS+"' ;") 
-            self.a_.eval("grid_out = 1.0E6 * grid_out ;") 
-            self.a_.eval("field_out = MED_GRID_2_FIELD: grid_out mesh_out ;")
+            self.a_.eval("T_C3PO.'name' = '"+self.paramDict_[name]+"' ;")
+            self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_OUTPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
+            self.a_.eval("field_out = T_C3PO.'field_out' ;")
             myCppPtr = self.a_.getCppPtr("field_out")
             field_output = MEDconvert.void2field(myCppPtr)
             field_output.setNature(MEDCoupling.Integral)
@@ -183,14 +146,14 @@ class CRONOS2Driver(PhysicsDriver):
             raise Exception("CRONOS2Driver.getOutputMEDField Only "+ParamKey.PUIS+" output available.")
 
     def getInputMEDFieldTemplate(self, name):
+        """ The gibiane subroutine ICOCO_GET_INPUT_MEDFIELD_TEMPLATE :
+           - takes as input the name of the MED field template in the string T_C3PO.'name' ;
+           - returns the required MED field template in the variable T_C3PO.'field_out' of type MEDFIELD. """
+
         if ((name == ParamKey.TECO) or (name == ParamKey.DMOD)):
-            DOMAINE = self.tableDict_[TableKey.DOMAINE]
-            PARAM = self.tableDict_[TableKey.PARAM]
-            self.a_.eval("GR__ = CGRILLE: 0 T_STR.'"+DOMAINE+"' ;")
-            self.a_.eval("mesh_out = MED_GRID_2_MESH: GR__ ;")  
-            self.a_.eval("name = '"+self.paramDict_[name]+"' ;")
-            self.a_.eval("grid_out = CGRILLE: 0 T_STR.'"+PARAM+"' T_STR.'"+DOMAINE+"' name ;")
-            self.a_.eval("field_out = MED_GRID_2_FIELD: grid_out mesh_out ;")
+            self.a_.eval("T_C3PO.'name' = '"+self.paramDict_[name]+"' ;")
+            self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_INPUT_MEDFIELD_TEMPLATE T_IMP T_STR T_OPT T_RES T_C3PO ;")
+            self.a_.eval("field_out = T_C3PO.'field_out' ;")
             myCppPtr = self.a_.getCppPtr("field_out")
             field_template = MEDconvert.void2field(myCppPtr)
             return field_template
@@ -198,16 +161,17 @@ class CRONOS2Driver(PhysicsDriver):
             raise Exception("CRONOS2Driver.getIntputMEDFieldTemplate Only "+ParamKey.TECO+" and "+ParamKey.DMOD+" template available.")
  
     def setInputMEDField(self, name, field):
+        """ The gibiane subroutine ICOCO_SET_INPUT_MEDFIELD :
+           - takes as input the name of the MED field in the string T_C3PO.'name' ;
+           - takes as input the MED field in the variable T_C3PO.'MED'.ITH of type MEDFIELD ;
+           - sorts away the MED field in the appropriate PARAM structures of CRONOS. """
+
         if ((name == ParamKey.TECO) or (name == ParamKey.DMOD)):
-            DOMAINE = self.tableDict_[TableKey.DOMAINE]
-            PARAM = self.tableDict_[TableKey.PARAM]
             self.a_.eval("T_C3PO.'ITH' = T_C3PO.'ITH' + 1 ; ITH = T_C3PO.'ITH' ;")
             intField = MEDtsetpt.SaphGetIdFromPtr(field) 
             self.a_.eval("T_C3PO.'MED'.ITH = MED_FIELD_SAPH: "+str(intField)+" ;") 
-            self.a_.eval("grid_ref = CGRILLE: 0 T_STR.'"+PARAM+"' T_STR.'"+DOMAINE+"' ;")
-            self.a_.eval("grid_out = MED_FIELD_2_GRID: grid_ref T_C3PO.'MED'.ITH ;")
-            self.a_.eval("name = '"+self.paramDict_[name]+"' ;")
-            self.a_.eval("T_STR.'"+PARAM+"' = CGRILLE2C: 0 T_STR.'"+PARAM+"' T_STR.'"+DOMAINE+"' grid_out name ;")
+            self.a_.eval("T_C3PO.'name' = '"+self.paramDict_[name]+"' ;")
+            self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_INPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
         else:
             raise Exception("CRONOS2Driver.setInputMEDField Only "+ParamKey.TECO+" and "+ParamKey.DMOD+" input possible.")
- 
+
