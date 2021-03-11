@@ -13,8 +13,8 @@ from __future__ import print_function, division
 from mpi4py import MPI
 
 from C3PO.Coupler import Coupler
-from .MPIRemoteProcess import MPIRemoteProcess
-from .MPICollectiveProcess import MPICollectiveProcess
+from C3POMPI.MPIRemoteProcess import MPIRemoteProcess
+from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
 
 
 class MPICoupler(Coupler):

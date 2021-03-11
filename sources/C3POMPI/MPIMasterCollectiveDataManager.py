@@ -13,7 +13,7 @@ from __future__ import print_function, division
 import math
 from mpi4py import MPI
 
-from .MPITag import MPITag
+from C3POMPI.MPITag import MPITag
 
 
 class MPIMasterCollectiveDataManager(object):
