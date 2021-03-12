@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class MPICollectiveDataManager. """
+""" Contain the class MPICollectiveDataManager. """
 from __future__ import print_function, division
 
 from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
@@ -16,22 +16,26 @@ from C3PO.DataManager import DataManager
 
 
 class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
-    """ This is the collective MPI version of the DataManager. All processes have all data locally.
+    """! This is the collective MPI version of the C3PO.DataManager.DataManager. 
+    
+    All processes have all data locally.
 
-    Inherits from DataManager and MPICollectiveProcess.
-
-    Can replace, without impact, a DataManager of a single processor calculation, if the mpi environment is available.
+    Can replace, without impact, a C3PO.DataManager.DataManager for a calculation on a single process, if the MPI environment is available.
     """
 
     def __init__(self, MPIComm):
-        """ Builds a MPICollectiveDataManager object.
+        """! Build a MPICollectiveDataManager object.
 
-        :param MPIComm: MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all processes of this MPI communicator must be involed in the MPICollectiveDataManager).
+        @param MPIComm MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all processes of this MPI communicator must be involed in the MPICollectiveDataManager).
         """
         DataManager.__init__(self)
         MPICollectiveProcess.__init__(self, MPIComm)
 
     def cloneEmpty(self):
+        """! Return a clone of self without copying the data. 
+
+        @return An empty clone of self.
+        """
         output = MPICollectiveDataManager(self.MPIComm_)
         output.MEDFieldTemplates_ = self.MEDFieldTemplates_
         return output

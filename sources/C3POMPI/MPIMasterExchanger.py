@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the MPIMasterExchanger class. """
+""" Contain the class MPIMasterExchanger. """
 from __future__ import print_function, division
 from mpi4py import MPI
 
@@ -18,23 +18,26 @@ from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
 
 
 class MPIMasterExchanger(object):
-    """ This class is used by the master to control remote Exchanger. It can, in addition, be in charge of a local one (allowing the master to participate to the calculation).
+    """! MPIMasterExchanger is used by the master to control remote C3PO.Exchanger.Exchanger(s). 
+
+    It can, in addition, be in charge of a local one (that allows the master to participate to the calculation).
 
     The exchange() method of MPIMasterExchanger commands workers to exchange data.
     """
 
     def __init__(self, workerProcesses, IdExchangerWorker, localExchanger=None):
-        """ Builds a MPIMasterExchanger object.
+        """! Build a MPIMasterExchanger object.
 
-        :param workerProcesses: The list of MPIRemoteProcess or MPICollectiveProcess identifying the remote processes involved in the exchange. In the case of MPICollectiveProcess, the MPIComm must include all the workers + the master, and only them.
-        :param IdExchangerWorker: Common number identifying this Exchanger in the involved workers (see MPIWorker).
-        :param localExchanger: a Exchanger the MPIMasterExchanger object will run in the same time than the workers. It enables the master to contribute to a collective computation.
+        @param workerProcesses The list of MPIRemoteProcess or MPICollectiveProcess identifying the remote processes involved in the exchange. In the case of MPICollectiveProcess, the MPIComm must include all the workers + the master, and only them.
+        @param IdExchangerWorker Number identifying the controlled C3PO.Exchanger.Exchanger in the involved workers (see C3POMPI.MPIWorker.MPIWorker).
+        @param localExchanger a C3PO.Exchanger.Exchanger the MPIMasterExchanger object will run in the same time than the workers. It enables the master to contribute to a collective computation.
         """
         self.workerProcesses_ = workerProcesses
         self.IdExchangerWorker_ = IdExchangerWorker
         self.localExchanger_ = localExchanger
 
     def exchange(self):
+        """! Trigger the exchange of data. """
         for process in self.workerProcesses_:
             if isinstance(process, MPIRemoteProcess):
                 process.MPIComm_.send(self.IdExchangerWorker_, dest=process.rank_, tag=MPITag.exchange)

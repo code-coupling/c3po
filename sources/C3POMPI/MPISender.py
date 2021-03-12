@@ -8,7 +8,9 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# This class sends local data to another process.
+""" Contain the classes MPIFieldSender, MPIFileFieldSender and MPIValueSender. 
+These classes send data to another process.
+"""
 from __future__ import print_function, division
 from mpi4py import MPI
 import numpy
@@ -21,6 +23,7 @@ import MEDLoader as ml
 
 
 class MPIFieldSender(object):
+    """! INTERNAL """
     def __init__(self, destinations, dataAccess, storing, isTemplate):
         self.destinations_ = destinations
         self.dataAccess_ = dataAccess
@@ -52,6 +55,7 @@ class MPIFieldSender(object):
 
 
 class MPIFileFieldSender(object):
+    """! INTERNAL """
     def __init__(self, destinations, dataAccess, storing, isTemplate):
         self.destinations_ = destinations
         self.dataAccess_ = dataAccess
@@ -90,6 +94,7 @@ class MPIFileFieldSender(object):
 
 
 class MPIValueSender(object):
+    """! INTERNAL """
     def __init__(self, destinations, dataAccess, storing):
         self.destinations_ = destinations
         self.dataAccess_ = dataAccess

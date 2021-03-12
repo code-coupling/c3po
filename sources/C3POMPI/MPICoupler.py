@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the MPICoupler class. """
+""" Contain the class MPICoupler. """
 from __future__ import print_function, division
 from mpi4py import MPI
 
@@ -18,26 +18,26 @@ from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
 
 
 class MPICoupler(Coupler):
-    """ This is the version for collaborative MPI of Coupler. The MPI functionalities are used for some collective operations.
+    """! MPICoupler is the MPI collaborative version of C3PO.Coupler.Coupler.
+    
+    The MPI functionalities are used for some collective operations.
 
-    Inherits from Coupler.
-
-    Can replace, without impact, a Coupler of a single processor calculation, if the mpi environment is available.
+    Can replace, without impact, a C3PO.Coupler.Coupler for a calculation on a single process, if the MPI environment is available.
     """
 
     def __init__(self, physics, exchangers, dataManagers=[], MPIComm=None):
-        """ Builds a MPICoupler object.
+        """! Build a MPICoupler object.
 
-        Has the same form than Coupler but can also contain MPIRemoteProcess (and MPICollectiveProcess) objects.
+        Has the same form than Coupler.__init__() but can also contain MPIRemoteProcess (and MPICollectiveProcess) objects.
 
         When at least one MPIRemoteProcess or MPICollectiveProcess is present, MPICoupler uses collective MPI communications: the object must be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes of this communicator must be involved.
 
-        :param physics: the list of PhysicsDriver objects to be coupled.
-        :param exchangers: the list of Exchanger for the coupling.
-        :param dataManagers: the list of DataManager used in the coupling.
-        :param MPIComm: The optional MPIComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess or MPICollectiveProcess are found (if one MPICoupler of the MPI communicator found such an object).
+        @param physics list (or dictionary) of C3PO.PhysicsDriver.PhysicsDriver objects to be coupled.
+        @param exchangers list (or dictionary) of C3PO.Exchanger.Exchanger for the coupling.
+        @param dataManagers list (or dictionary) of C3PO.DataManager.DataManager used in the coupling.
+        @param MPIComm The optional MPIComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess or MPICollectiveProcess are found.
                         It has to be given to the constructor of the object on all involved processes.
-                        If at least one MPIRemoteProcess or MPICollectiveProcess is present, this MPIComm parameter must be the MPI communicator used by them.
+                        If at least one MPIRemoteProcess or MPICollectiveProcess is present, this MPIComm parameter must be the same than theirs.
         """
         Coupler.__init__(self, physics, exchangers, dataManagers)
         self.MPIComm_ = None
@@ -60,18 +60,21 @@ class MPICoupler(Coupler):
             self.isMPI_ = self.MPIComm_.allreduce(self.isMPI_, op=MPI.MAX)
 
     def initialize(self):
+        """! See Coupler.initialize(). """
         resu = Coupler.initialize(self)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def terminate(self):
+        """! See Coupler.terminate(). """
         resu = Coupler.terminate(self)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def computeTimeStep(self):
+        """! See Coupler.computeTimeStep(). """
         (dt, stop) = Coupler.computeTimeStep(self)
         if self.isMPI_:
             dt = self.MPIComm_.allreduce(dt, op=MPI.MIN)
@@ -79,24 +82,28 @@ class MPICoupler(Coupler):
         return (dt, stop)
 
     def initTimeStep(self, dt):
+        """! See Coupler.initTimeStep(). """
         resu = Coupler.initTimeStep(self, dt)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def getSolveStatus(self):
+        """! See Coupler.getSolveStatus(). """
         resu = Coupler.getSolveStatus(self)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def isStationary(self):
+        """! See Coupler.isStationary(). """
         resu = Coupler.isStationary(self)
         if self.isMPI_:
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
     def getIterateStatus(self):
+        """! See Coupler.getIterateStatus(). """
         (succeed, converged) = Coupler.getIterateStatus(self)
         if self.isMPI_:
             succeed = self.MPIComm_.allreduce(succeed, op=MPI.MIN)

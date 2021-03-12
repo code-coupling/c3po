@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the classes MPIExchanger and MPIShortcutToData. MPIShortcutToData is for internal use only. """
+""" Contain the classes MPIExchanger and MPIShortcutToData, MPIShortcutToData is for internal use only. """
 from __future__ import print_function, division
 
 from C3PO.Exchanger import Exchanger, ShortcutToData
@@ -19,7 +19,7 @@ from C3POMPI.MPIRecipient import MPIFieldRecipient, MPIFileFieldRecipient, MPIVa
 
 
 class MPIShortcutToData(object):
-    """ For internal use only. """
+    """! INTERNAL """
 
     def __init__(self, containerToSet):
         self.something_ = 0
@@ -47,23 +47,40 @@ class MPIShortcutToData(object):
 
 
 class MPIExchanger(Exchanger):
-    """ This is the MPI version of Exchanger. The class organizes data exchanges between processes.
+    """! MPIExchanger is the MPI version of C3PO.Exchanger.Exchanger. 
+    
+    The class organizes data exchanges between processes. It manages the MPI exchanges before managing the local exchanges with the mother class.
 
-    Inherits from Exchanger. It manages the MPI exchanges before managing the local exchanges with the mother class.
-
-    Can replace, without impact, an Exchanger of a single processor calculation, if the mpi environment is available.
+    Can replace, without impact, an C3PO.Exchanger.Exchanger for a calculation on a single process, if the MPI environment is available.
     """
 
     def __init__(self, method, MEDFieldsToGet, MEDFieldsToSet, ValuesToGet=[], ValuesToSet=[], exchangeWithFiles=False):
-        """ Builds a MPIExchanger object.
+        """! Build a MPIExchanger object.
 
-        This constructor has the same form as the one of Exchanger but can also contain objects of type MPIRemoteProcess and MPICollectiveProcess (and therefore MPICollectiveDataManager).
+        Has the same form as the one of Exchanger.__init__() but can also contain objects of type MPIRemoteProcess and MPICollectiveProcess (and therefore MPICollectiveDataManager).
 
         The object must be built in the same way for all the processes involved in the exchanges. Likewise, the exchange() method must be called at the same time by all processes.
 
         It is assumed that an object is either held by a single process (and of the form MPIRemoteProcess in others), or collective (MPICollectiveProcess).
 
         When there is an MPICollectiveProcess on the get side, all the processes of the communicator of this object must be involved in the exchanges.
+        
+        @param method a user-defined function (or class with the special method __call__).
+
+        * method must have three input lists:
+            * The MED fields obtained by getOutputMEDField() on the MEDFieldsToGet objects, in the same order.
+            * The MED fields obtained by getInputMEDFieldTemplate() on the MEDFieldsToSet objects, in the same order.
+            * The scalars obtained by getValue() on the ValuesToGet objects, in the same order.
+
+        * It must have two ouput lists:
+            * The MED fields to impose by setInputMEDField() on the MEDFieldsToSet objects, in the same order.
+            * The scalars to impose by setValue() on the ValuesToSet objects, in the same order.
+
+        @param MEDFieldsToGet a list of tuples (object, name). object must be either a C3PO.PhysicsDriver.PhysicsDriver or a C3PO.DataManager.DataManager, and name is the name of the field to get from object.
+        @param MEDFieldsToSet a list of tuples in the same format as MEDFieldsToGet. name is the name of the field to set in object.
+        @param ValuesToGet idem MEDFieldsToGet but for scalars.
+        @param ValuesToSet idem MEDFieldsToSet but for scalars.
+        @param exchangeWithFiles when set to True, exchanged MEDField are written on files and read by the recipient process(es). Only basic data (such as the file path) are exchanged via MPI.
         """
         Exchanger.__init__(self, method, MEDFieldsToGet, MEDFieldsToSet, ValuesToGet, ValuesToSet)
 
@@ -135,7 +152,7 @@ class MPIExchanger(Exchanger):
                     self.MPIexchanges_.append(MPIValueRecipient(toGet, self.valuesToGet_[i], self.isCollective_))
 
     def exchange(self):
-        """ Triggers the exchange of data. 
+        """! Trigger the exchange of data. 
 
         Must be called at the same time by all processes.
         """

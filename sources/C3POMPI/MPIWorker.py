@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the MPIWorker class. """
+""" Contain the class MPIWorker. """
 from __future__ import print_function, division
 from mpi4py import MPI
 
@@ -18,15 +18,15 @@ from C3POMPI.MPIMasterCollectivePhysicsDriver import MPIMasterCollectivePhysicsD
 
 
 class MPIWorker(object):
-    """ Defines the behavior of workers following the instructions of the master. """
+    """! MPIWorker define the behavior of workers in a master/workers MPI paradimg. """
 
     def __init__(self, physicsDrivers, exchangers, dataManagers, MasterProcess):
-        """ Builds a MPIWorker object.
+        """! Build a MPIWorker object.
 
-        :param physicsDrivers: List of PhysicsDriver. Only one should not be a MPIRemoteProcess : it is the one the worker is responsible for.
-        :param exchangers: List of Exchanger handled by the worker. The indices in this list are the numbers identifying the Exchanger for the master.
-        :param dataManagers: List of DataManager handled by the worker. The indices in this list are the numbers identifying the DataManager for the master.
-        :param MasterProcess: Either a MPIRemoteProcess or a MPIMasterCollectivePhysicsDriver identifying the master process. In the first case point-to-point communications are used, in the second case collective communications are used. 
+        @param physicsDrivers List of C3PO.PhysicsDriver.PhysicsDriver. Only one should not be a MPIRemoteProcess: it is the one the worker is responsible for.
+        @param exchangers List of C3PO.Exchanger.Exchanger. The indices in this list are the numbers identifying the C3PO.Exchanger.Exchanger for the master.
+        @param dataManagers List of C3PO.DataManager.DataManager. The indices in this list are the numbers identifying the C3PO.DataManager.DataManager for the master.
+        @param MasterProcess Either a MPIRemoteProcess or a MPIMasterCollectivePhysicsDriver identifying the master process. In the first case point-to-point communications are used, in the second case collective communications are used. 
         """
         found = False
         for p in physicsDrivers:
@@ -54,27 +54,27 @@ class MPIWorker(object):
         self.IdDataFree_ = []
 
     def answer(self, data, CollectiveOperator=MPI.MIN):
-        """ For internal use only. """
+        """! INTERNAL """
         if self.isCollective_:
             self.MPIComm_.reduce(data, op=CollectiveOperator, root=self.masterRank_)
         else:
             self.MPIComm_.send(data, dest=self.masterRank_, tag=MPITag.answer)
 
     def getIdNewData(self):
-        """ For internal use only. """
+        """! INTERNAL """
         IdNewDataMan = len(self.dataManagers_)
         if len(self.IdDataFree_) > 0:
             IdNewDataMan = self.IdDataFree_.pop()
         return IdNewDataMan
 
     def checkDataID(self, idList):
-        """ For internal use only. """
+        """! INTERNAL """
         for id in idList:
             if id >= len(self.dataManagers_):
                 raise Exception("MPIWorker.checkDataID : the asked DataManager does not exist : ID asked : " + str(id) + ", maximum ID : " + str(len(self.dataManagers_) - 1) + ".")
 
     def listen(self):
-        """ When this method is called, the worker enter a waiting mode for instructions from the master. 
+        """! Make the worker waits for instructions from the master. 
 
         The worker gets out of this waiting mode when the master call the terminate method of the related MPIMasterPhysicsDriver.
         """
