@@ -14,8 +14,8 @@ from mpi4py import MPI
 import numpy
 import os
 
-from .MPITag import MPITag
-from .MPICollectiveProcess import MPICollectiveProcess
+from C3POMPI.MPITag import MPITag
+from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
 
 import MEDLoader as ml
 
@@ -57,6 +57,7 @@ class MPIFileFieldSender(object):
         self.dataAccess_ = dataAccess
         self.storing_ = storing
         self.isTemplate_ = isTemplate
+        self.isFirstSend_ = True
 
     def exchange(self):
         field = 0
@@ -64,24 +65,27 @@ class MPIFileFieldSender(object):
             field = self.dataAccess_.getInputMEDFieldTemplate()
         else:
             field = self.dataAccess_.getOutputMEDField()
-        num = 0
-        while os.path.exists("ExchangeField_" + str(num) + ".med"):
-            num += 1
-        name_file = "ExchangeField_" + str(num) + ".med"
-        try:
-            ml.MEDLoader.WriteField("ExchangeField_" + str(num) + ".med", field, True)
-        except:
-            ml.WriteField("ExchangeField_" + str(num) + ".med", field, True)
-        
-        timeMED, iteration, order = field.getTime()
-        MEDinfo = [(field.getTypeOfField(), os.getcwd() + "/" + name_file, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
-        
-        for destination in self.destinations_:
-            MPIComm = destination.MPIComm_
-            if isinstance(destination, MPICollectiveProcess):
-                MPIComm.bcast(MEDinfo, root=MPIComm.Get_rank())
-            else:
-                MPIComm.send(MEDinfo, dest=destination.rank_, tag=MPITag.data)
+            
+        if len(self.destinations_) > 0 and (self.isFirstSend_ or not self.isTemplate_):
+            num = 0
+            while os.path.exists("ExchangeField_" + str(num) + ".med"):
+                num += 1
+            name_file = "ExchangeField_" + str(num) + ".med"
+            try:
+                ml.MEDLoader.WriteField("ExchangeField_" + str(num) + ".med", field, True)
+            except:
+                ml.WriteField("ExchangeField_" + str(num) + ".med", field, True)
+            
+            timeMED, iteration, order = field.getTime()
+            MEDinfo = [(field.getTypeOfField(), os.getcwd() + "/" + name_file, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
+            
+            for destination in self.destinations_:
+                MPIComm = destination.MPIComm_
+                if isinstance(destination, MPICollectiveProcess):
+                    MPIComm.bcast(MEDinfo, root=MPIComm.Get_rank())
+                else:
+                    MPIComm.send(MEDinfo, dest=destination.rank_, tag=MPITag.data)
+        self.isFirstSend_ = False
         self.storing_.store(field)
 
 

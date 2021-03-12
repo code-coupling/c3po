@@ -53,21 +53,23 @@ class MPIFileFieldRecipient(object):
         self.storing_ = storing
         self.isCollective_ = isCollective
         self.isTemplate_ = isTemplate
+        self.field_ = 0
 
     def exchange(self):
         MPIComm = self.sender_.MPIComm_
         senderRank = self.sender_.rank_
-        MEDinfo = ()
-        if self.isCollective_:
-            MEDinfo = MPIComm.bcast(MEDinfo, root=senderRank)
-        else:
-            MEDinfo = MPIComm.recv(source=senderRank, tag=MPITag.data)
-        try:
-            field = ml.MEDLoader.ReadField(*(MEDinfo[0]))
-        except:
-            field = ml.ReadField(*(MEDinfo[0]))
-        field.setNature(MEDinfo[1])
-        self.storing_.store(field)
+        if not hasattr(self.field_, "getArray") or not self.isTemplate_:
+            MEDinfo = ()
+            if self.isCollective_:
+                MEDinfo = MPIComm.bcast(MEDinfo, root=senderRank)
+            else:
+                MEDinfo = MPIComm.recv(source=senderRank, tag=MPITag.data)
+            try:
+                self.field_ = ml.MEDLoader.ReadField(*(MEDinfo[0]))
+            except:
+                self.field_ = ml.ReadField(*(MEDinfo[0]))
+            self.field_.setNature(MEDinfo[1])
+        self.storing_.store(self.field_)
 
 
 class MPIValueRecipient(object):
