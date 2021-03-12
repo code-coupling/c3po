@@ -8,22 +8,21 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the classe CollaborativeExchanger.  """
+""" Contain the classe CollaborativeExchanger.  """
 from __future__ import print_function, division
 
 
 class CollaborativeExchanger(object):
-    """ CollaborativeExchanger allows to handle a set of Exchanger as a single one.
-    """
+    """! CollaborativeExchanger allows to handle a set of Exchanger as a single one. """
 
     def __init__(self, exchangers):
-        """ Builds an CollaborativeExchanger object.
+        """! Build an CollaborativeExchanger object.
 
-        :param exchangers: a list of Exchanger.
+        @param exchangers a list of Exchanger.
         """
         self.exchangers_ = exchangers
 
     def exchange(self):
-        """ Triggers the exchange of data. """
+        """! Trigger the exchange of data. """
         for e in self.exchangers_:
             e.exchange()

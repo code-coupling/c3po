@@ -8,8 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class SharedRemappingMulti1D3D.
-"""
+""" Contain the class SharedRemappingMulti1D3D. """
 from __future__ import print_function, division
 
 import MEDCoupling
@@ -17,19 +16,21 @@ from MEDCouplingRemapper import MEDCouplingRemapper
 
 
 class Multi1D3DRemapper(MEDCouplingRemapper):
-    """ Allows to share the mesh projection for different SharedRemappingMulti1D3D objects by building them with the same instance of this class. """
+    """! Allow to share the mesh projection for different SharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
     def __init__(self, XCoordinates, YCoordinates, indexTable, weights):
-        """ Builds a Multi1D3DRemapper object.
+        """! Build a Multi1D3DRemapper object.
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.
+        
         The axial coordinates will be read from the 1D fields passed to the remapper (there are assumed to all share the same axial mesh).
+        
         Each cell of this 2D grid is associated to a 1D field.
 
-        :param XCoordinates: x coordinates of the inner mesh to build.
-        :param YCoordinates: y coordinates of the inner mesh to build.
-        :param indexTable: For each position of the 2D grid (x coordinate changes first), the index of the 1D field to associate. Put -1 to associate to nothing.
-        :param weights: Weigh of each 1D field to take into account for extensive variables.
+        @param XCoordinates x coordinates of the inner mesh to build.
+        @param YCoordinates y coordinates of the inner mesh to build.
+        @param indexTable For each position of the 2D grid (x coordinate changes first), the index of the 1D field to associate. Put -1 to associate to nothing.
+        @param weights Weigh of each 1D field to take into account for extensive variables.
         """
         MEDCouplingRemapper.__init__(self)
 
@@ -54,6 +55,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         self.isInit_ = False
 
     def initialize(self, Mesh1D, Mesh3D, meshAlignment, offset, rescaling):
+        """! INTERNAL """
         self.arrayZ_ = Mesh1D.getCoordsAt(0)
         self.innerMesh_.setCoords(self.arrayX_, self.arrayY_, self.arrayZ_)
         self.numberOfCellsIn1D_ = Mesh1D.getNumberOfCells()
@@ -75,6 +77,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         self.isInit_ = True
 
     def Build3DField(self, Fields1D, defaultValue):
+        """! INTERNAL """
         if len(Fields1D) > 0:
             self.innerField_.setNature(Fields1D[0].getNature())
         Array3D = self.innerField_.getArray()
@@ -88,6 +91,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         return self.transferField(self.innerField_, defaultValue)
 
     def Build1DFields(self, Field3D, defaultValue):
+        """! INTERNAL """
         self.innerField_ = self.reverseTransferField(Field3D, defaultValue)
         Array3D = self.innerField_.getArray()
         Fields1D = []
@@ -114,10 +118,14 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
 
 
 class SharedRemappingMulti1D3D(object):
-    """ The __call__ method of this class projects the input fields one by one before returning them as outputs, in the same order.
+    """! SharedRemappingMulti1D3D projects the input fields one by one before returning them as outputs, in the same order.
+
+    See C3PO.Exchanger.Exchanger.__init__().
 
     1D fields are processed in packets using the intermediate mesh defined by the Multi1D3DRemapper object.
+    
     The method assumes that all input fields (or packets) have the same mesh, and produces output fields on identical meshes.
+    
     This output mesh is the one of the first field (or packet) passed to the method (obtained by getInputMEDFieldTemplate).
 
     The input scalars are returned in the same order, without modification.
@@ -126,15 +134,15 @@ class SharedRemappingMulti1D3D(object):
     """
 
     def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1.,0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
-        """ Builds a SharedRemappingMulti1D3D object, to be given to an Exchanger object.
+        """! Build a SharedRemappingMulti1D3D object, to be given to an Exchanger.
 
-        :param remapper: A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of SharedRemappingMulti1D3D (its initialization will always be done only once).
-        :param reverse: Allows the remapper to be shared with an instance of SharedRemappingMulti1D3D performing the reverse exchange (the projection will be done in the reverse direction if reverse is set to True). Direct is multi1D -> 3D, reverse is 3D -> multi1D.
-        :param defaultValue: This is the default value to be assigned, during the projection, in the meshes of the target mesh which are not intersected by the source mesh.
-        :param linearTransform: Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
-        :param meshAlignment: If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
-        :param offset: Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
-        :param rescaling: Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is expanded compared to the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment or translation, if any.
+        @param remapper A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of SharedRemappingMulti1D3D (its initialization will always be done only once).
+        @param reverse Allows the remapper to be shared with an instance of SharedRemappingMulti1D3D performing the reverse exchange (the projection will be done in the reverse direction if reverse is set to True). Direct is multi1D -> 3D, reverse is 3D -> multi1D.
+        @param defaultValue This is the default value to be assigned, during the projection, in the meshes of the target mesh which are not intersected by the source mesh.
+        @param linearTransform Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
+        @param meshAlignment If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
+        @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
+        @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment or translation, if any.
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
@@ -147,6 +155,7 @@ class SharedRemappingMulti1D3D(object):
         self.rescaling_ = rescaling
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
+        """! INTERNAL """
         if not self.remapper_.isInit_:
             if self.isReverse_:
                 self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_], 1./self.rescaling_)
@@ -154,6 +163,7 @@ class SharedRemappingMulti1D3D(object):
                 self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_, self.rescaling_)
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
+        """! Project the input fields one by one before returning them as outputs, in the same order. """
         self.initialize(fieldsToGet, fieldsToSet, valuesToGet)
         resu = []
         if self.isReverse_:

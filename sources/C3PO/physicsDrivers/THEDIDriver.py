@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class THEDIDriver. """
+""" Contain the class THEDIDriver. """
 from __future__ import print_function, division
 
 import pyTHEDI as THEDI
@@ -23,13 +23,13 @@ from THEDIInit import THEDIInit
 
 
 class THEDIDriver(PhysicsDriver):
-    """ This is the implementation of PhysicsDriver for THEDI.
+    """! This is the implementation of PhysicsDriver for THEDI.
 
     A THEDIInit method must be available. It has to take four inputs:
-        - A THEDI.COEUR object to initialize.
-        - A THEDI.MED_INTERFACE to initialize. It will give access to THEDI MED functionalities.
-        - An (empty) list of THEDI channel objects to build.
-        - An (empty) list of THEDI materials to build.
+    - A THEDI.COEUR object to initialize.
+    - A THEDI.MED_INTERFACE to initialize. It will give access to THEDI MED functionalities.
+    - An (empty) list of THEDI channel objects to build.
+    - An (empty) list of THEDI materials to build.
     """
 
     def __init__(self):
@@ -84,7 +84,10 @@ class THEDIDriver(PhysicsDriver):
 
 
     def getTHEDIObjects(self):
-        """ Returns THEDI objects : THEDI.COEUR and THEDI.MED_INTERFACE. """
+        """! Return THEDI objects.
+        
+        @return THEDI.COEUR and THEDI.MED_INTERFACE. 
+        """
         return self.coeur_, self.MEDInterface_
 
     def initialize(self):
@@ -121,7 +124,9 @@ class THEDIDriver(PhysicsDriver):
         pass
 
     def getInputMEDFieldTemplate(self, name):
-        """ Returns an empty field lying on the MEDCouplingMesh object used by THEDI. 
+        """! Return an empty field lying on the MEDCouplingMesh object used by THEDI. 
+        
+        See PhysicsDriver.getInputMEDFieldTemplate().
 
         THEDI can take fields given on any mesh and performs projection if needed, but no projection are done if this mesh is used.
         """
@@ -133,14 +138,16 @@ class THEDIDriver(PhysicsDriver):
         return outputField
 
     def setInputMEDField(self, name, field):
-        """ Sets the MED field field to the component under the name name.
+        """! Set the MED field field to the component under the name name.
+        
+        See PhysicsDriver.setInputMEDField().
 
         Accepted fields are :
-            - "fluidPower"
-            - "solidPower::NameObject::NameMats" with NameObject the name of a solid object in THEDI and NameMats a list of material names.
-            - "setParamLambda::NameObject::NameMat::Int" with NameObject the name of a solid object in THEDI, NameMat a material name and Int a number identifying the parameter to set for thermal conductivity calculation.
-            - "setParamCapa::NameObject::NameMat::Int" idem previous but for heat capacity.
-            - "feedbackCoef::Int" with Int a number identifying the given parameter (used for point-kinetics reactivity calculation).
+        - "fluidPower"
+        - "solidPower::NameObject::NameMats" with NameObject the name of a solid object in THEDI and NameMats a list of material names.
+        - "setParamLambda::NameObject::NameMat::Int" with NameObject the name of a solid object in THEDI, NameMat a material name and Int a number identifying the parameter to set for thermal conductivity calculation.
+        - "setParamCapa::NameObject::NameMat::Int" idem previous but for heat capacity.
+        - "feedbackCoef::Int" with Int a number identifying the given parameter (used for point-kinetics reactivity calculation).
         """
         mots = name.split("::")
         if len(mots) == 1 and mots[0] == "fluidPower":
@@ -166,7 +173,9 @@ class THEDIDriver(PhysicsDriver):
         return list(self.outputFieldCorrespondence_.keys())
 
     def getOutputMEDField(self, name):
-        """ Returns the MED field of name name extracted from the component.
+        """! Return the MED field of name name extracted from the component.
+        
+        See PhysicsDriver.getOutputMEDField().
 
         Fields that can be returned :
         - "TEMPERATURE_LIQUIDE"

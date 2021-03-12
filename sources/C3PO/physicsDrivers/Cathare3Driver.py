@@ -22,6 +22,7 @@ def build_name(keyword, cname, loc, irad=-1):
 
 
 class PBC(C3, PhysicsDriver):
+    """! This is the implementation of PhysicsDriver for CATHARE3. """
     def __init__(self):
         C3.__init__(self)
         PhysicsDriver.__init__(self)

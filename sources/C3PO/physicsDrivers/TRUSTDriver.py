@@ -6,6 +6,7 @@ from C3PO.PhysicsDriver import PhysicsDriver
 
 
 class PBT(ti.ProblemTrio, PhysicsDriver):
+    """! This is the implementation of PhysicsDriver for TRUST. """
 
     def __init__(self):
         ti.ProblemTrio.__init__(self)

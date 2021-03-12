@@ -13,7 +13,7 @@ from __future__ import print_function, division
 
 
 class ShortcutToData(object):
-    # This internal class associates a PhysicsDriver or a DataManager with a name to ease further handling.
+    """! INTERNAL. It associates a PhysicsDriver or a DataManager with a name to ease further handling. """
 
     def __init__(self, container, name):
         self.container_ = container
@@ -36,26 +36,29 @@ class ShortcutToData(object):
 
 
 class Exchanger(object):
-    """ Manages data exchanges between PhysicsDriver and / or DataManager.
+    """! Exchanger manages data exchanges between PhysicsDriver and / or DataManager.
 
     Once the object has been constructed, a call to exchange() triggers the exchanges of data. 
     """
 
     def __init__(self, method, MEDFieldsToGet, MEDFieldsToSet, ValuesToGet=[], ValuesToSet=[]):
-        """ Builds an Exchanger object.
+        """! Build an Exchanger object.
 
-        :param method: a user-defined function (or class with the special method __call__). 
-            It must have three input lists:
-                - The MED fields obtained by getOutputMEDField(name) on the MEDFieldsToGet objects, in the same order.
-                - The MED fields obtained by getInputMEDFieldTemplate(name) on the MEDFieldsToSet objects, in the same order.
-                - The scalars obtained by getValue(name) on the ValuesToGet objects, in the same order.
-            It must have two ouput lists:
-                - The MED fields to impose by setInputMEDField(name) on the MEDFieldsToSet objects, in the same order.
-                - The scalars to impose by setValue(name) on the ValuesToSet objects, in the same order.
-        :param MEDFieldsToGet: a list of tuples (object, name). object here must be either a PhysicsDriver or a DataManager, and name is a string. This indicates the origin of the fields that method will have to handle.
-        :param MEDFieldsToSet: a list of tuples in the same format as MEDFieldsToGet. This indicates the fields to impose by method.
-        :param ValuesToGet: idem MEDFieldsToGet but for scalars.
-        :param ValuesToSet: idem MEDFieldsToSet but for scalars.
+        @param method a user-defined function (or class with the special method __call__).
+
+        * method must have three input lists:
+            * The MED fields obtained by getOutputMEDField() on the MEDFieldsToGet objects, in the same order.
+            * The MED fields obtained by getInputMEDFieldTemplate() on the MEDFieldsToSet objects, in the same order.
+            * The scalars obtained by getValue() on the ValuesToGet objects, in the same order.
+
+        * It must have two ouput lists:
+            * The MED fields to impose by setInputMEDField() on the MEDFieldsToSet objects, in the same order.
+            * The scalars to impose by setValue() on the ValuesToSet objects, in the same order.
+
+        @param MEDFieldsToGet a list of tuples (object, name). object must be either a PhysicsDriver or a DataManager, and name is the name of the field to get from object.
+        @param MEDFieldsToSet a list of tuples in the same format as MEDFieldsToGet. name is the name of the field to set in object.
+        @param ValuesToGet idem MEDFieldsToGet but for scalars.
+        @param ValuesToSet idem MEDFieldsToSet but for scalars.
         """
 
         self.fieldsToSet_ = [ShortcutToData(field[0], field[1]) for field in MEDFieldsToSet]
@@ -65,7 +68,7 @@ class Exchanger(object):
         self.method_ = method
 
     def exchange(self):
-        """ Triggers the exchange of data. """
+        """! Trigger the exchange of data. """
         fieldsToSet = [ds.getInputMEDFieldTemplate() for ds in self.fieldsToSet_]
         fieldsToGet = [ds.getOutputMEDField() for ds in self.fieldsToGet_]
         valuesToGet = [ds.getValue() for ds in self.valuesToGet_]

@@ -8,13 +8,13 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class ListingWriter. """
+""" Contain the class ListingWriter. """
 from __future__ import print_function, division
 import time
 
 
 def getFormattedTime(time):
-    """ For internal use only. """
+    """! INTERNAL """
     timeToWrite = ""
     if time > 1.:
         timeToWrite = "{:.4f}".format(time)
@@ -24,7 +24,9 @@ def getFormattedTime(time):
 
 
 class ListingWriter(object):
-    """  ListingWriter allows, in association with TTracer, to write a global coupling listing file with calculation time measurement.
+    """! ListingWriter allows, in association with Tracer, to write a global coupling listing file with calculation time measurement. 
+
+    ListingWriter is completed by the funtions mergeListing(), getTotalTimePhysicsDriver() and getTimesExchanger().
     """
 
     e_top = 0
@@ -36,18 +38,20 @@ class ListingWriter(object):
     e_continue = 6
 
     def __init__(self, listingFile):
-        """ Builds a ListingWriter object.
+        """! Build a ListingWriter object.
 
-        :param listingFile: a file object which has to be already open in written-binary mode (file = open("file.txt", "wb")). It has to be closed (file.close()) by caller.
+        @param listingFile a file object which has to be already open in written-binary mode (file = open("file.txt", "wb")). It has to be closed (file.close()) by caller.
         """
         self.listingFile_ = listingFile
         self.autoFormat_ = True
 
     def initialize(self, physics, exchangers):
-        """ Initialize the object. Should be done after the building of all involved objects but before their initialization.
+        """! Initialize the object. 
 
-        :param physics: a list of tuples (object, name). object should be a PhysicsDriver, modified with Tracer to point on this ListingWriter object. A column is created in the listing file for each of them. name allows to identify them.
-        :param exchangers: a list of tuples (object, name). object should be an Exchanger object, modified with Tracer to point on this ListingWriter object. name allows to identify them in the final listing file.
+        Should be done after the building of all involved objects but before their initialization.
+
+        @param physics a list of tuples (object, name). object should be a PhysicsDriver, modified with Tracer to point on this ListingWriter object. A column is created in the listing file for each of them. name allows to identify them.
+        @param exchangers a list of tuples (object, name). object should be an Exchanger object, modified with Tracer to point on this ListingWriter object. name allows to identify them in the final listing file.
         """
         self.physics_ = []
         self.physicsData_ = []  
@@ -124,6 +128,7 @@ class ListingWriter(object):
             self.writeInitialize(time.time())
 
     def writeInitialize(self, PresentTime):
+        """! INTERNAL """
         self.listingFile_.write(self.boxFormat[ListingWriter.e_top].format("{:10.6f}".format(PresentTime)).encode('utf-8'))
         physicsName = [p[0] for p in self.physicsData_]
         self.listingFile_.write(self.boxFormat[ListingWriter.e_entete].format(*physicsName).encode('utf-8'))
@@ -133,6 +138,7 @@ class ListingWriter(object):
         self.listingFile_.flush()
 
     def writeValidate(self, timeValid):
+        """! INTERNAL """
         TimeToWrite = getFormattedTime(timeValid - self.timeInit_)
         calculationTimeToWrite = getFormattedTime(timeValid - self.timeValid_)
         sumCalculationTimeToWrite = getFormattedTime(self.sumCalculationTime_)
@@ -147,13 +153,14 @@ class ListingWriter(object):
             self.validatedPhysics_[i] = False
 
     def writeTerminate(self):
+        """! INTERNAL """
         self.listingFile_.write(self.boxFormat[ListingWriter.e_term].encode('utf-8'))
 
         for i in range(len(self.terminatedPhysics_)):
             self.terminatedPhysics_[i] = False
 
     def writeAfter(self, sourceObject, input_var, outputTuple, methodName, PresentTime, calculationTime):
-        """ For internal use only. """
+        """! INTERNAL """
         PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
         calculationTimeToWrite = getFormattedTime(calculationTime)
 
@@ -204,7 +211,7 @@ class ListingWriter(object):
 
 
 class mergedListingWriter(ListingWriter):
-    """ For internal use only. """
+    """! INTERNAL """
     e_physics_start = 7
     e_physics_end = 8
     e_exchange_start = e_physics_start
@@ -212,10 +219,12 @@ class mergedListingWriter(ListingWriter):
     e_exchange_elem = 9
 
     def __init__(self, listingFile):
+        """! INTERNAL """
         ListingWriter.__init__(self, listingFile)
         self.autoFormat_ = False
 
     def initialize(self, physics, exchangers):
+        """! INTERNAL """
         ListingWriter.initialize(self, physics, exchangers)
 
         self.boxFormat.append("")
@@ -238,6 +247,7 @@ class mergedListingWriter(ListingWriter):
         self.boxFormat[mergedListingWriter.e_exchange_elem] += u"{:-^22}"
 
     def readLastLine(self):
+        """! INTERNAL """
         self.listingFile_.seek(-self.charPerLine_, 2)
         moreThanLastLine = self.listingFile_.read(self.charPerLine_ - 1).decode('utf-8', "ignore")
         LastLine = ""
@@ -253,6 +263,7 @@ class mergedListingWriter(ListingWriter):
         return LastLine.split(u"│"), count
 
     def writeBefore(self, sourceObject, toWrite, methodName, runningPhysics, PresentTime, calculationTime):
+        """! INTERNAL """
         if sourceObject in self.physics_:
             calculationTimeToWrite = getFormattedTime(calculationTime)
             self.sumCalculationTime_ += calculationTime
@@ -266,6 +277,7 @@ class mergedListingWriter(ListingWriter):
             self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))).encode('utf-8'))
 
     def writeBeforeExchange(self, sourceObject, toWrite, methodName, involvedPhysics, runningPhysics, PresentTime, calculationTime):
+        """! INTERNAL """
         if sourceObject in self.exchangers_:
             PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
             calculationTimeToWrite = getFormattedTime(calculationTime)
@@ -277,6 +289,7 @@ class mergedListingWriter(ListingWriter):
             self.listingFile_.write(self.boxFormat[mergedListingWriter.e_exchange_start].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite, calculationTimeToWrite))).encode('utf-8'))
 
     def writeAfter(self, sourceObject, toWrite, methodName, runningPhysics, PresentTime):
+        """! INTERNAL """
         if sourceObject in self.physics_:
             columnList = [":" if running else "" for running in runningPhysics]
 
@@ -298,6 +311,7 @@ class mergedListingWriter(ListingWriter):
                 self.listingFile_.write(self.boxFormat[mergedListingWriter.e_physics_end].format(*((toWrite,) + tuple(columnList) + (PresentTimeToWrite,))).encode('utf-8'))
 
     def writeAfterExchange(self, sourceObject, toWrite, methodName, involvedPhysics, runningPhysics, PresentTime):
+        """! INTERNAL """
         if sourceObject in self.exchangers_:
             columnList = [":" if running else "" for running in runningPhysics]
 
@@ -320,10 +334,12 @@ class mergedListingWriter(ListingWriter):
 
 
 def mergeListing(listingsName, newListingName):
-    """ This function allows to merge listing files produced by ListingWriter. It is designed to produce a comprehensive view of a MPI calculation.
+    """! mergeListing() allows to merge listing files produced by ListingWriter. 
 
-    :param listingsName: list of the name of the listing files to merge.
-    :param newListingName: name of the file to write.
+    It is designed to produce a comprehensive view of a MPI calculation.
+
+    @param listingsName list of the name of the listing files to merge.
+    @param newListingName name of the file to write.
     """
     listings = [open(lname, "r") for lname in listingsName]
     newListing = open(newListingName, "wb+")
@@ -478,13 +494,13 @@ def mergeListing(listingsName, newListingName):
 
 
 def getTotalTimePhysicsDriver(listingName, PhysicsDriverName, methodNames = ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate"]):
-    """ This function reads a listing file produced by ListingWriter or mergeListing and returns the total time spent by one PhysicsDriver in indicated methods.
+    """! getTotalTimePhysicsDriver() reads a listing file produced by ListingWriter or mergeListing and returns the total time spent by one PhysicsDriver in indicated methods.
 
-    :param listingName: name of the listing file to read.
-    :param PhysicsDriverName: name (given in the listing file) of the PhysicsDriver for which the total time is requested.
-    :param methodNames: list of the names of the methods to take into account. By defaut: everything but "exchange": ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate"].
+    @param listingName name of the listing file to read.
+    @param PhysicsDriverName name (given in the listing file) of the PhysicsDriver for which the total time is requested.
+    @param methodNames list of the names of the methods to take into account. By defaut: everything but "exchange": ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate"].
 
-    :return: The total time spent by the PhysicsDriver in the indicated methods.
+    @return The total time spent by the PhysicsDriver in the indicated methods.
     """
     listing = open(listingName, "r")
     lineNumber = sum(1 for _ in listing)
@@ -519,16 +535,16 @@ def getTotalTimePhysicsDriver(listingName, PhysicsDriverName, methodNames = ["in
 
 
 def getTimesExchanger(listingName, ExchangerName, PhysicsDriverNames):
-    """ This function reads a listing file produced by ListingWriter or mergeListing and returns time information about a chosen exchanger.
+    """! getTimesExchanger() reads a listing file produced by ListingWriter or mergeListing and returns time information about a chosen exchanger.
 
     For each PhysicsDriver involved in the exchange, the function distinguishes between exchange time and waiting time. The exchange is assumed to really begin when all involved PhysicsDriver enter the exchange.
     For each of them, the waiting time is the time spent in the exchange before they all enter it. The exchange time is the time from this "real beginning" to the end of the exchange (from the point of view of each PhysicsDriver).
 
-    :param listingName: name of the listing file to read.
-    :param ExchangerName: name (given in the listing file) of the Exchanger for which time information is requested.
-    :param PhysicsDriverNames: list of the names of the PhysicsDriver (given in the listing file) involved in the Exchanger. They must be really involved!
+    @param listingName name of the listing file to read.
+    @param ExchangerName name (given in the listing file) of the Exchanger for which time information is requested.
+    @param PhysicsDriverNames list of the names of the PhysicsDriver (given in the listing file) involved in the Exchanger. They must be really involved!
 
-    :return: A list of len(PhysicsDriverNames) elements, in the same order than PhysicsDriverNames. Each element is a list of two values: first the total exchange time spent by this PhysicsDriver in the Exchanger, then its total waiting time in the Exchanger.
+    @return A list of len(PhysicsDriverNames) elements, in the same order than PhysicsDriverNames. Each element is a list of two values: first the total exchange time spent by this PhysicsDriver in the Exchanger, then its total waiting time in the Exchanger.
     """
     listing = open(listingName, "r")
     lineNumber = sum(1 for _ in listing)

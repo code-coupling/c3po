@@ -8,39 +8,40 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class FixedPointCoupler. """
+""" Contain the class FixedPointCoupler. """
 from __future__ import print_function, division
 
 from C3PO.Coupler import Coupler
 
 
 class FixedPointCoupler(Coupler):
-    """ FixedPointCoupler inherits from Coupler and proposes a damped fixed point algorithm.
+    """! FixedPointCoupler inherits from Coupler and proposes a damped fixed point algorithm.
 
     The class proposes an algorithm for the resolution of F(X) = X. Thus FixedPointCoupler is a Coupler working with precisely :
 
-        - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
-        - A single DataManager allowing to manipulate the data to be damped in the coupling (the X).
-        - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+    - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
+    - A single DataManager allowing to manipulate the data in the coupling (the X).
+    - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
 
     At each iteration we do (with n the iteration number and alpha the damping factor):
 
         X^{n+1} = alpha * F(X^{n}) + (1 - alpha) * X^{n}
 
-    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance. The default norm used is the infinite norm. setNormChoice allows to choose another one.
+    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance. The default norm used is the infinite norm. setNormChoice() allows to choose another one.
 
-    The default value of tolerance is 1.E-6. Call setConvergenceParameters to change it.
-    The default maximum number of iterations is 100. Call setConvergenceParameters to change it.
-    The default damping factor is 1 (no damping). Call setDampingFactor to change it.
+    The default value of tolerance is 1.E-6. Call setConvergenceParameters() to change it.
+    
+    The default maximum number of iterations is 100. Call setConvergenceParameters() to change it.
+    
+    The default damping factor is 1 (no damping). Call setDampingFactor() to change it.
     """
 
     def __init__(self, physics, exchangers, dataManager):
-        """ Builds a FixedPointCoupler object.
+        """! Build a FixedPointCoupler object.
 
-        :param physics: list of only one PhysicsDriver (possibly a Coupler).
-        :param exchangers: list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
-        :param dataManager: list of only one DataManager.
-
+        @param physics list of only one PhysicsDriver (possibly a Coupler).
+        @param exchangers list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+        @param dataManager list of only one DataManager.
         """
         Coupler.__init__(self, physics, exchangers, dataManager)
         self.tolerance_ = 1.E-6
@@ -58,16 +59,26 @@ class FixedPointCoupler(Coupler):
             raise Exception("FixedPointCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
-        """ Sets the convergence parameters (tolerance and maximum number of iterations). """
+        """! Set the convergence parameters (tolerance and maximum number of iterations). 
+        
+        @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
+        @param maxiter the maximal number of iterations.
+        """
         self.tolerance_ = tolerance
         self.maxiter_ = maxiter
 
     def setDampingFactor(self, dampingFactor):
-        """ Sets a new damping factor. """
+        """! Set the damping factor of the method.
+        
+        @param dampingFactor the damping factor alpha in the formula X^{n+1} = alpha * F(X^{n}) + (1 - alpha) * X^{n}.
+        """
         self.dampingFactor_ = dampingFactor
 
     def solveTimeStep(self):
-        """ Solves a time step using the damped fixed-point algorithm. """
+        """! Solve a time step using the damped fixed-point algorithm.
+        
+        See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
+        """
         iiter = 0
         error = self.tolerance_ + 1.
         physics = self.physicsDrivers_[0]
@@ -113,19 +124,25 @@ class FixedPointCoupler(Coupler):
 
     # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
     def initialize(self):
+        """! See Coupler.initialize(). """
         return Coupler.initialize(self)
 
     def terminate(self):
+        """! See Coupler.terminate(). """
         return Coupler.terminate(self)
 
     def computeTimeStep(self):
+        """! See Coupler.computeTimeStep(). """
         return Coupler.computeTimeStep(self)
 
     def initTimeStep(self, dt):
+        """! See Coupler.initTimeStep(). """
         return Coupler.initTimeStep(self, dt)
 
     def validateTimeStep(self):
+        """! See Coupler.validateTimeStep(). """
         Coupler.validateTimeStep(self)
 
     def abortTimeStep(self):
+        """! See Coupler.abortTimeStep(). """
         Coupler.abortTimeStep(self)

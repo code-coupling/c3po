@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class JFNKCoupler. """
+""" Contain the class JFNKCoupler. """
 from __future__ import print_function, division
 import math
 import numpy as np
@@ -17,10 +17,10 @@ from C3PO.Coupler import Coupler
 
 
 def solveTriang(A, b):
-    """For internal purpose only.
+    """! INTERNAL.
 
-    Solves a triangular linear system."""
-
+    Solves a triangular linear system.
+    """
     n = b.shape[0]
     resu = np.zeros(shape=(n))
     for i in range(n - 1, -1, -1):
@@ -32,38 +32,42 @@ def solveTriang(A, b):
 
 
 class JFNKCoupler(Coupler):
-    """ JFNKCoupler inherits from Coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm. This is a Newton algorithm using a Krylov (GMRES) method for the linear system solving.
+    """! JFNKCoupler inherits from Coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm. 
+    
+    This is a Newton algorithm using a Krylov (GMRES) method for the linear system solving.
 
     The Jacobian matrix is not computed, but the product of the jacobian matrix with a vector v is approximated by a Taylor formula (J_u is the jacobian of F at the point u):
 
     J_u v ~= (F(u + epsilon v) - F(u))/epsilon
 
-    epsilon is a parameter of the algorithm. Its default value is 1E-4. Call setEpsilon to change it
+    epsilon is a parameter of the algorithm. Its default value is 1E-4. Call setEpsilon() to change it
 
     JFNKCoupler is a Coupler working with precisely :
 
-        - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called. 
-        - A single DataManager allowing to manipulate the data to be considered in the coupling.
-        - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+    - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called. 
+    - A single DataManager allowing to manipulate the data in the coupling.
+    - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
 
     As the Newton algorithm solves for F(X) = 0, in order to be coherent with the fixed point coupling algorithms, F(x) is defined as F(X) = f(X) - X, where f is the output of the physicsDriver.    
 
-    The convergence criteria is : ||f(X^{n}) - X^{n}|| / ||f(X^{n})|| < tolerance. The default norm used is the infinite norm. setNormChoice allows to choose another one.
+    The convergence criteria is : ||f(X^{n}) - X^{n}|| / ||f(X^{n})|| < tolerance. The default norm used is the infinite norm. Coupler.setNormChoice() allows to choose another one.
 
-    The default Newton tolerance is 1.E-6. Call setConvergenceParameters to change it.
-    The default maximum Newton number of iterations is 10. Call setConvergenceParameters to change it.
-    The default Krylov tolerance is 1.E-4. Call setKrylovConvergenceParameters to change it.
-    The default maximum Krylov iteration is 100. Call setKrylovConvergenceParameters to change it.
+    The default Newton tolerance is 1.E-6. Call setConvergenceParameters() to change it.
+    
+    The default maximum Newton number of iterations is 10. Call setConvergenceParameters() to change it.
+    
+    The default Krylov tolerance is 1.E-4. Call setKrylovConvergenceParameters() to change it.
+    
+    The default maximum Krylov iteration is 100. Call setKrylovConvergenceParameters() to change it.
 
     """
 
     def __init__(self, physics, exchangers, dataManager):
-        """ Builds a JFNKCoupler object.
+        """! Build a JFNKCoupler object.
 
-        :param physics: list of only one PhysicsDriver (possibly a Coupler).
-        :param exchangers: list of exactly two Exchanger allowing to go from the physicsDriver to the DataManager and vice versa.
-        :param dataManager: list of only one DataManager.
-
+        @param physics list of only one PhysicsDriver (possibly a Coupler).
+        @param exchangers list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+        @param dataManager list of only one DataManager.
         """
         Coupler.__init__(self, physics, exchangers, dataManager)
         self.NewtonTolerance_ = 1.E-6
@@ -83,22 +87,35 @@ class JFNKCoupler(Coupler):
             raise Exception("JFNKCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
-        """ Sets the convergence parameters (tolerance and maximum number of iterations). """
+        """! Set the convergence parameters (tolerance and maximum number of iterations). 
+        
+        @param tolerance the convergence threshold in ||f(X^{n}) - X^{n}|| / ||f(X^{n})|| < tolerance.
+        @param maxiter the maximal number of iterations.
+        """
         self.NewtonTolerance_ = tolerance
         self.NewtonMaxIter_ = maxiter
 
     def setKrylovConvergenceParameters(self, tolerance, maxiter):
-        """ Sets the maximum number of iteration of the inner Krylov method. """
+        """! Set the convergence parameters (tolerance and maximum number of iterations) of the Krylov method. 
+        
+        @param tolerance the convergence threshold of the Krylov method.
+        @param maxiter the maximal number of iterations of the Krylov method.
+        """
         self.KrylovTolerance_ = tolerance
         self.KrylovMaxIter_ = maxiter
 
     def setEpsilon(self, epsilon):
-        """ Sets the epsilon value of the method, used in the formula J_u v ~= (F(u + epsilon v) - F(u))/epsilon. """
+        """! Set the epsilon value of the method.
+        
+        @param epsilon the epsilon value in the formula J_u v ~= (F(u + epsilon v) - F(u))/epsilon. 
+        """
         self.epsilon_ = epsilon
 
     def solveTimeStep(self):
-        """ Solves a time step using Jacobian-Free Newton Krylov algorithm. """
-
+        """! Solve a time step using Jacobian-Free Newton Krylov algorithm. 
+        
+        See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
+        """
         physics = self.physicsDrivers_[0]
         physics2Data = self.exchangers_[0]
         data2physics = self.exchangers_[1]
@@ -232,19 +249,25 @@ class JFNKCoupler(Coupler):
 
     # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
     def initialize(self):
+        """! See Coupler.initialize(). """
         return Coupler.initialize(self)
 
     def terminate(self):
+        """! See Coupler.terminate(). """
         return Coupler.terminate(self)
 
     def computeTimeStep(self):
+        """! See Coupler.computeTimeStep(). """
         return Coupler.computeTimeStep(self)
 
     def initTimeStep(self, dt):
+        """! See Coupler.initTimeStep(). """
         return Coupler.initTimeStep(self, dt)
 
     def validateTimeStep(self):
+        """! See Coupler.validateTimeStep(). """
         Coupler.validateTimeStep(self)
 
     def abortTimeStep(self):
+        """! See Coupler.abortTimeStep(). """
         Coupler.abortTimeStep(self)

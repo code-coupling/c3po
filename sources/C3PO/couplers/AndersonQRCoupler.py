@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class AndersonQRCoupler. """
+""" Contain the class AndersonQRCoupler. """
 from __future__ import print_function, division
 import math
 import numpy as np
@@ -20,9 +20,10 @@ from numpy.linalg import norm
 
 
 def deleteQRColumn(Q, R, dataTemp):
-    """For internal purpose only.
+    """! INTERNAL
 
-    Return a new QR decomposition after deletion of one column."""
+    Return a new QR decomposition after deletion of one column.
+    """
     m = R.shape[0]
     for i in range(m - 1):
         temp = math.sqrt(R[i, i + 1] * R[i, i + 1] + R[i + 1, i + 1] * R[i + 1, i + 1])
@@ -45,13 +46,13 @@ def deleteQRColumn(Q, R, dataTemp):
 
 
 class AndersonQRCoupler(Coupler):
-    """ AndersonQRCoupler inherits from Coupler and proposes a fixed point algorithm with Anderson acceleration (and a special solving method of the internal optimization problem). 
+    """! AndersonQRCoupler inherits from Coupler and proposes a fixed point algorithm with Anderson acceleration (and a special solving method of the internal optimization problem). 
 
     The class proposes an algorithm for the resolution of F(X) = X. Thus AndersonCoupler is a Coupler working with precisely :
 
-        - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
-        - A single DataManager allowing to manipulate the data to be damped in the coupling (the X).
-        - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+    - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
+    - A single DataManager allowing to manipulate the data in the coupling (the X).
+    - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
 
     The first two iterations just do (with n the iteration number):
 
@@ -59,24 +60,24 @@ class AndersonQRCoupler(Coupler):
 
     Then the Anderson acceleration starts and computes X^{n+1} as a linear combination of [alpha * F(X^{n-i}) + (1. - alpha) * X^{n-i}]. 
 
-    alpha, the relative fraction of F(X^{n-i}) and X^{n-i} can be set with setAndersonDampingFactor. Default value is 1 (only F(X^{n-i})).
+    alpha, the relative fraction of F(X^{n-i}) and X^{n-i} can be set with setAndersonDampingFactor(). Default value is 1 (only F(X^{n-i})).
 
-    The default order (number of previous states considered) is 2. Call setOrder to change it.
+    The default order (number of previous states considered) is 2. Call setOrder() to change it.
 
-    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < tolerance. The default norm used is the infinite norm. setNormChoice allows to choose another one.
+    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < tolerance. The default norm used is the infinite norm. Coupler.setNormChoice() allows to choose another one.
 
-    The default value of tolerance is 1.E-6. Call setConvergenceParameters to change it.
-    The default maximum number of iterations is 100. Call setConvergenceParameters to change it.
+    The default value of tolerance is 1.E-6. Call setConvergenceParameters() to change it.
+    
+    The default maximum number of iterations is 100. Call setConvergenceParameters() to change it.
 
     """
 
     def __init__(self, physics, exchangers, dataManager):
-        """ Builds a AndersonQRCoupler object.
+        """! Build a AndersonQRCoupler object.
 
-        :param physics: list of only one PhysicsDriver (possibly a Coupler).
-        :param exchangers: list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
-        :param dataManager: list of only one DataManager.
-
+        @param physics list of only one PhysicsDriver (possibly a Coupler).
+        @param exchangers list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+        @param dataManager list of only one DataManager.
         """
         Coupler.__init__(self, physics, exchangers, dataManager)
         self.tolerance_ = 1.E-6
@@ -95,26 +96,39 @@ class AndersonQRCoupler(Coupler):
             raise Exception("AndersonQRCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
-        """ Sets the convergence parameters (tolerance and maximum number of iterations). """
+        """! Set the convergence parameters (tolerance and maximum number of iterations). 
+        
+        @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
+        @param maxiter the maximal number of iterations.
+        """
         self.tolerance_ = tolerance
         self.maxiter_ = maxiter
 
     def setAndersonDampingFactor(self, andersonDampingFactor):
-        """ Sets the damping factor of the method, the relative contribution of F(X^{k}) and X^{k} on the calculation of next step. """
+        """! Set the damping factor of the method, the relative contribution of F(X^{k}) and X^{k} on the calculation of next step.
+        
+        @param andersonDampingFactor the damping factor alpha in the formula alpha * F(X^{n-i}) + (1. - alpha) * X^{n-i}.
+        """
         if andersonDampingFactor <= 0 or andersonDampingFactor > 1:
             raise Exception("AndersonQRCoupler.setAndersonDampingFactor Set a damping factor > 0 and <=1 !")
         self.andersonDampingFactor_ = andersonDampingFactor
 
     def setOrder(self, order):
-        """ Sets the order of the method, the number of previous states considered. """
+        """! Set the order of the method. 
+        
+        @param order order of Anderson method. This is also the number of previous states stored by the algorithm.
+        """
         if (order <= 0):
             raise Exception("AndersonQRCoupler.setOrder Set an order > 0 !")
         self.order_ = order
 
     def solveTimeStep(self):
-        """ Solves a time step using the fixed point algorithm with Anderson acceleration. """
-
-      # Inspiré de Homer Walker (walker@wpi.edu), 10/14/2011.
+        """! Solve a time step using the fixed point algorithm with Anderson acceleration.
+        
+        Inspire de Homer Walker (walker@wpi.edu), 10/14/2011.
+        
+        See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
+        """
         physics = self.physicsDrivers_[0]
         physics2Data = self.exchangers_[0]
         data2physics = self.exchangers_[1]
@@ -264,19 +278,25 @@ class AndersonQRCoupler(Coupler):
 
     # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
     def initialize(self):
+        """! See Coupler.initialize(). """
         return Coupler.initialize(self)
 
     def terminate(self):
+        """! See Coupler.terminate(). """
         return Coupler.terminate(self)
 
     def computeTimeStep(self):
+        """! See Coupler.computeTimeStep(). """
         return Coupler.computeTimeStep(self)
 
     def initTimeStep(self, dt):
+        """! See Coupler.initTimeStep(). """
         return Coupler.initTimeStep(self, dt)
 
     def validateTimeStep(self):
+        """! See Coupler.validateTimeStep(). """
         Coupler.validateTimeStep(self)
 
     def abortTimeStep(self):
+        """! See Coupler.abortTimeStep(). """
         Coupler.abortTimeStep(self)
