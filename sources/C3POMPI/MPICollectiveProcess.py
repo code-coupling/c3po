@@ -13,7 +13,10 @@ from __future__ import print_function, division
 
 
 class MPICollectiveProcess(object):
-    """! MPICollectiveProcess allows, by inheritance (a new class that inherit from MPICollectiveProcess but be defined), to define a collective C3PO.PhysicsDriver.PhysicsDriver: all processors will locally launch this component. """
+    """! MPICollectiveProcess defines a collective process. 
+
+    In particuler, it allows, by inheritance (a new class that inherits from MPICollectiveProcess but be defined), to define a collective C3PO.PhysicsDriver.PhysicsDriver: all processors will locally launch this component. 
+    """
 
     def __init__(self, MPIComm):
         """! Build a MPICollectiveProcess object.

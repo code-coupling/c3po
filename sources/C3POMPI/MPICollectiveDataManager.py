@@ -16,9 +16,7 @@ from C3PO.DataManager import DataManager
 
 
 class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
-    """! This is the collective MPI version of the C3PO.DataManager.DataManager. 
-    
-    All processes have all data locally.
+    """! MPICollectiveDataManager is the MPI collaborative version of the C3PO.DataManager.DataManager in which all processes have locally all data.
 
     Can replace, without impact, a C3PO.DataManager.DataManager for a calculation on a single process, if the MPI environment is available.
     """

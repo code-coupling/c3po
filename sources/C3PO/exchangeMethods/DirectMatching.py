@@ -13,7 +13,7 @@ from __future__ import print_function, division
 
 
 class DirectMatching(object):
-    """! This is the most simple exchange method: it does nothing. 
+    """! DirectMatching is the most simple exchange method: it does nothing else than output = input.
     
     See C3PO.Exchanger.Exchanger.__init__().
     """

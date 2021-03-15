@@ -334,7 +334,7 @@ class mergedListingWriter(ListingWriter):
 
 
 def mergeListing(listingsName, newListingName):
-    """! mergeListing() allows to merge listing files produced by ListingWriter. 
+    """! mergeListing() allows to merge listing files produced by ListingWriter (or by previous call to mergeListing()). 
 
     It is designed to produce a comprehensive view of a MPI calculation.
 

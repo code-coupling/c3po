@@ -1,0 +1,111 @@
+
+/*! \mainpage
+
+\section intro_sec I. Introduction
+
+C3PO (Collaborative Code Coupling PlatfOrm) is a high-level Python library, offering generic services for the definition of coupled calculations with codes meeting a certain framework. This framework is defined by:
+
+  - Use of Python. Codes have to be wrapped into a Python class, which allows to coordinate them in a homogeneous way regardless of their native programming language.
+  - Use of MEDCoupling for data exchanges. MEDCoupling is the common format choosen for the exchanges of space-dependent variables. MEDCoupling is a C++ library, with Python binding, provided by the open-source SALOME platform [1].
+  - If needed, use of MPI as distributed memory parallelization standard. MPI is by far the dominant distributed memory parallelization standard. C3PO is compatible with the use of MPI, but does not support other distributed memory parallelization standards. On the other hand, full flexibility is given for the intra-code shared memory parallelization.
+  - Implementation of an ICoCo API [2]. ICoCo is the code API used by C3PO. It includes all required capabilities for multiphysics simulations such as initialization, termination, time-step control, solving, exchange of variables etc. It is defined by C3PO.PhysicsDriver.PhysicsDriver.
+
+For more information about code integration, see @ref Code_integration_pag.
+
+The main objective of C3PO is to facilitate and standardize the writing of coupling scripts, in particular in HPC (High Performance Computing) environment. It also provides generic (and HPC-compatible) implementations of the main coupling algorithms (Picard iteration, Anderson acceleration, JFNK), and allows pooling of efforts in the development and verification of multi-physics calculation schemes. 
+
+C3PO is code- and physics-agnostic, and therefore constitutes a kernel of generic methods that can be shared by different multi-physics applications. For this reason, it has been made open-source under the (highly permissive) 3-Clause BSD License here: https://sourceforge.net/projects/cea-c3po/.
+
+\section source_sec II. Source overview
+
+The sources directory contains:
+
+  - The directory C3PO with the main C3PO sources. It can be used without any MPI dependency.
+  - The directory C3POMPI with C3PO sources related to MPI.
+  - The file setup.py that can be used to install C3PO via pip.
+
+\subsection C3POsources_sec II.1. sources/C3PO: main C3PO sources
+
+The directory sources/C3PO contains the definition of the following classes:
+
+  - C3PO.PhysicsDriver.PhysicsDriver defines and standardizes the functionalities expected by computer codes. It follows the ICoCo API.
+  - C3PO.DataManager.DataManager stores and manipulates (as a single mathematical vector) data outside of C3PO.PhysicsDriver.PhysicsDriver. This is necessary for some coupling techniques or time schemes.
+  - C3PO.CollaborativeDataManager.CollaborativeDataManager handles a set of C3PO.DataManager.DataManager as a single one. 
+  - C3PO.Exchanger.Exchanger manages data exchanges between C3PO.PhysicsDriver.PhysicsDriver and / or C3PO.DataManager.DataManager.
+  - C3PO.CollaborativeExchanger.CollaborativeExchanger allows to handle a set of C3PO.Exchanger.Exchanger as a single one.
+  - C3PO.Coupler.Coupler is the base class for the definition of a coupling, based on C3PO.PhysicsDriver.PhysicsDriver, C3PO.DataManager.DataManager and C3PO.Exchanger.Exchanger concepts.
+  - C3PO.Tracer.Tracer is a class wrapper allowing to trace the calls of the methods of the base class. It has different functions:
+    1. It can write all calls of the methods of the base class in a text file in Python format in order to allow to replay what happened from the code point of view outside of the coupling.
+    2. It can redirect code standard and error outputs in text files.
+    3. It can contribute (with C3PO.ListingWriter.ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
+  - C3PO.ListingWriter.ListingWriter allows, in association with C3PO.Tracer.Tracer, to write a global coupling listing file with calculation time measurement. Three funtions complete this class:
+    1. mergeListing() that allows to merge listing files produced by C3PO.ListingWriter.ListingWriter (or by previous call to mergeListing()). It is designed to produce a comprehensive view of a MPI calculation.
+    2. getTotalTimePhysicsDriver() that reads a listing file produced by C3PO.ListingWriter.ListingWriter or mergeListing() and returns the total time spent by one C3PO.PhysicsDriver.PhysicsDriver in indicated methods. 
+    3. getTimesExchanger() that reads a listing file produced by C3PO.ListingWriter.ListingWriter or mergeListing() and returns time information about a chosen exchanger.
+
+C3PO.DataManager.DataManager, C3PO.CollaborativeDataManager.CollaborativeDataManager, C3PO.Exchanger.Exchanger and C3PO.Coupler.Coupler can be respectively substituted by C3POMPI.MPICollectiveDataManager.MPICollectiveDataManager (or C3POMPI.MPICollaborativeDataManager.MPICollaborativeDataManager), C3POMPI.MPICollaborativeDataManager.MPICollaborativeDataManager, C3POMPI.MPIExchanger.MPIExchanger and C3POMPI.MPICoupler.MPICoupler if mpi4py is available, without any impact on calculations without parallelism.
+
+The directory sources/C3PO contains also the three directories:
+
+  - couplers with specific implementations of C3PO.Coupler.Coupler for the main coupling algorithms. See below.
+  - exchangeMethods with specific implementations of exchange methods (to be used with a C3PO.Exchanger.Exchanger). See below.
+  - physicsDrivers with specific implementations of C3PO.PhysicsDriver.PhysicsDriver for some codes.
+
+\subsubsection couplers_sec II.1.1. sources/C3PO/couplers directory
+
+This folder contains the definition of the following classes (coupling algorithms):
+
+  - C3PO.couplers.FixedPointCoupler.FixedPointCoupler inherits from C3PO.Coupler.Coupler and proposes a damped fixed point algorithm.
+  - C3PO.couplers.AndersonCoupler.AndersonCoupler inherits from C3PO.Coupler.Coupler and proposes a fixed point algorithm with Anderson acceleration.
+  - C3PO.couplers.AndersonQRCoupler.AndersonQRCoupler inherits from C3PO.Coupler.Coupler and proposes a fixed point algorithm with Anderson acceleration (and a special solving method of the internal optimization problem).
+  - C3PO.couplers.JFNKCoupler.JFNKCoupler inherits from C3PO.Coupler.Coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm.
+
+\subsubsection exchMeth_sec II.1.2. sources/C3PO/exchangeMethods directory
+
+This folder contains the definition of the following classes (exchange methods to be used with a C3PO.Exchanger.Exchanger):
+
+  - C3PO.exchangeMethods.DirectMatching.DirectMatching is the most simple exchange method: it does nothing else than output = input.
+  - C3PO.exchangeMethods.SharedRemapping.SharedRemapping projects the input fields one by one before returning them as outputs, in the same order.
+  - C3PO.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D is similar to C3PO.exchangeMethods.SharedRemapping.SharedRemapping but one side of the exchange is a set of 1D fields.
+
+\subsection C3POMPIsources_sec II.2. sources/C3POMPI: C3PO sources related to MPI.
+
+Two parallelization modes are available (and can be mixed): 
+
+  - Collaborative: all the processes run the same instructions. Instructions that do not concern a process (because it does not host a code for example) are ignored.
+  - Master-workers: a master process executes the highest-level instructions. It controls the execution of calculation codes and the data exchanges between worker processes.
+
+These two parallelization modes share a common base of concepts.
+
+\subsubsection CommonMPIsources_sec II.2.1. Common base
+
+  - C3POMPI.MPIRemoteProcess.MPIRemoteProcess identifies a remote process. It inherits from C3PO.PhysicsDriver.PhysicsDriver and C3PO.DataManager.DataManager but passes most of the methods: it does nothing.
+  - C3POMPI.MPICollectiveProcess.MPICollectiveProcess defines a collective process. In particular, it allows, by inheritance (a new class that inherits from C3POMPI.MPICollectiveProcess.MPICollectiveProcess but be defined), to define a collective C3PO.PhysicsDriver.PhysicsDriver: all processors will locally launch this component.
+  - C3POMPI.MPIExchanger.MPIExchanger is the MPI version of C3PO.Exchanger.Exchanger. The class takes in charge data exchanges between MPI processes (in the case where each code exposes its data on a single MPI process).
+
+\subsubsection CollaborativeMPIsources_sec II.2.2. Collaborative mode
+
+  - C3POMPI.MPICollaborativeDataManager.MPICollaborativeDataManager is the MPI collaborative version of C3PO.CollaborativeDataManager.CollaborativeDataManager. It allows to handle a set of C3PO.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class, data can be distributed on different MPI processes but still used in the same way.
+  - C3POMPI.MPICollectiveDataManager.MPICollectiveDataManager is the MPI collaborative version of the C3PO.DataManager.DataManager in which all processes have all data locally.
+  - C3POMPI.MPICoupler.MPICoupler is the MPI collaborative version of C3PO.Coupler.Coupler.
+
+\subsubsection CollaborativeMPIsources_sec II.2.3. Master/workers mode
+
+  - C3POMPI.MPIMasterPhysicsDriver.MPIMasterPhysicsDriver is used by the master process to control a remote C3PO.PhysicsDriver.PhysicsDriver.
+  - C3POMPI.MPIMasterCollectivePhysicsDriver.MPIMasterCollectivePhysicsDriver is used by the master process to control a set of remote C3PO.PhysicsDriver.PhysicsDriver as a single one.
+  - C3POMPI.MPIMasterDataManager.MPIMasterDataManager is used by the master process to control a remote C3PO.DataManager.DataManager.
+  - C3POMPI.MPIMasterCollectiveDataManager.MPIMasterCollectiveDataManager is used by the master process to control a set of remote C3PO.DataManager.DataManager as a single one.
+  - C3POMPI.MPIMasterExchanger.MPIMasterExchanger is used by the master to control remote C3PO.Exchanger.Exchanger(s).
+  - C3POMPI.MPIWorker.MPIWorker defines the behavior of workers.
+
+ \section contacts_sec III. Contacts
+
+<em>cyril.patricot@cea.fr</em>
+
+\section ref_introduction_sec References
+
+[1] “Salomé: The Open Source Integration Platform for Numerical Simulation”, http://www.salome-platform.org.
+
+[2] E. Deville, F. Perdu, “Documentation of the Interface for Code Coupling : ICoCo”, NURISP technical report D3.3.1.2 (2012).
+
+ */

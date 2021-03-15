@@ -18,7 +18,7 @@ from C3POMPI.MPIMasterCollectivePhysicsDriver import MPIMasterCollectivePhysicsD
 
 
 class MPIWorker(object):
-    """! MPIWorker define the behavior of workers in a master/workers MPI paradimg. """
+    """! MPIWorker defines the behavior of workers in a master/workers MPI paradimg. """
 
     def __init__(self, physicsDrivers, exchangers, dataManagers, MasterProcess):
         """! Build a MPIWorker object.

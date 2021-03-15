@@ -17,7 +17,7 @@ from C3POMPI.MPITag import MPITag
 
 
 class MPIMasterCollectiveDataManager(object):
-    """! MPIMasterCollectiveDataManager is used by the master process to control a set of remote C3PO.DataManager.DataManager. 
+    """! MPIMasterCollectiveDataManager is used by the master process to control a set of remote C3PO.DataManager.DataManager as a single one.. 
 
     It can, in addition, be in charge of a local one. This class is well suited to steer a code using an internal collaborative MPI parallelization.
 

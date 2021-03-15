@@ -18,9 +18,11 @@ from C3POMPI.MPIRemoteProcess import MPIRemoteProcess
 
 
 class MPICollaborativeDataManager(CollaborativeDataManager):
-    """! This is the MPI version of C3PO.CollaborativeDataManager.CollaborativeDataManager (for collaborative MPI paradigm). 
+    """! MPICollaborativeDataManager is the MPI collaborative version of C3PO.CollaborativeDataManager.CollaborativeDataManager (for collaborative MPI paradigm). 
     
-    It allows to handle a set of C3PO.DataManager.DataManager (some of then being remote) as a single one. Exchanges are still to be done with the individual C3PO.DataManager.DataManager.
+    It allows to handle a set of C3PO.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class, data can be distributed on different MPI processes but still used in the same way. 
+
+    Exchanges are still to be done with the individual C3PO.DataManager.DataManager.
 
     When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes of that communicator must be involved.
 
