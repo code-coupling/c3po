@@ -167,6 +167,7 @@ class CRONOS2Driver(PhysicsDriver):
            - sorts away the MED field in the appropriate PARAM structures of CRONOS. """
 
         if ((name == ParamKey.TECO) or (name == ParamKey.DMOD)):
+            field.setName(self.paramDict_[name])
             self.a_.eval("T_C3PO.'ITH' = T_C3PO.'ITH' + 1 ; ITH = T_C3PO.'ITH' ;")
             intField = MEDtsetpt.SaphGetIdFromPtr(field) 
             self.a_.eval("T_C3PO.'MED'.ITH = MED_FIELD_SAPH: "+str(intField)+" ;") 
