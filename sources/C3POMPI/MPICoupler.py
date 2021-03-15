@@ -42,7 +42,7 @@ class MPICoupler(Coupler):
         Coupler.__init__(self, physics, exchangers, dataManagers)
         self.MPIComm_ = None
         self.isMPI_ = False
-        for p in physics:
+        for p in self.physicsDriversList_:
             if isinstance(p, MPIRemoteProcess) or isinstance(p, MPICollectiveProcess):
                 if not self.isMPI_:
                     if p.MPIComm_ == MPI.COMM_NULL:
