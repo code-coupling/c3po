@@ -22,7 +22,10 @@ class ParamKey:
     """ Keys for the dictionary of the names of CRONOS2 parameters in PARAM-type structures """
     TECO = "TECO"
     DMOD = "DMOD"
+    TMOD = "TMOD"
     PUIS = "PUIS"
+    inputKeys  = [TECO, DMOD, TMOD]
+    outputKeys = [PUIS]
 
 class CRONOS2Driver(PhysicsDriver):
     """ This is the implementation of PhysicsDriver for CRONOS2. """
@@ -71,6 +74,7 @@ class CRONOS2Driver(PhysicsDriver):
             self.a_.eval("T_C3PO.'paramDict' = TABLE: ; T_C3PO.'value' = TABLE: ;")
             self.a_.eval("T_C3PO.'paramDict'.'TECO' = 'TECO' ; ")
             self.a_.eval("T_C3PO.'paramDict'.'DMOD' = 'DMOD' ; ")
+            self.a_.eval("T_C3PO.'paramDict'.'TMOD' = 'TMOD' ; ")
             self.a_.eval("T_C3PO.'paramDict'.'PUIS' = 'PUISSANCE_W' ; ")
             # if need be, modify/add relevant T_C3PO variables inside ICOCO_INITIALIZE
             self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INITIALIZE T_IMP T_STR T_OPT T_RES T_C3PO ;") 
@@ -79,6 +83,7 @@ class CRONOS2Driver(PhysicsDriver):
             param_ptr = self.a_.getTableTabPtr(tc3po_ptr,'paramDict')
             self.paramDict_[ParamKey.TECO] = self.a_.getTableString(param_ptr,'TECO') 
             self.paramDict_[ParamKey.DMOD] = self.a_.getTableString(param_ptr,'DMOD') 
+            self.paramDict_[ParamKey.TMOD] = self.a_.getTableString(param_ptr,'TMOD') 
             self.paramDict_[ParamKey.PUIS] = self.a_.getTableString(param_ptr,'PUIS') 
         return True
 
@@ -134,31 +139,32 @@ class CRONOS2Driver(PhysicsDriver):
            - takes as input the name of the MED field in the string T_C3PO.'name' ;
            - returns the required MED field in the variable T_C3PO.'field_out' of type MEDFIELD. """
 
-        if name == ParamKey.PUIS:
+        if (name in ParamKey.outputKeys):
             self.a_.eval("T_C3PO.'name' = '"+self.paramDict_[name]+"' ;")
             self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_OUTPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
             self.a_.eval("field_out = T_C3PO.'field_out' ;")
             myCppPtr = self.a_.getCppPtr("field_out")
             field_output = MEDconvert.void2field(myCppPtr)
-            field_output.setNature(MEDCoupling.Integral)
+            field_output.setNature(MEDCoupling.Integral) # ExtensiveMaximum interpolation of extensive variables
             return field_output
         else:
-            raise Exception("CRONOS2Driver.getOutputMEDField Only "+ParamKey.PUIS+" output available.")
+            raise Exception("CRONOS2Driver.getOutputMEDField Only "+str(ParamKey.outputKeys)+" output available but name='"+name+"'.")
 
     def getInputMEDFieldTemplate(self, name):
         """ The gibiane subroutine ICOCO_GET_INPUT_MEDFIELD_TEMPLATE :
            - takes as input the name of the MED field template in the string T_C3PO.'name' ;
            - returns the required MED field template in the variable T_C3PO.'field_out' of type MEDFIELD. """
 
-        if ((name == ParamKey.TECO) or (name == ParamKey.DMOD)):
+        if (name in ParamKey.inputKeys):
             self.a_.eval("T_C3PO.'name' = '"+self.paramDict_[name]+"' ;")
             self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_INPUT_MEDFIELD_TEMPLATE T_IMP T_STR T_OPT T_RES T_C3PO ;")
             self.a_.eval("field_out = T_C3PO.'field_out' ;")
             myCppPtr = self.a_.getCppPtr("field_out")
             field_template = MEDconvert.void2field(myCppPtr)
+            field_template.setNature(MEDCoupling.ConservativeVolumic) # IntensiveMaximum interpolation of intensive variables
             return field_template
         else:
-            raise Exception("CRONOS2Driver.getIntputMEDFieldTemplate Only "+ParamKey.TECO+" and "+ParamKey.DMOD+" template available.")
+            raise Exception("CRONOS2Driver.getIntputMEDFieldTemplate Only "+str(ParamKey.inputKeys)+" template available but name='"+name+"'.")
  
     def setInputMEDField(self, name, field):
         """ The gibiane subroutine ICOCO_SET_INPUT_MEDFIELD :
@@ -166,7 +172,7 @@ class CRONOS2Driver(PhysicsDriver):
            - takes as input the MED field in the variable T_C3PO.'MED'.ITH of type MEDFIELD ;
            - sorts away the MED field in the appropriate PARAM structures of CRONOS2. """
 
-        if ((name == ParamKey.TECO) or (name == ParamKey.DMOD)):
+        if (name in ParamKey.inputKeys):
             field.setName(self.paramDict_[name])
             self.a_.eval("T_C3PO.'ITH' = T_C3PO.'ITH' + 1 ; ITH = T_C3PO.'ITH' ;")
             intField = MEDtsetpt.SaphGetIdFromPtr(field) 
@@ -174,7 +180,7 @@ class CRONOS2Driver(PhysicsDriver):
             self.a_.eval("T_C3PO.'name' = '"+self.paramDict_[name]+"' ;")
             self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_INPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
         else:
-            raise Exception("CRONOS2Driver.setInputMEDField Only "+ParamKey.TECO+" and "+ParamKey.DMOD+" input possible.")
+            raise Exception("CRONOS2Driver.setInputMEDField Only "+str(ParamKey.inputKeys)+" input possible but name='"+name+"'.")
 
     def setValue(self, name, value):
         """ The gibiane subroutine ICOCO_SET_VALUE :
@@ -182,7 +188,7 @@ class CRONOS2Driver(PhysicsDriver):
            - takes as input the value stored in the table T_C3PO.'value' with the index name ;
            - sorts away the value in the appropriate data structures of CRONOS2. """
 
-        self.a_.eval("T_C3PO.'name' = "+name+" ;")
+        self.a_.eval("T_C3PO.'name' = '"+name+"' ;")
         self.a_.eval("T_C3PO.'value'.'"+name+"' = "+"{:.5f}".format(value)+" ;")
         self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_VALUE T_IMP T_STR T_OPT T_RES T_C3PO ;")
 
@@ -191,7 +197,7 @@ class CRONOS2Driver(PhysicsDriver):
            - takes as input the name of the value in the string T_C3PO.'name' ;
            - returns the required floating number value in the table T_C3PO.'value' at the index name. """
 
-        self.a_.eval("T_C3PO.'name' = "+name+" ;")
+        self.a_.eval("T_C3PO.'name' = '"+name+"' ;")
         self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_VALUE T_IMP T_STR T_OPT T_RES T_C3PO ;")
         self.a_.eval("return_value = T_C3PO.'value'.'"+name+"' ;")
         return self.a_.getFloat("return_value")
