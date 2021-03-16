@@ -68,7 +68,7 @@ class CRONOS2Driver(PhysicsDriver):
                 self.a_.evalFile(self.dataFile_)
             # initialize T_C3PO table  
             self.a_.eval("T_C3PO = TABLE: ; T_C3PO.'ITH' = 0 ; T_C3PO.'MED' = TABLE: ;")
-            self.a_.eval("T_C3PO.'paramDict' = TABLE: ;")
+            self.a_.eval("T_C3PO.'paramDict' = TABLE: ; T_C3PO.'value' = TABLE: ;")
             self.a_.eval("T_C3PO.'paramDict'.'TECO' = 'TECO' ; ")
             self.a_.eval("T_C3PO.'paramDict'.'DMOD' = 'DMOD' ; ")
             self.a_.eval("T_C3PO.'paramDict'.'PUIS' = 'PUISSANCE_W' ; ")
@@ -95,7 +95,7 @@ class CRONOS2Driver(PhysicsDriver):
 
     def initTimeStep(self, dt):
         self.dt_ = dt
-        self.a_.eval("T_C3PO.'DT' = "+"{:.3f}".format(dt)+" ;")
+        self.a_.eval("T_C3PO.'DT' = "+"{:.5f}".format(dt)+" ;")
         self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INIT_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;") 
         return True
 
@@ -107,7 +107,7 @@ class CRONOS2Driver(PhysicsDriver):
         The time step (floating-point number) must be output in the variable T_C3PO.'DT' 
         The stop flag (boolean) must be output in the variable T_C3PO.'STOP' """
 
-        self.a_.eval("T_C3PO.'PRESENT_TIME' = "+"{:.3f}".format(self.t_)+" ;")
+        self.a_.eval("T_C3PO.'PRESENT_TIME' = "+"{:.5f}".format(self.t_)+" ;")
         self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_COMPUTE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;") 
         self.a_.eval("TIME_STEP = T_C3PO.'DT' ; STOP_FLAG = T_C3PO.'STOP' ;")
         dt = self.a_.getFloat("TIME_STEP")
@@ -120,7 +120,7 @@ class CRONOS2Driver(PhysicsDriver):
 
     def validateTimeStep(self):
         self.t_ = self.t_ + self.dt_ 
-        self.a_.eval("T_C3PO.'PRESENT_TIME' = "+"{:.3f}".format(self.t_)+" ;")
+        self.a_.eval("T_C3PO.'PRESENT_TIME' = "+"{:.5f}".format(self.t_)+" ;")
         self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_VALIDATE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;") 
 
     def abortTimeStep(self):
@@ -164,7 +164,7 @@ class CRONOS2Driver(PhysicsDriver):
         """ The gibiane subroutine ICOCO_SET_INPUT_MEDFIELD :
            - takes as input the name of the MED field in the string T_C3PO.'name' ;
            - takes as input the MED field in the variable T_C3PO.'MED'.ITH of type MEDFIELD ;
-           - sorts away the MED field in the appropriate PARAM structures of CRONOS. """
+           - sorts away the MED field in the appropriate PARAM structures of CRONOS2. """
 
         if ((name == ParamKey.TECO) or (name == ParamKey.DMOD)):
             field.setName(self.paramDict_[name])
@@ -175,4 +175,24 @@ class CRONOS2Driver(PhysicsDriver):
             self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_INPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
         else:
             raise Exception("CRONOS2Driver.setInputMEDField Only "+ParamKey.TECO+" and "+ParamKey.DMOD+" input possible.")
+
+    def setValue(self, name, value):
+        """ The gibiane subroutine ICOCO_SET_VALUE :
+           - takes as input the name of the value in the string T_C3PO.'name' ;
+           - takes as input the value stored in the table T_C3PO.'value' with the index name ;
+           - sorts away the value in the appropriate data structures of CRONOS2. """
+
+        self.a_.eval("T_C3PO.'name' = "+name+" ;")
+        self.a_.eval("T_C3PO.'value'.'"+name+"' = "+"{:.5f}".format(value)+" ;")
+        self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_VALUE T_IMP T_STR T_OPT T_RES T_C3PO ;")
+
+    def getValue(self, name):
+        """ The gibiane subroutine ICOCO_GET_VALUE :
+           - takes as input the name of the value in the string T_C3PO.'name' ;
+           - returns the required floating number value in the table T_C3PO.'value' at the index name. """
+
+        self.a_.eval("T_C3PO.'name' = "+name+" ;")
+        self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_VALUE T_IMP T_STR T_OPT T_RES T_C3PO ;")
+        self.a_.eval("return_value = T_C3PO.'value'.'"+name+"' ;")
+        return self.a_.getFloat("return_value")
 
