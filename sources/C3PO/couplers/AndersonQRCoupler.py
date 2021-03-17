@@ -67,7 +67,7 @@ class AndersonQRCoupler(Coupler):
     The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < tolerance. The default norm used is the infinite norm. Coupler.setNormChoice() allows to choose another one.
 
     The default value of tolerance is 1.E-6. Call setConvergenceParameters() to change it.
-    
+
     The default maximum number of iterations is 100. Call setConvergenceParameters() to change it.
 
     """
@@ -97,7 +97,7 @@ class AndersonQRCoupler(Coupler):
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations). 
-        
+
         @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
         @param maxiter the maximal number of iterations.
         """
@@ -106,7 +106,7 @@ class AndersonQRCoupler(Coupler):
 
     def setAndersonDampingFactor(self, andersonDampingFactor):
         """! Set the damping factor of the method, the relative contribution of F(X^{k}) and X^{k} on the calculation of next step.
-        
+
         @param andersonDampingFactor the damping factor alpha in the formula alpha * F(X^{n-i}) + (1. - alpha) * X^{n-i}.
         """
         if andersonDampingFactor <= 0 or andersonDampingFactor > 1:
@@ -115,7 +115,7 @@ class AndersonQRCoupler(Coupler):
 
     def setOrder(self, order):
         """! Set the order of the method. 
-        
+
         @param order order of Anderson method. This is also the number of previous states stored by the algorithm.
         """
         if (order <= 0):
@@ -124,9 +124,9 @@ class AndersonQRCoupler(Coupler):
 
     def solveTimeStep(self):
         """! Solve a time step using the fixed point algorithm with Anderson acceleration.
-        
+
         Inspire de Homer Walker (walker@wpi.edu), 10/14/2011.
-        
+
         See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
         physics = self.physicsDrivers_[0]

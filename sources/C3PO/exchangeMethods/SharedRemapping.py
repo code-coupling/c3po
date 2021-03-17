@@ -32,7 +32,7 @@ class Remapper(MEDCouplingRemapper):
         if offset != [0., 0., 0.]:
             sourceMesh.translate([-x for x in offset])
         if rescaling != 1.:
-            sourceMesh.scale([0. ,0., 0.], 1./rescaling)
+            sourceMesh.scale([0., 0., 0.], 1. / rescaling)
         self.prepare(sourceMesh, targetMesh, "P0P0")
         self.isInit_ = True
 
@@ -43,7 +43,7 @@ class SharedRemapping(object):
     See C3PO.Exchanger.Exchanger.__init__().
 
     The method assumes that all input fields have the same mesh, and produces output fields on identical meshes.
-    
+
     This output mesh is the one of the first field passed to the method (obtained by getInputMEDFieldTemplate).
 
     The input scalars are returned in the same order, without modification.
@@ -76,7 +76,7 @@ class SharedRemapping(object):
         """! INTERNAL """
         if not self.remapper_.isInit_:
             if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_], 1./self.rescaling_)
+                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_], 1. / self.rescaling_)
             else:
                 self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_, self.rescaling_)
 

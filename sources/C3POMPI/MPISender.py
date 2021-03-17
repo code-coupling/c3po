@@ -24,6 +24,7 @@ import MEDLoader as ml
 
 class MPIFieldSender(object):
     """! INTERNAL """
+
     def __init__(self, destinations, dataAccess, storing, isTemplate):
         self.destinations_ = destinations
         self.dataAccess_ = dataAccess
@@ -56,6 +57,7 @@ class MPIFieldSender(object):
 
 class MPIFileFieldSender(object):
     """! INTERNAL """
+
     def __init__(self, destinations, dataAccess, storing, isTemplate):
         self.destinations_ = destinations
         self.dataAccess_ = dataAccess
@@ -69,7 +71,7 @@ class MPIFileFieldSender(object):
             field = self.dataAccess_.getInputMEDFieldTemplate()
         else:
             field = self.dataAccess_.getOutputMEDField()
-            
+
         if len(self.destinations_) > 0 and (self.isFirstSend_ or not self.isTemplate_):
             num = 0
             while os.path.exists("ExchangeField_" + str(num) + ".med"):
@@ -79,10 +81,10 @@ class MPIFileFieldSender(object):
                 ml.MEDLoader.WriteField("ExchangeField_" + str(num) + ".med", field, True)
             except:
                 ml.WriteField("ExchangeField_" + str(num) + ".med", field, True)
-            
+
             timeMED, iteration, order = field.getTime()
             MEDinfo = [(field.getTypeOfField(), os.getcwd() + "/" + name_file, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
-            
+
             for destination in self.destinations_:
                 MPIComm = destination.MPIComm_
                 if isinstance(destination, MPICollectiveProcess):
@@ -95,6 +97,7 @@ class MPIFileFieldSender(object):
 
 class MPIValueSender(object):
     """! INTERNAL """
+
     def __init__(self, destinations, dataAccess, storing):
         self.destinations_ = destinations
         self.dataAccess_ = dataAccess

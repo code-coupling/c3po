@@ -19,7 +19,7 @@ from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
 
 class MPICoupler(Coupler):
     """! MPICoupler is the MPI collaborative version of C3PO.Coupler.Coupler.
-    
+
     The MPI functionalities are used for some collective operations.
 
     Can replace, without impact, a C3PO.Coupler.Coupler for a calculation on a single process, if the MPI environment is available.

@@ -23,6 +23,7 @@ from C3POMPI.MPITag import MPITag
 
 class MPIFieldRecipient(object):
     """! INTERNAL """
+
     def __init__(self, sender, storing, isCollective, isTemplate):
         self.sender_ = sender
         self.storing_ = storing
@@ -52,6 +53,7 @@ class MPIFieldRecipient(object):
 
 class MPIFileFieldRecipient(object):
     """! INTERNAL """
+
     def __init__(self, sender, storing, isCollective, isTemplate):
         self.sender_ = sender
         self.storing_ = storing
@@ -78,6 +80,7 @@ class MPIFileFieldRecipient(object):
 
 class MPIValueRecipient(object):
     """! INTERNAL """
+
     def __init__(self, sender, storing, isCollective):
         self.sender_ = sender
         self.storing_ = storing

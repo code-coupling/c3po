@@ -33,7 +33,7 @@ def solveTriang(A, b):
 
 class JFNKCoupler(Coupler):
     """! JFNKCoupler inherits from Coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm. 
-    
+
     This is a Newton algorithm using a Krylov (GMRES) method for the linear system solving.
 
     The Jacobian matrix is not computed, but the product of the jacobian matrix with a vector v is approximated by a Taylor formula (J_u is the jacobian of F at the point u):
@@ -53,11 +53,11 @@ class JFNKCoupler(Coupler):
     The convergence criteria is : ||f(X^{n}) - X^{n}|| / ||f(X^{n})|| < tolerance. The default norm used is the infinite norm. Coupler.setNormChoice() allows to choose another one.
 
     The default Newton tolerance is 1.E-6. Call setConvergenceParameters() to change it.
-    
+
     The default maximum Newton number of iterations is 10. Call setConvergenceParameters() to change it.
-    
+
     The default Krylov tolerance is 1.E-4. Call setKrylovConvergenceParameters() to change it.
-    
+
     The default maximum Krylov iteration is 100. Call setKrylovConvergenceParameters() to change it.
 
     """
@@ -88,7 +88,7 @@ class JFNKCoupler(Coupler):
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations). 
-        
+
         @param tolerance the convergence threshold in ||f(X^{n}) - X^{n}|| / ||f(X^{n})|| < tolerance.
         @param maxiter the maximal number of iterations.
         """
@@ -97,7 +97,7 @@ class JFNKCoupler(Coupler):
 
     def setKrylovConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations) of the Krylov method. 
-        
+
         @param tolerance the convergence threshold of the Krylov method.
         @param maxiter the maximal number of iterations of the Krylov method.
         """
@@ -106,14 +106,14 @@ class JFNKCoupler(Coupler):
 
     def setEpsilon(self, epsilon):
         """! Set the epsilon value of the method.
-        
+
         @param epsilon the epsilon value in the formula J_u v ~= (F(u + epsilon v) - F(u))/epsilon. 
         """
         self.epsilon_ = epsilon
 
     def solveTimeStep(self):
         """! Solve a time step using Jacobian-Free Newton Krylov algorithm. 
-        
+
         See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
         physics = self.physicsDrivers_[0]

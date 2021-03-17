@@ -82,10 +82,9 @@ class THEDIDriver(PhysicsDriver):
             self.outputFieldCorrespondence_["PUISSANCE_SOLIDE"] = THEDI_MED.Sortie_MED.PUISSANCE_SOLIDE
             self.outputFieldCorrespondence_["PUISSANCE_LIQUIDE"] = THEDI_MED.Sortie_MED.PUISSANCE_LIQUIDE
 
-
     def getTHEDIObjects(self):
         """! Return THEDI objects.
-        
+
         @return THEDI.COEUR and THEDI.MED_INTERFACE. 
         """
         return self.coeur_, self.MEDInterface_
@@ -125,7 +124,7 @@ class THEDIDriver(PhysicsDriver):
 
     def getInputMEDFieldTemplate(self, name):
         """! Return an empty field lying on the MEDCouplingMesh object used by THEDI. 
-        
+
         See PhysicsDriver.getInputMEDFieldTemplate().
 
         THEDI can take fields given on any mesh and performs projection if needed, but no projection are done if this mesh is used.
@@ -139,7 +138,7 @@ class THEDIDriver(PhysicsDriver):
 
     def setInputMEDField(self, name, field):
         """! Set the MED field field to the component under the name name.
-        
+
         See PhysicsDriver.setInputMEDField().
 
         Accepted fields are :
@@ -174,7 +173,7 @@ class THEDIDriver(PhysicsDriver):
 
     def getOutputMEDField(self, name):
         """! Return the MED field of name name extracted from the component.
-        
+
         See PhysicsDriver.getOutputMEDField().
 
         Fields that can be returned :

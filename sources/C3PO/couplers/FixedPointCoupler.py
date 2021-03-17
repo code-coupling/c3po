@@ -30,9 +30,9 @@ class FixedPointCoupler(Coupler):
     The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance. The default norm used is the infinite norm. setNormChoice() allows to choose another one.
 
     The default value of tolerance is 1.E-6. Call setConvergenceParameters() to change it.
-    
+
     The default maximum number of iterations is 100. Call setConvergenceParameters() to change it.
-    
+
     The default damping factor is 1 (no damping). Call setDampingFactor() to change it.
     """
 
@@ -60,7 +60,7 @@ class FixedPointCoupler(Coupler):
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations). 
-        
+
         @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
         @param maxiter the maximal number of iterations.
         """
@@ -69,14 +69,14 @@ class FixedPointCoupler(Coupler):
 
     def setDampingFactor(self, dampingFactor):
         """! Set the damping factor of the method.
-        
+
         @param dampingFactor the damping factor alpha in the formula X^{n+1} = alpha * F(X^{n}) + (1 - alpha) * X^{n}.
         """
         self.dampingFactor_ = dampingFactor
 
     def solveTimeStep(self):
         """! Solve a time step using the damped fixed-point algorithm.
-        
+
         See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
         iiter = 0

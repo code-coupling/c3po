@@ -54,7 +54,7 @@ class ListingWriter(object):
         @param exchangers a list of tuples (object, name). object should be an Exchanger object, modified with Tracer to point on this ListingWriter object. name allows to identify them in the final listing file.
         """
         self.physics_ = []
-        self.physicsData_ = []  
+        self.physicsData_ = []
         for p in physics:
             if isinstance(self, mergedListingWriter) or (hasattr(p[0], "static_lWriter") and p[0].static_lWriter is self):
                 self.physics_.append(p[0])
@@ -267,7 +267,7 @@ class mergedListingWriter(ListingWriter):
         if sourceObject in self.physics_:
             calculationTimeToWrite = getFormattedTime(calculationTime)
             self.sumCalculationTime_ += calculationTime
-            
+
             PresentTimeToWrite = getFormattedTime(PresentTime - self.timeInit_)
             ind = self.physics_.index(sourceObject)
 
@@ -424,7 +424,7 @@ def mergeListing(listingsName, newListingName):
                         lineNature[i] = nature_end
                     elif lineWords[i][j].strip('-') == "end":
                         lineNature[i] = nature_end_exchange
-                    elif len(lineWords[i][j].split()) > 1 and lineWords[i][j].split()[1] == "start" :
+                    elif len(lineWords[i][j].split()) > 1 and lineWords[i][j].split()[1] == "start":
                         lineNature[i] = nature_start
             if lineNature[i] == -1:
                 lineNature[i] = nature_oneLineCalculation
@@ -493,7 +493,7 @@ def mergeListing(listingsName, newListingName):
     newListing.close()
 
 
-def getTotalTimePhysicsDriver(listingName, PhysicsDriverName, methodNames = ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate"]):
+def getTotalTimePhysicsDriver(listingName, PhysicsDriverName, methodNames=["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate"]):
     """! getTotalTimePhysicsDriver() reads a listing file produced by ListingWriter or mergeListing and returns the total time spent by one PhysicsDriver in indicated methods.
 
     @param listingName name of the listing file to read.
@@ -527,7 +527,7 @@ def getTotalTimePhysicsDriver(listingName, PhysicsDriverName, methodNames = ["in
         lineCurrentNumber += 1
         words = line.strip().strip('┃').split("│")
         if len(words) > physicsColumn:
-            resuColumn = words[physicsColumn].strip(' -').split() 
+            resuColumn = words[physicsColumn].strip(' -').split()
             if len(resuColumn) > 0 and resuColumn[0] in methodNames:
                 sumTime += float(words[-1].strip())
 
@@ -566,7 +566,7 @@ def getTimesExchanger(listingName, ExchangerName, PhysicsDriverNames):
         if p < 0:
             raise Exception("getTimesExchanger: we do not find all the PhysicsDrivers of" + str(PhysicsDriverNames) + ".")
 
-    sumTimes = [[0., 0.] for p in PhysicsDriverNames]   #Pour chaque PhysicsDriver on renvoie le temps d'echange (sans l'attente) et le temps d'attente.
+    sumTimes = [[0., 0.] for p in PhysicsDriverNames]  # Pour chaque PhysicsDriver on renvoie le temps d'echange (sans l'attente) et le temps d'attente.
     IntermediateTime = [0. for p in PhysicsDriverNames]
     isStarted = [False for p in PhysicsDriverNames]
     while lineCurrentNumber < lineNumber:
@@ -576,7 +576,7 @@ def getTimesExchanger(listingName, ExchangerName, PhysicsDriverNames):
         if len(words) > 0 and words[0].strip() == ExchangerName:
             currentTime = float(words[-2].strip())
             for i, p in enumerate(physicsColumns):
-                resuColumn = words[p].strip(' -').split() 
+                resuColumn = words[p].strip(' -').split()
                 if len(resuColumn) > 0 and resuColumn[0] == "exchange":
                     IntermediateTime[i] = currentTime
                     isStarted[i] = True

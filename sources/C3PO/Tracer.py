@@ -190,7 +190,7 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
             ...
 
     or it can be used in order to redefined only locally the class like that:
-    
+
         Myclass = C3PO.Tracer(...)(Myclass)
 
     Tracer cannot distinguish different instance of the same class. The name of the instance created in the python file changes each time the __init__ method is called. This means that when a new instance is created, Tracer assumes that the previous ones are not used any more. If this is not the case, put the ouput of each instance in its own output file :

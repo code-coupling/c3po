@@ -22,9 +22,9 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         """! Build a Multi1D3DRemapper object.
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.
-        
+
         The axial coordinates will be read from the 1D fields passed to the remapper (there are assumed to all share the same axial mesh).
-        
+
         Each cell of this 2D grid is associated to a 1D field.
 
         @param XCoordinates x coordinates of the inner mesh to build.
@@ -72,7 +72,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         if offset != [0., 0., 0.]:
             self.innerMesh_.translate([-x for x in offset])
         if rescaling != 1.:
-            self.innerMesh_.scale([0. ,0., 0.], 1./rescaling)
+            self.innerMesh_.scale([0., 0., 0.], 1. / rescaling)
         self.prepare(self.innerMesh_, Mesh3D, "P0P0")
         self.isInit_ = True
 
@@ -123,9 +123,9 @@ class SharedRemappingMulti1D3D(object):
     See C3PO.Exchanger.Exchanger.__init__().
 
     1D fields are processed in packets using the intermediate mesh defined by the Multi1D3DRemapper object.
-    
+
     The method assumes that all input fields (or packets) have the same mesh, and produces output fields on identical meshes.
-    
+
     This output mesh is the one of the first field (or packet) passed to the method (obtained by getInputMEDFieldTemplate).
 
     The input scalars are returned in the same order, without modification.
@@ -133,7 +133,7 @@ class SharedRemappingMulti1D3D(object):
     The initialization of the projection method (long operation) is done only once, and can be shared with other instances of SharedRemappingMulti1D3D.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1.,0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
         """! Build a SharedRemappingMulti1D3D object, to be given to an Exchanger.
 
         @param remapper A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of SharedRemappingMulti1D3D (its initialization will always be done only once).
@@ -158,7 +158,7 @@ class SharedRemappingMulti1D3D(object):
         """! INTERNAL """
         if not self.remapper_.isInit_:
             if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_], 1./self.rescaling_)
+                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_], 1. / self.rescaling_)
             else:
                 self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_, self.rescaling_)
 
@@ -175,7 +175,7 @@ class SharedRemappingMulti1D3D(object):
                 Fields1D = [fieldsToGet[index_first + k] for k in range(len(self.remapper_.indexTable_))]
                 resu += [self.remapper_.Build3DField(Fields1D, self.defaultValue_)]
                 index_first += len(self.remapper_.indexTable_)
-        if self.linearTransform_ != (1.,0.):
+        if self.linearTransform_ != (1., 0.):
             for med in resu:
                 med.applyLin(*(self.linearTransform_))
         return resu, valuesToGet

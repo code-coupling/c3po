@@ -48,7 +48,7 @@ class MPIShortcutToData(object):
 
 class MPIExchanger(Exchanger):
     """! MPIExchanger is the MPI version of C3PO.Exchanger.Exchanger. 
-    
+
     The class takes in charge data exchanges between MPI processes (in the case where each code exposes its data on a single MPI process). It manages the MPI exchanges before managing the local exchanges with the mother class.
 
     Can replace, without impact, an C3PO.Exchanger.Exchanger for a calculation on a single process, if the MPI environment is available.
@@ -64,7 +64,7 @@ class MPIExchanger(Exchanger):
         It is assumed that an object is either held by a single process (and of the form MPIRemoteProcess in others), or collective (MPICollectiveProcess).
 
         When there is an MPICollectiveProcess on the get side, all the processes of the communicator of this object must be involved in the exchanges.
-        
+
         @param method a user-defined function (or class with the special method __call__).
 
         * method must have three input lists:

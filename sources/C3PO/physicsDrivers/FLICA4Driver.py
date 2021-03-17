@@ -45,7 +45,7 @@ class FLICA4Driver(PhysicsDriver):
             return self.flica_.initialize()
         else:
             return True
-    
+
     def terminate(self):
         self.isInit_ = False
         self.flica_.terminate()

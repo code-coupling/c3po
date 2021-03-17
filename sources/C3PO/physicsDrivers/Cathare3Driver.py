@@ -6,12 +6,12 @@ try:
     import Cathare_opt
     import Cathare_opt.Problem_Cathare as C3
 except ImportError:
-    #importation dans Corpus
+    # importation dans Corpus
     from CATHARE3SWIG import CATHARE3 as C3
 from C3PO.PhysicsDriver import PhysicsDriver
 
 
-short_name = lambda name: name.split("__")[1] if (name.startswith("reconstruction") or name.startswith("sommewall__")) else name
+def short_name(name): return name.split("__")[1] if (name.startswith("reconstruction") or name.startswith("sommewall__")) else name
 
 
 def build_name(keyword, cname, loc, irad=-1):
@@ -23,6 +23,7 @@ def build_name(keyword, cname, loc, irad=-1):
 
 class PBC(C3, PhysicsDriver):
     """! This is the implementation of PhysicsDriver for CATHARE3. """
+
     def __init__(self):
         C3.__init__(self)
         PhysicsDriver.__init__(self)
@@ -58,7 +59,8 @@ class PBC(C3, PhysicsDriver):
             return self.get_rowland(*(name.split(separator)[1:]))
         elif name.split(separator)[0] == "WEIGHTEDVOL":
             return self.get_weighted_volume(*(name.split(separator)[1:]))
-        else: return C3.getOutputMEDField(self, name)
+        else:
+            return C3.getOutputMEDField(self, name)
 
     def get_rowland(self, cname, loc):
         fc = self.getOutputMEDField(build_name("UO2CTEMP", cname, loc))
@@ -72,7 +74,7 @@ class PBC(C3, PhysicsDriver):
     def get_weighted_volume(self, cname, loc, irad=-1):
 
         f = self.getOutputMEDField(build_name("VOLMED", cname, loc, irad))
-        f *=  float(self.getIValue("IWPOI@{}".format(cname)))
+        f *= float(self.getIValue("IWPOI@{}".format(cname)))
 
         return f
 
@@ -112,7 +114,7 @@ class PBC(C3, PhysicsDriver):
 
                     local_array = ml.DataArrayDouble.New(nc)
                     local_array.fillWithZero()
-                    local_array += field.getArray()[o : o + nc]
+                    local_array += field.getArray()[o: o + nc]
                     o += nc
 
                     f1d.setArray(local_array)
