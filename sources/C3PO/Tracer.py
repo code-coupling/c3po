@@ -168,7 +168,6 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
     2. It can redirect code standard and error outputs in text files.
     3. It can contribute (with ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
 
-    @warning The listing redirection seems to need a prior writing in the standard output (print(whatever)).
     @warning Tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger. It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or outputs).
     @warning Tracer only modify the base class, not its parents. As a consequence, inherited methods are invisible to Tracer. Redefine them in the final class if needed.
 

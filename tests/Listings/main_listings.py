@@ -5,8 +5,6 @@ import sys
 import C3PO
 from PhysicsScalarTransient import PhysicsScalarTransient
 
-print("Impression necessaire a la bonne redirection des listings (bug ?).")
-
 
 class ScalarPhysicsCoupler(C3PO.Coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
@@ -23,9 +21,8 @@ file1 = open("first.log", "w")
 file2 = open("second.log", "w")
 file3 = open("listingFirst.log", "w")
 file4 = open("listingSecond.log", "w")
-file5 = open("listingCoupler.log", "w")
-file6 = open("listingGeneral2.log", "wb+")
-listingW = C3PO.ListingWriter(file6)
+file5 = open("listingGeneral.log", "wb+")
+listingW = C3PO.ListingWriter(file5)
 
 Physics1 = C3PO.Tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
 Physics2 = C3PO.Tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
@@ -65,4 +62,3 @@ file2.close()
 file3.close()
 file4.close()
 file5.close()
-file6.close()
