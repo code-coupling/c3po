@@ -44,7 +44,7 @@ class Coupler(PhysicsDriver):
         """
         PhysicsDriver.__init__(self)
         self.physicsDrivers_ = physics
-        self.physicsDriversList_ = physics if not isinstance(physics, dict) else physics.values()
+        self.physicsDriversList_ = physics if not isinstance(physics, dict) else list(physics.values())
         self.exchangers_ = exchangers
         self.dataManagers_ = dataManagers
         self.norm_ = NormChoice.normMax
