@@ -51,7 +51,7 @@ class SharedRemapping(object):
     The initialization of the projection method (long operation) is done only once, and can be shared with other instances of SharedRemapping through a Remapper object.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1., outsideCellsScreening=False):
         """! Build an SharedRemapping object, to be given to an Exchanger.
 
         @param remapper A Remapper object (defined in C3PO and inheriting from MEDCouplingRemapper) performing the projection. It can thus be shared with other instances of SharedRemapping (its initialization will always be done only once).
@@ -61,6 +61,7 @@ class SharedRemapping(object):
         @param meshAlignment If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
         @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
         @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment or translation, if any.
+        @param outsideCellsScreening If set to True, target cells whose barycentre is outside of source mesh are screen out (defaultValue is assigned to them). It can be useful to screen out cells that are in contact with the source mesh, but that should not be intersected by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of source mesh ! Be careful with this option.
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
@@ -71,6 +72,9 @@ class SharedRemapping(object):
         if rescaling <= 0.:
             raise Exception("sharedRemapping : rescaling must be > 0!")
         self.rescaling_ = rescaling
+        self.outsideCellsScreening_ = outsideCellsScreening
+        self.cellIdsToScreenOut_ = []
+        self.isCellScreeningInit_ = False
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! INTERNAL """
@@ -79,6 +83,19 @@ class SharedRemapping(object):
                 self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_], 1. / self.rescaling_)
             else:
                 self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_, self.rescaling_)
+        if self.outsideCellsScreening_ and not self.isCellScreeningInit_:
+            bary = []
+            try:
+                bary = fieldsToSet[0].getMesh().computeCellCenterOfMass()   #MEDCoupling 9
+            except:
+                bary = fieldsToSet[0].getMesh().getBarycenterAndOwner()     #MEDCoupling 7
+            c, cI = fieldsToGet[0].getMesh().getCellsContainingPoints(bary, 1.0e-8)
+            dsi = cI.deltaShiftIndex()
+            try:
+                self.cellIdsToScreenOut_ = dsi.findIdsEqual(0)  #MEDCoupling 9
+            except:
+                self.cellIdsToScreenOut_ = dsi.getIdsEqual(0)   #MEDCoupling 7
+            self.isCellScreeningInit_ = True
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Project the input fields one by one before returning them as outputs, in the same order. """
@@ -92,6 +109,9 @@ class SharedRemapping(object):
                 TransformedMED.append(self.remapper_.reverseTransferField(fieldsToGet[i], self.defaultValue_))
             else:
                 TransformedMED.append(self.remapper_.transferField(fieldsToGet[i], self.defaultValue_))
+        if self.outsideCellsScreening_:
+            for med in TransformedMED:
+                med.getArray()[self.cellIdsToScreenOut_] = self.defaultValue_
         if self.linearTransform_ != (1., 0.):
             for med in TransformedMED:
                 med.applyLin(*(self.linearTransform_))

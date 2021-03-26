@@ -53,6 +53,8 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         self.innerField_ = MEDCoupling.MEDCouplingFieldDouble(MEDCoupling.ON_CELLS, MEDCoupling.ONE_TIME)
         self.innerField_.setName("3DFieldFromMulti1D")
         self.isInit_ = False
+        self.cellsToScreenOut3DMesh_ = []
+        self.cellsToScreenOutInnerMesh_ = []
 
     def initialize(self, Mesh1D, Mesh3D, meshAlignment, offset, rescaling):
         """! INTERNAL """
@@ -74,9 +76,32 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         if rescaling != 1.:
             self.innerMesh_.scale([0., 0., 0.], 1. / rescaling)
         self.prepare(self.innerMesh_, Mesh3D, "P0P0")
+
+        bary = []
+        try:
+            bary = self.innerMesh_.computeCellCenterOfMass()        #MEDCoupling 9
+        except:
+            bary = self.innerMesh_.getBarycenterAndOwner()          #MEDCoupling 7
+        c, cI = Mesh3D.getCellsContainingPoints(bary, 1.0e-8)
+        dsi = cI.deltaShiftIndex()
+        try:
+            self.cellsToScreenOutInnerMesh_ = dsi.findIdsEqual(0)   #MEDCoupling 9
+        except:
+            self.cellsToScreenOutInnerMesh_ = dsi.getIdsEqual(0)    #MEDCoupling 7
+        try:
+            bary = Mesh3D.computeCellCenterOfMass()
+        except:
+            bary = Mesh3D.getBarycenterAndOwner()
+        c, cI = self.innerMesh_.getCellsContainingPoints(bary, 1.0e-8)
+        dsi = cI.deltaShiftIndex()
+        try:
+            self.cellsToScreenOut3DMesh_ = dsi.findIdsEqual(0)
+        except:
+            self.cellsToScreenOut3DMesh_ = dsi.getIdsEqual(0)
+
         self.isInit_ = True
 
-    def Build3DField(self, Fields1D, defaultValue):
+    def Build3DField(self, Fields1D, defaultValue, outsideCellsScreening):
         """! INTERNAL """
         if len(Fields1D) > 0:
             self.innerField_.setNature(Fields1D[0].getNature())
@@ -88,12 +113,17 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
                 Array1D *= self.weights_[i]
             for position in self.indexTable_[i]:
                 Array3D.setPartOfValues1(Array1D, position, NbOfElems3D, self.numberOf1DPositions_, 0, 1, 1)
-        return self.transferField(self.innerField_, defaultValue)
+        resuField = self.transferField(self.innerField_, defaultValue)
+        if outsideCellsScreening:
+            resuField.getArray()[self.cellsToScreenOut3DMesh_] = defaultValue
+        return resuField
 
-    def Build1DFields(self, Field3D, defaultValue):
+    def Build1DFields(self, Field3D, defaultValue, outsideCellsScreening):
         """! INTERNAL """
         self.innerField_ = self.reverseTransferField(Field3D, defaultValue)
         Array3D = self.innerField_.getArray()
+        if outsideCellsScreening:
+            Array3D[self.cellsToScreenOutInnerMesh_] = defaultValue
         Fields1D = []
         for i, List1D in enumerate(self.indexTable_):
             Fields1D.append(MEDCoupling.MEDCouplingFieldDouble(MEDCoupling.ON_CELLS, MEDCoupling.ONE_TIME))
@@ -133,7 +163,7 @@ class SharedRemappingMulti1D3D(object):
     The initialization of the projection method (long operation) is done only once, and can be shared with other instances of SharedRemappingMulti1D3D.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1., outsideCellsScreening=False):
         """! Build a SharedRemappingMulti1D3D object, to be given to an Exchanger.
 
         @param remapper A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of SharedRemappingMulti1D3D (its initialization will always be done only once).
@@ -143,6 +173,7 @@ class SharedRemappingMulti1D3D(object):
         @param meshAlignment If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
         @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
         @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment or translation, if any.
+        @param outsideCellsScreening If set to True, target cells whose barycentre is outside of source mesh are screen out (defaultValue is assigned to them). It can be useful to screen out cells that are in contact with the source mesh, but that should not be intersected by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of source mesh ! Be careful with this option.
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
@@ -153,6 +184,7 @@ class SharedRemappingMulti1D3D(object):
         if rescaling <= 0.:
             raise Exception("SharedRemappingMulti1D3D : rescaling must be > 0!")
         self.rescaling_ = rescaling
+        self.outsideCellsScreening_ = outsideCellsScreening
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! INTERNAL """
@@ -168,12 +200,12 @@ class SharedRemappingMulti1D3D(object):
         resu = []
         if self.isReverse_:
             for field3D in fieldsToGet:
-                resu += self.remapper_.Build1DFields(field3D, self.defaultValue_)
+                resu += self.remapper_.Build1DFields(field3D, self.defaultValue_, self.outsideCellsScreening_)
         else:
             index_first = 0
             while index_first + len(self.remapper_.indexTable_) <= len(fieldsToGet):
                 Fields1D = [fieldsToGet[index_first + k] for k in range(len(self.remapper_.indexTable_))]
-                resu += [self.remapper_.Build3DField(Fields1D, self.defaultValue_)]
+                resu += [self.remapper_.Build3DField(Fields1D, self.defaultValue_, self.outsideCellsScreening_)]
                 index_first += len(self.remapper_.indexTable_)
         if self.linearTransform_ != (1., 0.):
             for med in resu:
