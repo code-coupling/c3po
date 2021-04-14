@@ -13,7 +13,6 @@ These classes send data to another process.
 """
 from __future__ import print_function, division
 from mpi4py import MPI
-import numpy
 import os
 
 from C3POMPI.MPITag import MPITag
@@ -82,7 +81,7 @@ class MPIFileFieldSender(object):
             except:
                 ml.WriteField("ExchangeField_" + str(num) + ".med", field, True)
 
-            timeMED, iteration, order = field.getTime()
+            _, iteration, order = field.getTime()
             MEDinfo = [(field.getTypeOfField(), os.getcwd() + "/" + name_file, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
 
             for destination in self.destinations_:

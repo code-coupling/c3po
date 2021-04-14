@@ -10,7 +10,6 @@
 
 """ Contain the class MPIMasterPhysicsDriver. """
 from __future__ import print_function, division
-from mpi4py import MPI
 
 from C3PO.PhysicsDriver import PhysicsDriver
 from C3POMPI.MPITag import MPITag
@@ -19,13 +18,15 @@ from C3POMPI.MPITag import MPITag
 class MPIMasterPhysicsDriver(PhysicsDriver):
     """! MPIMasterPhysicsDriver is used by the master process to control a remote C3PO.PhysicsDriver.PhysicsDriver. 
 
-    Inherits from C3PO.PhysicsDriver.PhysicsDriver. All the methods of the mother class are implemented and consist in commanding the worker to execute them.
+    Inherits from C3PO.PhysicsDriver.PhysicsDriver. All the methods of the mother class are implemented and consist in commanding the 
+    worker to execute them.
     """
 
     def __init__(self, workerProcess):
         """! Build a MPIMasterPhysicsDriver object.
 
-        @param workerProcess a C3POMPI.MPIRemoteProcess.MPIRemoteProcess identifying the worker process. The worker can be in charge of only one C3PO.PhysicsDriver.PhysicsDriver.
+        @param workerProcess a C3POMPI.MPIRemoteProcess.MPIRemoteProcess identifying the worker process. The worker can be in charge of 
+        only one C3PO.PhysicsDriver.PhysicsDriver.
         """
         PhysicsDriver.__init__(self)
         self.MPIComm_ = workerProcess.MPIComm_

@@ -20,13 +20,17 @@ from C3POMPI.MPIMasterCollectivePhysicsDriver import MPIMasterCollectivePhysicsD
 class MPIWorker(object):
     """! MPIWorker defines the behavior of workers in a master/workers MPI paradimg. """
 
-    def __init__(self, physicsDrivers, exchangers, dataManagers, MasterProcess):
+    def __init__(self, physicsDrivers, exchangers, dataManagers, masterProcess):
         """! Build a MPIWorker object.
 
-        @param physicsDrivers List of C3PO.PhysicsDriver.PhysicsDriver. Only one should not be a MPIRemoteProcess: it is the one the worker is responsible for.
-        @param exchangers List of C3PO.Exchanger.Exchanger. The indices in this list are the numbers identifying the C3PO.Exchanger.Exchanger for the master.
-        @param dataManagers List of C3PO.DataManager.DataManager. The indices in this list are the numbers identifying the C3PO.DataManager.DataManager for the master.
-        @param MasterProcess Either a MPIRemoteProcess or a MPIMasterCollectivePhysicsDriver identifying the master process. In the first case point-to-point communications are used, in the second case collective communications are used. 
+        @param physicsDrivers List of C3PO.PhysicsDriver.PhysicsDriver. Only one should not be a MPIRemoteProcess: it is the one the 
+        worker is responsible for.
+        @param exchangers List of C3PO.Exchanger.Exchanger. The indices in this list are the numbers identifying the C3PO.Exchanger.Exchanger 
+        for the master.
+        @param dataManagers List of C3PO.DataManager.DataManager. The indices in this list are the numbers identifying the 
+        C3PO.DataManager.DataManager for the master.
+        @param masterProcess Either a MPIRemoteProcess or a MPIMasterCollectivePhysicsDriver identifying the master process. In the 
+        first case point-to-point communications are used, in the second case collective communications are used. 
         """
         found = False
         for p in physicsDrivers:
@@ -37,16 +41,16 @@ class MPIWorker(object):
                 self.physicsDriver_ = p
         if not found:
             raise Exception("MPIWorker.__init__ : we did not found any local PhysicsDriver : there must be one (and only one).")
-        self.MPIComm_ = MasterProcess.MPIComm_
+        self.MPIComm_ = masterProcess.MPIComm_
         self.masterRank_ = 0
         self.isCollective_ = False
-        if isinstance(MasterProcess, MPIRemoteProcess):
-            self.masterRank_ = MasterProcess.rank_
-        elif isinstance(MasterProcess, MPIMasterCollectivePhysicsDriver):
-            self.masterRank_ = MasterProcess.masterRank_
+        if isinstance(masterProcess, MPIRemoteProcess):
+            self.masterRank_ = masterProcess.rank_
+        elif isinstance(masterProcess, MPIMasterCollectivePhysicsDriver):
+            self.masterRank_ = masterProcess.masterRank_
             self.isCollective_ = True
         else:
-            raise Exception("MPIWorker.__init__ : MasterProcess type unknown.")
+            raise Exception("MPIWorker.__init__ : masterProcess type unknown.")
         self.exchangers_ = exchangers
         self.dataManagers_ = {}  # Used a little bit as a list but the [] operator of a dict is more convenent here.
         for idata in range(len(dataManagers)):
@@ -69,9 +73,9 @@ class MPIWorker(object):
 
     def checkDataID(self, idList):
         """! INTERNAL """
-        for id in idList:
-            if id >= len(self.dataManagers_):
-                raise Exception("MPIWorker.checkDataID : the asked DataManager does not exist : ID asked : " + str(id) + ", maximum ID : " + str(len(self.dataManagers_) - 1) + ".")
+        for iid in idList:
+            if iid >= len(self.dataManagers_):
+                raise Exception("MPIWorker.checkDataID : the asked DataManager does not exist : ID asked : " + str(iid) + ", maximum ID : " + str(len(self.dataManagers_) - 1) + ".")
 
     def listen(self):
         """! Make the worker waits for instructions from the master. 
@@ -190,5 +194,4 @@ class MPIWorker(object):
 
             elif tag == MPITag.exchange:
                 self.exchangers_[data].exchange()
-
         self.answer(self.physicsDriver_.terminate())
