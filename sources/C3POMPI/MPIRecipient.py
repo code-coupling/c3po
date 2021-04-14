@@ -31,7 +31,7 @@ class MPIFieldRecipient(object):
         self.field_ = 0
 
     def exchange(self):
-        MPIComm = self.sender_.MPIComm_
+        MPIComm = self.sender_.mpiComm_
         senderRank = self.sender_.rank_
         if not hasattr(self.field_, "getArray"):
             if self.isCollective_:
@@ -61,7 +61,7 @@ class MPIFileFieldRecipient(object):
         self.field_ = 0
 
     def exchange(self):
-        MPIComm = self.sender_.MPIComm_
+        MPIComm = self.sender_.mpiComm_
         senderRank = self.sender_.rank_
         if not hasattr(self.field_, "getArray") or not self.isTemplate_:
             MEDinfo = ()
@@ -83,7 +83,7 @@ class MPIValueRecipient(object):
         self.isCollective_ = isCollective
 
     def exchange(self):
-        MPIComm = self.sender_.MPIComm_
+        MPIComm = self.sender_.mpiComm_
         senderRank = self.sender_.rank_
         if self.isCollective_:
             value = 0

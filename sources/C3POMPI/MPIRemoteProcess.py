@@ -29,7 +29,7 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         """
         PhysicsDriver.__init__(self)
         DataManager.__init__(self)
-        self.MPIComm_ = mpiComm
+        self.mpiComm_ = mpiComm
         self.rank_ = rank
         self.t_ = 0.
         self.dt_ = 1.e30
@@ -91,5 +91,5 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
 
     def cloneEmpty(self):
         """! return a clone. """
-        new = MPIRemoteProcess(self.MPIComm_, self.rank_)
+        new = MPIRemoteProcess(self.mpiComm_, self.rank_)
         return new

@@ -41,9 +41,9 @@ class MPIMasterExchanger(object):
         """! Trigger the exchange of data. """
         for process in self.workerProcesses_:
             if isinstance(process, MPIRemoteProcess):
-                process.MPIComm_.send(self.idExchangerWorker_, dest=process.rank_, tag=MPITag.exchange)
+                process.mpiComm_.send(self.idExchangerWorker_, dest=process.rank_, tag=MPITag.exchange)
             elif isinstance(process, MPICollectiveProcess):
-                process.MPIComm_.bcast((MPITag.exchange, self.idExchangerWorker_), root=process.MPIComm_.Get_rank())
+                process.mpiComm_.bcast((MPITag.exchange, self.idExchangerWorker_), root=process.mpiComm_.Get_rank())
             else:
                 raise Exception("MPIMasterExchanger.exchange : we found an unknown worker type.")
         if self.localExchanger_ is not None:

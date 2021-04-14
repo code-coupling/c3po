@@ -25,4 +25,4 @@ class MPICollectiveProcess(object):
         @param mpiComm MPI communicator. It must be shared by all processes involved in the MPICollectiveProcess (and all processes 
         of this MPI communicator must be involed in the MPICollectiveProcess).
         """
-        self.MPIComm_ = mpiComm
+        self.mpiComm_ = mpiComm

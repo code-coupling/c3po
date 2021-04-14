@@ -29,7 +29,7 @@ class MPIMasterDataManager(object):
         @param idDataWorker Number identifying the C3PO.DataManager.DataManager in the worker (see C3POMPI.MPIWorker.MPIWorker).
         """
         self.physicsDriver_ = mpiMasterphysicsD
-        self.MPIComm_ = mpiMasterphysicsD.getCommunicator()
+        self.mpiComm_ = mpiMasterphysicsD.getCommunicator()
         self.workerRank_ = mpiMasterphysicsD.getWorkerRank()
         self.idDataWorker_ = idDataWorker
 
@@ -39,7 +39,7 @@ class MPIMasterDataManager(object):
 
     def checkCompatibility(self, other):
         """! INTERNAL """
-        if self.workerRank_ != other.workerRank_ or self.MPIComm_ != other.MPIComm_:
+        if self.workerRank_ != other.workerRank_ or self.mpiComm_ != other.mpiComm_:
             raise Exception("MPIMasterDataManager.checkCompatibility : self and other are not compatible : they are on different workers or use different communicators.")
 
     def clone(self):
@@ -48,74 +48,74 @@ class MPIMasterDataManager(object):
 
     def cloneEmpty(self):
         """! See C3PO.DataManager.DataManager.cloneEmpty(). """
-        self.MPIComm_.send(self.idDataWorker_, dest=self.workerRank_, tag=MPITag.cloneEmptyData)
-        newIdDataWorker = self.MPIComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm_.send(self.idDataWorker_, dest=self.workerRank_, tag=MPITag.cloneEmptyData)
+        newIdDataWorker = self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
         new_data = MPIMasterDataManager(self.physicsDriver_, newIdDataWorker)
         return new_data
 
     def copy(self, other):
         """! See C3PO.DataManager.DataManager.copy(). """
         self.checkCompatibility(other)
-        self.MPIComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.copyData)
+        self.mpiComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.copyData)
 
     def normMax(self):
         """! See C3PO.DataManager.DataManager.normMax(). """
-        self.MPIComm_.send(self.idDataWorker_, dest=self.workerRank_, tag=MPITag.normMax)
-        return self.MPIComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm_.send(self.idDataWorker_, dest=self.workerRank_, tag=MPITag.normMax)
+        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
 
     def norm2(self):
         """! See C3PO.DataManager.DataManager.norm2(). """
-        self.MPIComm_.send(self.idDataWorker_, dest=self.workerRank_, tag=MPITag.norm2)
-        return math.sqrt(self.MPIComm_.recv(source=self.workerRank_, tag=MPITag.answer))
+        self.mpiComm_.send(self.idDataWorker_, dest=self.workerRank_, tag=MPITag.norm2)
+        return math.sqrt(self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer))
 
     def __add__(self, other):
         """! See C3PO.DataManager.DataManager.__add__(). """
         self.checkCompatibility(other)
-        self.MPIComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.addData)
-        newIdDataWorker = self.MPIComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.addData)
+        newIdDataWorker = self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
         new_data = MPIMasterDataManager(self.physicsDriver_, newIdDataWorker)
         return new_data
 
     def __iadd__(self, other):
         """! See C3PO.DataManager.DataManager.__iadd__(). """
         self.checkCompatibility(other)
-        self.MPIComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.iaddData)
+        self.mpiComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.iaddData)
         return self
 
     def __sub__(self, other):
         """! See C3PO.DataManager.DataManager.__sub__(). """
         self.checkCompatibility(other)
-        self.MPIComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.subData)
-        newIdDataWorker = self.MPIComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.subData)
+        newIdDataWorker = self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
         new_data = MPIMasterDataManager(self.physicsDriver_, newIdDataWorker)
         return new_data
 
     def __isub__(self, other):
         """! See C3PO.DataManager.DataManager.__isub__(). """
         self.checkCompatibility(other)
-        self.MPIComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.isubData)
+        self.mpiComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.isubData)
         return self
 
     def __mul__(self, scalar):
         """! See C3PO.DataManager.DataManager.__mul__(). """
-        self.MPIComm_.send((self.idDataWorker_, scalar), dest=self.workerRank_, tag=MPITag.mulData)
-        newIdDataWorker = self.MPIComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm_.send((self.idDataWorker_, scalar), dest=self.workerRank_, tag=MPITag.mulData)
+        newIdDataWorker = self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
         new_data = MPIMasterDataManager(self.physicsDriver_, newIdDataWorker)
         return new_data
 
     def __imul__(self, scalar):
         """! See C3PO.DataManager.DataManager.__imul__(). """
-        self.MPIComm_.send((self.idDataWorker_, scalar), dest=self.workerRank_, tag=MPITag.imulData)
+        self.mpiComm_.send((self.idDataWorker_, scalar), dest=self.workerRank_, tag=MPITag.imulData)
         return self
 
     def imuladd(self, scalar, other):
         """! See C3PO.DataManager.DataManager.imuladd(). """
         self.checkCompatibility(other)
-        self.MPIComm_.send((self.idDataWorker_, scalar, other.idDataWorker_), dest=self.workerRank_, tag=MPITag.imuladdData)
+        self.mpiComm_.send((self.idDataWorker_, scalar, other.idDataWorker_), dest=self.workerRank_, tag=MPITag.imuladdData)
         return self
 
     def dot(self, other):
         """! See C3PO.DataManager.DataManager.dot(). """
         self.checkCompatibility(other)
-        self.MPIComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.dotData)
-        return self.MPIComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm_.send([self.idDataWorker_, other.idDataWorker_], dest=self.workerRank_, tag=MPITag.dotData)
+        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)

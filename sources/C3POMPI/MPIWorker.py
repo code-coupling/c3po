@@ -41,7 +41,7 @@ class MPIWorker(object):
                 self.physicsDriver_ = p
         if not found:
             raise Exception("MPIWorker.__init__ : we did not found any local PhysicsDriver : there must be one (and only one).")
-        self.MPIComm_ = masterProcess.MPIComm_
+        self.mpiComm_ = masterProcess.mpiComm_
         self.masterRank_ = 0
         self.isCollective_ = False
         if isinstance(masterProcess, MPIRemoteProcess):
@@ -60,9 +60,9 @@ class MPIWorker(object):
     def answer(self, data, CollectiveOperator=MPI.MIN):
         """! INTERNAL """
         if self.isCollective_:
-            self.MPIComm_.reduce(data, op=CollectiveOperator, root=self.masterRank_)
+            self.mpiComm_.reduce(data, op=CollectiveOperator, root=self.masterRank_)
         else:
-            self.MPIComm_.send(data, dest=self.masterRank_, tag=MPITag.answer)
+            self.mpiComm_.send(data, dest=self.masterRank_, tag=MPITag.answer)
 
     def getIdNewData(self):
         """! INTERNAL """
@@ -86,13 +86,13 @@ class MPIWorker(object):
         tag = MPITag.init
         while tag != MPITag.terminate:
             if self.isCollective_:
-                data = self.MPIComm_.bcast(0, root=self.masterRank_)
+                data = self.mpiComm_.bcast(0, root=self.masterRank_)
                 tag = data[0]
                 data = data[-1]
             else:
-                data = self.MPIComm_.recv(source=self.masterRank_, tag=MPI.ANY_TAG, status=status)
+                data = self.mpiComm_.recv(source=self.masterRank_, tag=MPI.ANY_TAG, status=status)
                 tag = status.Get_tag()
-            #print "rank ", self.MPIComm_.Get_rank(), ", tag = ", tag, "*****************************************************************"
+            #print "rank ", self.mpiComm_.Get_rank(), ", tag = ", tag, "*****************************************************************"
             if tag == MPITag.init:
                 self.physicsDriver_.init()
             elif tag == MPITag.getInitStatus:

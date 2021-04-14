@@ -35,6 +35,6 @@ class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
 
         @return An empty clone of self.
         """
-        output = MPICollectiveDataManager(self.MPIComm_)
+        output = MPICollectiveDataManager(self.mpiComm_)
         output.MEDFieldTemplates_ = self.MEDFieldTemplates_
         return output

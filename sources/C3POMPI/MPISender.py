@@ -38,7 +38,7 @@ class MPIFieldSender(object):
         else:
             field = self.dataAccess_.getOutputMEDField()
         for destination in self.destinations_:
-            MPIComm = destination.MPIComm_
+            MPIComm = destination.mpiComm_
             if self.isFirstSend_ or not hasattr(field, "getArray"):
                 if isinstance(destination, MPICollectiveProcess):
                     MPIComm.bcast(field, root=MPIComm.Get_rank())
@@ -82,7 +82,7 @@ class MPIFileFieldSender(object):
             MEDinfo = [(field.getTypeOfField(), os.getcwd() + "/" + name_file, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
 
             for destination in self.destinations_:
-                MPIComm = destination.MPIComm_
+                MPIComm = destination.mpiComm_
                 if isinstance(destination, MPICollectiveProcess):
                     MPIComm.bcast(MEDinfo, root=MPIComm.Get_rank())
                 else:
@@ -102,7 +102,7 @@ class MPIValueSender(object):
     def exchange(self):
         value = self.dataAccess_.getValue()
         for destination in self.destinations_:
-            MPIComm = destination.MPIComm_
+            MPIComm = destination.mpiComm_
             if isinstance(destination, MPICollectiveProcess):
                 MPIComm.bcast(value, root=MPIComm.Get_rank())
             else:
