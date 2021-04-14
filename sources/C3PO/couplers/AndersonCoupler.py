@@ -196,26 +196,10 @@ class AndersonCoupler(Coupler):
             self.andersonAccelerationN(andersonMemory[1:], diffFiFn, out, localOrder - 1)
 
     # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
-    def initialize(self):
-        """! See Coupler.initialize(). """
-        return Coupler.initialize(self)
+    initialize = Coupler.initialize
+    terminate = Coupler.terminate
+    computeTimeStep = Coupler.computeTimeStep
+    initTimeStep = Coupler.initTimeStep
+    validateTimeStep = Coupler.validateTimeStep
+    abortTimeStep = Coupler.abortTimeStep
 
-    def terminate(self):
-        """! See Coupler.terminate(). """
-        return Coupler.terminate(self)
-
-    def computeTimeStep(self):
-        """! See Coupler.computeTimeStep(). """
-        return Coupler.computeTimeStep(self)
-
-    def initTimeStep(self, dt):
-        """! See Coupler.initTimeStep(). """
-        return Coupler.initTimeStep(self, dt)
-
-    def validateTimeStep(self):
-        """! See Coupler.validateTimeStep(). """
-        Coupler.validateTimeStep(self)
-
-    def abortTimeStep(self):
-        """! See Coupler.abortTimeStep(). """
-        Coupler.abortTimeStep(self)

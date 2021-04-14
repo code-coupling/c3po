@@ -43,8 +43,8 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         return True
 
     def terminate(self):
-        """! return True """
-        return True
+        """! pass """
+        pass
 
     def presentTime(self):
         """! return the time. """

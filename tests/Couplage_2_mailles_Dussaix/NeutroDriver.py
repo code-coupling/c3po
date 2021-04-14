@@ -26,7 +26,7 @@ class NeutroDriver(PhysicsDriver):
         return True
 
     def terminate(self):
-        return True
+        pass
 
     def initTimeStep(self, dt):
         return True

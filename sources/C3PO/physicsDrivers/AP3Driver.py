@@ -37,7 +37,7 @@ class AP3Driver(PhysicsDriver):
 
     def terminate(self):
         self.isInit_ = False
-        return self.neutro_.terminate()
+        self.neutro_.terminate()
 
     def presentTime(self):
         return self.neutro_.presentTime()

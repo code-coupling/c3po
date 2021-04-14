@@ -61,10 +61,8 @@ class Coupler(PhysicsDriver):
 
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
-        resu = True
         for physics in self.physicsDriversList_:
-            resu = (resu and physics.terminate())
-        return resu
+            physics.terminate()
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """

@@ -104,7 +104,6 @@ class CRONOS2Driver(PhysicsDriver):
         self.t_ = 0
         self.dt_ = 0
         self.paramDict_ = {}
-        return True
 
     def initTimeStep(self, dt):
         """! See PhysicsDriver.initTimeStep(). """

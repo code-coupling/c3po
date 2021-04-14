@@ -30,7 +30,7 @@ class PhysicsScalarTransient(PhysicsDriver):
         return True
 
     def terminate(self):
-        return True
+        pass
 
     def presentTime(self):
         return self.t_

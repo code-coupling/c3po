@@ -6,7 +6,8 @@ from C3PO.PhysicsDriver import PhysicsDriver
 
 
 class TRUSTDriver(ti.ProblemTrio, PhysicsDriver):
-    """! This is the implementation of PhysicsDriver for TRUST. """
+    """! This is the implementation of PhysicsDriver for TRUST. Since TRUST is ICoCo-compliant, not much
+    to be done! """
     def __init__(self):
         ti.ProblemTrio.__init__(self)
         PhysicsDriver.__init__(self)
@@ -16,7 +17,6 @@ class TRUSTDriver(ti.ProblemTrio, PhysicsDriver):
 
     def terminate(self):
         ti.ProblemTrio.terminate(self)
-        return True
 
     def computeTimeStep(self):
         return ti.ProblemTrio.computeTimeStep(self)

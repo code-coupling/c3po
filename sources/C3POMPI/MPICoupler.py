@@ -66,13 +66,6 @@ class MPICoupler(Coupler):
             resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
         return resu
 
-    def terminate(self):
-        """! See Coupler.terminate(). """
-        resu = Coupler.terminate(self)
-        if self.isMPI_:
-            resu = self.MPIComm_.allreduce(resu, op=MPI.MIN)
-        return resu
-
     def computeTimeStep(self):
         """! See Coupler.computeTimeStep(). """
         (dt, stop) = Coupler.computeTimeStep(self)

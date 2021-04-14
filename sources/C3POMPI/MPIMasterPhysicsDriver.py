@@ -62,7 +62,6 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
         self.MPIComm_.send(0, dest=self.workerRank_, tag=MPITag.terminate)
-        return self.MPIComm_.recv(source=self.workerRank_, tag=MPITag.answer)
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """

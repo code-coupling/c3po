@@ -50,7 +50,6 @@ class FLICA4Driver(PhysicsDriver):
     def terminate(self):
         self.isInit_ = False
         self.flica_.terminate()
-        return True
 
     def presentTime(self):
         return self.flica_.presentTime()

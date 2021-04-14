@@ -50,7 +50,6 @@ class Alcyone2Driver(PhysicsDriver):
 
     def terminate(self):
         self.Alcyone2_.terminate()
-        return True
 
     def presentTime(self):
         return self.Alcyone2_.presentTime()

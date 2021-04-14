@@ -82,8 +82,6 @@ class PhysicsDriver(object):
 
         This method is called once at the end of the computation or after a non-recoverable error.
         After terminate(), no method (except setDataFile() and setMPIComm()) can be called before a new call to initialize().
-
-        @return True means OK.
         """
         raise Exception("PhysicsDriver.terminate : not supported")
 

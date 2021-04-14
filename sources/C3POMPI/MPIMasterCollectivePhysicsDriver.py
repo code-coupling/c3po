@@ -67,10 +67,8 @@ class MPIMasterCollectivePhysicsDriver(PhysicsDriver):
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
         self.MPIComm_.bcast((MPITag.terminate,), root=self.masterRank_)
-        data = True
         if self.localPhysicsDriver_ is not None:
-            data = self.localPhysicsDriver_.terminate()
-        return self.MPIComm_.reduce(data, op=MPI.MIN, root=self.masterRank_)
+            self.localPhysicsDriver_.terminate()
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """
