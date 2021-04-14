@@ -16,7 +16,7 @@ from mpi4py import MPI
 import numpy
 
 import MEDCoupling
-import MEDLoader as ml
+import C3PO.medcoupling_compat as mc
 
 from C3POMPI.MPITag import MPITag
 
@@ -71,7 +71,7 @@ class MPIFileFieldRecipient(object):
             else:
                 MEDinfo = MPIComm.recv(source=senderRank, tag=MPITag.data)
             try:
-                self.field_ = ml.MEDLoader.ReadField(*(MEDinfo[0]))
+                self.field_ = mc.ReadField(*(MEDinfo[0]))
             except:
                 self.field_ = ml.ReadField(*(MEDinfo[0]))
             self.field_.setNature(MEDinfo[1])

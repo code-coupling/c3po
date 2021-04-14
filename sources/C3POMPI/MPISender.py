@@ -18,7 +18,7 @@ import os
 from C3POMPI.MPITag import MPITag
 from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
 
-import MEDLoader as ml
+import C3PO.medcoupling_compat as mc
 
 
 class MPIFieldSender(object):
@@ -77,7 +77,7 @@ class MPIFileFieldSender(object):
                 num += 1
             name_file = "ExchangeField_" + str(num) + ".med"
             try:
-                ml.MEDLoader.WriteField("ExchangeField_" + str(num) + ".med", field, True)
+                mc.WriteField("ExchangeField_" + str(num) + ".med", field, True)
             except:
                 ml.WriteField("ExchangeField_" + str(num) + ".med", field, True)
 

@@ -4,7 +4,7 @@ import mpi4py.MPI as mpi
 import unittest
 
 import MEDCoupling
-import MEDLoader
+import C3PO.medcoupling_compat as mc
 
 import C3PO
 import C3POMPI

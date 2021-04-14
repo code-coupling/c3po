@@ -15,7 +15,7 @@ import time
 import sys
 import os
 
-import MEDLoader as ml
+import C3PO.medcoupling_compat as mc
 
 def get_setInputMEDField_input(name, field):
     """! INTERNAL """
@@ -47,7 +47,7 @@ def getArgsString(*args, **kwargs):
 def WriteField_MC789(n, f, b):
     """! INTERNAL """
     try:
-        writeField = ml.MEDLoader.WriteField
+        writeField = mc.WriteField
     except:
         writeField = ml.WriteField
     writeField(n, f, b)
@@ -188,12 +188,12 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
         if pythonFile is not None:
             pythonFile.write("# -*- coding: utf-8 -*-" + "\n")
             pythonFile.write("from __future__ import print_function, division" + "\n")
-            pythonFile.write("import MEDLoader as ml" + "\n")
+            pythonFile.write("import C3PO.medcoupling_compat as mc" + "\n")
             pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
 
             pythonFile.write("def ReadField_MC789(*args, **kwargs):" + "\n")
             pythonFile.write("  try:" + "\n")
-            pythonFile.write("    readField = ml.MEDLoader.ReadField" + "\n")
+            pythonFile.write("    readField = mc.ReadField" + "\n")
             pythonFile.write("  except:" + "\n")
             pythonFile.write("    readField = ml.ReadField" + "\n")
             pythonFile.write("  readField(*args, **kwargs)" + "\n" + "\n")

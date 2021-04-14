@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
 
-import MEDLoader as ml
+import C3PO.medcoupling_compat as mc
 try:
     import Cathare_opt
     import Cathare_opt.Problem_Cathare as C3
