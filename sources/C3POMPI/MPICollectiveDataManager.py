@@ -21,13 +21,14 @@ class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
     Can replace, without impact, a C3PO.DataManager.DataManager for a calculation on a single process, if the MPI environment is available.
     """
 
-    def __init__(self, MPIComm):
+    def __init__(self, mpiComm):
         """! Build a MPICollectiveDataManager object.
 
-        @param MPIComm MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all processes of this MPI communicator must be involed in the MPICollectiveDataManager).
+        @param mpiComm MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all 
+        processes of this MPI communicator must be involed in the MPICollectiveDataManager).
         """
         DataManager.__init__(self)
-        MPICollectiveProcess.__init__(self, MPIComm)
+        MPICollectiveProcess.__init__(self, mpiComm)
 
     def cloneEmpty(self):
         """! Return a clone of self without copying the data. 

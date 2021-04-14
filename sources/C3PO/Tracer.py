@@ -73,7 +73,8 @@ class TracerMeta(type):
                                 self.static_MEDinfo[name_field] = []
                             nameMEDFile = name_field + str(len(self.static_MEDinfo[name_field])) + ".med"
                             timeMED, iteration, order = field.getTime()
-                            self.static_MEDinfo[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
+                            self.static_MEDinfo[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(),
+                                                                    0, field.getName(), iteration, order))
                             mc.WriteField(nameMEDFile, field, True)
                             self.static_pythonFile.write("field_" + objectName + " = mc.ReadField" + str(self.static_MEDinfo[name_field][-1]) + "\n")
                         self.static_pythonFile.write(objectName + "." + method.__name__ + "('" + name_field + "', field_" + objectName + ")" + "\n")
@@ -108,7 +109,8 @@ class TracerMeta(type):
                     os.close(prev_idstderr)
 
                 if self.static_lWriter is not None:
-                    if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate", "exchange"]:
+                    if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
+                                           "validateTimeStep", "abortTimeStep", "terminate", "exchange"]:
                         input_var = 0.
                         if method.__name__ == "initTimeStep":
                             input_var = get_initTimeStep_input(*args, **kwargs)
@@ -135,19 +137,27 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
 
     It has different functions:
 
-    1. It can write all calls of the methods of the base class in a text file in python format in order to allow to replay what happened from the code point of view outside of the coupling.
+    1. It can write all calls of the methods of the base class in a text file in python format in order to allow to replay what
+    happened from the code point of view outside of the coupling.
     2. It can redirect code standard and error outputs in text files.
     3. It can contribute (with ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
 
-    @param pythonFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script is written there. It has to be closed (file.close()) by caller.
+    @param pythonFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script
+    is written there. It has to be closed (file.close()) by caller.
     @param saveMED This is related to the python file writing.
-        - if set to True (default value), every time setInputMEDField is called, the input MED field is stored in an independant .med file, and MEDLoader reading call is written in the output file.
-        - if set to False, the MED field is not stored and the MEDLoader call is not written. Only the setInputMEDField call is written. The replay is not possible.
-    @param stdoutFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output is redirected there. It has to be closed (file.close()) by caller.
-    @param stderrFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is redirected there. It has to be closed (file.close()) by caller.
-    @param listingWriter a ListingWriter object which will manage the writing of the coupling listing file. Refer to the documentation of ListingWriter.
+        - if set to True (default value), every time setInputMEDField is called, the input MED field is stored in an independant .med
+        file, and MEDLoader reading call is written in the output file.
+        - if set to False, the MED field is not stored and the MEDLoader call is not written. Only the setInputMEDField call is written.
+        The replay is not possible.
+    @param stdoutFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output
+    is redirected there. It has to be closed (file.close()) by caller.
+    @param stderrFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is
+    redirected there. It has to be closed (file.close()) by caller.
+    @param listingWriter a ListingWriter object which will manage the writing of the coupling listing file. Refer to the documentation
+    of ListingWriter.
 
-    The parameters of Tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveMED, static_stdout, static_stderr and static_lWriter.
+    The parameters of Tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveMED, static_stdout,
+    static_stderr and static_lWriter.
     Two additional static attributes are added for internal use: static_MEDinfo and static_Objectcounter.
 
     Tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
@@ -160,17 +170,23 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
 
         MyNewClass = C3PO.Tracer(...)(MyClass)
 
-    Tracer cannot distinguish different instance of the same class. The name of the instance created in the python file changes each time the __init__ method is called. This means that when a new instance is created, Tracer assumes that the previous ones are not used any more. If this is not the case, put the ouput of each instance in its own output file :
+    Tracer cannot distinguish different instance of the same class. The name of the instance created in the python file changes
+    each time the __init__ method is called. This means that when a new instance is created, Tracer assumes that the previous
+    ones are not used any more. If this is not the case, put the ouput of each instance in its own output file :
 
         MyClass1 = C3PO.Tracer(pythonFile=file1, ...)(MyClass)
         MyClass2 = C3PO.Tracer(pythonFile=file2, ...)(MyClass)
         instance1 = MyClass1()
         instance2 = MyClass2()
 
-    @warning Tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger. It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or outputs).
-    @warning Tracer only modifies the base class, not its parents. As a consequence, inherited methods are invisible to Tracer. Redefine them in the daughter class if needed.
+    @warning Tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger.
+             It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or
+             outputs).
+    @warning Tracer only modifies the base class, not its parents. As a consequence, inherited methods are invisible to Tracer.
+             Redefine them in the daughter class if needed.
     @warning A class that inherits from a class wrapped by Tracer will be wrapped as well, with the same parameters.
-             If the wrapping is applied (without changing the name of the class) after the building of the daughter class, it will result in TypeError when the daughter class will try to call mother methods (since its mother class does not exist anymore!).
+             If the wrapping is applied (without changing the name of the class) after the building of the daughter class, it will result
+             in TypeError when the daughter class will try to call mother methods (since its mother class does not exist anymore!).
              As a consequence, if applied to C3PO classes, it is recommended to change the name of the classes.
 
     """

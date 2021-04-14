@@ -10,7 +10,6 @@
 
 """ Contain the class MPIMasterExchanger. """
 from __future__ import print_function, division
-from mpi4py import MPI
 
 from C3POMPI.MPITag import MPITag
 from C3POMPI.MPIRemoteProcess import MPIRemoteProcess
@@ -25,24 +24,26 @@ class MPIMasterExchanger(object):
     The exchange() method of MPIMasterExchanger commands workers to exchange data.
     """
 
-    def __init__(self, workerProcesses, IdExchangerWorker, localExchanger=None):
+    def __init__(self, workerProcesses, idExchangerWorker, localExchanger=None):
         """! Build a MPIMasterExchanger object.
 
-        @param workerProcesses The list of MPIRemoteProcess or MPICollectiveProcess identifying the remote processes involved in the exchange. In the case of MPICollectiveProcess, the MPIComm must include all the workers + the master, and only them.
-        @param IdExchangerWorker Number identifying the controlled C3PO.Exchanger.Exchanger in the involved workers (see C3POMPI.MPIWorker.MPIWorker).
-        @param localExchanger a C3PO.Exchanger.Exchanger the MPIMasterExchanger object will run in the same time than the workers. It enables the master to contribute to a collective computation.
+        @param workerProcesses The list of MPIRemoteProcess or MPICollectiveProcess identifying the remote processes involved in the 
+        exchange. In the case of MPICollectiveProcess, the mpiComm must include all the workers + the master, and only them.
+        @param idExchangerWorker Number identifying the controlled C3PO.Exchanger.Exchanger in the involved workers (see C3POMPI.MPIWorker.MPIWorker).
+        @param localExchanger a C3PO.Exchanger.Exchanger the MPIMasterExchanger object will run in the same time than the workers. It 
+        enables the master to contribute to a collective computation.
         """
         self.workerProcesses_ = workerProcesses
-        self.IdExchangerWorker_ = IdExchangerWorker
+        self.idExchangerWorker_ = idExchangerWorker
         self.localExchanger_ = localExchanger
 
     def exchange(self):
         """! Trigger the exchange of data. """
         for process in self.workerProcesses_:
             if isinstance(process, MPIRemoteProcess):
-                process.MPIComm_.send(self.IdExchangerWorker_, dest=process.rank_, tag=MPITag.exchange)
+                process.MPIComm_.send(self.idExchangerWorker_, dest=process.rank_, tag=MPITag.exchange)
             elif isinstance(process, MPICollectiveProcess):
-                process.MPIComm_.bcast((MPITag.exchange, self.IdExchangerWorker_), root=process.MPIComm_.Get_rank())
+                process.MPIComm_.bcast((MPITag.exchange, self.idExchangerWorker_), root=process.MPIComm_.Get_rank())
             else:
                 raise Exception("MPIMasterExchanger.exchange : we found an unknown worker type.")
         if self.localExchanger_ is not None:

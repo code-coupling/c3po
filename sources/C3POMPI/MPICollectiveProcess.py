@@ -15,12 +15,14 @@ from __future__ import print_function, division
 class MPICollectiveProcess(object):
     """! MPICollectiveProcess defines a collective process. 
 
-    In particuler, it allows, by inheritance (a new class that inherits from MPICollectiveProcess but be defined), to define a collective C3PO.PhysicsDriver.PhysicsDriver: all processors will locally launch this component. 
+    In particuler, it allows, by inheritance (a new class that inherits from MPICollectiveProcess but be defined), to define a 
+    collective C3PO.PhysicsDriver.PhysicsDriver: all processors will locally launch this component. 
     """
 
-    def __init__(self, MPIComm):
+    def __init__(self, mpiComm):
         """! Build a MPICollectiveProcess object.
 
-        @param MPIComm MPI communicator. It must be shared by all processes involved in the MPICollectiveProcess (and all processes of this MPI communicator must be involed in the MPICollectiveProcess).
+        @param mpiComm MPI communicator. It must be shared by all processes involved in the MPICollectiveProcess (and all processes 
+        of this MPI communicator must be involed in the MPICollectiveProcess).
         """
-        self.MPIComm_ = MPIComm
+        self.MPIComm_ = mpiComm

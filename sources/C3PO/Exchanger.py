@@ -41,30 +41,30 @@ class Exchanger(object):
     Once the object has been constructed, a call to exchange() triggers the exchanges of data. 
     """
 
-    def __init__(self, method, MEDFieldsToGet, MEDFieldsToSet, ValuesToGet=[], ValuesToSet=[]):
+    def __init__(self, method, medFieldsToGet, medFieldsToSet, valuesToGet=[], valuesToSet=[]):
         """! Build an Exchanger object.
 
         @param method a user-defined function (or class with the special method __call__).
 
         * method must have three input lists:
-            * The MED fields obtained by getOutputMEDField() on the MEDFieldsToGet objects, in the same order.
-            * The MED fields obtained by getInputMEDFieldTemplate() on the MEDFieldsToSet objects, in the same order.
-            * The scalars obtained by getValue() on the ValuesToGet objects, in the same order.
+            * The MED fields obtained by getOutputMEDField() on the medFieldsToGet objects, in the same order.
+            * The MED fields obtained by getInputMEDFieldTemplate() on the medFieldsToSet objects, in the same order.
+            * The scalars obtained by getValue() on the valuesToGet objects, in the same order.
 
         * It must have two ouput lists:
-            * The MED fields to impose by setInputMEDField() on the MEDFieldsToSet objects, in the same order.
-            * The scalars to impose by setValue() on the ValuesToSet objects, in the same order.
+            * The MED fields to impose by setInputMEDField() on the medFieldsToSet objects, in the same order.
+            * The scalars to impose by setValue() on the valuesToSet objects, in the same order.
 
-        @param MEDFieldsToGet a list of tuples (object, name). object must be either a PhysicsDriver or a DataManager, and name is the name of the field to get from object.
-        @param MEDFieldsToSet a list of tuples in the same format as MEDFieldsToGet. name is the name of the field to set in object.
-        @param ValuesToGet idem MEDFieldsToGet but for scalars.
-        @param ValuesToSet idem MEDFieldsToSet but for scalars.
+        @param medFieldsToGet a list of tuples (object, name). object must be either a PhysicsDriver or a DataManager, and name is the name of the field to get from object.
+        @param medFieldsToSet a list of tuples in the same format as medFieldsToGet. name is the name of the field to set in object.
+        @param valuesToGet idem medFieldsToGet but for scalars.
+        @param valuesToSet idem medFieldsToSet but for scalars.
         """
 
-        self.fieldsToSet_ = [ShortcutToData(field[0], field[1]) for field in MEDFieldsToSet]
-        self.fieldsToGet_ = [ShortcutToData(field[0], field[1]) for field in MEDFieldsToGet]
-        self.valuesToSet_ = [ShortcutToData(field[0], field[1]) for field in ValuesToSet]
-        self.valuesToGet_ = [ShortcutToData(field[0], field[1]) for field in ValuesToGet]
+        self.fieldsToSet_ = [ShortcutToData(field[0], field[1]) for field in medFieldsToSet]
+        self.fieldsToGet_ = [ShortcutToData(field[0], field[1]) for field in medFieldsToGet]
+        self.valuesToSet_ = [ShortcutToData(field[0], field[1]) for field in valuesToSet]
+        self.valuesToGet_ = [ShortcutToData(field[0], field[1]) for field in valuesToGet]
         self.method_ = method
 
     def exchange(self):

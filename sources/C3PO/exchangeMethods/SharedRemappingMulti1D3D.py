@@ -29,7 +29,8 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
 
         @param XCoordinates x coordinates of the inner mesh to build.
         @param YCoordinates y coordinates of the inner mesh to build.
-        @param indexTable For each position of the 2D grid (x coordinate changes first), the index of the 1D field to associate. Put -1 to associate to nothing.
+        @param indexTable For each position of the 2D grid (x coordinate changes first), the index of the 1D field to associate. Put -1 to
+        associate to nothing.
         @param weights Weigh of each 1D field to take into account for extensive variables.
         """
         MEDCouplingRemapper.__init__(self)
@@ -40,7 +41,8 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
                 self.indexTable_[indice1D].append(position)
 
         if len(self.indexTable_) != len(weights):
-            raise Exception("Multi1D3DRemapper.__init__ we give " + str(len(weights)) + "weight values instead of " + str(len(self.indexTable_)) + ", the number of 1D calculations.")
+            raise Exception("Multi1D3DRemapper.__init__ we give " + str(len(weights)) + "weight values instead of " + str(len(self.indexTable_))
+                            + ", the number of 1D calculations.")
         self.weights_ = weights
         self.arrayX_ = mc.DataArrayDouble(XCoordinates)
         self.arrayX_.setInfoOnComponent(0, "X [m]")
@@ -160,20 +162,32 @@ class SharedRemappingMulti1D3D(object):
 
     The input scalars are returned in the same order, without modification.
 
-    The initialization of the projection method (long operation) is done only once, and can be shared with other instances of SharedRemappingMulti1D3D.
+    The initialization of the projection method (long operation) is done only once, and can be shared with other instances
+    of SharedRemappingMulti1D3D.
     """
 
     def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1., outsideCellsScreening=False):
         """! Build a SharedRemappingMulti1D3D object, to be given to an Exchanger.
 
-        @param remapper A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of SharedRemappingMulti1D3D (its initialization will always be done only once).
-        @param reverse Allows the remapper to be shared with an instance of SharedRemappingMulti1D3D performing the reverse exchange (the projection will be done in the reverse direction if reverse is set to True). Direct is multi1D -> 3D, reverse is 3D -> multi1D.
-        @param defaultValue This is the default value to be assigned, during the projection, in the meshes of the target mesh which are not intersected by the source mesh.
-        @param linearTransform Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation is applied after the mesh projection.
-        @param meshAlignment If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
-        @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
-        @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment or translation, if any.
-        @param outsideCellsScreening If set to True, target cells whose barycentre is outside of source mesh are screen out (defaultValue is assigned to them). It can be useful to screen out cells that are in contact with the source mesh, but that should not be intersected by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of source mesh ! Be careful with this option.
+        @param remapper A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of
+               SharedRemappingMulti1D3D (its initialization will always be done only once).
+        @param reverse Allows the remapper to be shared with an instance of SharedRemappingMulti1D3D performing the reverse exchange
+               (the projection will be done in the reverse direction if reverse is set to True). Direct is multi1D -> 3D, reverse is 3D -> multi1D.
+        @param defaultValue This is the default value to be assigned, during the projection, in the meshes of the target mesh which are not
+               intersected by the source mesh.
+        @param linearTransform Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation
+               is applied after the mesh projection.
+        @param meshAlignment If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box"
+               are radially centred on (x = 0., y = 0.) and have zmin = 0.
+        @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
+               The given vector is used to translate the source mesh (after the mesh alignment, if any).
+        @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is
+               initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment
+               or translation, if any.
+        @param outsideCellsScreening If set to True, target cells whose barycentre is outside of source mesh are screen out (defaultValue is assigned
+            to them). It can be useful to screen out cells that are in contact with the source mesh, but that should not be intersected by it.
+            On the other hand, it will screen out cells actually intersected if their barycenter is outside of source mesh! Be careful with this
+            option.
         """
         self.remapper_ = remapper
         self.isReverse_ = reverse
@@ -190,7 +204,8 @@ class SharedRemappingMulti1D3D(object):
         """! INTERNAL """
         if not self.remapper_.isInit_:
             if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_, [-x for x in self.offset_], 1. / self.rescaling_)
+                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_,
+                                          [-x for x in self.offset_], 1. / self.rescaling_)
             else:
                 self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_, self.rescaling_)
 

@@ -21,15 +21,15 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
     Inherits from C3PO.PhysicsDriver.PhysicsDriver and C3PO.DataManager.DataManager but passes most of the methods: it does nothing.
     """
 
-    def __init__(self, MPIComm, rank):
+    def __init__(self, mpiComm, rank):
         """! Build a MPIRemoteProcess object.
 
-        @param MPIComm MPI communicator.
-        @param rank Rank of the remote process on MPIComm.
+        @param mpiComm MPI communicator.
+        @param rank Rank of the remote process on mpiComm.
         """
         PhysicsDriver.__init__(self)
         DataManager.__init__(self)
-        self.MPIComm_ = MPIComm
+        self.MPIComm_ = mpiComm
         self.rank_ = rank
         self.t_ = 0.
         self.dt_ = 1.e30

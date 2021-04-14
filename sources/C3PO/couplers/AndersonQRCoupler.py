@@ -15,10 +15,6 @@ import numpy as np
 
 from C3PO.Coupler import Coupler
 
-from numpy import array, linspace, sqrt, sin, zeros
-from numpy.linalg import norm
-
-
 def deleteQRColumn(Q, R, dataTemp):
     """! INTERNAL
 

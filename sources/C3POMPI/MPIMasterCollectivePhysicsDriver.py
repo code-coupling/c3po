@@ -17,19 +17,24 @@ from C3POMPI.MPITag import MPITag
 
 
 class MPIMasterCollectivePhysicsDriver(PhysicsDriver):
-    """! MPIMasterCollectivePhysicsDriver is used by the master process to control a set of remote C3PO.PhysicsDriver.PhysicsDriver as a single one. 
+    """! MPIMasterCollectivePhysicsDriver is used by the master process to control a set of remote C3PO.PhysicsDriver.PhysicsDriver
+    as a single one. 
 
-    It can, in addition, be in charge of a local one. This class is well suited to steer a code using an internal collaborative MPI parallelization.
+    It can, in addition, be in charge of a local one. This class is well suited to steer a code using an internal collaborative MPI 
+    parallelization.
 
-    Inherits from C3PO.PhysicsDriver.PhysicsDriver. All the methods of the mother class are implemented and consist in commanding the workers to execute them.
+    Inherits from C3PO.PhysicsDriver.PhysicsDriver. All the methods of the mother class are implemented and consist in commanding the 
+    workers to execute them.
     """
 
     def __init__(self, collectiveWorkerProcess, masterRank=0, localPhysicsDriver=None):
         """! Build a MPIMasterCollectivePhysicsDriver object.
 
-        @param collectiveWorkerProcess a MPICollectiveProcess identifying the worker processes. The MPIComm must include all the workers + the master, and only them. Each worker can be in charge of only one C3PO.PhysicsDriver.PhysicsDriver.
+        @param collectiveWorkerProcess a MPICollectiveProcess identifying the worker processes. The MPIComm must include all the 
+        workers + the master, and only them. Each worker can be in charge of only one C3PO.PhysicsDriver.PhysicsDriver.
         @param masterRank the rank of the master process in the MPIComm used by collectiveWorkerProcess.
-        @param localPhysicsDriver a C3PO.PhysicsDriver.PhysicsDriver the MPIMasterCollectivePhysicsDriver object will run in the same time than the workers. It enables the master to contribute to a collective computation.
+        @param localPhysicsDriver a C3PO.PhysicsDriver.PhysicsDriver the MPIMasterCollectivePhysicsDriver object will run in the same 
+        time than the workers. It enables the master to contribute to a collective computation.
         """
         PhysicsDriver.__init__(self)
         self.MPIComm_ = collectiveWorkerProcess.MPIComm_
