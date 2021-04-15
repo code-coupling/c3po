@@ -11,7 +11,7 @@
 """ Contain the class SharedRemapping. """
 from __future__ import print_function, division
 
-from MEDCouplingRemapper import MEDCouplingRemapper
+from C3PO.medcoupling_compat import MEDCouplingRemapper
 
 
 class Remapper(MEDCouplingRemapper):

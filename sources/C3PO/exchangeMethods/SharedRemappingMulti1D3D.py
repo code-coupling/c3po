@@ -12,7 +12,7 @@
 from __future__ import print_function, division
 
 import MEDCoupling
-from MEDCouplingRemapper import MEDCouplingRemapper
+from C3PO.medcoupling_compat import MEDCouplingRemapper
 
 
 class Multi1D3DRemapper(MEDCouplingRemapper):
