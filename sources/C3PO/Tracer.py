@@ -17,7 +17,6 @@ import os
 
 import MEDLoader as ml
 
-
 def get_setInputMEDField_input(name, field):
     """! INTERNAL """
     return (name, field)
