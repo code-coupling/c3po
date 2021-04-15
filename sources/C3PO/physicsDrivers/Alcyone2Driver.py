@@ -126,5 +126,5 @@ class Alcyone2Driver(PhysicsDriver):
             field.getArray().addEqual(field2.getArray())
         else:
             field = self.Alcyone2_.getOutputMEDField(name)
-        field.setNature(mc.ConservativeVolumic)
+        field.setNature(mc.IntensiveMaximum)
         return field

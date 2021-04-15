@@ -109,7 +109,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         NbOfElems3D = Array3D.getNbOfElems()
         for i, field in enumerate(Fields1D):
             Array1D = field.getArray()
-            if self.innerField_.getNature() == mc.Integral or self.innerField_.getNature() == mc.IntegralGlobConstraint:
+            if self.innerField_.getNature() == mc.ExtensiveMaximum or self.innerField_.getNature() == mc.ExtensiveConservation:
                 Array1D *= self.weights_[i]
             for position in self.indexTable_[i]:
                 Array3D.setPartOfValues1(Array1D, position, NbOfElems3D, self.numberOf1DPositions_, 0, 1, 1)
@@ -137,11 +137,11 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
             for position in List1D:
                 Array1Dtmp = mc.DataArrayDouble()
                 Array1Dtmp.alloc(self.numberOfCellsIn1D_)
-                Array1Dtmp.setContigPartOfSelectedValues2(0, Array3D, position, Array3D.getNumberOfTuples(), self.numberOf1DPositions_)
+                Array1Dtmp.setContigPartOfSelectedValuesSlice(0, Array3D, position, Array3D.getNumberOfTuples(), self.numberOf1DPositions_)
                 Array1D.addEqual(Array1Dtmp)
             if len(List1D) > 0:
                 Array1D *= 1. / len(List1D)
-            if Field3D.getNature() == mc.Integral or Field3D.getNature() == mc.IntegralGlobConstraint:
+            if Field3D.getNature() == mc.ExtensiveMaximum or Field3D.getNature() == mc.ExtensiveConservation:
                 Array1D *= 1. / self.weights_[i]
             Fields1D[-1].setArray(Array1D)
         return Fields1D

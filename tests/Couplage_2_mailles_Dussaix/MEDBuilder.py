@@ -92,7 +92,7 @@ def makeFieldHexa():
     try:
         f.setNature(mc.IntensiveMaximum)
     except:
-        f.setNature(mc.ConservativeVolumic)
+        f.setNature(mc.IntensiveMaximum)
     return f
 
 
@@ -137,5 +137,5 @@ def makeFieldCarre():
     try:
         f.setNature(mc.ExtensiveMaximum)
     except:
-        f.setNature(mc.Integral)
+        f.setNature(mc.ExtensiveMaximum)
     return f

@@ -95,7 +95,7 @@ class FLICA4Driver(PhysicsDriver):
 
     def getOutputMEDField(self, name):
         field = self.flica_.getOutputMEDField(name)
-        field.setNature(mc.ConservativeVolumic)
+        field.setNature(mc.IntensiveMaximum)
         return field
 
     def setValue(self, name, value):

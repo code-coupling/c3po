@@ -15,7 +15,6 @@ from __future__ import print_function, division
 from mpi4py import MPI
 import numpy
 
-import MEDCoupling
 import C3PO.medcoupling_compat as mc
 
 from C3POMPI.MPITag import MPITag
