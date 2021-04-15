@@ -11,7 +11,7 @@
 """ Contain the class SharedRemappingMulti1D3D. """
 from __future__ import print_function, division
 
-import MEDCoupling
+import C3PO.medcoupling_compat as mc
 from C3PO.medcoupling_compat import MEDCouplingRemapper
 
 
@@ -42,15 +42,15 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         if len(self.indexTable_) != len(weights):
             raise Exception("Multi1D3DRemapper.__init__ we give " + str(len(weights)) + "weight values instead of " + str(len(self.indexTable_)) + ", the number of 1D calculations.")
         self.weights_ = weights
-        self.arrayX_ = MEDCoupling.DataArrayDouble(XCoordinates)
+        self.arrayX_ = mc.DataArrayDouble(XCoordinates)
         self.arrayX_.setInfoOnComponent(0, "X [m]")
-        self.arrayY_ = MEDCoupling.DataArrayDouble(YCoordinates)
+        self.arrayY_ = mc.DataArrayDouble(YCoordinates)
         self.arrayY_.setInfoOnComponent(0, "Y [m]")
         self.arrayZ_ = 0
         self.numberOf1DPositions_ = (self.arrayX_.getNumberOfTuples() - 1) * (self.arrayY_.getNumberOfTuples() - 1)
         self.numberOfCellsIn1D_ = 0
-        self.innerMesh_ = MEDCoupling.MEDCouplingCMesh("3DMeshFromMulti1D")
-        self.innerField_ = MEDCoupling.MEDCouplingFieldDouble(MEDCoupling.ON_CELLS, MEDCoupling.ONE_TIME)
+        self.innerMesh_ = mc.MEDCouplingCMesh("3DMeshFromMulti1D")
+        self.innerField_ = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
         self.innerField_.setName("3DFieldFromMulti1D")
         self.isInit_ = False
         self.cellsToScreenOut3DMesh_ = []
@@ -62,7 +62,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         self.innerMesh_.setCoords(self.arrayX_, self.arrayY_, self.arrayZ_)
         self.numberOfCellsIn1D_ = Mesh1D.getNumberOfCells()
         self.innerField_.setMesh(self.innerMesh_)
-        array = MEDCoupling.DataArrayDouble()
+        array = mc.DataArrayDouble()
         array.alloc(self.numberOfCellsIn1D_ * self.numberOf1DPositions_)
         array.fillWithValue(0.)
         self.innerField_.setArray(array)
@@ -109,7 +109,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         NbOfElems3D = Array3D.getNbOfElems()
         for i, field in enumerate(Fields1D):
             Array1D = field.getArray()
-            if self.innerField_.getNature() == MEDCoupling.Integral or self.innerField_.getNature() == MEDCoupling.IntegralGlobConstraint:
+            if self.innerField_.getNature() == mc.Integral or self.innerField_.getNature() == mc.IntegralGlobConstraint:
                 Array1D *= self.weights_[i]
             for position in self.indexTable_[i]:
                 Array3D.setPartOfValues1(Array1D, position, NbOfElems3D, self.numberOf1DPositions_, 0, 1, 1)
@@ -126,22 +126,22 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
             Array3D[self.cellsToScreenOutInnerMesh_] = defaultValue
         Fields1D = []
         for i, List1D in enumerate(self.indexTable_):
-            Fields1D.append(MEDCoupling.MEDCouplingFieldDouble(MEDCoupling.ON_CELLS, MEDCoupling.ONE_TIME))
+            Fields1D.append(mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME))
             Fields1D[-1].setName(Field3D.getName())
-            Mesh1D = MEDCoupling.MEDCouplingCMesh("Mesh1D")
+            Mesh1D = mc.MEDCouplingCMesh("Mesh1D")
             Mesh1D.setCoords(self.arrayZ_)
             Fields1D[-1].setMesh(Mesh1D)
-            Array1D = MEDCoupling.DataArrayDouble()
+            Array1D = mc.DataArrayDouble()
             Array1D.alloc(self.numberOfCellsIn1D_)
             Array1D.fillWithValue(0.)
             for position in List1D:
-                Array1Dtmp = MEDCoupling.DataArrayDouble()
+                Array1Dtmp = mc.DataArrayDouble()
                 Array1Dtmp.alloc(self.numberOfCellsIn1D_)
                 Array1Dtmp.setContigPartOfSelectedValues2(0, Array3D, position, Array3D.getNumberOfTuples(), self.numberOf1DPositions_)
                 Array1D.addEqual(Array1Dtmp)
             if len(List1D) > 0:
                 Array1D *= 1. / len(List1D)
-            if Field3D.getNature() == MEDCoupling.Integral or Field3D.getNature() == MEDCoupling.IntegralGlobConstraint:
+            if Field3D.getNature() == mc.Integral or Field3D.getNature() == mc.IntegralGlobConstraint:
                 Array1D *= 1. / self.weights_[i]
             Fields1D[-1].setArray(Array1D)
         return Fields1D

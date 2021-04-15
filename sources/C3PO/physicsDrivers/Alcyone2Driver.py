@@ -12,7 +12,7 @@
 from __future__ import print_function, division
 import mpi4py.MPI as mpi
 
-import MEDCoupling
+import C3PO.medcoupling_compat as mc
 
 from C3PO.PhysicsDriver import PhysicsDriver
 from Alcyone2Init import Alcyone2Init
@@ -104,7 +104,7 @@ class Alcyone2Driver(PhysicsDriver):
     def setInputMEDField(self, name, field):
         if name == "LinearPower":
             ArrayZ = field.getMesh().getCoordsAt(0)
-            ArrayDz = MEDCoupling.DataArrayDouble()
+            ArrayDz = mc.DataArrayDouble()
             ArrayDz.alloc(ArrayZ.getNbOfElems() - 1)
             for i in range(ArrayZ.getNbOfElems() - 1):
                 ArrayDz.setIJ(i, 0, ArrayZ.getIJ(i + 1, 0) - ArrayZ.getIJ(i, 0))
@@ -126,5 +126,5 @@ class Alcyone2Driver(PhysicsDriver):
             field.getArray().addEqual(field2.getArray())
         else:
             field = self.Alcyone2_.getOutputMEDField(name)
-        field.setNature(MEDCoupling.ConservativeVolumic)
+        field.setNature(mc.ConservativeVolumic)
         return field

@@ -4,7 +4,7 @@ from __future__ import print_function, division
 from math import *
 import numpy
 
-import MEDCoupling
+import C3PO.medcoupling_compat as mc
 
 import MEDBuilder
 from C3PO.PhysicsDriver import PhysicsDriver
@@ -34,7 +34,7 @@ class NeutroDriver(PhysicsDriver):
     # Solve next time-step problem. Solves a steady state if dt < 0.
     def solveTimeStep(self):
         v = [self.meanT_ * self.densities_[0] / (self.densities_[0] + self.densities_[1]) + self.meanT_ / 2., self.meanT_ * self.densities_[1] / (self.densities_[0] + self.densities_[1]) + self.meanT_ / 2.]
-        array = MEDCoupling.DataArrayDouble.New()
+        array = mc.DataArrayDouble.New()
         array.setValues(v, len(v), 1)
         self.MEDResu_.setArray(array)
         return True

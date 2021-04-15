@@ -17,7 +17,7 @@ import shutil
 import subprocess
 
 import FlicaICoCo
-import MEDCoupling
+import C3PO.medcoupling_compat as mc
 
 from C3PO.PhysicsDriver import PhysicsDriver
 
@@ -95,7 +95,7 @@ class FLICA4Driver(PhysicsDriver):
 
     def getOutputMEDField(self, name):
         field = self.flica_.getOutputMEDField(name)
-        field.setNature(MEDCoupling.ConservativeVolumic)
+        field.setNature(mc.ConservativeVolumic)
         return field
 
     def setValue(self, name, value):

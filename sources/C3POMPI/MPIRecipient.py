@@ -46,7 +46,7 @@ class MPIFieldRecipient(object):
                 MPIComm.Bcast([numpyArray, MPI.DOUBLE], root=senderRank)
             else:
                 MPIComm.Recv([numpyArray, MPI.DOUBLE], source=senderRank, tag=MPITag.data)
-            dataArray = MEDCoupling.DataArrayDouble(numpyArray)
+            dataArray = mc.DataArrayDouble(numpyArray)
             self.field_.setArray(dataArray)
         self.storing_.store(self.field_)
 

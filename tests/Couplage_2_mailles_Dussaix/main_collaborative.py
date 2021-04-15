@@ -3,7 +3,7 @@ from __future__ import print_function, division
 from mpi4py import MPI
 import unittest
 
-import MEDCoupling
+import C3PO.medcoupling_compat as mc
 import C3PO.medcoupling_compat as mc
 import C3PO
 import C3POMPI

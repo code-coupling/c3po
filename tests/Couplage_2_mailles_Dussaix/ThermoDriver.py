@@ -4,7 +4,7 @@ from __future__ import print_function, division
 from math import *
 import numpy
 
-import MEDCoupling
+import C3PO.medcoupling_compat as mc
 
 import MEDBuilder
 from C3PO.PhysicsDriver import PhysicsDriver
@@ -75,7 +75,7 @@ class ThermoDriver(PhysicsDriver):
             if alpha2 > 1.:
                 alpha2 = 1.
         v = [alpha1 * rhov1 + (1. - alpha1) * rhol1, alpha2 * rhov2 + (1. - alpha2) * rhol2]
-        array = MEDCoupling.DataArrayDouble.New()
+        array = mc.DataArrayDouble.New()
         array.setValues(v, len(v), 1)
         self.MEDResu_.setArray(array)
         return True

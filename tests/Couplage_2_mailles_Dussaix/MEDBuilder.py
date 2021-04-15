@@ -3,18 +3,18 @@
 from __future__ import print_function, division
 from math import *
 
-import MEDCoupling
+import C3PO.medcoupling_compat as mc
 
 
 def makePrismeQuelconqueMED(x0, y0, coordzbas, coordzhaut):
     nbpoints = len(x0)
 
-    data = MEDCoupling.DataArrayDouble.New()
+    data = mc.DataArrayDouble.New()
     data.alloc(nbpoints, 3)
 
-    group = MEDCoupling.DataArrayInt.New()
+    group = mc.DataArrayInt.New()
     group.alloc(1, nbpoints + 1)
-    group.setIJ(0, 0, MEDCoupling.NORM_POLYGON)
+    group.setIJ(0, 0, mc.NORM_POLYGON)
 
     for isommet in range(nbpoints):
         data.setIJ(isommet, 0, x0[isommet])
@@ -22,17 +22,17 @@ def makePrismeQuelconqueMED(x0, y0, coordzbas, coordzhaut):
         data.setIJ(isommet, 2, coordzbas)
         group.setIJ(0, isommet + 1, isommet)
 
-    inds = MEDCoupling.DataArrayInt.New()
+    inds = mc.DataArrayInt.New()
     inds.alloc(2, 1)
     inds.setIJ(0, 0, 0)
     inds.setIJ(1, 0, nbpoints + 1)
 
-    Hexa = MEDCoupling.MEDCouplingUMesh.New()
+    Hexa = mc.MEDCouplingUMesh.New()
     Hexa.setMeshDimension(2)
     Hexa.setCoords(data)
     Hexa.setConnectivity(group, inds)
 
-    data_z = MEDCoupling.DataArrayDouble.New()
+    data_z = mc.DataArrayDouble.New()
     data_z.alloc(2, 3)
     data_z.setIJ(0, 0, x0[0])
     data_z.setIJ(0, 1, y0[0])
@@ -42,14 +42,14 @@ def makePrismeQuelconqueMED(x0, y0, coordzbas, coordzhaut):
     data_z.setIJ(1, 1, y0[0])
     data_z.setIJ(1, 2, coordzhaut)
 
-    mesh1d = MEDCoupling.MEDCouplingUMesh.New()
+    mesh1d = mc.MEDCouplingUMesh.New()
     mesh1d.setMeshDimension(1)
     mesh1d.setCoords(data_z)
 
     mesh1d.allocateCells(1)
 
     inds_z = [0, 1]
-    mesh1d.insertNextCell(MEDCoupling.NORM_SEG2, 2, inds_z)
+    mesh1d.insertNextCell(mc.NORM_SEG2, 2, inds_z)
     mesh1d.finishInsertingCells()
 
     mesh3d = Hexa.buildExtrudedMesh(mesh1d, 0)
@@ -76,23 +76,23 @@ def makeMeshHexa():
     hexa = []
     hexa.append(makePrismeHexaMED(-0.5 * entreplat, 0, length, coordzbas, coordzhaut))
     hexa.append(makePrismeHexaMED(+0.5 * entreplat, 0, length, coordzbas, coordzhaut))
-    meshHexa = MEDCoupling.MEDCouplingUMesh.MergeUMeshes(hexa)
+    meshHexa = mc.MEDCouplingUMesh.MergeUMeshes(hexa)
     meshHexa.setName("MeshHexa")
     return meshHexa
 
 
 def makeFieldHexa():
-    f = MEDCoupling.MEDCouplingFieldDouble.New(MEDCoupling.ON_CELLS)
+    f = mc.MEDCouplingFieldDouble.New(mc.ON_CELLS)
     f.setMesh(makeMeshHexa())
     v = [0., 0.]
-    array = MEDCoupling.DataArrayDouble.New()
+    array = mc.DataArrayDouble.New()
     array.setValues(v, len(v), 1)
     f.setArray(array)
     f.setName("Rho")
     try:
-        f.setNature(MEDCoupling.IntensiveMaximum)
+        f.setNature(mc.IntensiveMaximum)
     except:
-        f.setNature(MEDCoupling.ConservativeVolumic)
+        f.setNature(mc.ConservativeVolumic)
     return f
 
 
@@ -121,21 +121,21 @@ def makeMeshCarre():
     carres = []
     carres.append(makePrismeCarreMED(-0.5 * length + decalage, 0, length, coordzbas, coordzhaut))
     carres.append(makePrismeCarreMED(+0.5 * length + decalage, 0, length, coordzbas, coordzhaut))
-    meshCarre = MEDCoupling.MEDCouplingUMesh.MergeUMeshes(carres)
+    meshCarre = mc.MEDCouplingUMesh.MergeUMeshes(carres)
     meshCarre.setName("MeshCarre")
     return meshCarre
 
 
 def makeFieldCarre():
-    f = MEDCoupling.MEDCouplingFieldDouble.New(MEDCoupling.ON_CELLS)
+    f = mc.MEDCouplingFieldDouble.New(mc.ON_CELLS)
     f.setMesh(makeMeshCarre())
     v = [0., 0.]
-    array = MEDCoupling.DataArrayDouble.New()
+    array = mc.DataArrayDouble.New()
     array.setValues(v, len(v), 1)
     f.setArray(array)
     f.setName("T")
     try:
-        f.setNature(MEDCoupling.ExtensiveMaximum)
+        f.setNature(mc.ExtensiveMaximum)
     except:
-        f.setNature(MEDCoupling.Integral)
+        f.setNature(mc.Integral)
     return f

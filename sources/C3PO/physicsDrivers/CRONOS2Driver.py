@@ -11,7 +11,7 @@
 """ Contain the class CRONOS2Driver. """
 from __future__ import print_function, division
 
-import MEDCoupling
+import C3PO.medcoupling_compat as mc
 import Access
 import MEDconvert
 import MEDtsetpt
@@ -168,7 +168,7 @@ class CRONOS2Driver(PhysicsDriver):
             self.a_.eval("field_out = T_C3PO.'field_out' ;")
             myCppPtr = self.a_.getCppPtr("field_out")
             field_output = MEDconvert.void2field(myCppPtr)
-            field_output.setNature(MEDCoupling.Integral)  # ExtensiveMaximum interpolation of extensive variables
+            field_output.setNature(mc.Integral)  # ExtensiveMaximum interpolation of extensive variables
             return field_output
         else:
             raise Exception("CRONOS2Driver.getOutputMEDField Only " + str(ParamKey.outputKeys) + " output available but name='" + name + "'.")
@@ -189,7 +189,7 @@ class CRONOS2Driver(PhysicsDriver):
             self.a_.eval("field_out = T_C3PO.'field_out' ;")
             myCppPtr = self.a_.getCppPtr("field_out")
             field_template = MEDconvert.void2field(myCppPtr)
-            field_template.setNature(MEDCoupling.ConservativeVolumic)  # IntensiveMaximum interpolation of intensive variables
+            field_template.setNature(mc.ConservativeVolumic)  # IntensiveMaximum interpolation of intensive variables
             return field_template
         else:
             raise Exception("CRONOS2Driver.getIntputMEDFieldTemplate Only " + str(ParamKey.inputKeys) + " template available but name='" + name + "'.")

@@ -16,7 +16,7 @@ try:
     import pyTHEDI_MED as THEDI_MED
 except:
     pass
-import MEDCoupling
+import C3PO.medcoupling_compat as mc
 
 from C3PO.PhysicsDriver import PhysicsDriver
 from THEDIInit import THEDIInit
@@ -129,7 +129,7 @@ class THEDIDriver(PhysicsDriver):
 
         THEDI can take fields given on any mesh and performs projection if needed, but no projection are done if this mesh is used.
         """
-        outputField = MEDCoupling.MEDCouplingFieldDouble(MEDCoupling.ON_CELLS, MEDCoupling.ONE_TIME)
+        outputField = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
         try:
             self.MEDInterface_.Place_maillage_interne_dans_champ(outputField)
         except:
@@ -194,7 +194,7 @@ class THEDIDriver(PhysicsDriver):
         - "T_INTERNE"
         - "T_EFFECTIVE"
         """
-        outputField = MEDCoupling.MEDCouplingFieldDouble(MEDCoupling.ON_CELLS, MEDCoupling.ONE_TIME)
+        outputField = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
         if name in self.outputFieldCorrespondence_.keys():
             self.MEDInterface_.Get_champ(self.outputFieldCorrespondence_[name], outputField)
             return outputField
