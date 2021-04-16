@@ -10,56 +10,56 @@
 
 """ Contain the class wrapper Tracer. """
 from __future__ import print_function, division
+from types import FunctionType
 
-from functools import wraps
 
-
-class MetaClassWithNomenclature(type):
+class NameChangerMeta(type):
     """Metaclass used to decorate the target methods (contained in the targetMethods list) of the argument class (defined by cls, clsname, superclasses, attributedict) with the decorator addNomenclature2Method (which add the C3PO names nomenclature) using C3PO2PHYS dictionary as parameter."""
 
-    def __new__(cls, clsname, superclasses, attributedict, C3PO2PHYS, targetMethods):
-        newDct = {}
-        targetMethodsSet = set(targetMethods)
-        allMethodsSet    = set(attributedict.keys())
-        if not(targetMethodsSet.issubset(allMethodsSet)):
-            raise AssertionError("The following methods do not belong to the class {}:\n{}.".format(clsname,targetMethodsSet-allMethodsSet))
-        complementarySet = allMethodsSet - targetMethodsSet
-        for attr in complementarySet:
-            newDct[attr] = attributedict[attr]
-        for attr in targetMethodsSet:
-            newDct[attr] = cls.addNomenclature2Method(C3PO2PHYS)(attributedict[attr])
-        newDct["C3PO2PHYS"] = C3PO2PHYS
-        return type.__new__(cls, clsname, superclasses, newDct)
-
-    def __init__(self, clsname, superclasses, attributedict, *args, **kwargs):
+    def __init__(self, clsname, superclasses, attributedict):
         type.__init__(self, clsname, superclasses, attributedict)
 
-    @staticmethod
-    def addNomenclature2Method(C3PO2PHYSD):
-        def methodWrapper(icocoMethod):
-            @wraps(icocoMethod)
-            def icocoMethodWithC3PONomenclature(self, *args, **kwargs):
+    def __new__(cls, clsname, superclasses, attributedict):
+        def methodWrapper(method):
+            def methodWrapped(self, *args, **kwargs):
+                name = None
                 if "name" in kwargs.keys():
-                    name = kwargs.pop("name")
+                    name = kwargs["name"]
+                    if name in self.static_nameMapping.keys():
+                        name = self.static_nameMapping[name]
+                        kwargs["name"] = name
                 else:
                     ii = 0
                     for arg_i in args:
                         if type(arg_i) == str:
                             name = arg_i
-                            args = args[:ii] + args[ii+1:]
-                            break
+                            if name in self.static_nameMapping.keys():
+                                name = self.static_nameMapping[name]
+                                args = args[:ii] + (name,) + args[ii+1:]
                         ii += 1
+                return method(self, *args, **kwargs)
+            
+            methodWrapped.__name__ = method.__name__
+            methodWrapped.__doc__ = method.__doc__
+            methodWrapped.__dict__.update(method.__dict__)
+            return methodWrapped
 
-                if name in C3PO2PHYSD.keys():
-                    name = C3PO2PHYSD[name]
-                return icocoMethod(self, name, *args, **kwargs)
-            return icocoMethodWithC3PONomenclature
-        return methodWrapper
+        newDct = {}
+        for nameattr, method in attributedict.items():
+            if type(method) is FunctionType:
+                newDct[nameattr] = methodWrapper(method)
+            else:
+                newDct[nameattr] = method
+        return type.__new__(cls, clsname, superclasses, newDct)
 
-def AddNomenclature(C3PO2PHYS, targetMethods):
+
+def NameChanger(nameMapping):
     """Class decorator to add the C3PO2PHYS as possible nomenclature for the target methods (specified in targetMethods list)"""
 
     def classWrapper(baseclass):
-        newclass = MetaClassWithNomenclature(baseclass.__name__, baseclass.__bases__, baseclass.__dict__, C3PO2PHYS, targetMethods)
+        baseclass.static_nameMapping = nameMapping
+        newclass = NameChangerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
+        newclass.__doc__ = baseclass.__doc__
+        delattr(baseclass, "static_nameMapping")
         return newclass
     return classWrapper
