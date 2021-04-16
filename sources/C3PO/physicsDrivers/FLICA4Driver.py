@@ -106,3 +106,97 @@ class FLICA4Driver(PhysicsDriver):
 
     def getValue(self, name):
         return self.flica_.getValue(name)
+
+
+class FLICA4AutoSwitchDriver(PhysicsDriver):
+    """ This PhysicsDriver drives two FLICA4Driver, for stationnary and transient, and switches from one to the other automatically.
+    """
+
+    data_file_stationnary_ = os.path.join(os.getenv("DATADIR"), "flica4_static.dat")
+    data_file_transient_ = os.path.join(os.getenv("DATADIR"), "flica4_transient.dat")
+
+    def __init__(self):
+        PhysicsDriver.__init__(self)
+
+        self.Flica4Steady_ = FLICA4Driver()
+        self.Flica4Transient_ = FLICA4Driver()
+        self.Flica4Current_ = self.Flica4Steady_
+        self.isStationnary_ = True
+        self.isInit_ = False
+
+    def initialize(self):
+        if self.isStationnary_:
+            if self.isInit_:
+                return True
+            else:
+                self.isInit_ = True
+                self.Flica4Steady_.setDataFile(FLICA4AutoSwitchDriver.data_file_stationnary_)
+                return self.Flica4Steady_.initialize()
+        else:
+            raise Exception("FLICA4AutoSwitchDriver.initialize : only available in stationnary mode.")
+
+    def terminate(self):
+        return self.Flica4Current_.terminate()
+
+    def presentTime(self):
+        return self.Flica4Current_.presentTime()
+
+    def computeTimeStep(self):
+        return self.Flica4Current_.computeTimeStep()
+
+    def initTimeStep(self, dt):
+        if dt < 0.:
+            if self.isStationnary_:
+                return self.Flica4Current_.initTimeStep(dt)
+            else:
+                self.isStationnary_ = True
+                self.Flica4Transient_.terminate()
+                self.Flica4Transient_ = FLICA4Driver()
+                if not self.isInit_:
+                    self.isInit_ = True
+                    self.Flica4Steady_.setDataFile(FLICA4AutoSwitchDriver.data_file_stationnary_)
+                    self.Flica4Steady_.initialize()
+                self.Flica4Current_ = self.Flica4Steady_
+                return self.Flica4Current_.initTimeStep(dt)
+        else:
+            if self.isStationnary_:
+                self.isStationnary_ = False
+                self.Flica4Steady_.terminate()
+                self.Flica4Steady_ = FLICA4Driver()
+                self.isInit_ = False
+                self.Flica4Transient_.setDataFile(FLICA4AutoSwitchDriver.data_file_transient_)
+                self.Flica4Transient_.initialize()
+                self.Flica4Current_ = self.Flica4Transient_
+                return self.Flica4Current_.initTimeStep(dt)
+            else:
+                return self.Flica4Current_.initTimeStep(dt)
+
+    def solveTimeStep(self):
+        return self.Flica4Current_.solveTimeStep()
+
+    def validateTimeStep(self):
+        self.Flica4Current_.validateTimeStep()
+
+    def abortTimeStep(self):
+        self.Flica4Current_.abortTimeStep()
+
+    def getInputFieldsNames(self):
+        return self.Flica4Current_.getInputFieldsNames()
+
+    def getInputMEDFieldTemplate(self, name):
+        return self.Flica4Current_.getInputMEDFieldTemplate(name)
+
+    def getOutputFieldsNames(self):
+        return self.Flica4Current_.getOutputFieldsNames()
+
+    def setInputMEDField(self, name, field):
+        self.Flica4Current_.setInputMEDField(name, field)
+
+    def getOutputMEDField(self, name):
+        return self.Flica4Current_.getOutputMEDField(name)
+
+    def setValue(self, name, value):
+        self.Flica4Current_.setValue(name, value)
+
+    def getValue(self, name):
+        return self.Flica4Current_.getValue(name)
