@@ -72,7 +72,8 @@ class FLICA4Driver(PhysicsDriver):
             return self.flica_.solveTimeStep()
 
     def validateTimeStep(self):
-        self.flica_.validateTimeStep()
+        if not self.isStationnary_:
+            self.flica_.validateTimeStep()
 
     def abortTimeStep(self):
         self.flica_.abortTimeStep()
