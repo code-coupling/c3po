@@ -30,6 +30,7 @@ class FLICA4Driver(PhysicsDriver):
         PhysicsDriver.__init__(self)
         self.isInit_ = False
         self.isStationnary_ = False
+        self.permSteps_ = 1000
         self.flica_, self.handle_ = FlicaICoCo.openLib(str(os.path.join(os.getenv("FLICA_SHARED_LIB"), "libflica4.so")))
        # self.flica_.setDataFile(os.path.join(os.getenv("DATADIR"), "flica4_static.dat"))
 
@@ -66,7 +67,7 @@ class FLICA4Driver(PhysicsDriver):
 
     def solveTimeStep(self):
         if self.isStationnary_:
-            return self.flica_.solveSteadyState(1000)
+            return self.flica_.solveSteadyState(self.permSteps_)
         else:
             return self.flica_.solveTimeStep()
 
@@ -97,7 +98,10 @@ class FLICA4Driver(PhysicsDriver):
         return field
 
     def setValue(self, name, value):
-        self.flica_.setValue(name, value)
+        if(name == "nbIterMaxSteadyState"):
+            self.permSteps_ = value
+        else:
+            self.flica_.setValue(name, value)
 
     def getValue(self, name):
         return self.flica_.getValue(name)
