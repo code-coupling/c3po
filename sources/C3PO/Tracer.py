@@ -62,29 +62,10 @@ class TracerMeta(type):
         self.static_Objectcounter = {}
 
     def __new__(metacls, name, bases, dct):
-        pythonFile = None
-        saveMED = True
-        stdout = None
-        stderr = None
-        lWriter = None
-        if "static_pythonFile" not in dct:
-            for baseclass in bases:
-                if hasattr(baseclass, "static_pythonFile"):
-                    pythonFile = baseclass.static_pythonFile
-                    saveMED = baseclass.static_saveMED
-                    stdout = baseclass.static_stdout
-                    stderr = baseclass.static_stderr
-                    lWriter = baseclass.static_lWriter
-        else:
-            pythonFile = dct["static_pythonFile"]
-            saveMED = dct["static_saveMED"]
-            stdout = dct["static_stdout"]
-            stderr = dct["static_stderr"]
-            lWriter = dct["static_lWriter"]
 
         def _wrapper(method):
             def _trace(self, *args, **kwargs):
-                if pythonFile is not None:
+                if self.static_pythonFile is not None:
                     objectNameBase = "my" + name
                     if objectNameBase not in self.static_Objectcounter:
                         self.static_Objectcounter[objectNameBase] = 0
@@ -93,32 +74,32 @@ class TracerMeta(type):
                     if method.__name__ == "__init__":
                         self.static_Objectcounter[objectNameBase] += 1
                         objectName = "my" + name + str(self.static_Objectcounter[objectNameBase])
-                        pythonFile.write(objectName + " = " + name + string_args + "\n")
+                        self.static_pythonFile.write(objectName + " = " + name + string_args + "\n")
                     elif method.__name__ == "setInputMEDField":
                         (name_field, field) = get_setInputMEDField_input(*args, **kwargs)
-                        if saveMED:
+                        if self.static_saveMED:
                             if name_field not in self.static_MEDinfo:
                                 self.static_MEDinfo[name_field] = []
                             nameMEDFile = name_field + str(len(self.static_MEDinfo[name_field])) + ".med"
                             timeMED, iteration, order = field.getTime()
                             self.static_MEDinfo[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
                             WriteField_MC789(nameMEDFile, field, True)
-                            pythonFile.write("field_" + objectName + " = ReadField_MC789" + str(self.static_MEDinfo[name_field][-1]) + "\n")
-                        pythonFile.write(objectName + "." + method.__name__ + "('" + name_field + "', field_" + objectName + ")" + "\n")
+                            self.static_pythonFile.write("field_" + objectName + " = ReadField_MC789" + str(self.static_MEDinfo[name_field][-1]) + "\n")
+                        self.static_pythonFile.write(objectName + "." + method.__name__ + "('" + name_field + "', field_" + objectName + ")" + "\n")
                     else:
-                        pythonFile.write(objectName + "." + method.__name__ + string_args + "\n")
-                    pythonFile.flush()
+                        self.static_pythonFile.write(objectName + "." + method.__name__ + string_args + "\n")
+                    self.static_pythonFile.flush()
 
                 prev_idstdout = 0
                 prev_idstderr = 0
-                if stdout is not None:
+                if self.static_stdout is not None:
                     sys.stdout.flush()
                     prev_idstdout = os.dup(sys.stdout.fileno())
-                    os.dup2(stdout.fileno(), sys.stdout.fileno())
-                if stderr is not None:
+                    os.dup2(self.static_stdout.fileno(), sys.stdout.fileno())
+                if self.static_stderr is not None:
                     sys.stderr.flush()
                     prev_idstderr = os.dup(sys.stderr.fileno())
-                    os.dup2(stderr.fileno(), sys.stderr.fileno())
+                    os.dup2(self.static_stderr.fileno(), sys.stderr.fileno())
 
                 start = time.time()
 
@@ -126,21 +107,21 @@ class TracerMeta(type):
 
                 end = time.time()
 
-                if stdout is not None:
+                if self.static_stdout is not None:
                     sys.stdout.flush()
                     os.dup2(prev_idstdout, sys.stdout.fileno())
                     os.close(prev_idstdout)
-                if stderr is not None:
+                if self.static_stderr is not None:
                     sys.stderr.flush()
                     os.dup2(prev_idstderr, sys.stderr.fileno())
                     os.close(prev_idstderr)
 
-                if lWriter is not None:
+                if self.static_lWriter is not None:
                     if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate", "exchange"]:
                         input_var = 0.
                         if method.__name__ == "initTimeStep":
                             input_var = get_initTimeStep_input(*args, **kwargs)
-                        lWriter.writeAfter(self, input_var, result, method.__name__, start, end - start)
+                        self.static_lWriter.writeAfter(self, input_var, result, method.__name__, start, end - start)
 
                 return result
 
@@ -221,5 +202,10 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
         baseclass.static_lWriter = listingWriter
         newclass = TracerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
+        delattr(baseclass, "static_pythonFile")
+        delattr(baseclass, "static_saveMED")
+        delattr(baseclass, "static_stdout")
+        delattr(baseclass, "static_stderr")
+        delattr(baseclass, "static_lWriter")
         return newclass
     return classWrapper
