@@ -14,12 +14,13 @@ from types import FunctionType
 
 
 class NameChangerMeta(type):
-    """Metaclass used to decorate the target methods (contained in the targetMethods list) of the argument class (defined by cls, clsname, superclasses, attributedict) with the decorator addNomenclature2Method (which add the C3PO names nomenclature) using C3PO2PHYS dictionary as parameter."""
+    """! Metaclass related to the use of NameChanger. """
 
     def __init__(self, clsname, superclasses, attributedict):
         type.__init__(self, clsname, superclasses, attributedict)
 
     def __new__(cls, clsname, superclasses, attributedict):
+
         def methodWrapper(method):
             def methodWrapped(self, *args, **kwargs):
                 name = None
@@ -38,7 +39,7 @@ class NameChangerMeta(type):
                                 args = args[:ii] + (name,) + args[ii+1:]
                         ii += 1
                 return method(self, *args, **kwargs)
-            
+
             methodWrapped.__name__ = method.__name__
             methodWrapped.__doc__ = method.__doc__
             methodWrapped.__dict__.update(method.__dict__)
@@ -48,13 +49,47 @@ class NameChangerMeta(type):
         for nameattr, method in attributedict.items():
             if type(method) is FunctionType:
                 newDct[nameattr] = methodWrapper(method)
+            elif nameattr == "static_nameMapping":
+                newDct[nameattr] = method.copy()
             else:
                 newDct[nameattr] = method
         return type.__new__(cls, clsname, superclasses, newDct)
 
 
 def NameChanger(nameMapping):
-    """Class decorator to add the C3PO2PHYS as possible nomenclature for the target methods (specified in targetMethods list)"""
+    """! NameChanger is a class wrapper that allows to change the names of the variables used by the base class (usually a PhysicsDriver).
+
+    This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
+
+    When a method of the base class is called there is two possibilities :
+    1. The call used a named argument "name" (for example myObject.setValue(name="myName", value=0.)). In this case, the value passed to the argument "name" is modified (if the value used is a key of nameMapping).
+    2. Their is no named argument "name" (for ecample myObject.setValue("myName", 0.)). In this case, the value of all arguments of type "str" is modified (if the value used is a key of nameMapping).
+
+    In both cases, nothing is done (no error) if the initial value is not in the keys of nameMapping.
+
+    @param nameMapping a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code).
+
+    The parameter of NameChanger is added to the class ("static" attributes) with the names static_nameMapping.
+
+    NameChanger can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere. For example:
+
+        @C3PO.NameChanger({"newName" : "oldName"})
+        class MyClass(...):
+            ...
+
+    or it can be used in order to redefined only locally the class like that:
+
+        MyNewClass = C3PO.NameChanger({"newName" : "oldName"})(MyClass)
+
+    afterward "newName" can be used in place of "oldName" everywhere with MyNewClass. "oldName" is still working.
+
+    @note nameMapping is copied.
+
+    @warning NameChanger only modifies the base class, not its parents. As a consequence, inherited methods are invisible to NameChanger. Redefine them in the daughter class if needed.
+    @warning A class that inherits from a class wrapped by NameChanger will be wrapped as well, with the same parameters.
+             If the wrapping is applied (without changing the name of the class) after the building of the daughter class, it will result in TypeError when the daughter class will try to call mother methods (since its mother class does not exist anymore!).
+             As a consequence, if applied to C3PO classes, it is recommended to change the name of the classes.
+    """
 
     def classWrapper(baseclass):
         baseclass.static_nameMapping = nameMapping

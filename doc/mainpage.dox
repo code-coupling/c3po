@@ -12,7 +12,7 @@ C3PO (Collaborative Code Coupling PlatfOrm) is a high-level Python library, offe
 
 For more information about code integration, see @ref Code_integration_pag.
 
-The main objective of C3PO is to facilitate and standardize the writing of coupling scripts, in particular in HPC (High Performance Computing) environment. It also provides generic (and HPC-compatible) implementations of the main coupling algorithms (Picard iteration, Anderson acceleration, JFNK), and allows pooling of efforts in the development and verification of multi-physics calculation schemes. 
+The main objective of C3PO is to facilitate and standardize the writing of coupling scripts, in particular in HPC (High Performance Computing) environment. It also provides generic (and HPC-compatible) implementations of the main coupling algorithms (Picard iteration, Anderson acceleration, JFNK), and allows pooling of efforts in the development and verification of multi-physics calculation schemes.
 
 C3PO is code- and physics-agnostic, and therefore constitutes a kernel of generic methods that can be shared by different multi-physics applications. For this reason, it has been made open-source under the (highly permissive) 3-Clause BSD License here: https://sourceforge.net/projects/cea-c3po/.
 
@@ -30,7 +30,7 @@ The directory sources/C3PO contains the definition of the following classes:
 
   - C3PO.PhysicsDriver.PhysicsDriver defines and standardizes the functionalities expected by computer codes. It follows the ICoCo API.
   - C3PO.DataManager.DataManager stores and manipulates (as a single mathematical vector) data outside of C3PO.PhysicsDriver.PhysicsDriver. This is necessary for some coupling techniques or time schemes.
-  - C3PO.CollaborativeDataManager.CollaborativeDataManager handles a set of C3PO.DataManager.DataManager as a single one. 
+  - C3PO.CollaborativeDataManager.CollaborativeDataManager handles a set of C3PO.DataManager.DataManager as a single one.
   - C3PO.Exchanger.Exchanger manages data exchanges between C3PO.PhysicsDriver.PhysicsDriver and / or C3PO.DataManager.DataManager.
   - C3PO.CollaborativeExchanger.CollaborativeExchanger allows to handle a set of C3PO.Exchanger.Exchanger as a single one.
   - C3PO.Coupler.Coupler is the base class for the definition of a coupling, based on C3PO.PhysicsDriver.PhysicsDriver, C3PO.DataManager.DataManager and C3PO.Exchanger.Exchanger concepts.
@@ -40,8 +40,9 @@ The directory sources/C3PO contains the definition of the following classes:
     3. It can contribute (with C3PO.ListingWriter.ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
   - C3PO.ListingWriter.ListingWriter allows, in association with C3PO.Tracer.Tracer, to write a global coupling listing file with calculation time measurement. Three funtions complete this class:
     1. mergeListing() that allows to merge listing files produced by C3PO.ListingWriter.ListingWriter (or by previous call to mergeListing()). It is designed to produce a comprehensive view of a MPI calculation.
-    2. getTotalTimePhysicsDriver() that reads a listing file produced by C3PO.ListingWriter.ListingWriter or mergeListing() and returns the total time spent by one C3PO.PhysicsDriver.PhysicsDriver in indicated methods. 
+    2. getTotalTimePhysicsDriver() that reads a listing file produced by C3PO.ListingWriter.ListingWriter or mergeListing() and returns the total time spent by one C3PO.PhysicsDriver.PhysicsDriver in indicated methods.
     3. getTimesExchanger() that reads a listing file produced by C3PO.ListingWriter.ListingWriter or mergeListing() and returns time information about a chosen exchanger.
+  - C3PO.NameChanger.NameChanger is a class wrapper that allows to change the names of the variables used by a C3PO.PhysicsDriver.PhysicsDriver (or a C3PO.DataManager.DataManager). The idea is to improve the genericity of coupling scripts by using generic variable names without modifying the C3PO.PhysicsDriver.PhysicsDriver "by hand".
 
 C3PO.DataManager.DataManager, C3PO.CollaborativeDataManager.CollaborativeDataManager, C3PO.Exchanger.Exchanger and C3PO.Coupler.Coupler can be respectively substituted by C3POMPI.MPICollectiveDataManager.MPICollectiveDataManager (or C3POMPI.MPICollaborativeDataManager.MPICollaborativeDataManager), C3POMPI.MPICollaborativeDataManager.MPICollaborativeDataManager, C3POMPI.MPIExchanger.MPIExchanger and C3POMPI.MPICoupler.MPICoupler if mpi4py is available, without any impact on calculations without parallelism.
 
@@ -70,7 +71,7 @@ This folder contains the definition of the following classes (exchange methods t
 
 \subsection C3POMPIsources_sec II.2. sources/C3POMPI: C3PO sources related to MPI.
 
-Two parallelization modes are available (and can be mixed): 
+Two parallelization modes are available (and can be mixed):
 
   - Collaborative: all the processes run the same instructions. Instructions that do not concern a process (because it does not host a code for example) are ignored.
   - Master-workers: a master process executes the highest-level instructions. It controls the execution of calculation codes and the data exchanges between worker processes.

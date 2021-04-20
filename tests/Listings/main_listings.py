@@ -25,6 +25,7 @@ file5 = open("listingGeneral.log", "wb+")
 listingW = C3PO.ListingWriter(file5)
 
 Physics1 = C3PO.Tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
+Physics1 = C3PO.NameChanger({"toto" : "x"})(Physics1)
 Physics2 = C3PO.Tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
 C3PO.Exchanger = C3PO.Tracer(listingWriter=listingW)(C3PO.Exchanger)
 
@@ -36,7 +37,7 @@ Transformer = C3PO.DirectMatching()
 DataCoupler = C3PO.DataManager()
 First2Second = C3PO.Exchanger(Transformer, [], [], [(myPhysics, "y")], [(myPhysics2, "x")])
 Second2Data = C3PO.Exchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
-Data2First = C3PO.Exchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "x")])
+Data2First = C3PO.Exchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "toto")])
 
 OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 

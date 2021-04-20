@@ -54,7 +54,7 @@ def WriteField_MC789(n, f, b):
 
 
 class TracerMeta(type):
-    """! INTERNAL. Metaclass defined for internal use only. """
+    """! Metaclass related to the use of Tracer. """
 
     def __init__(self, name, bases, dct):
         type.__init__(self, name, bases, dct)
@@ -148,9 +148,6 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
     2. It can redirect code standard and error outputs in text files.
     3. It can contribute (with ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
 
-    @warning Tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger. It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or outputs).
-    @warning Tracer only modify the base class, not its parents. As a consequence, inherited methods are invisible to Tracer. Redefine them in the final class if needed.
-
     @param pythonFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script is written there. It has to be closed (file.close()) by caller.
     @param saveMED This is related to the python file writing.
         - if set to True (default value), every time setInputMEDField is called, the input MED field is stored in an independant .med file, and MEDLoader reading call is written in the output file.
@@ -165,19 +162,25 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
     Tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
 
         @C3PO.Tracer(...)
-        class Myclass(...):
+        class MyClass(...):
             ...
 
     or it can be used in order to redefined only locally the class like that:
 
-        Myclass = C3PO.Tracer(...)(Myclass)
+        MyNewClass = C3PO.Tracer(...)(MyClass)
 
     Tracer cannot distinguish different instance of the same class. The name of the instance created in the python file changes each time the __init__ method is called. This means that when a new instance is created, Tracer assumes that the previous ones are not used any more. If this is not the case, put the ouput of each instance in its own output file :
 
-        Myclass1 = C3PO.Tracer(pythonFile=file1, ...)(Myclass)
-        Myclass2 = C3PO.Tracer(pythonFile=file2, ...)(Myclass)
-        instance1 = Myclass1()
-        instance2 = Myclass2()
+        MyClass1 = C3PO.Tracer(pythonFile=file1, ...)(MyClass)
+        MyClass2 = C3PO.Tracer(pythonFile=file2, ...)(MyClass)
+        instance1 = MyClass1()
+        instance2 = MyClass2()
+
+    @warning Tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger. It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or outputs).
+    @warning Tracer only modifies the base class, not its parents. As a consequence, inherited methods are invisible to Tracer. Redefine them in the daughter class if needed.
+    @warning A class that inherits from a class wrapped by Tracer will be wrapped as well, with the same parameters.
+             If the wrapping is applied (without changing the name of the class) after the building of the daughter class, it will result in TypeError when the daughter class will try to call mother methods (since its mother class does not exist anymore!).
+             As a consequence, if applied to C3PO classes, it is recommended to change the name of the classes.
 
     """
 
