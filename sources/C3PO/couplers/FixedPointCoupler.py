@@ -59,7 +59,7 @@ class FixedPointCoupler(Coupler):
             raise Exception("FixedPointCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
-        """! Set the convergence parameters (tolerance and maximum number of iterations). 
+        """! Set the convergence parameters (tolerance and maximum number of iterations).
 
         @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
         @param maxiter the maximal number of iterations.
@@ -123,9 +123,26 @@ class FixedPointCoupler(Coupler):
         return physics.getSolveStatus() and not(error > self.tolerance_)
 
     # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
-    initialize = Coupler.initialize
-    terminate = Coupler.terminate
-    computeTimeStep = Coupler.computeTimeStep
-    initTimeStep = Coupler.initTimeStep
-    validateTimeStep = Coupler.validateTimeStep
-    abortTimeStep = Coupler.abortTimeStep
+    def initialize(self):
+        """! See Coupler.initialize(). """
+        return Coupler.initialize(self)
+
+    def terminate(self):
+        """! See Coupler.terminate(). """
+        Coupler.terminate(self)
+
+    def computeTimeStep(self):
+        """! See Coupler.computeTimeStep(). """
+        return Coupler.computeTimeStep(self)
+
+    def initTimeStep(self, dt):
+        """! See Coupler.initTimeStep(). """
+        return Coupler.initTimeStep(self, dt)
+
+    def validateTimeStep(self):
+        """! See Coupler.validateTimeStep(). """
+        Coupler.validateTimeStep(self)
+
+    def abortTimeStep(self):
+        """! See Coupler.abortTimeStep(). """
+        Coupler.abortTimeStep(self)

@@ -30,7 +30,7 @@ class AndersonCoupler(Coupler):
 
         X^{n+1} = F(X^{n})
 
-    Then the Anderson acceleration starts and computes X^{n+1} as a linear combination of [alpha * F(X^{n-i}) + (1. - alpha) * X^{n-i}]. 
+    Then the Anderson acceleration starts and computes X^{n+1} as a linear combination of [alpha * F(X^{n-i}) + (1. - alpha) * X^{n-i}].
 
     alpha, the relative fraction of F(X^{n-i}) and X^{n-i} can be set with setAndersonDampingFactor(). Default value is 1 (only F(X^{n-i})).
 
@@ -67,7 +67,7 @@ class AndersonCoupler(Coupler):
             raise Exception("AndersonCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
-        """! Set the convergence parameters (tolerance and maximum number of iterations). 
+        """! Set the convergence parameters (tolerance and maximum number of iterations).
 
         @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
         @param maxiter the maximal number of iterations.
@@ -83,7 +83,7 @@ class AndersonCoupler(Coupler):
         self.andersonDampingFactor_ = andersonDampingFactor
 
     def setOrder(self, order):
-        """! Set the order of the method. 
+        """! Set the order of the method.
 
         @param order order of Anderson method. This is also the number of previous states stored by the algorithm.
         """
@@ -196,10 +196,27 @@ class AndersonCoupler(Coupler):
             self.andersonAccelerationN(andersonMemory[1:], diffFiFn, out, localOrder - 1)
 
     # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
-    initialize = Coupler.initialize
-    terminate = Coupler.terminate
-    computeTimeStep = Coupler.computeTimeStep
-    initTimeStep = Coupler.initTimeStep
-    validateTimeStep = Coupler.validateTimeStep
-    abortTimeStep = Coupler.abortTimeStep
+    def initialize(self):
+        """! See Coupler.initialize(). """
+        return Coupler.initialize(self)
+
+    def terminate(self):
+        """! See Coupler.terminate(). """
+        Coupler.terminate(self)
+
+    def computeTimeStep(self):
+        """! See Coupler.computeTimeStep(). """
+        return Coupler.computeTimeStep(self)
+
+    def initTimeStep(self, dt):
+        """! See Coupler.initTimeStep(). """
+        return Coupler.initTimeStep(self, dt)
+
+    def validateTimeStep(self):
+        """! See Coupler.validateTimeStep(). """
+        Coupler.validateTimeStep(self)
+
+    def abortTimeStep(self):
+        """! See Coupler.abortTimeStep(). """
+        Coupler.abortTimeStep(self)
 

@@ -32,7 +32,7 @@ def solveTriang(A, b):
 
 
 class JFNKCoupler(Coupler):
-    """! JFNKCoupler inherits from Coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm. 
+    """! JFNKCoupler inherits from Coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm.
 
     This is a Newton algorithm using a Krylov (GMRES) method for the linear system solving.
 
@@ -44,11 +44,11 @@ class JFNKCoupler(Coupler):
 
     JFNKCoupler is a Coupler working with precisely :
 
-    - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called. 
+    - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
     - A single DataManager allowing to manipulate the data in the coupling.
     - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
 
-    As the Newton algorithm solves for F(X) = 0, in order to be coherent with the fixed point coupling algorithms, F(x) is defined as F(X) = f(X) - X, where f is the output of the physicsDriver.    
+    As the Newton algorithm solves for F(X) = 0, in order to be coherent with the fixed point coupling algorithms, F(x) is defined as F(X) = f(X) - X, where f is the output of the physicsDriver.
 
     The convergence criteria is : ||f(X^{n}) - X^{n}|| / ||f(X^{n})|| < tolerance. The default norm used is the infinite norm. Coupler.setNormChoice() allows to choose another one.
 
@@ -87,7 +87,7 @@ class JFNKCoupler(Coupler):
             raise Exception("JFNKCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
-        """! Set the convergence parameters (tolerance and maximum number of iterations). 
+        """! Set the convergence parameters (tolerance and maximum number of iterations).
 
         @param tolerance the convergence threshold in ||f(X^{n}) - X^{n}|| / ||f(X^{n})|| < tolerance.
         @param maxiter the maximal number of iterations.
@@ -96,7 +96,7 @@ class JFNKCoupler(Coupler):
         self.NewtonMaxIter_ = maxiter
 
     def setKrylovConvergenceParameters(self, tolerance, maxiter):
-        """! Set the convergence parameters (tolerance and maximum number of iterations) of the Krylov method. 
+        """! Set the convergence parameters (tolerance and maximum number of iterations) of the Krylov method.
 
         @param tolerance the convergence threshold of the Krylov method.
         @param maxiter the maximal number of iterations of the Krylov method.
@@ -107,12 +107,12 @@ class JFNKCoupler(Coupler):
     def setEpsilon(self, epsilon):
         """! Set the epsilon value of the method.
 
-        @param epsilon the epsilon value in the formula J_u v ~= (F(u + epsilon v) - F(u))/epsilon. 
+        @param epsilon the epsilon value in the formula J_u v ~= (F(u + epsilon v) - F(u))/epsilon.
         """
         self.epsilon_ = epsilon
 
     def solveTimeStep(self):
-        """! Solve a time step using Jacobian-Free Newton Krylov algorithm. 
+        """! Solve a time step using Jacobian-Free Newton Krylov algorithm.
 
         See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
@@ -248,9 +248,26 @@ class JFNKCoupler(Coupler):
         return physics.getSolveStatus() and not(errorNewton > self.NewtonTolerance_)
 
     # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
-    initialize = Coupler.initialize
-    terminate = Coupler.terminate
-    computeTimeStep = Coupler.computeTimeStep
-    initTimeStep = Coupler.initTimeStep
-    validateTimeStep = Coupler.validateTimeStep
-    abortTimeStep = Coupler.abortTimeStep
+    def initialize(self):
+        """! See Coupler.initialize(). """
+        return Coupler.initialize(self)
+
+    def terminate(self):
+        """! See Coupler.terminate(). """
+        Coupler.terminate(self)
+
+    def computeTimeStep(self):
+        """! See Coupler.computeTimeStep(). """
+        return Coupler.computeTimeStep(self)
+
+    def initTimeStep(self, dt):
+        """! See Coupler.initTimeStep(). """
+        return Coupler.initTimeStep(self, dt)
+
+    def validateTimeStep(self):
+        """! See Coupler.validateTimeStep(). """
+        Coupler.validateTimeStep(self)
+
+    def abortTimeStep(self):
+        """! See Coupler.abortTimeStep(). """
+        Coupler.abortTimeStep(self)

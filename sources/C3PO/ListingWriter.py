@@ -24,7 +24,7 @@ def getFormattedTime(time):
 
 
 class ListingWriter(object):
-    """! ListingWriter allows, in association with Tracer, to write a global coupling listing file with calculation time measurement. 
+    """! ListingWriter allows, in association with Tracer, to write a global coupling listing file with calculation time measurement.
 
     ListingWriter is completed by the funtions mergeListing(), getTotalTimePhysicsDriver() and getTimesExchanger().
     """
@@ -46,7 +46,7 @@ class ListingWriter(object):
         self.autoFormat_ = True
 
     def initialize(self, physics, exchangers):
-        """! Initialize the object. 
+        """! Initialize the object.
 
         Should be done after the building of all involved objects but before their initialization.
 
@@ -187,7 +187,6 @@ class ListingWriter(object):
             elif methodName in ["solveTimeStep", "initialize"]:
                 toWrite += "succeed = " + ("yes" if outputTuple else "no")
             elif methodName == "terminate":
-                toWrite += "succeed = " + ("yes" if outputTuple else "no")
                 self.terminatedPhysics_[self.physics_.index(sourceObject)] = True
             elif methodName == "iterateTimeStep":
                 toWrite += "succeed = " + ("yes" if outputTuple[0] else "no")
@@ -334,7 +333,7 @@ class mergedListingWriter(ListingWriter):
 
 
 def mergeListing(listingsName, newListingName):
-    """! mergeListing() allows to merge listing files produced by ListingWriter (or by previous call to mergeListing()). 
+    """! mergeListing() allows to merge listing files produced by ListingWriter (or by previous call to mergeListing()).
 
     It is designed to produce a comprehensive view of a MPI calculation.
 

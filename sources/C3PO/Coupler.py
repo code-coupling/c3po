@@ -26,13 +26,13 @@ class NormChoice(object):
 
 
 class Coupler(PhysicsDriver):
-    """! Coupler is the base class for the definition of a coupling. 
+    """! Coupler is the base class for the definition of a coupling.
 
-    A coupling is defined using PhysicsDriver, DataManager and Exchanger objects. 
-    A user needs to define his own class inheriting from Coupler and to define its solveTimeStep() method. 
+    A coupling is defined using PhysicsDriver, DataManager and Exchanger objects.
+    A user needs to define his own class inheriting from Coupler and to define its solveTimeStep() method.
     It may also be necessary to overload the get/set methods (of fields and / or of scalars) inherited from PhysicsDriver.
 
-    @note Coupler inherits from PhysicsDriver what allows to define a coupling of couplings! 
+    @note Coupler inherits from PhysicsDriver what allows to define a coupling of couplings!
     """
 
     def __init__(self, physics, exchangers, dataManagers=[]):
@@ -85,7 +85,7 @@ class Coupler(PhysicsDriver):
         self.dt_ = dt
         resu = True
         for physics in self.physicsDriversList_:
-            resu = (resu and physics.initTimeStep(dt))
+            resu = (physics.initTimeStep(dt) and resu)
         return resu
 
     def getSolveStatus(self):
@@ -113,7 +113,7 @@ class Coupler(PhysicsDriver):
         return resu
 
     def setNormChoice(self, choice):
-        """! Choose a norm for future use. 
+        """! Choose a norm for future use.
 
         @param choice to be choosen between :
             - NormChoice.normMax : infinite norm. This is the default choice.
@@ -122,7 +122,7 @@ class Coupler(PhysicsDriver):
         self.norm_ = choice
 
     def getNorm(self, data):
-        """! Return the norm choosen by setNormChoice of data (a DataManager). 
+        """! Return the norm choosen by setNormChoice of data (a DataManager).
 
         @param data a DataManager object.
 
