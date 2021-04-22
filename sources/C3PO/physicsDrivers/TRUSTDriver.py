@@ -11,21 +11,29 @@ class TRUSTDriver(ti.ProblemTrio, PhysicsDriver):
         ti.ProblemTrio.__init__(self)
         PhysicsDriver.__init__(self)
 
-    initialize = ti.ProblemTrio.initialize
-    computeTimeStep = ti.ProblemTrio.computeTimeStep
-
-    def initTimeStep(self, dt):
-        self._dt = dt
-        return ti.ProblemTrio.initTimeStep(self, dt)
-
-    solveTimeStep = ti.ProblemTrio.solveTimeStep
-    validateTimeStep = ti.ProblemTrio.validateTimeStep
-    abortTimeStep = ti.ProblemTrio.abortTimeStep
+    def initialize(self):
+        return ti.ProblemTrio.initialize(self)
 
     def terminate(self):
         ti.ProblemTrio.terminate(self)
         return True
 
-    getInputMEDFieldTemplate = ti.ProblemTrio.getInputMEDFieldTemplate
-    setInputMEDField = ti.ProblemTrio.setInputMEDField
-    getOutputMEDField = ti.ProblemTrio.getOutputMEDField
+    def computeTimeStep(self):
+        return ti.ProblemTrio.computeTimeStep(self)
+
+    def initTimeStep(self, dt):
+        self._dt = dt
+        return ti.ProblemTrio.initTimeStep(self, dt)
+
+    def solveTimeStep(self):
+        return ti.ProblemTrio.solveTimeStep(self)
+
+    def validateTimeStep(self):
+        ti.ProblemTrio.validateTimeStep(self)
+
+    def abortTimeStep(self):
+        ti.ProblemTrio.abortTimeStep(self)
+
+    def setInputMEDField(self, name, field):
+        mf = ti.MEDField(field)
+        ti.ProblemTrio.setInputMEDFieldAsMF(self, name, mf)
