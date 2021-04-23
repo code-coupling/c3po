@@ -44,15 +44,6 @@ def getArgsString(*args, **kwargs):
     return string_args
 
 
-def WriteField_MC789(n, f, b):
-    """! INTERNAL """
-    try:
-        writeField = mc.WriteField
-    except:
-        writeField = ml.WriteField
-    writeField(n, f, b)
-
-
 class TracerMeta(type):
     """! Metaclass related to the use of Tracer. """
 
@@ -83,8 +74,8 @@ class TracerMeta(type):
                             nameMEDFile = name_field + str(len(self.static_MEDinfo[name_field])) + ".med"
                             timeMED, iteration, order = field.getTime()
                             self.static_MEDinfo[name_field].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(), 0, field.getName(), iteration, order))
-                            WriteField_MC789(nameMEDFile, field, True)
-                            self.static_pythonFile.write("field_" + objectName + " = ReadField_MC789" + str(self.static_MEDinfo[name_field][-1]) + "\n")
+                            mc.WriteField(nameMEDFile, field, True)
+                            self.static_pythonFile.write("field_" + objectName + " = mc.ReadField" + str(self.static_MEDinfo[name_field][-1]) + "\n")
                         self.static_pythonFile.write(objectName + "." + method.__name__ + "('" + name_field + "', field_" + objectName + ")" + "\n")
                     else:
                         self.static_pythonFile.write(objectName + "." + method.__name__ + string_args + "\n")
@@ -190,13 +181,6 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
             pythonFile.write("from __future__ import print_function, division" + "\n")
             pythonFile.write("import C3PO.medcoupling_compat as mc" + "\n")
             pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
-
-            pythonFile.write("def ReadField_MC789(*args, **kwargs):" + "\n")
-            pythonFile.write("  try:" + "\n")
-            pythonFile.write("    readField = mc.ReadField" + "\n")
-            pythonFile.write("  except:" + "\n")
-            pythonFile.write("    readField = ml.ReadField" + "\n")
-            pythonFile.write("  readField(*args, **kwargs)" + "\n" + "\n")
 
         baseclass.static_pythonFile = pythonFile
         baseclass.static_saveMED = saveMED

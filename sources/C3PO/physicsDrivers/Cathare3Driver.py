@@ -90,7 +90,7 @@ class PBC(C3, PhysicsDriver):
                     fields.append(func(new_name))
                 else:
                     fields.append(self.getOutputMEDField_driver(new_name))
-            field = ml.MEDCouplingFieldDouble.MergeFields(fields)
+            field = mc.MEDCouplingFieldDouble.MergeFields(fields)
             field.setName(keyword)
             return field
         else:
@@ -112,7 +112,7 @@ class PBC(C3, PhysicsDriver):
                     f1d = self.getInputMEDFieldTemplate(new_name)
                     nc = f1d.getMesh().getNumberOfCells()
 
-                    local_array = ml.DataArrayDouble.New(nc)
+                    local_array = mc.DataArrayDouble.New(nc)
                     local_array.fillWithZero()
                     local_array += field.getArray()[o: o + nc]
                     o += nc
@@ -132,7 +132,7 @@ class PBC(C3, PhysicsDriver):
         if self.io == 0:
             for name in self.post_names["fields"]:
                 field = self.getOutputMEDField(name)
-                ml.WriteUMesh("{}.med".format(short_name(name)), field.getMesh(), True)
+                mc.WriteUMesh("{}.med".format(short_name(name)), field.getMesh(), True)
 
             with open("suivi_c3.txt", "w") as f:
                 header_names = ["Time"] + self.post_names["fields"] + self.post_names["scalars"]
@@ -145,7 +145,7 @@ class PBC(C3, PhysicsDriver):
                 f = self.getOutputMEDField(name)
                 fic.write("{:12.5g} ".format(f.normMax()[0]))
                 f.setTime(t, self.io, 0)
-                ml.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(short_name(name)), f)
+                mc.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(short_name(name)), f)
             for name in self.post_names["scalars"]:
                 if name.startswith("sommewall__"):
                     _, keyword, listofobjects = name.split("__")

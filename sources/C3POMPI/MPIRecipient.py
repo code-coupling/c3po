@@ -70,10 +70,7 @@ class MPIFileFieldRecipient(object):
                 MEDinfo = MPIComm.bcast(MEDinfo, root=senderRank)
             else:
                 MEDinfo = MPIComm.recv(source=senderRank, tag=MPITag.data)
-            try:
-                self.field_ = mc.ReadField(*(MEDinfo[0]))
-            except:
-                self.field_ = ml.ReadField(*(MEDinfo[0]))
+            self.field_ = mc.ReadField(*(MEDinfo[0]))
             self.field_.setNature(MEDinfo[1])
         self.storing_.store(self.field_)
 

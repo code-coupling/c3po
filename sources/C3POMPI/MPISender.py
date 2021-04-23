@@ -76,10 +76,7 @@ class MPIFileFieldSender(object):
             while os.path.exists("ExchangeField_" + str(num) + ".med"):
                 num += 1
             name_file = "ExchangeField_" + str(num) + ".med"
-            try:
-                mc.WriteField("ExchangeField_" + str(num) + ".med", field, True)
-            except:
-                ml.WriteField("ExchangeField_" + str(num) + ".med", field, True)
+            mc.WriteField("ExchangeField_" + str(num) + ".med", field, True)
 
             _, iteration, order = field.getTime()
             MEDinfo = [(field.getTypeOfField(), os.getcwd() + "/" + name_file, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
