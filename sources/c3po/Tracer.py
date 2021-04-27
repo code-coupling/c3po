@@ -15,7 +15,7 @@ import time
 import sys
 import os
 
-import C3PO.medcoupling_compat as mc
+import c3po.medcoupling_compat as mc
 
 def get_setInputMEDField_input(name, field):
     """! INTERNAL """
@@ -162,20 +162,20 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
 
     Tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
 
-        @C3PO.Tracer(...)
+        @c3po.Tracer(...)
         class MyClass(...):
             ...
 
     or it can be used in order to redefined only locally the class like that:
 
-        MyNewClass = C3PO.Tracer(...)(MyClass)
+        MyNewClass = c3po.Tracer(...)(MyClass)
 
     Tracer cannot distinguish different instance of the same class. The name of the instance created in the python file changes
     each time the __init__ method is called. This means that when a new instance is created, Tracer assumes that the previous
     ones are not used any more. If this is not the case, put the ouput of each instance in its own output file :
 
-        MyClass1 = C3PO.Tracer(pythonFile=file1, ...)(MyClass)
-        MyClass2 = C3PO.Tracer(pythonFile=file2, ...)(MyClass)
+        MyClass1 = c3po.Tracer(pythonFile=file1, ...)(MyClass)
+        MyClass2 = c3po.Tracer(pythonFile=file2, ...)(MyClass)
         instance1 = MyClass1()
         instance2 = MyClass2()
 
@@ -195,7 +195,7 @@ def Tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
         if pythonFile is not None:
             pythonFile.write("# -*- coding: utf-8 -*-" + "\n")
             pythonFile.write("from __future__ import print_function, division" + "\n")
-            pythonFile.write("import C3PO.medcoupling_compat as mc" + "\n")
+            pythonFile.write("import c3po.medcoupling_compat as mc" + "\n")
             pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
 
         baseclass.static_pythonFile = pythonFile

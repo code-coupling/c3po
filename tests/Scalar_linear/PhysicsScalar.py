@@ -2,7 +2,7 @@
 # This follows the PhysicsDriver concepts and returns y = a + b*x where a and b are parameters and x can be set as a input scalar.
 from __future__ import print_function, division
 
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 
 
 class PhysicsScalar(PhysicsDriver):

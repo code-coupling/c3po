@@ -11,7 +11,7 @@
 """ Contain the class FixedPointCoupler. """
 from __future__ import print_function, division
 
-from C3PO.Coupler import Coupler
+from c3po.Coupler import Coupler
 
 
 class FixedPointCoupler(Coupler):
@@ -77,7 +77,7 @@ class FixedPointCoupler(Coupler):
     def solveTimeStep(self):
         """! Solve a time step using the damped fixed-point algorithm.
 
-        See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
+        See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
         iiter = 0
         error = self.tolerance_ + 1.

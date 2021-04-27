@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
 
-import C3PO.medcoupling_compat as mc
+import c3po.medcoupling_compat as mc
 try:
     import Cathare_opt
     import Cathare_opt.Problem_Cathare as C3
 except ImportError:
     # importation dans Corpus
     from CATHARE3SWIG import CATHARE3 as C3
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 
 
 def short_name(name): return name.split("__")[1] if (name.startswith("reconstruction") or name.startswith("sommewall__")) else name

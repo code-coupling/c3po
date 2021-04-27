@@ -4,10 +4,10 @@ from __future__ import print_function, division
 from math import *
 import numpy
 
-import C3PO.medcoupling_compat as mc
+import c3po.medcoupling_compat as mc
 
 import MEDBuilder
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 
 Tsat = 1173.
 Pression = 1.5E5

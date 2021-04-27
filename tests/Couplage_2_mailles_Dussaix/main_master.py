@@ -3,15 +3,15 @@ from __future__ import print_function, division
 import mpi4py.MPI as mpi
 import unittest
 
-import C3PO.medcoupling_compat as mc
+import c3po.medcoupling_compat as mc
 
-import C3PO
-import C3POMPI
+import c3po
+import c3po.mpi
 
 
-class OneIterationCoupler(C3PO.Coupler):
+class OneIterationCoupler(c3po.Coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
-        C3PO.Coupler.__init__(self, physics, exchangers, dataManagers)
+        c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
 
     def solveTimeStep(self):
         self.physicsDrivers_[0].solve()
@@ -23,25 +23,25 @@ class DussaixSeq_master_worker(unittest.TestCase):
     def test_main(self):
         comm = mpi.COMM_WORLD
 
-        ThermoProcess = C3POMPI.MPIRemoteProcess(comm, 1)
-        NeutroProcess = C3POMPI.MPIRemoteProcess(comm, 2)
+        ThermoProcess = c3po.mpi.MPIRemoteProcess(comm, 1)
+        NeutroProcess = c3po.mpi.MPIRemoteProcess(comm, 2)
 
-        myThermoDriver = C3POMPI.MPIMasterPhysicsDriver(ThermoProcess)
+        myThermoDriver = c3po.mpi.MPIMasterPhysicsDriver(ThermoProcess)
         myThermoDriver.init()
         myThermoDriver.setValue("Vv_Vl", 10.)
 
-        myNeutroDriver = C3POMPI.MPIMasterPhysicsDriver(NeutroProcess)
+        myNeutroDriver = c3po.mpi.MPIMasterPhysicsDriver(NeutroProcess)
         myNeutroDriver.init()
         myNeutroDriver.setValue("meanT", 1000.)
 
-        DataCoupler = C3POMPI.MPIMasterDataManager(myThermoDriver, 0)
-        ExchangerNeutro2Thermo = C3POMPI.MPIMasterExchanger([ThermoProcess, NeutroProcess], 0)
-        ExchangerThermo2Data = C3POMPI.MPIMasterExchanger([ThermoProcess, NeutroProcess], 1)
-        ExchangerData2Neutro = C3POMPI.MPIMasterExchanger([ThermoProcess, NeutroProcess], 2)
+        DataCoupler = c3po.mpi.MPIMasterDataManager(myThermoDriver, 0)
+        ExchangerNeutro2Thermo = c3po.mpi.MPIMasterExchanger([ThermoProcess, NeutroProcess], 0)
+        ExchangerThermo2Data = c3po.mpi.MPIMasterExchanger([ThermoProcess, NeutroProcess], 1)
+        ExchangerData2Neutro = c3po.mpi.MPIMasterExchanger([ThermoProcess, NeutroProcess], 2)
 
         OneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [ExchangerNeutro2Thermo])
 
-        mycoupler = C3PO.FixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
+        mycoupler = c3po.FixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
         mycoupler.setDampingFactor(0.125)
         mycoupler.setConvergenceParameters(1E-5, 100)
 

@@ -13,7 +13,7 @@ from __future__ import print_function, division
 import math
 import numpy as np
 
-from C3PO.Coupler import Coupler
+from c3po.Coupler import Coupler
 
 def deleteQRColumn(Q, R, dataTemp):
     """! INTERNAL
@@ -123,7 +123,7 @@ class AndersonQRCoupler(Coupler):
 
         Inspire de Homer Walker (walker@wpi.edu), 10/14/2011.
 
-        See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
+        See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
         physics = self.physicsDrivers_[0]
         physics2Data = self.exchangers_[0]

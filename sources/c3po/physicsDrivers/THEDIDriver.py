@@ -16,9 +16,9 @@ try:
     import pyTHEDI_MED as THEDI_MED
 except:
     pass
-import C3PO.medcoupling_compat as mc
+import c3po.medcoupling_compat as mc
 
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 from THEDIInit import THEDIInit
 
 

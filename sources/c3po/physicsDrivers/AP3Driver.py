@@ -10,7 +10,7 @@
 
 """ Contain the class AP3Driver. """
 from __future__ import print_function, division
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 
 
 class AP3Driver(PhysicsDriver):

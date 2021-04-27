@@ -12,9 +12,9 @@
 from __future__ import print_function, division
 import mpi4py.MPI as mpi
 
-import C3PO.medcoupling_compat as mc
+import c3po.medcoupling_compat as mc
 
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 from Alcyone2Init import Alcyone2Init
 
 import pleiades

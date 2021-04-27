@@ -3,7 +3,7 @@
 from __future__ import print_function, division
 import numpy as np
 
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 
 
 class PhysicsMatrix(PhysicsDriver):

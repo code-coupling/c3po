@@ -12,9 +12,9 @@
 from __future__ import print_function, division
 from mpi4py import MPI
 
-from C3POMPI.MPITag import MPITag
-from C3POMPI.MPIRemoteProcess import MPIRemoteProcess
-from C3POMPI.MPIMasterCollectivePhysicsDriver import MPIMasterCollectivePhysicsDriver
+from c3po.mpi.MPITag import MPITag
+from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
+from c3po.mpi.MPIMasterCollectivePhysicsDriver import MPIMasterCollectivePhysicsDriver
 
 
 class MPIWorker(object):
@@ -23,12 +23,12 @@ class MPIWorker(object):
     def __init__(self, physicsDrivers, exchangers, dataManagers, masterProcess):
         """! Build a MPIWorker object.
 
-        @param physicsDrivers List of C3PO.PhysicsDriver.PhysicsDriver. Only one should not be a MPIRemoteProcess: it is the one the 
+        @param physicsDrivers List of c3po.PhysicsDriver.PhysicsDriver. Only one should not be a MPIRemoteProcess: it is the one the 
         worker is responsible for.
-        @param exchangers List of C3PO.Exchanger.Exchanger. The indices in this list are the numbers identifying the C3PO.Exchanger.Exchanger 
+        @param exchangers List of c3po.Exchanger.Exchanger. The indices in this list are the numbers identifying the c3po.Exchanger.Exchanger 
         for the master.
-        @param dataManagers List of C3PO.DataManager.DataManager. The indices in this list are the numbers identifying the 
-        C3PO.DataManager.DataManager for the master.
+        @param dataManagers List of c3po.DataManager.DataManager. The indices in this list are the numbers identifying the 
+        c3po.DataManager.DataManager for the master.
         @param masterProcess Either a MPIRemoteProcess or a MPIMasterCollectivePhysicsDriver identifying the master process. In the 
         first case point-to-point communications are used, in the second case collective communications are used. 
         """

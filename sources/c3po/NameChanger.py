@@ -73,13 +73,13 @@ def NameChanger(nameMapping):
 
     NameChanger can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere. For example:
 
-        @C3PO.NameChanger({"newName" : "oldName"})
+        @c3po.NameChanger({"newName" : "oldName"})
         class MyClass(...):
             ...
 
     or it can be used in order to redefined only locally the class like that:
 
-        MyNewClass = C3PO.NameChanger({"newName" : "oldName"})(MyClass)
+        MyNewClass = c3po.NameChanger({"newName" : "oldName"})(MyClass)
 
     afterward "newName" can be used in place of "oldName" everywhere with MyNewClass. "oldName" is still working.
 

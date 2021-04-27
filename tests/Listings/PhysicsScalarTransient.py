@@ -2,7 +2,7 @@
 # This follows the PhysicsDriver concepts and returns y = a*(1+t) + b*x where a and b are parameters, x can be set as a input scalar and t is the present time.
 from __future__ import print_function, division
 
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 
 
 class PhysicsScalarTransient(PhysicsDriver):

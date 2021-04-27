@@ -11,8 +11,8 @@
 """ Contain the class SharedRemappingMulti1D3D. """
 from __future__ import print_function, division
 
-import C3PO.medcoupling_compat as mc
-from C3PO.medcoupling_compat import MEDCouplingRemapper
+import c3po.medcoupling_compat as mc
+from c3po.medcoupling_compat import MEDCouplingRemapper
 
 
 class Multi1D3DRemapper(MEDCouplingRemapper):
@@ -152,7 +152,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
 class SharedRemappingMulti1D3D(object):
     """! SharedRemappingMulti1D3D projects the input fields one by one before returning them as outputs, in the same order.
 
-    See C3PO.Exchanger.Exchanger.__init__().
+    See c3po.Exchanger.Exchanger.__init__().
 
     1D fields are processed in packets using the intermediate mesh defined by the Multi1D3DRemapper object.
 

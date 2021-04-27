@@ -11,14 +11,14 @@
 """ Contain the class MPICollectiveDataManager. """
 from __future__ import print_function, division
 
-from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
-from C3PO.DataManager import DataManager
+from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
+from c3po.DataManager import DataManager
 
 
 class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
-    """! MPICollectiveDataManager is the MPI collaborative version of the C3PO.DataManager.DataManager in which all processes have locally all data.
+    """! MPICollectiveDataManager is the MPI collaborative version of the c3po.DataManager.DataManager in which all processes have locally all data.
 
-    Can replace, without impact, a C3PO.DataManager.DataManager for a calculation on a single process, if the MPI environment is available.
+    Can replace, without impact, a c3po.DataManager.DataManager for a calculation on a single process, if the MPI environment is available.
     """
 
     def __init__(self, mpiComm):

@@ -11,11 +11,11 @@
 """ Contain the classes MPIExchanger and MPIShortcutToData, MPIShortcutToData is for internal use only. """
 from __future__ import print_function, division
 
-from C3PO.Exchanger import Exchanger, ShortcutToData
-from C3POMPI.MPIRemoteProcess import MPIRemoteProcess
-from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
-from C3POMPI.MPISender import MPIFieldSender, MPIFileFieldSender, MPIValueSender
-from C3POMPI.MPIRecipient import MPIFieldRecipient, MPIFileFieldRecipient, MPIValueRecipient
+from c3po.Exchanger import Exchanger, ShortcutToData
+from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
+from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
+from c3po.mpi.MPISender import MPIFieldSender, MPIFileFieldSender, MPIValueSender
+from c3po.mpi.MPIRecipient import MPIFieldRecipient, MPIFileFieldRecipient, MPIValueRecipient
 
 
 class MPIShortcutToData(object):
@@ -47,12 +47,12 @@ class MPIShortcutToData(object):
 
 
 class MPIExchanger(Exchanger):
-    """! MPIExchanger is the MPI version of C3PO.Exchanger.Exchanger. 
+    """! MPIExchanger is the MPI version of c3po.Exchanger.Exchanger. 
 
     The class takes in charge data exchanges between MPI processes (in the case where each code exposes its data on a single 
     MPI process). It manages the MPI exchanges before managing the local exchanges with the mother class.
 
-    Can replace, without impact, an C3PO.Exchanger.Exchanger for a calculation on a single process, if the MPI environment is available.
+    Can replace, without impact, an c3po.Exchanger.Exchanger for a calculation on a single process, if the MPI environment is available.
     """
 
     def __init__(self, method, medFieldsToGet, medFieldsToSet, valuesToGet=[], valuesToSet=[], exchangeWithFiles=False):
@@ -81,8 +81,8 @@ class MPIExchanger(Exchanger):
             * The MED fields to impose by setInputMEDField() on the medFieldsToSet objects, in the same order.
             * The scalars to impose by setValue() on the valuesToSet objects, in the same order.
 
-        @param medFieldsToGet a list of tuples (object, name). object must be either a C3PO.PhysicsDriver.PhysicsDriver or a 
-        C3PO.DataManager.DataManager, and name is the name of the field to get from object.
+        @param medFieldsToGet a list of tuples (object, name). object must be either a c3po.PhysicsDriver.PhysicsDriver or a 
+        c3po.DataManager.DataManager, and name is the name of the field to get from object.
         @param medFieldsToSet a list of tuples in the same format as medFieldsToGet. name is the name of the field to set in object.
         @param valuesToGet idem medFieldsToGet but for scalars.
         @param valuesToSet idem medFieldsToSet but for scalars.

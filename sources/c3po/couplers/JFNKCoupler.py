@@ -13,7 +13,7 @@ from __future__ import print_function, division
 import math
 import numpy as np
 
-from C3PO.Coupler import Coupler
+from c3po.Coupler import Coupler
 
 
 def solveTriang(A, b):
@@ -114,7 +114,7 @@ class JFNKCoupler(Coupler):
     def solveTimeStep(self):
         """! Solve a time step using Jacobian-Free Newton Krylov algorithm.
 
-        See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
+        See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
         physics = self.physicsDrivers_[0]
         physics2Data = self.exchangers_[0]

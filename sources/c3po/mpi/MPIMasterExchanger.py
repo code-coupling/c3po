@@ -11,13 +11,13 @@
 """ Contain the class MPIMasterExchanger. """
 from __future__ import print_function, division
 
-from C3POMPI.MPITag import MPITag
-from C3POMPI.MPIRemoteProcess import MPIRemoteProcess
-from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
+from c3po.mpi.MPITag import MPITag
+from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
+from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 
 
 class MPIMasterExchanger(object):
-    """! MPIMasterExchanger is used by the master to control remote C3PO.Exchanger.Exchanger(s). 
+    """! MPIMasterExchanger is used by the master to control remote c3po.Exchanger.Exchanger(s). 
 
     It can, in addition, be in charge of a local one (that allows the master to participate to the calculation).
 
@@ -29,8 +29,8 @@ class MPIMasterExchanger(object):
 
         @param workerProcesses The list of MPIRemoteProcess or MPICollectiveProcess identifying the remote processes involved in the 
         exchange. In the case of MPICollectiveProcess, the mpiComm must include all the workers + the master, and only them.
-        @param idExchangerWorker Number identifying the controlled C3PO.Exchanger.Exchanger in the involved workers (see C3POMPI.MPIWorker.MPIWorker).
-        @param localExchanger a C3PO.Exchanger.Exchanger the MPIMasterExchanger object will run in the same time than the workers. It 
+        @param idExchangerWorker Number identifying the controlled c3po.Exchanger.Exchanger in the involved workers (see c3po.mpi.MPIWorker.MPIWorker).
+        @param localExchanger a c3po.Exchanger.Exchanger the MPIMasterExchanger object will run in the same time than the workers. It 
         enables the master to contribute to a collective computation.
         """
         self.workerProcesses_ = workerProcesses

@@ -13,24 +13,24 @@ from __future__ import print_function, division
 import math
 from mpi4py import MPI
 
-from C3PO.CollaborativeDataManager import CollaborativeDataManager
-from C3POMPI.MPIRemoteProcess import MPIRemoteProcess
+from c3po.CollaborativeDataManager import CollaborativeDataManager
+from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
 
 
 class MPICollaborativeDataManager(CollaborativeDataManager):
-    """! MPICollaborativeDataManager is the MPI collaborative version of C3PO.CollaborativeDataManager.CollaborativeDataManager 
+    """! MPICollaborativeDataManager is the MPI collaborative version of c3po.CollaborativeDataManager.CollaborativeDataManager 
     (for collaborative MPI paradigm). 
 
-    It allows to handle a set of C3PO.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class, 
+    It allows to handle a set of c3po.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class, 
     data can be distributed on different MPI processes but still used in the same way. 
 
-    Exchanges are still to be done with the individual C3PO.DataManager.DataManager.
+    Exchanges are still to be done with the individual c3po.DataManager.DataManager.
 
     When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must 
     be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes
     of that communicator must be involved.
 
-    Can replace, without impact, a C3PO.CollaborativeDataManager.CollaborativeDataManager of a single processor calculation, if the MPI 
+    Can replace, without impact, a c3po.CollaborativeDataManager.CollaborativeDataManager of a single processor calculation, if the MPI 
     environment is available.
     """
 
@@ -43,7 +43,7 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes 
         of that communicator must be involved.
 
-        @param dataManagers a list of C3PO.DataManager.DataManager.
+        @param dataManagers a list of c3po.DataManager.DataManager.
         """
         self.mpiComm_ = -1
         self.isMPI_ = False

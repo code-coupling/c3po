@@ -12,17 +12,17 @@
 from __future__ import print_function, division
 from mpi4py import MPI
 
-from C3PO.Coupler import Coupler
-from C3POMPI.MPIRemoteProcess import MPIRemoteProcess
-from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
+from c3po.Coupler import Coupler
+from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
+from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 
 
 class MPICoupler(Coupler):
-    """! MPICoupler is the MPI collaborative version of C3PO.Coupler.Coupler.
+    """! MPICoupler is the MPI collaborative version of c3po.Coupler.Coupler.
 
     The MPI functionalities are used for some collective operations.
 
-    Can replace, without impact, a C3PO.Coupler.Coupler for a calculation on a single process, if the MPI environment is available.
+    Can replace, without impact, a c3po.Coupler.Coupler for a calculation on a single process, if the MPI environment is available.
     """
 
     def __init__(self, physics, exchangers, dataManagers=[], mpiComm=None):
@@ -34,9 +34,9 @@ class MPICoupler(Coupler):
         the object must be built and used in the same way for all the involved processes. They must all share the same communicator, 
         and all the processes of this communicator must be involved.
 
-        @param physics list (or dictionary) of C3PO.PhysicsDriver.PhysicsDriver objects to be coupled.
-        @param exchangers list (or dictionary) of C3PO.Exchanger.Exchanger for the coupling.
-        @param dataManagers list (or dictionary) of C3PO.DataManager.DataManager used in the coupling.
+        @param physics list (or dictionary) of c3po.PhysicsDriver.PhysicsDriver objects to be coupled.
+        @param exchangers list (or dictionary) of c3po.Exchanger.Exchanger for the coupling.
+        @param dataManagers list (or dictionary) of c3po.DataManager.DataManager used in the coupling.
         @param mpiComm The optional mpiComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess 
         or MPICollectiveProcess are found.
                         It has to be given to the constructor of the object on all involved processes.

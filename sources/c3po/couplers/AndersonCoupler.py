@@ -13,7 +13,7 @@ from __future__ import print_function, division
 
 import numpy as np
 
-from C3PO.Coupler import Coupler
+from c3po.Coupler import Coupler
 
 
 class AndersonCoupler(Coupler):
@@ -93,7 +93,7 @@ class AndersonCoupler(Coupler):
     def solveTimeStep(self):
         """! Solve a time step using the fixed point algorithm with Anderson acceleration.
 
-        See also C3PO.PhysicsDriver.PhysicsDriver.solveTimeStep().
+        See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
         physics = self.physicsDrivers_[0]
         physics2Data = self.exchangers_[0]

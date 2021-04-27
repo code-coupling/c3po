@@ -17,9 +17,9 @@ import shutil
 import subprocess
 
 import FlicaICoCo
-import C3PO.medcoupling_compat as mc
+import c3po.medcoupling_compat as mc
 
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 
 
 class FLICA4Driver(PhysicsDriver):

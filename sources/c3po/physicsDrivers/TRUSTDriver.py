@@ -2,7 +2,7 @@
 from __future__ import print_function, division
 
 import trusticoco as ti
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 
 
 class TRUSTDriver(ti.ProblemTrio, PhysicsDriver):

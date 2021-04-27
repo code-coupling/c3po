@@ -3,7 +3,7 @@ from __future__ import print_function
 import numpy as np
 import unittest
 
-import C3PO
+import c3po
 
 class Matrix_test(unittest.TestCase):
     def test_main(self):
@@ -12,17 +12,17 @@ class Matrix_test(unittest.TestCase):
         myPhysics = PhysicsMatrix()
         taille = myPhysics.getValue("taille")
 
-        Transformer = C3PO.DirectMatching()
+        Transformer = c3po.DirectMatching()
 
-        DataCoupler = C3PO.DataManager()
-        Physics2Data = C3PO.Exchanger(Transformer, [], [], [(myPhysics, str(i)) for i in range(taille)], [(DataCoupler, str(i)) for i in range(taille)])
-        Data2Physics = C3PO.Exchanger(Transformer, [], [], [(DataCoupler, str(i)) for i in range(taille)], [(myPhysics, str(i)) for i in range(taille)])
+        DataCoupler = c3po.DataManager()
+        Physics2Data = c3po.Exchanger(Transformer, [], [], [(myPhysics, str(i)) for i in range(taille)], [(DataCoupler, str(i)) for i in range(taille)])
+        Data2Physics = c3po.Exchanger(Transformer, [], [], [(DataCoupler, str(i)) for i in range(taille)], [(myPhysics, str(i)) for i in range(taille)])
 
-        CouplerGS = C3PO.FixedPointCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
+        CouplerGS = c3po.FixedPointCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
         CouplerGS.setDampingFactor(0.5)
-        CouplerAnderson = C3PO.AndersonQRCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
+        CouplerAnderson = c3po.AndersonQRCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
         CouplerAnderson.setOrder(3)
-        CouplerJFNK = C3PO.JFNKCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
+        CouplerJFNK = c3po.JFNKCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
         CouplerJFNK.setKrylovConvergenceParameters(1E-4, 3)
 
         CouplerGS.init()

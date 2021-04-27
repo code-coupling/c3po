@@ -12,18 +12,18 @@
 from __future__ import print_function, division
 from mpi4py import MPI
 
-from C3PO.PhysicsDriver import PhysicsDriver
-from C3POMPI.MPITag import MPITag
+from c3po.PhysicsDriver import PhysicsDriver
+from c3po.mpi.MPITag import MPITag
 
 
 class MPIMasterCollectivePhysicsDriver(PhysicsDriver):
-    """! MPIMasterCollectivePhysicsDriver is used by the master process to control a set of remote C3PO.PhysicsDriver.PhysicsDriver
+    """! MPIMasterCollectivePhysicsDriver is used by the master process to control a set of remote c3po.PhysicsDriver.PhysicsDriver
     as a single one. 
 
     It can, in addition, be in charge of a local one. This class is well suited to steer a code using an internal collaborative MPI 
     parallelization.
 
-    Inherits from C3PO.PhysicsDriver.PhysicsDriver. All the methods of the mother class are implemented and consist in commanding the 
+    Inherits from c3po.PhysicsDriver.PhysicsDriver. All the methods of the mother class are implemented and consist in commanding the 
     workers to execute them.
     """
 
@@ -31,9 +31,9 @@ class MPIMasterCollectivePhysicsDriver(PhysicsDriver):
         """! Build a MPIMasterCollectivePhysicsDriver object.
 
         @param collectiveWorkerProcess a MPICollectiveProcess identifying the worker processes. The MPIComm must include all the 
-        workers + the master, and only them. Each worker can be in charge of only one C3PO.PhysicsDriver.PhysicsDriver.
+        workers + the master, and only them. Each worker can be in charge of only one c3po.PhysicsDriver.PhysicsDriver.
         @param masterRank the rank of the master process in the MPIComm used by collectiveWorkerProcess.
-        @param localPhysicsDriver a C3PO.PhysicsDriver.PhysicsDriver the MPIMasterCollectivePhysicsDriver object will run in the same 
+        @param localPhysicsDriver a c3po.PhysicsDriver.PhysicsDriver the MPIMasterCollectivePhysicsDriver object will run in the same 
         time than the workers. It enables the master to contribute to a collective computation.
         """
         PhysicsDriver.__init__(self)

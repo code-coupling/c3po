@@ -11,14 +11,14 @@
 """ Contain the class MPIRemoteProcess. """
 from __future__ import print_function, division
 
-from C3PO.PhysicsDriver import PhysicsDriver
-from C3PO.DataManager import DataManager
+from c3po.PhysicsDriver import PhysicsDriver
+from c3po.DataManager import DataManager
 
 
 class MPIRemoteProcess(PhysicsDriver, DataManager):
     """! MPIRemoteProcess identifies a remote process. 
 
-    Inherits from C3PO.PhysicsDriver.PhysicsDriver and C3PO.DataManager.DataManager but passes most of the methods: it does nothing.
+    Inherits from c3po.PhysicsDriver.PhysicsDriver and c3po.DataManager.DataManager but passes most of the methods: it does nothing.
     """
 
     def __init__(self, mpiComm, rank):

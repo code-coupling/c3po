@@ -15,10 +15,10 @@ from __future__ import print_function, division
 from mpi4py import MPI
 import os
 
-from C3POMPI.MPITag import MPITag
-from C3POMPI.MPICollectiveProcess import MPICollectiveProcess
+from c3po.mpi.MPITag import MPITag
+from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 
-import C3PO.medcoupling_compat as mc
+import c3po.medcoupling_compat as mc
 
 
 class MPIFieldSender(object):

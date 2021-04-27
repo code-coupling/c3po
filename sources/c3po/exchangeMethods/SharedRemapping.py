@@ -11,7 +11,7 @@
 """ Contain the class SharedRemapping. """
 from __future__ import print_function, division
 
-from C3PO.medcoupling_compat import MEDCouplingRemapper
+from c3po.medcoupling_compat import MEDCouplingRemapper
 
 class Remapper(MEDCouplingRemapper):
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
@@ -39,7 +39,7 @@ class Remapper(MEDCouplingRemapper):
 class SharedRemapping(object):
     """! SharedRemapping projects the input fields one by one before returning them as outputs, in the same order.
 
-    See C3PO.Exchanger.Exchanger.__init__().
+    See c3po.Exchanger.Exchanger.__init__().
 
     The method assumes that all input fields have the same mesh, and produces output fields on identical meshes.
 

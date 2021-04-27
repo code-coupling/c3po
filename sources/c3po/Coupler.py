@@ -11,7 +11,7 @@
 """ Contain the class Coupler. """
 from __future__ import print_function, division
 
-from C3PO.PhysicsDriver import PhysicsDriver
+from c3po.PhysicsDriver import PhysicsDriver
 
 
 class NormChoice(object):
