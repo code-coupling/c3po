@@ -83,6 +83,20 @@ class CRONOS2Driver(PhysicsDriver):
             self.a_.eval("T_C3PO.'paramDict'.'DMOD' = 'DMOD' ; ")
             self.a_.eval("T_C3PO.'paramDict'.'TMOD' = 'TMOD' ; ")
             self.a_.eval("T_C3PO.'paramDict'.'PUIS' = 'PUISSANCE_W' ; ")
+            # check for existence of basic CRONOS tables
+            self.a_.eval("WARNING_T_STR = FAUX ; WARNING_T_OPT = FAUX ; WARNING_T_RES = FAUX ; WARNING_T_IMP = FAUX; ")
+            self.a_.eval("NONSI (EXISTE T_STR) ; WARNING_T_STR = VRAI ; T_STR = TABLE: ; FINSI ;")
+            self.a_.eval("NONSI (EXISTE T_OPT) ; WARNING_T_OPT = VRAI ; T_OPT = TABLE: ; FINSI ;")
+            self.a_.eval("NONSI (EXISTE T_RES) ; WARNING_T_RES = VRAI ; T_RES = TABLE: ; FINSI ;")
+            self.a_.eval("NONSI (EXISTE T_IMP) ; WARNING_T_IMP = VRAI ; T_IMP = TABLE: ; FINSI ;")
+            if bool(self.a_.getBool("WARNING_T_STR")):
+                self.a_.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_STR DOES NOT EXIST, TABLE T_STR IS CREATED' ;")
+            if bool(self.a_.getBool("WARNING_T_OPT")):
+                self.a_.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_OPT DOES NOT EXIST, TABLE T_OPT IS CREATED' ;")
+            if bool(self.a_.getBool("WARNING_T_RES")):
+                self.a_.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_RES DOES NOT EXIST, TABLE T_RES IS CREATED' ;")
+            if bool(self.a_.getBool("WARNING_T_IMP")):
+                self.a_.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_IMP DOES NOT EXIST, TABLE T_IMP IS CREATED' ;")
             # if need be, modify/add relevant T_C3PO variables inside ICOCO_INITIALIZE
             self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INITIALIZE T_IMP T_STR T_OPT T_RES T_C3PO ;")
             # initialize dictionary values
@@ -165,11 +179,13 @@ class CRONOS2Driver(PhysicsDriver):
         if (name in ParamKey.outputKeys):
             self.a_.eval("T_C3PO.'name' = '" + self.paramDict_[name] + "' ;")
             self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_OUTPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
-            self.a_.eval("field_out = T_C3PO.'field_out' ;")
-            myCppPtr = self.a_.getCppPtr("field_out")
+            self.a_.eval("field_output = T_C3PO.'field_out' ;")
+            myCppPtr = self.a_.getCppPtr("field_output")
             field_output = MEDconvert.void2field(myCppPtr)
-            field_output.setNature(mc.ExtensiveMaximum)  # ExtensiveMaximum interpolation of extensive variables
-            return field_output
+            # Do not return a field pointer to Gibiane memory, return a deep copy of the field instead
+            field_return = field_output.deepCpy()
+            field_return.setNature(mc.ExtensiveMaximum) # power (in watts) is an extensive variable 
+            return field_return
         else:
             raise Exception("CRONOS2Driver.getOutputMEDField Only " + str(ParamKey.outputKeys) + " output available but name='" + name + "'.")
 
@@ -186,11 +202,13 @@ class CRONOS2Driver(PhysicsDriver):
         if (name in ParamKey.inputKeys):
             self.a_.eval("T_C3PO.'name' = '" + self.paramDict_[name] + "' ;")
             self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_INPUT_MEDFIELD_TEMPLATE T_IMP T_STR T_OPT T_RES T_C3PO ;")
-            self.a_.eval("field_out = T_C3PO.'field_out' ;")
-            myCppPtr = self.a_.getCppPtr("field_out")
+            self.a_.eval("field_template = T_C3PO.'field_out' ;")
+            myCppPtr = self.a_.getCppPtr("field_template")
             field_template = MEDconvert.void2field(myCppPtr)
-            field_template.setNature(mc.IntensiveMaximum)  # IntensiveMaximum interpolation of intensive variables
-            return field_template
+            # Do not return a field pointer to Gibiane memory, return a deep copy of the field instead
+            field_return = field_template.deepCpy()
+            field_return.setNature(mc.IntensiveMaximum)  # temperature/density are intensive variables
+            return field_return
         else:
             raise Exception("CRONOS2Driver.getIntputMEDFieldTemplate Only " + str(ParamKey.inputKeys) + " template available but name='" + name + "'.")
 
