@@ -15,16 +15,20 @@ import numpy as np
 import os
 
 from C3PO.Coupler import Coupler
+from C3PO.CollaborativeDataManager import CollaborativeDataManager
 
 
 class AndersonCoupler(Coupler):
     """! AndersonCoupler inherits from Coupler and proposes a fixed point algorithm with Anderson acceleration.
 
-    The class proposes an algorithm for the resolution of F(X) = X. Thus AndersonCoupler is a Coupler working with precisely :
+    The class proposes an algorithm for the resolution of F(X) = X. Thus AndersonCoupler is a Coupler working with :
 
     - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
-    - A single DataManager allowing to manipulate the data in the coupling (the X).
+    - A list of DataManager allowing to manipulate the data in the coupling (the X).
     - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+
+    Each DataManager is normalized with its own norm got after the first iteration.
+    They are then used as a single DataManager using CollaborativeDataManager.
 
     The first two iterations just do (with n the iteration number):
 
@@ -43,28 +47,26 @@ class AndersonCoupler(Coupler):
     The default maximum number of iterations is 100. Call setConvergenceParameters() to change it.
     """
 
-    def __init__(self, physics, exchangers, dataManager):
+    def __init__(self, physics, exchangers, dataManagers):
         """! Build a AndersonCoupler object.
 
         @param physics list of only one PhysicsDriver (possibly a Coupler).
         @param exchangers list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
-        @param dataManager list of only one DataManager.
+        @param dataManagers list of DataManager.
         """
-        Coupler.__init__(self, physics, exchangers, dataManager)
+        Coupler.__init__(self, physics, exchangers, dataManagers)
         self.tolerance_ = 1.E-6
         self.maxiter_ = 100
         self.order_ = 2
         self.andersonDampingFactor_ = 1.
         self.isConverged_ = False
 
-        if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManager, list):
-            raise Exception("AndersonCoupler.__init__ physics, exchangers and dataManager must be lists!")
+        if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
+            raise Exception("AndersonCoupler.__init__ physics, exchangers and dataManagers must be lists!")
         if len(physics) != 1:
             raise Exception("AndersonCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:
             raise Exception("AndersonCoupler.__init__ There must be exactly two Exchanger")
-        if len(dataManager) != 1:
-            raise Exception("AndersonCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations). 
@@ -99,7 +101,6 @@ class AndersonCoupler(Coupler):
         physics = self.physicsDrivers_[0]
         physics2Data = self.exchangers_[0]
         data2physics = self.exchangers_[1]
-        data = self.dataManagers_[0]
         Memory = [0] * (self.order_ + 1)
         diffFiFn = []
         iiter = 0
@@ -108,6 +109,11 @@ class AndersonCoupler(Coupler):
         print("iteration ", iiter)
         physics.solve()
         physics2Data.exchange()
+
+        data = CollaborativeDataManager(self.dataManagers_)
+        normData = self.readNormData()
+        self.normalizeData(normData)
+
         previousData = data.clone()
         iiter += 1
 
@@ -115,9 +121,11 @@ class AndersonCoupler(Coupler):
         print("iteration ", iiter)
         self.abortTimeStep()
         self.initTimeStep(self.dt_)
+        self.denormalizeData(normData)
         data2physics.exchange()
         physics.solve()
         physics2Data.exchange()
+        self.normalizeData(normData)
         diffData = data - previousData
         Memory[0] = [previousData.clone(), data.clone(), diffData.clone()]  # [u_0, G(u_0) = u_1, u_1 - u_0]
         previousData.copy(data)
@@ -136,9 +144,11 @@ class AndersonCoupler(Coupler):
 
             self.abortTimeStep()
             self.initTimeStep(self.dt_)
+            self.denormalizeData(normData)
             data2physics.exchange()
             physics.solve()
             physics2Data.exchange()
+            self.normalizeData(normData)
 
             diffData.copy(data)
             diffData -= previousData
@@ -164,6 +174,7 @@ class AndersonCoupler(Coupler):
             iiter += 1
             print("error : ", error)
 
+        self.denormalizeData(normData)
         return physics.getSolveStatus() and not(error > self.tolerance_)
 
     def andersonAccelerationN(self, andersonMemory, diffFiFn, out, localOrder):

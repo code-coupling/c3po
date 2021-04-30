@@ -14,6 +14,7 @@ import math
 import numpy as np
 
 from C3PO.Coupler import Coupler
+from C3PO.CollaborativeDataManager import CollaborativeDataManager
 
 
 def solveTriang(A, b):
@@ -42,11 +43,14 @@ class JFNKCoupler(Coupler):
 
     epsilon is a parameter of the algorithm. Its default value is 1E-4. Call setEpsilon() to change it
 
-    JFNKCoupler is a Coupler working with precisely :
+    JFNKCoupler is a Coupler working with :
 
     - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called. 
-    - A single DataManager allowing to manipulate the data in the coupling.
+    - A list of DataManager allowing to manipulate the data in the coupling.
     - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+
+    Each DataManager is normalized with its own norm got after the first iteration.
+    They are then used as a single DataManager using CollaborativeDataManager.
 
     As the Newton algorithm solves for F(X) = 0, in order to be coherent with the fixed point coupling algorithms, F(x) is defined as F(X) = f(X) - X, where f is the output of the physicsDriver.    
 
@@ -62,14 +66,14 @@ class JFNKCoupler(Coupler):
 
     """
 
-    def __init__(self, physics, exchangers, dataManager):
+    def __init__(self, physics, exchangers, dataManagers):
         """! Build a JFNKCoupler object.
 
         @param physics list of only one PhysicsDriver (possibly a Coupler).
         @param exchangers list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
-        @param dataManager list of only one DataManager.
+        @param dataManagers list of DataManager.
         """
-        Coupler.__init__(self, physics, exchangers, dataManager)
+        Coupler.__init__(self, physics, exchangers, dataManagers)
         self.NewtonTolerance_ = 1.E-6
         self.NewtonMaxIter_ = 10
         self.KrylovTolerance_ = 1.E-4
@@ -77,14 +81,12 @@ class JFNKCoupler(Coupler):
         self.epsilon_ = 1.E-4
         self.isConverged_ = False
 
-        if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManager, list):
-            raise Exception("JFNKCoupler.__init__ physics, exchangers and dataManager must be lists!")
+        if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
+            raise Exception("JFNKCoupler.__init__ physics, exchangers and dataManagers must be lists!")
         if len(physics) != 1:
             raise Exception("JFNKCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:
             raise Exception("JFNKCoupler.__init__ There must be exactly two Exchanger")
-        if len(dataManager) != 1:
-            raise Exception("JFNKCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations). 
@@ -119,7 +121,6 @@ class JFNKCoupler(Coupler):
         physics = self.physicsDrivers_[0]
         physics2Data = self.exchangers_[0]
         data2physics = self.exchangers_[1]
-        data = self.dataManagers_[0]
         iterNewton = 0
         iterKrylov = 0
         residual = 0
@@ -130,6 +131,10 @@ class JFNKCoupler(Coupler):
         # On calcul ici l'etat "0"
         physics.solve()
         physics2Data.exchange()
+
+        data = CollaborativeDataManager(self.dataManagers_)
+        normData = self.readNormData()
+        self.normalizeData(normData)
 
         errorNewton = self.NewtonTolerance_ + 1
 
@@ -145,9 +150,11 @@ class JFNKCoupler(Coupler):
 
             self.abortTimeStep()
             self.initTimeStep(self.dt_)
+            self.denormalizeData(normData)
             data2physics.exchange()
             physics.solve()
             physics2Data.exchange()
+            self.normalizeData(normData)
 
             residual -= data  # residual is the second member of the linear system: -F(x) = -(f(x)-x)
             Norm2Residual = residual.norm2()
@@ -180,9 +187,11 @@ class JFNKCoupler(Coupler):
 
                     self.abortTimeStep()
                     self.initTimeStep(self.dt_)
+                    self.denormalizeData(normData)
                     data2physics.exchange()
                     physics.solve()
                     physics2Data.exchange()
+                    self.normalizeData(normData)
 
                     data -= previousData
                     data.imuladd(-self.epsilon_, Q[iterKrylov - 1])
@@ -245,6 +254,7 @@ class JFNKCoupler(Coupler):
             iterNewton += 1
             print("error Newton : ", errorNewton)
 
+        self.denormalizeData(normData)
         return physics.getSolveStatus() and not(errorNewton > self.NewtonTolerance_)
 
     # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
