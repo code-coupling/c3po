@@ -112,25 +112,35 @@ class FLICA4AutoSwitchDriver(PhysicsDriver):
     """ This PhysicsDriver drives two FLICA4Driver, for stationnary and transient, and switches from one to the other automatically.
     """
 
-    data_file_stationnary_ = os.path.join(os.getenv("DATADIR"), "flica4_static.dat")
-    data_file_transient_ = os.path.join(os.getenv("DATADIR"), "flica4_transient.dat")
 
-    def __init__(self):
+    def __init__(self,
+                 data_file_stationnary = None,
+                 data_file_transient = None):
         PhysicsDriver.__init__(self)
-
         self.Flica4Steady_ = FLICA4Driver()
         self.Flica4Transient_ = FLICA4Driver()
         self.Flica4Current_ = self.Flica4Steady_
         self.isStationnary_ = True
         self.isInit_ = False
+        
+        if data_file_stationnary is None :
+            self.data_file_stationnary_ = os.path.join(os.getenv("DATADIR", os.getcwd()), "flica4_static.dat")
+        else : 
+            self.data_file_stationnary_ = data_file_stationnary
+        
+        if data_file_transient is None :
+            self.data_file_transient_ = os.path.join(os.getenv("DATADIR", os.getcwd()), "flica4_transient.dat")
+        else : 
+             self.data_file_transient_ = data_file_transient
 
-    def initialize(self):
+    def initialize(self,):
+        
         if self.isStationnary_:
             if self.isInit_:
                 return True
             else:
                 self.isInit_ = True
-                self.Flica4Steady_.setDataFile(FLICA4AutoSwitchDriver.data_file_stationnary_)
+                self.Flica4Steady_.setDataFile(self.data_file_stationnary_)
                 return self.Flica4Steady_.initialize()
         else:
             raise Exception("FLICA4AutoSwitchDriver.initialize : only available in stationnary mode.")
@@ -154,7 +164,7 @@ class FLICA4AutoSwitchDriver(PhysicsDriver):
                 self.Flica4Transient_ = FLICA4Driver()
                 if not self.isInit_:
                     self.isInit_ = True
-                    self.Flica4Steady_.setDataFile(FLICA4AutoSwitchDriver.data_file_stationnary_)
+                    self.Flica4Steady_.setDataFile(self.data_file_stationnary_)
                     self.Flica4Steady_.initialize()
                 self.Flica4Current_ = self.Flica4Steady_
                 return self.Flica4Current_.initTimeStep(dt)
@@ -164,7 +174,7 @@ class FLICA4AutoSwitchDriver(PhysicsDriver):
                 self.Flica4Steady_.terminate()
                 self.Flica4Steady_ = FLICA4Driver()
                 self.isInit_ = False
-                self.Flica4Transient_.setDataFile(FLICA4AutoSwitchDriver.data_file_transient_)
+                self.Flica4Transient_.setDataFile(self.data_file_transient_)
                 self.Flica4Transient_.initialize()
                 self.Flica4Current_ = self.Flica4Transient_
                 return self.Flica4Current_.initTimeStep(dt)
