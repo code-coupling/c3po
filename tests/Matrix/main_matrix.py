@@ -20,7 +20,7 @@ class Matrix_test(unittest.TestCase):
 
         CouplerGS = c3po.FixedPointCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
         CouplerGS.setDampingFactor(0.5)
-        CouplerAnderson = c3po.AndersonQRCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
+        CouplerAnderson = c3po.AndersonCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
         CouplerAnderson.setOrder(3)
         CouplerJFNK = c3po.JFNKCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
         CouplerJFNK.setKrylovConvergenceParameters(1E-4, 3)

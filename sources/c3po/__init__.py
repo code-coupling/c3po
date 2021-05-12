@@ -21,7 +21,6 @@ from .services.NameChanger import NameChanger
 from .services.ListingWriter import ListingWriter, mergeListing, getTotalTimePhysicsDriver, getTimesExchanger
 from .couplers.FixedPointCoupler import FixedPointCoupler
 from .couplers.AndersonCoupler import AndersonCoupler
-from .couplers.AndersonQRCoupler import AndersonQRCoupler
 from .couplers.JFNKCoupler import JFNKCoupler
 from .exchangeMethods.DirectMatching import DirectMatching
 from .exchangeMethods.SharedRemapping import SharedRemapping, Remapper

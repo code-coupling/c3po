@@ -57,8 +57,7 @@ The directory sources/C3PO contains also the three directories:
 This folder contains the definition of the following classes (coupling algorithms):
 
   - C3PO.couplers.FixedPointCoupler.FixedPointCoupler inherits from C3PO.Coupler.Coupler and proposes a damped fixed point algorithm.
-  - C3PO.couplers.AndersonCoupler.AndersonCoupler inherits from C3PO.Coupler.Coupler and proposes a fixed point algorithm with Anderson acceleration.
-  - C3PO.couplers.AndersonQRCoupler.AndersonQRCoupler inherits from C3PO.Coupler.Coupler and proposes a fixed point algorithm with Anderson acceleration (and a special solving method of the internal optimization problem).
+  - C3PO.couplers.AndersonCoupler.AndersonCoupler inherits from C3PO.Coupler.Coupler and proposes a fixed point algorithm with Anderson acceleration. A QR decomposition is used for the optimization problem.
   - C3PO.couplers.JFNKCoupler.JFNKCoupler inherits from C3PO.Coupler.Coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm.
 
 \subsubsection exchMeth_sec II.1.2. sources/C3PO/exchangeMethods directory
