@@ -7,6 +7,7 @@ import unittest
 import c3po
 import c3po.mpi
 
+
 class ScalarPhysicsCoupler(c3po.mpi.MPICoupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
         c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
@@ -16,6 +17,7 @@ class ScalarPhysicsCoupler(c3po.mpi.MPICoupler):
         self.exchangers_[0].exchange()
         self.physicsDrivers_[1].solve()
         return self.getSolveStatus()
+
 
 class ListingsCollab_test(unittest.TestCase):
     def test_main(self):
@@ -103,6 +105,7 @@ class ListingsCollab_test(unittest.TestCase):
             print("Temps d'echange 1 -> 2 :", dt3)
             print("Temps d'echange 2 -> Data :", dt4)
             print("Temps d'echange Data -> 1 :", dt5)
+
 
 if __name__ == "__main__":
     unittest.main()

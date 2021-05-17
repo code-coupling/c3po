@@ -14,7 +14,7 @@ try:
         MC_VERSION = (8, 0)
 except:
     # MC version 7
-    from MEDLoader import * # also loads all of MEDCoupling
+    from MEDLoader import *  # also loads all of MEDCoupling
     from MEDCouplingRemapper import MEDCouplingRemapper
 
     WriteField = MEDLoader.WriteField

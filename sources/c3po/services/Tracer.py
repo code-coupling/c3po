@@ -17,6 +17,7 @@ import os
 
 import c3po.medcoupling_compat as mc
 
+
 def get_setInputMEDField_input(name, field):
     """! INTERNAL """
     return (name, field)

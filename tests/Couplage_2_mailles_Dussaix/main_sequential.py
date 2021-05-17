@@ -13,9 +13,11 @@ class Thermo2Neutro(c3po.SharedRemapping):
     def __init__(self, remapper):
         c3po.SharedRemapping.__init__(self, remapper, reverse=False)
 
+
 class Neutro2Thermo(c3po.SharedRemapping):
     def __init__(self, remapper):
         c3po.SharedRemapping.__init__(self, remapper, reverse=True)
+
 
 class OneIterationCoupler(c3po.mpi.MPICoupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
@@ -73,6 +75,7 @@ class DussaixSeq_test(unittest.TestCase):
         self.assertAlmostEqual(ArrayRho.getIJ(1, 0), 700.711939405, 3)
 
         mycoupler.terminate()
+
 
 if __name__ == "__main__":
     unittest.main()

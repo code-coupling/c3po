@@ -81,15 +81,15 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
 
         bary = []
         try:
-            bary = self.innerMesh_.computeCellCenterOfMass()        #MEDCoupling 9
+            bary = self.innerMesh_.computeCellCenterOfMass()  # MEDCoupling 9
         except:
-            bary = self.innerMesh_.getBarycenterAndOwner()          #MEDCoupling 7
+            bary = self.innerMesh_.getBarycenterAndOwner()  # MEDCoupling 7
         c, cI = Mesh3D.getCellsContainingPoints(bary, 1.0e-8)
         dsi = cI.deltaShiftIndex()
         try:
-            self.cellsToScreenOutInnerMesh_ = dsi.findIdsEqual(0)   #MEDCoupling 9
+            self.cellsToScreenOutInnerMesh_ = dsi.findIdsEqual(0)  # MEDCoupling 9
         except:
-            self.cellsToScreenOutInnerMesh_ = dsi.getIdsEqual(0)    #MEDCoupling 7
+            self.cellsToScreenOutInnerMesh_ = dsi.getIdsEqual(0)  # MEDCoupling 7
         try:
             bary = Mesh3D.computeCellCenterOfMass()
         except:

@@ -5,6 +5,7 @@ import unittest
 
 import c3po
 
+
 class Matrix_test(unittest.TestCase):
     def test_main(self):
         from PhysicsMatrix import PhysicsMatrix
@@ -57,6 +58,7 @@ class Matrix_test(unittest.TestCase):
         self.assertAlmostEqual(vpGS, refVal, 3)
         self.assertAlmostEqual(vpAnderson, refVal, 3)
         self.assertAlmostEqual(vpJFNK, refVal, 3)
+
 
 if __name__ == "__main__":
     unittest.main()

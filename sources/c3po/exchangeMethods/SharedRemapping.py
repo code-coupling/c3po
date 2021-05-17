@@ -13,6 +13,7 @@ from __future__ import print_function, division
 
 from c3po.medcoupling_compat import MEDCouplingRemapper
 
+
 class Remapper(MEDCouplingRemapper):
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
 
@@ -100,15 +101,15 @@ class SharedRemapping(object):
         if self.outsideCellsScreening_ and not self.isCellScreeningInit_:
             bary = []
             try:
-                bary = fieldsToSet[0].getMesh().computeCellCenterOfMass()   #MEDCoupling 9
+                bary = fieldsToSet[0].getMesh().computeCellCenterOfMass()  # MEDCoupling 9
             except:
-                bary = fieldsToSet[0].getMesh().getBarycenterAndOwner()     #MEDCoupling 7
+                bary = fieldsToSet[0].getMesh().getBarycenterAndOwner()  # MEDCoupling 7
             c, cI = fieldsToGet[0].getMesh().getCellsContainingPoints(bary, 1.0e-8)
             dsi = cI.deltaShiftIndex()
             try:
-                self.cellIdsToScreenOut_ = dsi.findIdsEqual(0)  #MEDCoupling 9
+                self.cellIdsToScreenOut_ = dsi.findIdsEqual(0)  # MEDCoupling 9
             except:
-                self.cellIdsToScreenOut_ = dsi.getIdsEqual(0)   #MEDCoupling 7
+                self.cellIdsToScreenOut_ = dsi.getIdsEqual(0)  # MEDCoupling 7
             self.isCellScreeningInit_ = True
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):

@@ -36,7 +36,7 @@ class NameChangerMeta(type):
                             name = arg_i
                             if name in self.static_nameMapping.keys():
                                 name = self.static_nameMapping[name]
-                                args = args[:ii] + (name,) + args[ii+1:]
+                                args = args[:ii] + (name,) + args[ii + 1:]
                         ii += 1
                 return method(self, *args, **kwargs)
 

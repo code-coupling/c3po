@@ -5,6 +5,7 @@ import unittest
 
 import c3po
 
+
 class ScalarPhysicsCoupler(c3po.Coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
         c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
@@ -14,6 +15,7 @@ class ScalarPhysicsCoupler(c3po.Coupler):
         self.exchangers_[0].exchange()
         self.physicsDrivers_[1].solve()
         return self.getSolveStatus()
+
 
 class Listings_test(unittest.TestCase):
     def test_main(self):
@@ -27,7 +29,7 @@ class Listings_test(unittest.TestCase):
         listingW = c3po.ListingWriter(file5)
 
         Physics1 = c3po.Tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
-        Physics1 = c3po.NameChanger({"toto" : "x"})(Physics1)
+        Physics1 = c3po.NameChanger({"toto": "x"})(Physics1)
         Physics2 = c3po.Tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
         c3po.Exchanger = c3po.Tracer(listingWriter=listingW)(c3po.Exchanger)
 
@@ -68,6 +70,6 @@ class Listings_test(unittest.TestCase):
         file4.close()
         file5.close()
 
+
 if __name__ == "__main__":
     unittest.main()
-

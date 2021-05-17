@@ -19,6 +19,7 @@ class OneIterationCoupler(c3po.Coupler):
         self.physicsDrivers_[1].solve()
         return self.getSolveStatus()
 
+
 class DussaixSeq_master_worker(unittest.TestCase):
     def test_main(self):
         comm = mpi.COMM_WORLD
@@ -61,6 +62,7 @@ class DussaixSeq_master_worker(unittest.TestCase):
         self.assertAlmostEqual(ArrayRho.getIJ(1, 0), 700.711939405, 3)
 
         mycoupler.terminate()
+
 
 if __name__ == "__main__":
     unittest.main()

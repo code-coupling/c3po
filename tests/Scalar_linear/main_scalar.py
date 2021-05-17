@@ -6,6 +6,7 @@ import unittest
 import c3po
 from PhysicsScalar import PhysicsScalar
 
+
 class ScalarPhysicsCoupler(c3po.Coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
         c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
@@ -15,6 +16,7 @@ class ScalarPhysicsCoupler(c3po.Coupler):
         self.exchangers_[0].exchange()
         self.physicsDrivers_[1].solve()
         return self.getSolveStatus()
+
 
 class Scalar_linear_test(unittest.TestCase):
     def test_main(self):
@@ -42,6 +44,7 @@ class Scalar_linear_test(unittest.TestCase):
         self.assertAlmostEqual(myPhysics.getValue("y"), 5. / 3., 4)
         self.assertAlmostEqual(myPhysics2.getValue("y"), 4. / 3., 4)
         mycoupler.terminate()
+
 
 if __name__ == "__main__":
     unittest.main()
