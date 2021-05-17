@@ -16,7 +16,7 @@ from c3po.DataManager import DataManager
 
 
 class MPIRemoteProcess(PhysicsDriver, DataManager):
-    """! MPIRemoteProcess identifies a remote process. 
+    """! MPIRemoteProcess identifies a remote process.
 
     Inherits from c3po.PhysicsDriver.PhysicsDriver and c3po.DataManager.DataManager but passes most of the methods: it does nothing.
     """

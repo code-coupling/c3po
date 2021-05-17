@@ -85,7 +85,7 @@ class THEDIDriver(PhysicsDriver):
     def getTHEDIObjects(self):
         """! Return THEDI objects.
 
-        @return THEDI.COEUR and THEDI.MED_INTERFACE. 
+        @return THEDI.COEUR and THEDI.MED_INTERFACE.
         """
         return self.coeur_, self.MEDInterface_
 
@@ -123,7 +123,7 @@ class THEDIDriver(PhysicsDriver):
         pass
 
     def getInputMEDFieldTemplate(self, name):
-        """! Return an empty field lying on the MEDCouplingMesh object used by THEDI. 
+        """! Return an empty field lying on the MEDCouplingMesh object used by THEDI.
 
         See PhysicsDriver.getInputMEDFieldTemplate().
 

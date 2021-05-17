@@ -121,9 +121,9 @@ class CRONOS2Driver(PhysicsDriver):
 
         Description of the expected outputs for the ICOCO_COMPUTE_TIME_STEP gibiane subroutine:
 
-        - The time step (floating-point number) must be output in the variable T_c3po.'DT' 
+        - The time step (floating-point number) must be output in the variable T_c3po.'DT'
 
-        - The stop flag (boolean) must be output in the variable T_c3po.'STOP' 
+        - The stop flag (boolean) must be output in the variable T_c3po.'STOP'
         """
 
         self.a_.eval("T_c3po.'PRESENT_TIME' = " + "{:.5f}".format(self.t_) + " ;")
@@ -158,7 +158,7 @@ class CRONOS2Driver(PhysicsDriver):
 
         - takes as input the name of the MED field in the string T_c3po.'name' ;
 
-        - returns the required MED field in the variable T_c3po.'field_out' of type MEDFIELD. 
+        - returns the required MED field in the variable T_c3po.'field_out' of type MEDFIELD.
         """
 
         if (name in ParamKey.outputKeys):
@@ -179,7 +179,7 @@ class CRONOS2Driver(PhysicsDriver):
 
         - takes as input the name of the MED field template in the string T_c3po.'name' ;
 
-        - returns the required MED field template in the variable T_c3po.'field_out' of type MEDFIELD. 
+        - returns the required MED field template in the variable T_c3po.'field_out' of type MEDFIELD.
         """
 
         if (name in ParamKey.inputKeys):
@@ -202,7 +202,7 @@ class CRONOS2Driver(PhysicsDriver):
 
         - takes as input the MED field in the variable T_c3po.'MED'.ITH of type MEDFIELD ;
 
-        - sorts away the MED field in the appropriate PARAM structures of CRONOS2. 
+        - sorts away the MED field in the appropriate PARAM structures of CRONOS2.
         """
 
         if (name in ParamKey.inputKeys):
@@ -224,7 +224,7 @@ class CRONOS2Driver(PhysicsDriver):
 
         - takes as input the value stored in the table T_c3po.'value' with the index name ;
 
-        - sorts away the value in the appropriate data structures of CRONOS2. 
+        - sorts away the value in the appropriate data structures of CRONOS2.
         """
 
         self.a_.eval("T_c3po.'name' = '" + name + "' ;")
@@ -238,7 +238,7 @@ class CRONOS2Driver(PhysicsDriver):
 
         - takes as input the name of the value in the string T_c3po.'name' ;
 
-        - returns the required floating number value in the table T_c3po.'value' at the index name. 
+        - returns the required floating number value in the table T_c3po.'value' at the index name.
         """
 
         self.a_.eval("T_c3po.'name' = '" + name + "' ;")

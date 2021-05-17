@@ -30,14 +30,14 @@ class MPICoupler(Coupler):
 
         Has the same form than Coupler.__init__() but can also contain MPIRemoteProcess (and MPICollectiveProcess) objects.
 
-        When at least one MPIRemoteProcess or MPICollectiveProcess is present, MPICoupler uses collective MPI communications: 
-        the object must be built and used in the same way for all the involved processes. They must all share the same communicator, 
+        When at least one MPIRemoteProcess or MPICollectiveProcess is present, MPICoupler uses collective MPI communications:
+        the object must be built and used in the same way for all the involved processes. They must all share the same communicator,
         and all the processes of this communicator must be involved.
 
         @param physics list (or dictionary) of c3po.PhysicsDriver.PhysicsDriver objects to be coupled.
         @param exchangers list (or dictionary) of c3po.Exchanger.Exchanger for the coupling.
         @param dataManagers list (or dictionary) of c3po.DataManager.DataManager used in the coupling.
-        @param mpiComm The optional mpiComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess 
+        @param mpiComm The optional mpiComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess
         or MPICollectiveProcess are found.
                         It has to be given to the constructor of the object on all involved processes.
                         If at least one MPIRemoteProcess or MPICollectiveProcess is present, this mpiComm parameter must be the same than theirs.

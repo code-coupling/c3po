@@ -24,14 +24,14 @@ class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
     def __init__(self, mpiComm):
         """! Build a MPICollectiveDataManager object.
 
-        @param mpiComm MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all 
+        @param mpiComm MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all
         processes of this MPI communicator must be involed in the MPICollectiveDataManager).
         """
         DataManager.__init__(self)
         MPICollectiveProcess.__init__(self, mpiComm)
 
     def cloneEmpty(self):
-        """! Return a clone of self without copying the data. 
+        """! Return a clone of self without copying the data.
 
         @return An empty clone of self.
         """

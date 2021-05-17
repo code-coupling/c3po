@@ -15,7 +15,7 @@ import math
 
 
 class DataManager(object):
-    """! DataManager stores and manipulates data outside of PhysicsDriver. This is necessary for some coupling techniques or time schemes. 
+    """! DataManager stores and manipulates data outside of PhysicsDriver. This is necessary for some coupling techniques or time schemes.
 
     Data are scalars or MEDCoupling fields, identified by their names.
     """
@@ -27,14 +27,14 @@ class DataManager(object):
         self.MEDFieldTemplates_ = {}
 
     def clone(self):
-        """! Return a clone of self. 
+        """! Return a clone of self.
 
         @return A clone of self. Data are copied.
         """
         return (self * 1.)
 
     def cloneEmpty(self):
-        """! Return a clone of self without copying the data. 
+        """! Return a clone of self without copying the data.
 
         @return An empty clone of self.
         """
@@ -45,7 +45,7 @@ class DataManager(object):
     def copy(self, other):
         """! Copy data of other in self.
 
-        @param other a DataManager with the same list of data than self. 
+        @param other a DataManager with the same list of data than self.
 
         @throw Exception if self and other are not consistent.
         """
@@ -59,7 +59,7 @@ class DataManager(object):
     def normMax(self):
         """! Return the infinite norm.
 
-        @return The max of the absolute values of the scalars and of the infinite norms of the MED fields. 
+        @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
         """
         norm = 0.
         for scalar in self.values_.values():
@@ -78,7 +78,7 @@ class DataManager(object):
     def norm2(self):
         """! Return the norm 2.
 
-        @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.  
+        @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = 0.
         for scalar in self.values_.values():
@@ -251,7 +251,7 @@ class DataManager(object):
         return result
 
     def setInputMEDField(self, name, field):
-        """! Store the MED field field under the name name. 
+        """! Store the MED field field under the name name.
 
         @param name the name given to the field to store.
         @param field a field to store.
@@ -259,20 +259,20 @@ class DataManager(object):
         self.MEDFields_[name] = field
 
     def getOutputMEDField(self, name):
-        """! Return the MED field of name name previously stored. 
+        """! Return the MED field of name name previously stored.
 
         @param name the name of the field to return.
 
-        @return the MED field of name name previously stored. 
+        @return the MED field of name name previously stored.
 
-        @throw Exception If there is no stored name field. 
+        @throw Exception If there is no stored name field.
         """
         if name not in self.MEDFields_.keys():
             raise Exception("DataManager.getOutputMEDField unknown field " + name)
         return self.MEDFields_[name]
 
     def setValue(self, name, value):
-        """! Store the scalar value under the name name. 
+        """! Store the scalar value under the name name.
 
         @param name the name given to the scalar to store.
         @param value a scalar value to store.
@@ -280,20 +280,20 @@ class DataManager(object):
         self.values_[name] = value
 
     def getValue(self, name):
-        """! Return the scalar of name name previously stored. 
+        """! Return the scalar of name name previously stored.
 
         @param name the name of the value to return.
 
         @return the value of name name previously stored.
 
-        @throw Exception If there is no stored name value. 
+        @throw Exception If there is no stored name value.
         """
         if name not in self.values_.keys():
             raise Exception("DataManager.getValue unknown value " + name)
         return self.values_[name]
 
     def setInputMEDFieldTemplate(self, name, field):
-        """! Store the MED field field as a MEDFieldTemplate under the name name. 
+        """! Store the MED field field as a MEDFieldTemplate under the name name.
 
         @param name the name given to the field to store.
         @param field a field to store.
@@ -303,7 +303,7 @@ class DataManager(object):
         self.MEDFieldTemplates_[name] = field
 
     def getInputMEDFieldTemplate(self, name):
-        """! Return the MED field previously stored as a MEDFieldTemplate under the name name. If there is not, returns 0. 
+        """! Return the MED field previously stored as a MEDFieldTemplate under the name name. If there is not, returns 0.
 
         @param name the name of the field to return.
 

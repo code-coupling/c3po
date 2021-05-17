@@ -18,19 +18,19 @@ from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
 
 
 class MPICollaborativeDataManager(CollaborativeDataManager):
-    """! MPICollaborativeDataManager is the MPI collaborative version of c3po.CollaborativeDataManager.CollaborativeDataManager 
-    (for collaborative MPI paradigm). 
+    """! MPICollaborativeDataManager is the MPI collaborative version of c3po.CollaborativeDataManager.CollaborativeDataManager
+    (for collaborative MPI paradigm).
 
-    It allows to handle a set of c3po.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class, 
-    data can be distributed on different MPI processes but still used in the same way. 
+    It allows to handle a set of c3po.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class,
+    data can be distributed on different MPI processes but still used in the same way.
 
     Exchanges are still to be done with the individual c3po.DataManager.DataManager.
 
-    When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must 
+    When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must
     be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes
     of that communicator must be involved.
 
-    Can replace, without impact, a c3po.CollaborativeDataManager.CollaborativeDataManager of a single processor calculation, if the MPI 
+    Can replace, without impact, a c3po.CollaborativeDataManager.CollaborativeDataManager of a single processor calculation, if the MPI
     environment is available.
     """
 
@@ -39,8 +39,8 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
 
         Has the same form than CollaborativeDataManager.__init__() but can also contain MPIRemoteProcess objects.
 
-        When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must 
-        be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes 
+        When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must
+        be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes
         of that communicator must be involved.
 
         @param dataManagers a list of c3po.DataManager.DataManager.
@@ -71,7 +71,7 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         CollaborativeDataManager.__init__(self, localData)
 
     def cloneEmpty(self):
-        """! Return a clone of self without copying the data. 
+        """! Return a clone of self without copying the data.
 
         @return An empty clone of self.
         """
@@ -84,7 +84,7 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
     def normMax(self):
         """! Return the infinite norm.
 
-        @return The max of the absolute values of the scalars and of the infinite norms of the MED fields. 
+        @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
         """
         norm = CollaborativeDataManager.normMax(self)
         if self.isMPI_:
@@ -94,7 +94,7 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
     def norm2(self):
         """! Return the norm 2.
 
-        @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.  
+        @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = CollaborativeDataManager.norm2(self)
         if self.isMPI_:

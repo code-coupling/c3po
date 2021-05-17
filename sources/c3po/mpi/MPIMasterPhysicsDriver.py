@@ -16,16 +16,16 @@ from c3po.mpi.MPITag import MPITag
 
 
 class MPIMasterPhysicsDriver(PhysicsDriver):
-    """! MPIMasterPhysicsDriver is used by the master process to control a remote c3po.PhysicsDriver.PhysicsDriver. 
+    """! MPIMasterPhysicsDriver is used by the master process to control a remote c3po.PhysicsDriver.PhysicsDriver.
 
-    Inherits from c3po.PhysicsDriver.PhysicsDriver. All the methods of the mother class are implemented and consist in commanding the 
+    Inherits from c3po.PhysicsDriver.PhysicsDriver. All the methods of the mother class are implemented and consist in commanding the
     worker to execute them.
     """
 
     def __init__(self, workerProcess):
         """! Build a MPIMasterPhysicsDriver object.
 
-        @param workerProcess a c3po.mpi.MPIRemoteProcess.MPIRemoteProcess identifying the worker process. The worker can be in charge of 
+        @param workerProcess a c3po.mpi.MPIRemoteProcess.MPIRemoteProcess identifying the worker process. The worker can be in charge of
         only one c3po.PhysicsDriver.PhysicsDriver.
         """
         PhysicsDriver.__init__(self)

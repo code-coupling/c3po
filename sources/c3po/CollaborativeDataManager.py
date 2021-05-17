@@ -14,9 +14,9 @@ import math
 
 
 class CollaborativeDataManager(object):
-    """! CollaborativeDataManager allows to handle a set of DataManager as a single one. 
+    """! CollaborativeDataManager allows to handle a set of DataManager as a single one.
 
-    Exchanges are still to be done with the individual DataManager. 
+    Exchanges are still to be done with the individual DataManager.
     """
 
     def __init__(self, dataManagers):
@@ -27,14 +27,14 @@ class CollaborativeDataManager(object):
         self.dataManagers_ = dataManagers
 
     def clone(self):
-        """! Return a clone of self. 
+        """! Return a clone of self.
 
         @return A clone of self. Data are copied.
         """
         return (self * 1.)
 
     def cloneEmpty(self):
-        """! Return a clone of self without copying the data. 
+        """! Return a clone of self without copying the data.
 
         @return An empty clone of self.
         """
@@ -45,7 +45,7 @@ class CollaborativeDataManager(object):
     def copy(self, other):
         """! Copy data of other in self.
 
-        @param other a CollaborativeDataManager with the same list of data than self. 
+        @param other a CollaborativeDataManager with the same list of data than self.
 
         @throw Exception if self and other are not consistent.
         """
@@ -56,7 +56,7 @@ class CollaborativeDataManager(object):
     def normMax(self):
         """! Return the infinite norm.
 
-        @return The max of the absolute values of the scalars and of the infinite norms of the MED fields. 
+        @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
         """
         norm = 0.
         for data in self.dataManagers_:
@@ -68,7 +68,7 @@ class CollaborativeDataManager(object):
     def norm2(self):
         """! Return the norm 2.
 
-        @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.  
+        @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = 0.
         for data in self.dataManagers_:

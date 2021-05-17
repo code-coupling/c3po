@@ -40,7 +40,7 @@ class ListingWriter(object):
     def __init__(self, listingFile):
         """! Build a ListingWriter object.
 
-        @param listingFile a file object which has to be already open in written-binary mode (file = open("file.txt", "wb")). It has to 
+        @param listingFile a file object which has to be already open in written-binary mode (file = open("file.txt", "wb")). It has to
         be closed (file.close()) by caller.
         """
         self.listingFile_ = listingFile
@@ -51,9 +51,9 @@ class ListingWriter(object):
 
         Should be done after the building of all involved objects but before their initialization.
 
-        @param physics a list of tuples (object, name). object should be a PhysicsDriver, modified with Tracer to point on this ListingWriter object. 
+        @param physics a list of tuples (object, name). object should be a PhysicsDriver, modified with Tracer to point on this ListingWriter object.
         A column is created in the listing file for each of them. name allows to identify them.
-        @param exchangers a list of tuples (object, name). object should be an Exchanger object, modified with Tracer to point on this ListingWriter 
+        @param exchangers a list of tuples (object, name). object should be an Exchanger object, modified with Tracer to point on this ListingWriter
         object. name allows to identify them in the final listing file.
         """
         self.physics_ = []
@@ -506,12 +506,12 @@ def mergeListing(listingsName, newListingName):
 def getTotalTimePhysicsDriver(listingName, PhysicsDriverName,
                               methodNames=["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
                                            "validateTimeStep", "abortTimeStep", "terminate"]):
-    """! getTotalTimePhysicsDriver() reads a listing file produced by ListingWriter or mergeListing and returns the total time 
+    """! getTotalTimePhysicsDriver() reads a listing file produced by ListingWriter or mergeListing and returns the total time
     spent by one PhysicsDriver in indicated methods.
 
     @param listingName name of the listing file to read.
     @param PhysicsDriverName name (given in the listing file) of the PhysicsDriver for which the total time is requested.
-    @param methodNames list of the names of the methods to take into account. By defaut: everything but "exchange": ["initialize", 
+    @param methodNames list of the names of the methods to take into account. By defaut: everything but "exchange": ["initialize",
     "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate"].
 
     @return The total time spent by the PhysicsDriver in the indicated methods.
@@ -549,20 +549,20 @@ def getTotalTimePhysicsDriver(listingName, PhysicsDriverName,
 
 
 def getTimesExchanger(listingName, ExchangerName, PhysicsDriverNames):
-    """! getTimesExchanger() reads a listing file produced by ListingWriter or mergeListing and returns time information about 
+    """! getTimesExchanger() reads a listing file produced by ListingWriter or mergeListing and returns time information about
     a chosen exchanger.
 
-    For each PhysicsDriver involved in the exchange, the function distinguishes between exchange time and waiting time. The 
+    For each PhysicsDriver involved in the exchange, the function distinguishes between exchange time and waiting time. The
     exchange is assumed to really begin when all involved PhysicsDriver enter the exchange.
-    For each of them, the waiting time is the time spent in the exchange before they all enter it. The exchange time is the time 
+    For each of them, the waiting time is the time spent in the exchange before they all enter it. The exchange time is the time
     from this "real beginning" to the end of the exchange (from the point of view of each PhysicsDriver).
 
     @param listingName name of the listing file to read.
     @param ExchangerName name (given in the listing file) of the Exchanger for which time information is requested.
-    @param PhysicsDriverNames list of the names of the PhysicsDriver (given in the listing file) involved in the Exchanger. They must 
+    @param PhysicsDriverNames list of the names of the PhysicsDriver (given in the listing file) involved in the Exchanger. They must
     be really involved!
 
-    @return A list of len(PhysicsDriverNames) elements, in the same order than PhysicsDriverNames. Each element is a list of two 
+    @return A list of len(PhysicsDriverNames) elements, in the same order than PhysicsDriverNames. Each element is a list of two
     values: first the total exchange time spent by this PhysicsDriver in the Exchanger, then its total waiting time in the Exchanger.
     """
     listing = open(listingName, "r")

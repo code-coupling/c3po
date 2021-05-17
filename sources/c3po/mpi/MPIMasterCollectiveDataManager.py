@@ -17,7 +17,7 @@ from c3po.mpi.MPITag import MPITag
 
 
 class MPIMasterCollectiveDataManager(object):
-    """! MPIMasterCollectiveDataManager is used by the master process to control a set of remote c3po.DataManager.DataManager as a single one.. 
+    """! MPIMasterCollectiveDataManager is used by the master process to control a set of remote c3po.DataManager.DataManager as a single one..
 
     It can, in addition, be in charge of a local one. This class is well suited to steer a code using an internal collaborative MPI parallelization.
 
@@ -27,10 +27,10 @@ class MPIMasterCollectiveDataManager(object):
     def __init__(self, mpiMasterCollectivephysicsD, idDataWorker, localDataManager=None):
         """! Build a MPIMasterCollectiveDataManager object.
 
-        @param mpiMasterCollectivephysicsD The MPIMasterCollectivePhysicsDriver object driving the c3po.PhysicsDriver.PhysicsDriver 
+        @param mpiMasterCollectivephysicsD The MPIMasterCollectivePhysicsDriver object driving the c3po.PhysicsDriver.PhysicsDriver
         executed by the workers responsible of the remote c3po.DataManager.DataManager.
         @param idDataWorker Number identifying the c3po.DataManager.DataManager in the workers (see c3po.mpi.MPIWorker.MPIWorker).
-        @param localDataManager a c3po.DataManager.DataManager the MPIMasterCollectiveDataManager object will use together with the 
+        @param localDataManager a c3po.DataManager.DataManager the MPIMasterCollectiveDataManager object will use together with the
         remote ones. It enables the master to contribute to a collective computation.
         """
         self.physicsDriver_ = mpiMasterCollectivephysicsD

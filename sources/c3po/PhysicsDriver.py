@@ -15,7 +15,7 @@ from __future__ import print_function, division
 class PhysicsDriver(object):
     """! PhysicsDriver defines and standardizes the functionalities expected by computer codes. It follows the ICOCO standard.
 
-    In order to integrate a new code in C3PO it is necessary to define a class inheriting from PhysicsDriver and to overload 
+    In order to integrate a new code in C3PO it is necessary to define a class inheriting from PhysicsDriver and to overload
     its methods raising exception.
     """
 
@@ -49,7 +49,7 @@ class PhysicsDriver(object):
     def init(self):
         """! Call initialize() but store its return value instead of returning it. The output is accessible with getInitStatus().
 
-        @warning This method, in association with getInitStatus(), should always be used inside C3PO instead of initialize() which 
+        @warning This method, in association with getInitStatus(), should always be used inside C3PO instead of initialize() which
         is not adapted to C3PO MPI Master-Workers paradigm.
         @warning This method should never be redefined: define initialize() instead!
         """
@@ -60,7 +60,7 @@ class PhysicsDriver(object):
 
         @return True means OK.
 
-        @warning This method, in association with init(), should always be used inside C3PO instead of initialize() which is not 
+        @warning This method, in association with init(), should always be used inside C3PO instead of initialize() which is not
         adapted to C3PO MPI Master-Workers paradigm.
         @warning This method should never be redefined: define initialize() instead!
         """
@@ -70,14 +70,14 @@ class PhysicsDriver(object):
         """! Initialize the code using the arguments of setDataFile() and setMPIComm().
 
         This method is called once before any other method.
-        File reads, memory allocations, and other operations which are likely to fail should be performed here and not in the 
+        File reads, memory allocations, and other operations which are likely to fail should be performed here and not in the
         previous methods.
         It cannot be called again before terminate() has been performed.
         If initialize() returns False (or raises an exception), nothing else than terminate() can be called.
 
         @return True means OK.
 
-        @warning This method is not adapted to MPI Master-Workers paradigm. init() and getInitStatus() methods should be used 
+        @warning This method is not adapted to MPI Master-Workers paradigm. init() and getInitStatus() methods should be used
         in C3PO instead.
         """
         raise Exception("PhysicsDriver.initialize : not supported")
@@ -114,7 +114,7 @@ class PhysicsDriver(object):
         """! Give the next time step to the code.
 
         Can be called whenever the computation time step is not defined.
-        After this call (if successful), the computation time step is defined to ]t,t+dt] where t is the value which would 
+        After this call (if successful), the computation time step is defined to ]t,t+dt] where t is the value which would
         be returned by presentTime().
         All input and output fields are allocated on ]t,t+dt], initialized, and accessible through field exchange methods.
 
@@ -126,7 +126,7 @@ class PhysicsDriver(object):
     def solve(self):
         """! Call solveTimeStep() but store its return value instead of returning it. The output is accessible with getSolveStatus().
 
-        @warning This method, in association with getSolveStatus(), should always be used inside C3PO instead of solveTimeStep(). 
+        @warning This method, in association with getSolveStatus(), should always be used inside C3PO instead of solveTimeStep().
         They fit better with MPI use.
         @warning This method should never be redefined: define solveTimeStep() instead!
         """
@@ -137,7 +137,7 @@ class PhysicsDriver(object):
 
         @return False if the computation fails.
 
-        @warning This method, in association with solve(), should always be used inside C3PO instead of solveTimeStep(). 
+        @warning This method, in association with solve(), should always be used inside C3PO instead of solveTimeStep().
         They fit better with MPI use.
         @warning This method should never be redefined: define solveTimeStep() instead!
         """
@@ -151,7 +151,7 @@ class PhysicsDriver(object):
 
         @return False if the computation fails.
 
-        @warning This method is not adapted to MPI Master-Workers paradigm. solve() and getSolveStatus() methods should be 
+        @warning This method is not adapted to MPI Master-Workers paradigm. solve() and getSolveStatus() methods should be
         used in C3PO instead.
         """
         raise Exception("PhysicsDriver.solveTimeStep : not supported")
@@ -160,7 +160,7 @@ class PhysicsDriver(object):
         """! Validate the computation performed by solveTimeStep().
 
         Can be called whenever the computation time step is defined.
-        After this call, the present time has been advanced to the end of the computation time step, and the computation time 
+        After this call, the present time has been advanced to the end of the computation time step, and the computation time
         step is undefined, so the input and output data are not accessible any more.
         """
         raise Exception("PhysicsDriver.validateTimeStep : not supported")
@@ -169,7 +169,7 @@ class PhysicsDriver(object):
         """! Abort the computation on the current time-step.
 
         Can be called whenever the computation timestep is defined, instead of validateTimeStep().
-        After this call, the present time is left unchanged, and the computation time step is undefined, so the input and output 
+        After this call, the present time is left unchanged, and the computation time step is undefined, so the input and output
         data are not accessible any more.
         """
         raise Exception("PhysicsDriver.abortTimeStep : not supported")
@@ -179,7 +179,7 @@ class PhysicsDriver(object):
 
         Can be called whenever the computation time step is defined.
 
-        @return True if the solution is constant on the last computed time step. If the solution has not been computed, the return 
+        @return True if the solution is constant on the last computed time step. If the solution has not been computed, the return
         value is of course not meaningful.
         """
         raise Exception("PhysicsDriver.isStationary : not supported")
@@ -187,7 +187,7 @@ class PhysicsDriver(object):
     def iterate(self):
         """! Call iterateTimeStep() but store its return value instead of returning it. The output is accessible with getIterateStatus().
 
-        @warning This method, in association with getIterateStatus(), should always be used inside C3PO instead of iterateTimeStep(). 
+        @warning This method, in association with getIterateStatus(), should always be used inside C3PO instead of iterateTimeStep().
         They fit better with MPI use.
         @warning This method should never be redefined: define iterateTimeStep() instead!
         """
@@ -198,7 +198,7 @@ class PhysicsDriver(object):
 
         @return a tuple(succeed, converged). succeed = False if the computation fails. converged = True if the solution is not evolving any more.
 
-        @warning This method, in association with iterate(), should always be used inside C3PO instead of iterateTimeStep(). They fit 
+        @warning This method, in association with iterate(), should always be used inside C3PO instead of iterateTimeStep(). They fit
         better with MPI use.
         @warning This method should never be redefined: define iterateTimeStep() instead!
         """
@@ -223,7 +223,7 @@ class PhysicsDriver(object):
         Can be called at any time between initialize() and terminate().
 
         @param label an integer identifying, in association with method, the saved state.
-        @param method string specifying which method is used to save the state of the code. A code can provide different methods 
+        @param method string specifying which method is used to save the state of the code. A code can provide different methods
         (for example in memory, on disk,…). At least « default » should be a valid argument.
 
         @note If save() has already been called with the same two arguments, the saved state is overwritten.
@@ -234,7 +234,7 @@ class PhysicsDriver(object):
         """! Restore a state previously saved with the same couple of arguments.
 
         Can be called at any time between initialize() and terminate().
-        After restore(), the code should behave exactly like after the corresponding call to save(), except for save/restore methods, 
+        After restore(), the code should behave exactly like after the corresponding call to save(), except for save/restore methods,
         since the list of saved states may have changed.
 
         @param label an integer identifying, in association with method, the saved state to restore.
@@ -255,7 +255,7 @@ class PhysicsDriver(object):
         raise Exception("PhysicsDriver.forget : not supported")
 
     def getInputFieldsNames(self):
-        """! Return a list of strings identifying input fields. 
+        """! Return a list of strings identifying input fields.
 
         @return a list of strings identifying input fields.
         """

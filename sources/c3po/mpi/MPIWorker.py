@@ -23,14 +23,14 @@ class MPIWorker(object):
     def __init__(self, physicsDrivers, exchangers, dataManagers, masterProcess):
         """! Build a MPIWorker object.
 
-        @param physicsDrivers List of c3po.PhysicsDriver.PhysicsDriver. Only one should not be a MPIRemoteProcess: it is the one the 
+        @param physicsDrivers List of c3po.PhysicsDriver.PhysicsDriver. Only one should not be a MPIRemoteProcess: it is the one the
         worker is responsible for.
-        @param exchangers List of c3po.Exchanger.Exchanger. The indices in this list are the numbers identifying the c3po.Exchanger.Exchanger 
+        @param exchangers List of c3po.Exchanger.Exchanger. The indices in this list are the numbers identifying the c3po.Exchanger.Exchanger
         for the master.
-        @param dataManagers List of c3po.DataManager.DataManager. The indices in this list are the numbers identifying the 
+        @param dataManagers List of c3po.DataManager.DataManager. The indices in this list are the numbers identifying the
         c3po.DataManager.DataManager for the master.
-        @param masterProcess Either a MPIRemoteProcess or a MPIMasterCollectivePhysicsDriver identifying the master process. In the 
-        first case point-to-point communications are used, in the second case collective communications are used. 
+        @param masterProcess Either a MPIRemoteProcess or a MPIMasterCollectivePhysicsDriver identifying the master process. In the
+        first case point-to-point communications are used, in the second case collective communications are used.
         """
         found = False
         for p in physicsDrivers:
@@ -78,7 +78,7 @@ class MPIWorker(object):
                 raise Exception("MPIWorker.checkDataID : the asked DataManager does not exist : ID asked : " + str(iid) + ", maximum ID : " + str(len(self.dataManagers_) - 1) + ".")
 
     def listen(self):
-        """! Make the worker waits for instructions from the master. 
+        """! Make the worker waits for instructions from the master.
 
         The worker gets out of this waiting mode when the master call the terminate method of the related MPIMasterPhysicsDriver.
         """

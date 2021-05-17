@@ -38,7 +38,7 @@ class ShortcutToData(object):
 class Exchanger(object):
     """! Exchanger manages data exchanges between PhysicsDriver and / or DataManager.
 
-    Once the object has been constructed, a call to exchange() triggers the exchanges of data. 
+    Once the object has been constructed, a call to exchange() triggers the exchanges of data.
     """
 
     def __init__(self, method, medFieldsToGet, medFieldsToSet, valuesToGet=[], valuesToSet=[]):

@@ -47,9 +47,9 @@ class MPIShortcutToData(object):
 
 
 class MPIExchanger(Exchanger):
-    """! MPIExchanger is the MPI version of c3po.Exchanger.Exchanger. 
+    """! MPIExchanger is the MPI version of c3po.Exchanger.Exchanger.
 
-    The class takes in charge data exchanges between MPI processes (in the case where each code exposes its data on a single 
+    The class takes in charge data exchanges between MPI processes (in the case where each code exposes its data on a single
     MPI process). It manages the MPI exchanges before managing the local exchanges with the mother class.
 
     Can replace, without impact, an c3po.Exchanger.Exchanger for a calculation on a single process, if the MPI environment is available.
@@ -58,16 +58,16 @@ class MPIExchanger(Exchanger):
     def __init__(self, method, medFieldsToGet, medFieldsToSet, valuesToGet=[], valuesToSet=[], exchangeWithFiles=False):
         """! Build a MPIExchanger object.
 
-        Has the same form as the one of Exchanger.__init__() but can also contain objects of type MPIRemoteProcess and 
+        Has the same form as the one of Exchanger.__init__() but can also contain objects of type MPIRemoteProcess and
         MPICollectiveProcess (and therefore MPICollectiveDataManager).
 
-        The object must be built in the same way for all the processes involved in the exchanges. Likewise, the exchange() method 
+        The object must be built in the same way for all the processes involved in the exchanges. Likewise, the exchange() method
         must be called at the same time by all processes.
 
-        It is assumed that an object is either held by a single process (and of the form MPIRemoteProcess in others), or collective 
+        It is assumed that an object is either held by a single process (and of the form MPIRemoteProcess in others), or collective
         (MPICollectiveProcess).
 
-        When there is an MPICollectiveProcess on the get side, all the processes of the communicator of this object must be 
+        When there is an MPICollectiveProcess on the get side, all the processes of the communicator of this object must be
         involved in the exchanges.
 
         @param method a user-defined function (or class with the special method __call__).
@@ -81,12 +81,12 @@ class MPIExchanger(Exchanger):
             * The MED fields to impose by setInputMEDField() on the medFieldsToSet objects, in the same order.
             * The scalars to impose by setValue() on the valuesToSet objects, in the same order.
 
-        @param medFieldsToGet a list of tuples (object, name). object must be either a c3po.PhysicsDriver.PhysicsDriver or a 
+        @param medFieldsToGet a list of tuples (object, name). object must be either a c3po.PhysicsDriver.PhysicsDriver or a
         c3po.DataManager.DataManager, and name is the name of the field to get from object.
         @param medFieldsToSet a list of tuples in the same format as medFieldsToGet. name is the name of the field to set in object.
         @param valuesToGet idem medFieldsToGet but for scalars.
         @param valuesToSet idem medFieldsToSet but for scalars.
-        @param exchangeWithFiles when set to True, exchanged MEDField are written on files and read by the recipient process(es). 
+        @param exchangeWithFiles when set to True, exchanged MEDField are written on files and read by the recipient process(es).
         Only basic data (such as the file path) are exchanged via MPI.
         """
         Exchanger.__init__(self, method, medFieldsToGet, medFieldsToSet, valuesToGet, valuesToSet)
@@ -159,7 +159,7 @@ class MPIExchanger(Exchanger):
                     self.MPIexchanges_.append(MPIValueRecipient(toGet, self.valuesToGet_[i], self.isCollective_))
 
     def exchange(self):
-        """! Trigger the exchange of data. 
+        """! Trigger the exchange of data.
 
         Must be called at the same time by all processes.
         """

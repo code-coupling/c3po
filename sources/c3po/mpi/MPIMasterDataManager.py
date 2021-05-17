@@ -18,13 +18,13 @@ from c3po.mpi.MPITag import MPITag
 class MPIMasterDataManager(object):
     """! MPIMasterDataManager is used by the master process to control a remote c3po.DataManager.DataManager.
 
-    MPIMasterDataManager implements the data manipulation methods of c3po.DataManager.DataManager by instructing the worker to execute them. 
+    MPIMasterDataManager implements the data manipulation methods of c3po.DataManager.DataManager by instructing the worker to execute them.
     """
 
     def __init__(self, mpiMasterphysicsD, idDataWorker):
         """! Build a MPIMasterDataManager object.
 
-        @param mpiMasterphysicsD The MPIMasterPhysicsDriver object driving the c3po.PhysicsDriver.PhysicsDriver executed by the worker 
+        @param mpiMasterphysicsD The MPIMasterPhysicsDriver object driving the c3po.PhysicsDriver.PhysicsDriver executed by the worker
         responsible of the remote c3po.DataManager.DataManager.
         @param idDataWorker Number identifying the c3po.DataManager.DataManager in the worker (see c3po.mpi.MPIWorker.MPIWorker).
         """
