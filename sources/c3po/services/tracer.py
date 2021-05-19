@@ -61,6 +61,12 @@ class TracerMeta(type):
 
         def _wrapper(method):
             def _trace(self, *args, **kwargs):
+                if method.__name__ == "__init__":
+                    if name not in self.static_Objectcounter:
+                        self.static_Objectcounter[name] = 0
+                    self.tracerObjectUniqueId = self.static_Objectcounter[name]
+                    self.static_Objectcounter[name] += 1
+
                 if self.static_saveInputMED and method.__name__ == "setInputMEDField":
                     (nameField, field) = getSetInputMEDFieldInput(*args, **kwargs)
                     nameMEDFile = name + "_input_" + nameField + "_"
@@ -76,14 +82,9 @@ class TracerMeta(type):
                         self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
 
                 if self.static_pythonFile is not None:
-                    objectNameBase = "my" + name
-                    if objectNameBase not in self.static_Objectcounter:
-                        self.static_Objectcounter[objectNameBase] = 0
-                    objectName = "my" + name + str(self.static_Objectcounter[objectNameBase])
+                    objectName = "my" + name + str(self.tracerObjectUniqueId)
                     stringArgs = getArgsString(*args, **kwargs)
                     if method.__name__ == "__init__":
-                        self.static_Objectcounter[objectNameBase] += 1
-                        objectName = "my" + name + str(self.static_Objectcounter[objectNameBase])
                         self.static_pythonFile.write(objectName + " = " + name + stringArgs + "\n")
                     elif method.__name__ == "setInputMEDField":
                         (nameField, _) = getSetInputMEDFieldInput(*args, **kwargs)
@@ -177,7 +178,10 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
 
     The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveInputMED,
     static_saveOutputMED, static_stdout, static_stderr and static_lWriter.
-    One additional static attributes are added for internal use: static_Objectcounter.
+
+    One additional static attributes is added for internal use: static_Objectcounter.
+
+    One addition attribute (not static!) is added for internal use: tracerObjectUniqueId.
 
     tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
 
@@ -188,15 +192,6 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
     or it can be used in order to redefined only locally the class like that:
 
         MyNewClass = c3po.tracer(...)(MyClass)
-
-    tracer cannot distinguish different instance of the same class. The name of the instance created in the python file changes
-    each time the __init__ method is called. This means that when a new instance is created, tracer assumes that the previous
-    ones are not used any more. If this is not the case, put the ouput of each instance in its own output file :
-
-        MyClass1 = c3po.tracer(pythonFile=file1, ...)(MyClass)
-        MyClass2 = c3po.tracer(pythonFile=file2, ...)(MyClass)
-        instance1 = MyClass1()
-        instance2 = MyClass2()
 
     @warning tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger.
              It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or
