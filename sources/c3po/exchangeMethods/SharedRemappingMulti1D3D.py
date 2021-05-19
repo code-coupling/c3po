@@ -18,7 +18,7 @@ from c3po.medcouplingCompat import MEDCouplingRemapper
 class Multi1D3DRemapper(MEDCouplingRemapper):
     """! Allow to share the mesh projection for different SharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
-    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
+    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0.):
         """! Build a Multi1D3DRemapper object.
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.
@@ -39,6 +39,9 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         @param rescaling Value of a rescaling factor to be applied between the source (multi1D) and the target (3D) meshes (>1 means that the source
                mesh is initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh
                alignment or translation, if any.
+        @param rotation Value of the rotation between the source (multi1D) and the target (3D) meshes. The rotation is centered on [0., 0., 0.] and
+            is about the vertical axis. >0 means that the source mesh is rotated of the given angle compared to the target one. The inverse rotation
+            is applied to the source mesh, after mesh alignment or translation, if any. pi means half turn.
         """
         MEDCouplingRemapper.__init__(self)
 
@@ -67,6 +70,7 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         if rescaling <= 0.:
             raise Exception("Multi1D3DRemapper: rescaling must be > 0!")
         self._rescaling = rescaling
+        self._rotation = rotation
         self._cellsToScreenOut3DMesh = []
         self._cellsToScreenOutInnerMesh = []
 
@@ -89,6 +93,8 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
             self._innerMesh.translate([-x for x in self._offset])
         if self._rescaling != 1.:
             self._innerMesh.scale([0., 0., 0.], 1. / self._rescaling)
+        if self._rotation != 0.:
+            self._innerMesh.rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
         self.prepare(self._innerMesh, mesh3D, "P0P0")
 
         bary = []

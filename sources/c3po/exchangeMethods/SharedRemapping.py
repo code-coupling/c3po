@@ -17,7 +17,7 @@ from c3po.medcouplingCompat import MEDCouplingRemapper
 class Remapper(MEDCouplingRemapper):
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
 
-    def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
+    def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0.):
         """! Build a Remapper object.
 
         @param meshAlignment If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding
@@ -27,6 +27,9 @@ class Remapper(MEDCouplingRemapper):
         @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is
             initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh
             alignment or translation, if any.
+        @param rotation Value of the rotation between the source and the target meshes. The rotation is centered on [0., 0., 0.] and is about
+            the vertical axis. >0 means that the source mesh is rotated of the given angle compared to the target one. The inverse rotation is
+            applied to the source mesh, after mesh alignment or translation, if any. pi means half turn.
         """
         MEDCouplingRemapper.__init__(self)
         self.isInit = False
@@ -35,6 +38,7 @@ class Remapper(MEDCouplingRemapper):
         if rescaling <= 0.:
             raise Exception("Remapper: rescaling must be > 0!")
         self._rescaling = rescaling
+        self._rotation = rotation
 
     def initialize(self, sourceMesh, targetMesh):
         """! INTERNAL """
@@ -47,6 +51,8 @@ class Remapper(MEDCouplingRemapper):
             sourceMesh.translate([-x for x in self._offset])
         if self._rescaling != 1.:
             sourceMesh.scale([0., 0., 0.], 1. / self._rescaling)
+        if self._rotation != 0.:
+            sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
         self.prepare(sourceMesh, targetMesh, "P0P0")
         self.isInit = True
 
