@@ -4,7 +4,7 @@ from __future__ import print_function, division
 from math import *
 import numpy
 
-import c3po.medcoupling_compat as mc
+import c3po.medcouplingCompat as mc
 
 import MEDBuilder
 from c3po.PhysicsDriver import PhysicsDriver

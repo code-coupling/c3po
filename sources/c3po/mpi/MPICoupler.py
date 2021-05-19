@@ -43,65 +43,65 @@ class MPICoupler(Coupler):
                         If at least one MPIRemoteProcess or MPICollectiveProcess is present, this mpiComm parameter must be the same than theirs.
         """
         Coupler.__init__(self, physics, exchangers, dataManagers)
-        self.mpiComm_ = None
-        self.isMPI_ = False
-        for p in self.physicsDriversList_:
-            if isinstance(p, MPIRemoteProcess) or isinstance(p, MPICollectiveProcess):
-                if not self.isMPI_:
-                    if p.mpiComm_ == MPI.COMM_NULL:
+        self.mpiComm = None
+        self._isMPI = False
+        for phy in self._physicsDriversList:
+            if isinstance(phy, (MPIRemoteProcess, MPICollectiveProcess)):
+                if not self._isMPI:
+                    if phy.mpiComm == MPI.COMM_NULL:
                         raise Exception("MPICoupler.__init__ All distant process must be part of the communicator (MPI.COMM_NULL found).")
-                    self.isMPI_ = True
-                    self.mpiComm_ = p.mpiComm_
+                    self._isMPI = True
+                    self.mpiComm = phy.mpiComm
                 else:
-                    if self.mpiComm_ != p.mpiComm_:
+                    if self.mpiComm != phy.mpiComm:
                         raise Exception("MPIcoupler.__init__ All distant process must used the same MPI communicator")
         if mpiComm is not None:
-            if self.mpiComm_ is not None:
-                if mpiComm != self.mpiComm_:
+            if self.mpiComm is not None:
+                if mpiComm != self.mpiComm:
                     raise Exception("MPIcoupler.__init__ The given mpiComm parameter is not the same than the one used by the MPI process found.")
-            self.mpiComm_ = mpiComm
-            self.isMPI_ = self.mpiComm_.allreduce(self.isMPI_, op=MPI.MAX)
+            self.mpiComm = mpiComm
+            self._isMPI = self.mpiComm.allreduce(self._isMPI, op=MPI.MAX)
 
     def initialize(self):
         """! See Coupler.initialize(). """
         resu = Coupler.initialize(self)
-        if self.isMPI_:
-            resu = self.mpiComm_.allreduce(resu, op=MPI.MIN)
+        if self._isMPI:
+            resu = self.mpiComm.allreduce(resu, op=MPI.MIN)
         return resu
 
     def computeTimeStep(self):
         """! See Coupler.computeTimeStep(). """
         (dt, stop) = Coupler.computeTimeStep(self)
-        if self.isMPI_:
-            dt = self.mpiComm_.allreduce(dt, op=MPI.MIN)
-            stop = self.mpiComm_.allreduce(stop, op=MPI.MIN)
+        if self._isMPI:
+            dt = self.mpiComm.allreduce(dt, op=MPI.MIN)
+            stop = self.mpiComm.allreduce(stop, op=MPI.MIN)
         return (dt, stop)
 
     def initTimeStep(self, dt):
         """! See Coupler.initTimeStep(). """
         resu = Coupler.initTimeStep(self, dt)
-        if self.isMPI_:
-            resu = self.mpiComm_.allreduce(resu, op=MPI.MIN)
+        if self._isMPI:
+            resu = self.mpiComm.allreduce(resu, op=MPI.MIN)
         return resu
 
     def getSolveStatus(self):
         """! See Coupler.getSolveStatus(). """
         resu = Coupler.getSolveStatus(self)
-        if self.isMPI_:
-            resu = self.mpiComm_.allreduce(resu, op=MPI.MIN)
+        if self._isMPI:
+            resu = self.mpiComm.allreduce(resu, op=MPI.MIN)
         return resu
 
     def isStationary(self):
         """! See Coupler.isStationary(). """
         resu = Coupler.isStationary(self)
-        if self.isMPI_:
-            resu = self.mpiComm_.allreduce(resu, op=MPI.MIN)
+        if self._isMPI:
+            resu = self.mpiComm.allreduce(resu, op=MPI.MIN)
         return resu
 
     def getIterateStatus(self):
         """! See Coupler.getIterateStatus(). """
         (succeed, converged) = Coupler.getIterateStatus(self)
-        if self.isMPI_:
-            succeed = self.mpiComm_.allreduce(succeed, op=MPI.MIN)
-            converged = self.mpiComm_.allreduce(converged, op=MPI.MIN)
+        if self._isMPI:
+            succeed = self.mpiComm.allreduce(succeed, op=MPI.MIN)
+            converged = self.mpiComm.allreduce(converged, op=MPI.MIN)
         return (succeed, converged)

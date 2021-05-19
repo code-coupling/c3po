@@ -11,9 +11,9 @@
 """ Contain the class CATHARE3Driver. """
 from __future__ import print_function, division
 
-import c3po.medcoupling_compat as mc
+import c3po.medcouplingCompat as mc
 try:
-    import Cathare_opt
+    #import Cathare_opt
     import Cathare_opt.Problem_Cathare as C3
 except ImportError:
     # importation dans Corpus
@@ -21,14 +21,17 @@ except ImportError:
 from c3po.PhysicsDriver import PhysicsDriver
 
 
-def short_name(name): return name.split("__")[1] if (name.startswith("reconstruction") or name.startswith("sommewall__")) else name
+def shortName(name):
+    """! INTERNAL """
+    return name.split("__")[1] if (name.startswith("reconstruction") or name.startswith("sommewall__")) else name
 
 
-def build_name(keyword, cname, loc, irad=-1):
-    new_name = "{}@{}@{}".format(keyword, cname, loc)
+def buildName(keyword, cname, loc, irad=-1):
+    """! INTERNAL """
+    newName = "{}@{}@{}".format(keyword, cname, loc)
     if int(irad) > 0:
-        new_name += "@{}".format(irad)
-    return new_name
+        newName += "@{}".format(irad)
+    return newName
 
 
 class CATHARE3Driver(C3, PhysicsDriver):
@@ -61,32 +64,31 @@ class CATHARE3Driver(C3, PhysicsDriver):
     def terminate(self):
         C3.terminate(self)
 
-    def getOutputMEDField_driver(self, name):
+    def getOutputMEDFieldDriver(self, name):
+        """! INTERNAL """
         separator = "@"
         if name.find(separator) == -1:
             separator = "_"
         if name.split(separator)[0] == "ROWLAND":
-            return self.get_rowland(*(name.split(separator)[1:]))
-        elif name.split(separator)[0] == "WEIGHTEDVOL":
-            return self.get_weighted_volume(*(name.split(separator)[1:]))
-        else:
-            return C3.getOutputMEDField(self, name)
+            return self.getRowland(*(name.split(separator)[1:]))
+        if name.split(separator)[0] == "WEIGHTEDVOL":
+            return self.getWeightedVolume(*(name.split(separator)[1:]))
+        return C3.getOutputMEDField(self, name)
 
-    def get_rowland(self, cname, loc):
-        fc = self.getOutputMEDField(build_name("UO2CTEMP", cname, loc))
-        fs = self.getOutputMEDField(build_name("UO2STEMP", cname, loc))
+    def getRowland(self, cname, loc):
+        """! INTERNAL """
+        fieldC = self.getOutputMEDField(buildName("UO2CTEMP", cname, loc))
+        fieldS = self.getOutputMEDField(buildName("UO2STEMP", cname, loc))
+        fieldC *= 4. / 9.
+        fieldS *= 5. / 9.
+        fieldC.getArray().addEqual(fieldS.getArray())
+        return fieldC
 
-        fc *= 4. / 9.
-        fs *= 5. / 9.
-        fc.getArray().addEqual(fs.getArray())
-        return fc
-
-    def get_weighted_volume(self, cname, loc, irad=-1):
-
-        f = self.getOutputMEDField(build_name("VOLMED", cname, loc, irad))
-        f *= float(self.getIValue("IWPOI@{}".format(cname)))
-
-        return f
+    def getWeightedVolume(self, cname, loc, irad=-1):
+        """! INTERNAL """
+        field = self.getOutputMEDField(buildName("VOLMED", cname, loc, irad))
+        field *= float(self.getIValue("IWPOI@{}".format(cname)))
+        return field
 
     def getOutputMEDField(self, name):
         if name.startswith("reconstruction"):
@@ -94,17 +96,16 @@ class CATHARE3Driver(C3, PhysicsDriver):
             _, loc, irad = reco.split(":")
             fields = []
             for cname in listofobjects.split("//"):
-                new_name = build_name(keyword, cname, loc, irad)
+                newName = buildName(keyword, cname, loc, irad)
                 if hasattr(self, "get_field_on_3D_mesh"):
                     func = getattr(self, "get_field_on_3D_mesh")
-                    fields.append(func(new_name))
+                    fields.append(func(newName))
                 else:
-                    fields.append(self.getOutputMEDField_driver(new_name))
+                    fields.append(self.getOutputMEDFieldDriver(newName))
             field = mc.MEDCouplingFieldDouble.MergeFields(fields)
             field.setName(keyword)
             return field
-        else:
-            return self.getOutputMEDField_driver(name)
+        return self.getOutputMEDFieldDriver(name)
 
     def setInputMEDField(self, name, field):
 
@@ -116,55 +117,56 @@ class CATHARE3Driver(C3, PhysicsDriver):
                 func = getattr(self, "set_field_from_3D_mesh")
                 func(keyword, listofobjects.split("//"), loc, irad, field)
             else:
-                o = 0
+                count = 0
                 for cname in listofobjects.split("//"):
-                    new_name = build_name(keyword, cname, loc, irad)
-                    f1d = self.getInputMEDFieldTemplate(new_name)
-                    nc = f1d.getMesh().getNumberOfCells()
+                    newName = buildName(keyword, cname, loc, irad)
+                    f1d = self.getInputMEDFieldTemplate(newName)
+                    nbCells = f1d.getMesh().getNumberOfCells()
 
-                    local_array = mc.DataArrayDouble.New(nc)
-                    local_array.fillWithZero()
-                    local_array += field.getArray()[o: o + nc]
-                    o += nc
+                    localArray = mc.DataArrayDouble.New(nbCells)
+                    localArray.fillWithZero()
+                    localArray += field.getArray()[count: count + nbCells]
+                    count += nbCells
 
-                    f1d.setArray(local_array)
-                    C3.setInputMEDField(self, new_name, f1d)
+                    f1d.setArray(localArray)
+                    C3.setInputMEDField(self, newName, f1d)
         else:
             C3.setInputMEDField(self, name, field)
 
     def getInputMEDFieldTemplate(self, name):
-        ch = self.getOutputMEDField(name)
-        ch *= 0.0
-        return ch
+        field = self.getOutputMEDField(name)
+        field *= 0.0
+        return field
 
     def post(self):
+        """! INTERNAL """
         # ecriture des maillages et entete fichier colonne
         if self.io == 0:
             for name in self.post_names["fields"]:
                 field = self.getOutputMEDField(name)
-                mc.WriteUMesh("{}.med".format(short_name(name)), field.getMesh(), True)
+                mc.WriteUMesh("{}.med".format(shortName(name)), field.getMesh(), True)
 
-            with open("suivi_c3.txt", "w") as f:
-                header_names = ["Time"] + self.post_names["fields"] + self.post_names["scalars"]
-                f.write(" ".join(["{:>12}".format(short_name(p).split("@")[0]) for p in header_names]) + "\n")
+            with open("suivi_c3.txt", "w") as fic:
+                headerNames = ["Time"] + self.post_names["fields"] + self.post_names["scalars"]
+                fic.write(" ".join(["{:>12}".format(shortName(p).split("@")[0]) for p in headerNames]) + "\n")
 
-        t = self.presentTime()
+        temps = self.presentTime()
         with open("suivi_c3.txt", "a") as fic:
-            fic.write("{:12.5f} ".format(t))
+            fic.write("{:12.5f} ".format(temps))
             for name in self.post_names["fields"]:
-                f = self.getOutputMEDField(name)
-                fic.write("{:12.5g} ".format(f.normMax()[0]))
-                f.setTime(t, self.io, 0)
-                mc.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(short_name(name)), f)
+                field = self.getOutputMEDField(name)
+                fic.write("{:12.5g} ".format(field.normMax()[0]))
+                field.setTime(temps, self.io, 0)
+                mc.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(shortName(name)), field)
             for name in self.post_names["scalars"]:
                 if name.startswith("sommewall__"):
                     _, keyword, listofobjects = name.split("__")
-                    s = 0.0
+                    scalar = 0.0
                     for cname in listofobjects.split("//"):
-                        elem_name = self.getCValue("ELEMNAME@" + cname)
-                        ihpoi = float(self.getIValue("IHPOI@" + elem_name))
-                        s += self.getValue("{}@{}".format(keyword, cname)) * ihpoi
-                    fic.write("{:12.5g} ".format(s))
+                        elemName = self.getCValue("ELEMNAME@" + cname)
+                        ihpoi = float(self.getIValue("IHPOI@" + elemName))
+                        scalar += self.getValue("{}@{}".format(keyword, cname)) * ihpoi
+                    fic.write("{:12.5g} ".format(scalar))
                 else:
                     fic.write("{:12.5g} ".format(self.getValue(name)))
             fic.write("\n")

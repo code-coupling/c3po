@@ -16,23 +16,29 @@ class ShortcutToData(object):
     """! INTERNAL. It associates a PhysicsDriver or a DataManager with a name to ease further handling. """
 
     def __init__(self, container, name):
-        self.container_ = container
-        self.name_ = name
+        """! INTERNAL."""
+        self._container = container
+        self._name = name
 
     def getOutputMEDField(self):
-        return self.container_.getOutputMEDField(self.name_)
+        """! INTERNAL."""
+        return self._container.getOutputMEDField(self._name)
 
     def getInputMEDFieldTemplate(self):
-        return self.container_.getInputMEDFieldTemplate(self.name_)
+        """! INTERNAL."""
+        return self._container.getInputMEDFieldTemplate(self._name)
 
     def setInputMEDField(self, field):
-        self.container_.setInputMEDField(self.name_, field)
+        """! INTERNAL."""
+        self._container.setInputMEDField(self._name, field)
 
     def getValue(self):
-        return self.container_.getValue(self.name_)
+        """! INTERNAL."""
+        return self._container.getValue(self._name)
 
     def setValue(self, value):
-        self.container_.setValue(self.name_, value)
+        """! INTERNAL."""
+        self._container.setValue(self._name, value)
 
 
 class Exchanger(object):
@@ -61,21 +67,21 @@ class Exchanger(object):
         @param valuesToSet idem medFieldsToSet but for scalars.
         """
 
-        self.fieldsToSet_ = [ShortcutToData(field[0], field[1]) for field in medFieldsToSet]
-        self.fieldsToGet_ = [ShortcutToData(field[0], field[1]) for field in medFieldsToGet]
-        self.valuesToSet_ = [ShortcutToData(field[0], field[1]) for field in valuesToSet]
-        self.valuesToGet_ = [ShortcutToData(field[0], field[1]) for field in valuesToGet]
-        self.method_ = method
+        self._fieldsToSet = [ShortcutToData(field[0], field[1]) for field in medFieldsToSet]
+        self._fieldsToGet = [ShortcutToData(field[0], field[1]) for field in medFieldsToGet]
+        self._valuesToSet = [ShortcutToData(field[0], field[1]) for field in valuesToSet]
+        self._valuesToGet = [ShortcutToData(field[0], field[1]) for field in valuesToGet]
+        self._method = method
 
     def exchange(self):
         """! Trigger the exchange of data. """
-        fieldsToSet = [ds.getInputMEDFieldTemplate() for ds in self.fieldsToSet_]
-        fieldsToGet = [ds.getOutputMEDField() for ds in self.fieldsToGet_]
-        valuesToGet = [ds.getValue() for ds in self.valuesToGet_]
-        fieldsToSet, valuesToSet = self.method_(fieldsToGet, fieldsToSet, valuesToGet)
-        if (len(fieldsToSet) != len(self.fieldsToSet_) or len(valuesToSet) != len(self.valuesToSet_)):
+        fieldsToSet = [ds.getInputMEDFieldTemplate() for ds in self._fieldsToSet]
+        fieldsToGet = [ds.getOutputMEDField() for ds in self._fieldsToGet]
+        valuesToGet = [ds.getValue() for ds in self._valuesToGet]
+        fieldsToSet, valuesToSet = self._method(fieldsToGet, fieldsToSet, valuesToGet)
+        if (len(fieldsToSet) != len(self._fieldsToSet) or len(valuesToSet) != len(self._valuesToSet)):
             raise Exception("Exchanger.exchange the method does not have the good number of outputs.")
-        for i, f in enumerate(fieldsToSet):
-            self.fieldsToSet_[i].setInputMEDField(f)
-        for i, v in enumerate(valuesToSet):
-            self.valuesToSet_[i].setValue(v)
+        for i, field in enumerate(fieldsToSet):
+            self._fieldsToSet[i].setInputMEDField(field)
+        for i, value in enumerate(valuesToSet):
+            self._valuesToSet[i].setValue(value)

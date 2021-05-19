@@ -10,17 +10,16 @@
 
 """ Contain the class ALCYONE2Driver. """
 from __future__ import print_function, division
+from ctypes import cdll
 import mpi4py.MPI as mpi
-
-import c3po.medcoupling_compat as mc
-
-from c3po.PhysicsDriver import PhysicsDriver
-from Alcyone2Init import Alcyone2Init
 
 import pleiades
 import pleiadesMPI
 
-from ctypes import cdll
+from Alcyone2Init import Alcyone2Init
+
+import c3po.medcouplingCompat as mc
+from c3po.PhysicsDriver import PhysicsDriver
 
 
 class ALCYONE2Driver(PhysicsDriver):
@@ -32,98 +31,98 @@ class ALCYONE2Driver(PhysicsDriver):
     def __init__(self):
         PhysicsDriver.__init__(self)
         cdll.LoadLibrary("libALCYONE.so")
-        self.Alcyone2_ = pleiades.createComponent("AlcyoneComponent")
+        self._alcyone2 = pleiades.createComponent("AlcyoneComponent")
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpi.COMM_SELF)
-        self.dt_factor_ = 1.
-        self.isInit_ = False
+        self._dtFactor = 1.
+        self._isInit = False
 
     def setMPIComm(self, mpicomm):
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpicomm)
 
     def initialize(self):
-        if not self.isInit_:
-            self.isInit_ = True
-            Alcyone2Init(self.Alcyone2_)
-            self.Alcyone2_.initialize()
+        if not self._isInit:
+            self._isInit = True
+            Alcyone2Init(self._alcyone2)
+            self._alcyone2.initialize()
             pleiades.setVerboseLevel(0)
         return True
 
     def terminate(self):
-        self.Alcyone2_.terminate()
+        self._alcyone2.terminate()
 
     def presentTime(self):
-        return self.Alcyone2_.presentTime()
+        return self._alcyone2.presentTime()
 
     def computeTimeStep(self):
-        dt = self.Alcyone2_.computeTimeStep()
-        return (self.dt_factor_ * dt, True)
+        dt = self._alcyone2.computeTimeStep()
+        return (self._dtFactor * dt, True)
 
     def initTimeStep(self, dt):
         if dt <= 0:
             dt = 0.001  # Tres specifique a notre cas test !
-        self.Alcyone2_.initTimeStep(dt)
+        self._alcyone2.initTimeStep(dt)
         return True
 
     def solveTimeStep(self):
-        resu = self.Alcyone2_.solveTimeStep()
+        resu = self._alcyone2.solveTimeStep()
         if not resu:
-            self.dt_factor_ *= 0.5
+            self._dtFactor *= 0.5
         return resu
 
     def validateTimeStep(self):
-        self.Alcyone2_.validateTimeStep()
-        self.dt_factor_ = 1.
+        self._alcyone2.validateTimeStep()
+        self._dtFactor = 1.
 
     def abortTimeStep(self):
-        self.Alcyone2_.abortTimeStep()
+        self._alcyone2.abortTimeStep()
 
     def isStationary(self):
-        return self.Alcyone2_.isStationary()
+        return self._alcyone2.isStationary()
 
     def iterateTimeStep(self):
-        return self.Alcyone2_.iterateTimeStep()
+        return self._alcyone2.iterateTimeStep()
 
     def save(self, label, method):
-        self.Alcyone2_.save(label, method)
+        self._alcyone2.save(label, method)
 
     def restore(self, label, method):
-        self.Alcyone2_.restore(label, method)
+        self._alcyone2.restore(label, method)
 
     def forget(self, label, method):
-        self.Alcyone2_.forget(label, method)
+        self._alcyone2.forget(label, method)
 
     def getInputFieldsNames(self):
-        fieldNames = self.Alcyone2_.getInputFieldsNames()
-        fieldNames + ["LinearPower"]
+        fieldNames = self._alcyone2.getInputFieldsNames()
+        fieldNames += ["LinearPower"]
         return fieldNames
 
     def getInputMEDFieldTemplate(self, name):
-        return self.Alcyone2_.getOutputMEDField("Temperature_SCE")
+        return self._alcyone2.getOutputMEDField("Temperature_SCE")
 
     def setInputMEDField(self, name, field):
         if name == "LinearPower":
-            ArrayZ = field.getMesh().getCoordsAt(0)
-            ArrayDz = mc.DataArrayDouble()
-            ArrayDz.alloc(ArrayZ.getNbOfElems() - 1)
-            for i in range(ArrayZ.getNbOfElems() - 1):
-                ArrayDz.setIJ(i, 0, ArrayZ.getIJ(i + 1, 0) - ArrayZ.getIJ(i, 0))
-            field.getArray().divideEqual(ArrayDz)
-        self.Alcyone2_.setInputField(name, field)
+            arrayZ = field.getMesh().getCoordsAt(0)
+            arrayDz = mc.DataArrayDouble()
+            arrayDz.alloc(arrayZ.getNbOfElems() - 1)
+            for i in range(arrayZ.getNbOfElems() - 1):
+                arrayDz.setIJ(i, 0, arrayZ.getIJ(i + 1, 0) - arrayZ.getIJ(i, 0))
+            field.getArray().divideEqual(arrayDz)
+        self._alcyone2.setInputField(name, field)
 
     def getOutputFieldsNames(self):
-        fieldNames = self.Alcyone2_.getOutputMEDField()
-        fieldNames + ["Temperature_FUEL_Rowland"]
+        fieldNames = self._alcyone2.getOutputMEDField()
+        fieldNames += ["Temperature_FUEL_Rowland"]
         return fieldNames
 
     def getOutputMEDField(self, name):
         field = 0
         if name == "Temperature_FUEL_Rowland":
-            field = self.Alcyone2_.getOutputMEDField("Temperature_PCI")
-            field2 = self.Alcyone2_.getOutputMEDField("Temperature_SCE")
+            field = self._alcyone2.getOutputMEDField("Temperature_PCI")
+            field2 = self._alcyone2.getOutputMEDField("Temperature_SCE")
             field *= 4. / 9.
             field2 *= 5. / 9.
             field.getArray().addEqual(field2.getArray())
         else:
-            field = self.Alcyone2_.getOutputMEDField(name)
+            field = self._alcyone2.getOutputMEDField(name)
         field.setNature(mc.IntensiveMaximum)
         return field

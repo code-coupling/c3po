@@ -16,30 +16,30 @@ import numpy as np
 from c3po.Coupler import Coupler
 
 
-def deleteQRColumn(Q, R, dataTemp):
+def deleteQRColumn(matrixQ, matrixR, dataTemp):
     """! INTERNAL
 
     Return a new QR decomposition after deletion of one column.
     """
-    m = R.shape[0]
-    for i in range(m - 1):
-        temp = math.sqrt(R[i, i + 1] * R[i, i + 1] + R[i + 1, i + 1] * R[i + 1, i + 1])
-        c = R[i, i + 1] / temp
-        s = R[i + 1, i + 1] / temp
-        R[i, i + 1] = temp
-        R[i + 1, i + 1] = 0.
-        for j in range(i + 2, m):
-            temp = c * R[i, j] + s * R[i + 1, j]
-            R[i + 1, j] = -s * R[i, j] + c * R[i + 1, j]
-            R[i, j] = temp
-        dataTemp.copy(Q[i])
-        dataTemp *= c
-        dataTemp.imuladd(s, Q[i + 1])
-        Q[i + 1] *= c
-        Q[i + 1].imuladd(-s, Q[i])
-        Q[i].copy(dataTemp)
-    R = R[:m - 1, 1:].copy()
-    return Q, R
+    dim = matrixR.shape[0]
+    for i in range(dim - 1):
+        temp = math.sqrt(matrixR[i, i + 1] * matrixR[i, i + 1] + matrixR[i + 1, i + 1] * matrixR[i + 1, i + 1])
+        cval = matrixR[i, i + 1] / temp
+        sval = matrixR[i + 1, i + 1] / temp
+        matrixR[i, i + 1] = temp
+        matrixR[i + 1, i + 1] = 0.
+        for j in range(i + 2, dim):
+            temp = cval * matrixR[i, j] + sval * matrixR[i + 1, j]
+            matrixR[i + 1, j] = -sval * matrixR[i, j] + cval * matrixR[i + 1, j]
+            matrixR[i, j] = temp
+        dataTemp.copy(matrixQ[i])
+        dataTemp *= cval
+        dataTemp.imuladd(sval, matrixQ[i + 1])
+        matrixQ[i + 1] *= cval
+        matrixQ[i + 1].imuladd(-sval, matrixQ[i])
+        matrixQ[i].copy(dataTemp)
+    matrixR = matrixR[:dim - 1, 1:].copy()
+    return matrixQ, matrixR
 
 
 class AndersonCoupler(Coupler):
@@ -77,11 +77,11 @@ class AndersonCoupler(Coupler):
         @param dataManager list of only one DataManager.
         """
         Coupler.__init__(self, physics, exchangers, dataManager)
-        self.tolerance_ = 1.E-6
-        self.maxiter_ = 100
-        self.order_ = 2
-        self.andersonDampingFactor_ = 1.
-        self.isConverged_ = False
+        self._tolerance = 1.E-6
+        self._maxiter = 100
+        self._order = 2
+        self._andersonDampingFactor = 1.
+        self._isConverged = False
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManager, list):
             raise Exception("AndersonCoupler.__init__ physics, exchangers and dataManager must be lists!")
@@ -98,8 +98,8 @@ class AndersonCoupler(Coupler):
         @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
         @param maxiter the maximal number of iterations.
         """
-        self.tolerance_ = tolerance
-        self.maxiter_ = maxiter
+        self._tolerance = tolerance
+        self._maxiter = maxiter
 
     def setAndersonDampingFactor(self, andersonDampingFactor):
         """! Set the damping factor of the method, the relative contribution of F(X^{k}) and X^{k} on the calculation of next step.
@@ -108,16 +108,16 @@ class AndersonCoupler(Coupler):
         """
         if andersonDampingFactor <= 0 or andersonDampingFactor > 1:
             raise Exception("AndersonCoupler.setAndersonDampingFactor Set a damping factor > 0 and <=1 !")
-        self.andersonDampingFactor_ = andersonDampingFactor
+        self._andersonDampingFactor = andersonDampingFactor
 
     def setOrder(self, order):
         """! Set the order of the method.
 
         @param order order of Anderson method. This is also the number of previous states stored by the algorithm.
         """
-        if (order <= 0):
+        if order <= 0:
             raise Exception("AndersonCoupler.setOrder Set an order > 0 !")
-        self.order_ = order
+        self._order = order
 
     def solveTimeStep(self):
         """! Solve a time step using the fixed point algorithm with Anderson acceleration.
@@ -126,20 +126,20 @@ class AndersonCoupler(Coupler):
 
         See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
-        physics = self.physicsDrivers_[0]
-        physics2Data = self.exchangers_[0]
-        data2physics = self.exchangers_[1]
-        data = self.dataManagers_[0]
+        physics = self._physicsDrivers[0]
+        physics2Data = self._exchangers[0]
+        data2physics = self._exchangers[1]
+        data = self._dataManagers[0]
         iiter = 0
         # Compteur de la mémoire d'Anderson : nombre de résidus sauvegardés
         mAA = 0
         # Historique des dF
-        Memory = [0] * self.order_
-        iFirstMemory = 0  # permet de ne pas considerer les premiers elements de Memory lorsque le conditionnement est mauvais.
-        R = np.zeros(shape=(1, 1))
-        Q = [0.] * self.order_
+        memory = [0] * self._order
+        iFirstMemory = 0  # permet de ne pas considerer les premiers elements de memory lorsque le conditionnement est mauvais.
+        matrixR = np.zeros(shape=(1, 1))
+        matrixQ = [0.] * self._order
         datatmp = 0.  # pour manipulation dans deleteQRColumn
-        # Tolérance sur le conditionnement de R ; valeur par défaut proposée par Ansar, reprise telle quelle
+        # Tolérance sur le conditionnement de matrixR ; valeur par défaut proposée par Ansar, reprise telle quelle
         dropErr = 1.e10
 
         print("Initialisation ")
@@ -153,14 +153,14 @@ class AndersonCoupler(Coupler):
         # Premiere iteration non acceleree
         print("iteration ", iiter)
         self.abortTimeStep()
-        self.initTimeStep(self.dt_)
+        self.initTimeStep(self._dt)
         data2physics.exchange()
         physics.solve()
         physics2Data.exchange()
         diffData = data - previousData
         previousData.copy(data)
 
-        df = diffData * -1.
+        deltaF = diffData * -1.
         delta = previousData * -1.
 
         error = self.getNorm(diffData) / self.getNorm(data)
@@ -168,13 +168,13 @@ class AndersonCoupler(Coupler):
 
         iiter += 1
 
-        while error > self.tolerance_ and iiter < self.maxiter_:
+        while error > self._tolerance and iiter < self._maxiter:
             if iiter == 2:
                 print(" -- Anderson Acceleration starts ! ")
             print("iteration ", iiter)
 
             self.abortTimeStep()
-            self.initTimeStep(self.dt_)
+            self.initTimeStep(self._dt)
             data2physics.exchange()
             physics.solve()
             physics2Data.exchange()     # data contient g(u_k), previousData contient u_k
@@ -183,97 +183,97 @@ class AndersonCoupler(Coupler):
             diffData -= previousData
             error = self.getNorm(diffData) / self.getNorm(data)
 
-            if error > self.tolerance_:
+            if error > self._tolerance:
 
-                df += diffData  # F_i - F_{i-1}
+                deltaF += diffData  # F_i - F_{i-1}
                 delta += data   # f(x_i) - f(x_{i-1})
 
                 # Selon si on a atteint l'ordre m ou non, on ajoute le nouveau résidu ou bien on enlève la première colonne
                 # et on rajoute le nouveau à la fin
-                if iFirstMemory + mAA < len(Memory):
-                    Memory[iFirstMemory + mAA] = delta.clone()
+                if iFirstMemory + mAA < len(memory):
+                    memory[iFirstMemory + mAA] = delta.clone()
                 else:
-                    firstMemory = Memory[0]
-                    for i in range(len(Memory) - 1):
-                        Memory[i] = Memory[i + 1]
-                    Memory[-1] = firstMemory
-                    Memory[-1].copy(delta)
+                    firstMemory = memory[0]
+                    for i in range(len(memory) - 1):
+                        memory[i] = memory[i + 1]
+                    memory[-1] = firstMemory
+                    memory[-1].copy(delta)
                     if iFirstMemory > 0:
                         iFirstMemory -= 1
                 mAA += 1
 
-                if mAA > self.order_:
-                    # Si la dimension est deja self.order_, on a atteint la taille max : on retire la première colonne
+                if mAA > self._order:
+                    # Si la dimension est deja self._order, on a atteint la taille max : on retire la première colonne
                     # et on met à jour la décomposition en conséquence
                     if datatmp == 0.:
                         datatmp = data.clone()
-                    Q, R = deleteQRColumn(Q, R, datatmp)
-                    # La taille de la matrice Q a diminué : on met à jour mAA
+                    matrixQ, matrixR = deleteQRColumn(matrixQ, matrixR, datatmp)
+                    # La taille de la matrice matrixQ a diminué : on met à jour mAA
                     mAA -= 1
 
-                # Ajout de la nouvelle colonne à Q et R,
-                if R.shape[0] != mAA:
+                # Ajout de la nouvelle colonne à matrixQ et matrixR,
+                if matrixR.shape[0] != mAA:
                     tmpR = np.zeros(shape=(mAA, mAA))
-                    tmpR[0:R.shape[0], 0:R.shape[1]] += R
-                    R = tmpR
+                    tmpR[0:matrixR.shape[0], 0:matrixR.shape[1]] += matrixR
+                    matrixR = tmpR
 
                 for j in range(mAA - 1):
-                    val = Q[j].dot(df)
-                    R[j, mAA - 1] = val
-                    df.imuladd(-val, Q[j])
-                R[mAA - 1, mAA - 1] = df.norm2()
+                    val = matrixQ[j].dot(deltaF)
+                    matrixR[j, mAA - 1] = val
+                    deltaF.imuladd(-val, matrixQ[j])
+                matrixR[mAA - 1, mAA - 1] = deltaF.norm2()
                 facteurmult = 1.
-                if R[mAA - 1, mAA - 1] != 0:
-                    facteurmult = 1. / R[mAA - 1, mAA - 1]
-                if Q[mAA - 1] == 0.:
-                    Q[mAA - 1] = df * facteurmult
+                if matrixR[mAA - 1, mAA - 1] != 0:
+                    facteurmult = 1. / matrixR[mAA - 1, mAA - 1]
+                if matrixQ[mAA - 1] == 0.:
+                    matrixQ[mAA - 1] = deltaF * facteurmult
                 else:
-                    Q[mAA - 1].copy(df)
-                    Q[mAA - 1] *= facteurmult
+                    matrixQ[mAA - 1].copy(deltaF)
+                    matrixQ[mAA - 1] *= facteurmult
 
                 # On prepare l'iteration suivante.
                 delta.copy(data)
                 delta *= -1.
-                df.copy(diffData)
-                df *= -1.
+                deltaF.copy(diffData)
+                deltaF *= -1.
 
-                # Condition Control : en cas de mauvais conditionnement de Memory : on peut contrôler ça avec le conditionnement de R
-                # En cas de mauvais conditionnement, on met à jour Q et R c'est à dire qu'on supprime la première colonne de Memory (avec iFirstMemory)
+                # Condition Control : en cas de mauvais conditionnement de memory : on peut contrôler ça avec le conditionnement de matrixR
+                # En cas de mauvais conditionnement, on met à jour matrixQ et matrixR c'est à dire qu'on supprime la première colonne de memory (avec iFirstMemory)
                 if dropErr > 0.:
-                    condDF = np.linalg.cond(R)
+                    condDF = np.linalg.cond(matrixR)
                     while condDF > dropErr and mAA > 1:
                         print("cond(D) = %1.8e, reducing mAA to %d" % (condDF, mAA - 1))
                         if datatmp == 0.:
                             datatmp = data.clone()
-                        Q, R = deleteQRColumn(Q, R, datatmp)
+                        matrixQ, matrixR = deleteQRColumn(matrixQ, matrixR, datatmp)
                         iFirstMemory += 1
                         mAA -= 1
-                        condDF = np.linalg.cond(R)
-                # On résout le problème de minimisation : on calcule dans un premier temps Q^T F
-                QF = np.zeros(mAA)
+                        condDF = np.linalg.cond(matrixR)
+                # On résout le problème de minimisation : on calcule dans un premier temps matrixQ^T F
+                matrixQF = np.zeros(mAA)
                 for i in range(mAA):
-                    QF[i] = Q[i].dot(diffData)
-                # Puis on résoud le système triangulaire : R gamma = QF pour obtenir les coefficients d'Anderson
-                gamma = np.linalg.lstsq(R, QF, rcond=-1)[0]
+                    matrixQF[i] = matrixQ[i].dot(diffData)
+                # Puis on résoud le système triangulaire : matrixR gamma = matrixQF pour obtenir les coefficients d'Anderson
+                gamma = np.linalg.lstsq(matrixR, matrixQF, rcond=-1)[0]
 
-                # On calcule Memory * gamma pour ensuite calculer le nouveau data
+                # On calcule memory * gamma pour ensuite calculer le nouveau data
                 for i in range(mAA):
-                    data.imuladd(-gamma[i], Memory[iFirstMemory + i])
+                    data.imuladd(-gamma[i], memory[iFirstMemory + i])
 
-                if self.andersonDampingFactor_ != 1.:
-                    Rgamma = np.dot(R, gamma)
-                    data.imuladd(-(1. - self.andersonDampingFactor_), diffData)
+                if self._andersonDampingFactor != 1.:
+                    matrixRgamma = np.dot(matrixR, gamma)
+                    data.imuladd(-(1. - self._andersonDampingFactor), diffData)
                     for i in range(mAA):
-                        data.imuladd((1. - self.andersonDampingFactor_) * Rgamma[i], Q[i])
+                        data.imuladd((1. - self._andersonDampingFactor) * matrixRgamma[i], matrixQ[i])
 
                 previousData.copy(data)
 
             iiter += 1
             print("error : ", error)
 
-        return physics.getSolveStatus() and not(error > self.tolerance_)
+        return physics.getSolveStatus() and error <= self._tolerance
 
-    # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
+    # On definit les methodes suivantes pour qu'elles soient vues par tracer.
     def initialize(self):
         """! See Coupler.initialize(). """
         return Coupler.initialize(self)

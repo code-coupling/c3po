@@ -12,9 +12,9 @@ class ScalarPhysicsCoupler(c3po.Coupler):
         c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
 
     def solveTimeStep(self):
-        self.physicsDrivers_[0].solve()
-        self.exchangers_[0].exchange()
-        self.physicsDrivers_[1].solve()
+        self._physicsDrivers[0].solve()
+        self._exchangers[0].exchange()
+        self._physicsDrivers[1].solve()
         return self.getSolveStatus()
 
 

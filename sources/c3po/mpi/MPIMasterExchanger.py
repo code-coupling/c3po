@@ -33,18 +33,18 @@ class MPIMasterExchanger(object):
         @param localExchanger a c3po.Exchanger.Exchanger the MPIMasterExchanger object will run in the same time than the workers. It
         enables the master to contribute to a collective computation.
         """
-        self.workerProcesses_ = workerProcesses
-        self.idExchangerWorker_ = idExchangerWorker
-        self.localExchanger_ = localExchanger
+        self._workerProcesses = workerProcesses
+        self._idExchangerWorker = idExchangerWorker
+        self._localExchanger = localExchanger
 
     def exchange(self):
         """! Trigger the exchange of data. """
-        for process in self.workerProcesses_:
+        for process in self._workerProcesses:
             if isinstance(process, MPIRemoteProcess):
-                process.mpiComm_.send(self.idExchangerWorker_, dest=process.rank_, tag=MPITag.exchange)
+                process.mpiComm.send(self._idExchangerWorker, dest=process.rank, tag=MPITag.exchange)
             elif isinstance(process, MPICollectiveProcess):
-                process.mpiComm_.bcast((MPITag.exchange, self.idExchangerWorker_), root=process.mpiComm_.Get_rank())
+                process.mpiComm.bcast((MPITag.exchange, self._idExchangerWorker), root=process.mpiComm.Get_rank())
             else:
                 raise Exception("MPIMasterExchanger.exchange : we found an unknown worker type.")
-        if self.localExchanger_ is not None:
-            self.localExchanger_.exchange()
+        if self._localExchanger is not None:
+            self._localExchanger.exchange()

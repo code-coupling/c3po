@@ -8,33 +8,35 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class MPICollectiveDataManager. """
-from __future__ import print_function, division
+""" Management of the various versions of MEDCoupling.
+Importing this module instead of MEDCoupling directly should allow C3PO to nicely
+deal with all possible versions of MEDCoupling.
+"""
 
-from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
-from c3po.DataManager import DataManager
+try:
+    # MC version 8 and higher:
+    from medcoupling import *   # includes MEDLoader basic API and remapper
 
+    try:
+        mcRelease = InterpKernelDEC.release
+        MC_VERSION = (9, 7)
+    except:
+        MC_VERSION = (8, 0)
+except:
+    # MC version 7
+    from MEDLoader import *  # also loads all of MEDCoupling
+    from MEDCouplingRemapper import MEDCouplingRemapper
 
-class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
-    """! MPICollectiveDataManager is the MPI collaborative version of the c3po.DataManager.DataManager in which all processes have locally all data.
+    WriteField = MEDLoader.WriteField
+    WriteFieldUsingAlreadyWrittenMesh = MEDLoader.WriteFieldUsingAlreadyWrittenMesh
+    WriteUMesh = MEDLoader.WriteUMesh
+    WriteMesh = MEDLoader.WriteMesh
 
-    Can replace, without impact, a c3po.DataManager.DataManager for a calculation on a single process, if the MPI environment is available.
-    """
+    IntensiveConservation = RevIntegral
+    IntensiveMaximum = ConservativeVolumic
+    ExtensiveConservation = IntegralGlobConstraint
+    ExtensiveMaximum = Integral
 
-    def __init__(self, mpiComm):
-        """! Build a MPICollectiveDataManager object.
+    DataArray.setContigPartOfSelectedValuesSlice = DataArray.setContigPartOfSelectedValues2
 
-        @param mpiComm MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all
-        processes of this MPI communicator must be involed in the MPICollectiveDataManager).
-        """
-        DataManager.__init__(self)
-        MPICollectiveProcess.__init__(self, mpiComm)
-
-    def cloneEmpty(self):
-        """! Return a clone of self without copying the data.
-
-        @return An empty clone of self.
-        """
-        output = MPICollectiveDataManager(self.mpiComm)
-        output.medFieldTemplates = self.medFieldTemplates
-        return output
+    MC_VERSION = (7, 0)

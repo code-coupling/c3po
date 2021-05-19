@@ -29,30 +29,30 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         only one c3po.PhysicsDriver.PhysicsDriver.
         """
         PhysicsDriver.__init__(self)
-        self.mpiComm_ = workerProcess.mpiComm_
-        self.workerRank_ = workerProcess.rank_
-        self.dataManagersToFree_ = []
+        self.mpiComm = workerProcess.mpiComm
+        self._workerRank = workerProcess.rank
+        self._dataManagersToFree = []
 
-    def setDataManagerToFree(self, IdDataManager):
+    def setDataManagerToFree(self, idDataManager):
         """! INTERNAL """
-        self.dataManagersToFree_.append(IdDataManager)
+        self._dataManagersToFree.append(idDataManager)
 
     def getCommunicator(self):
         """! INTERNAL """
-        return self.mpiComm_
+        return self.mpiComm
 
     def getWorkerRank(self):
         """! INTERNAL """
-        return self.workerRank_
+        return self._workerRank
 
     def init(self):
         """! See PhysicsDriver.init(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.init)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.init)
 
     def getInitStatus(self):
         """! See PhysicsDriver.getInitStatus(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.getInitStatus)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.getInitStatus)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
@@ -61,36 +61,36 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
 
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.terminate)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.terminate)
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.presentTime)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.presentTime)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def computeTimeStep(self):
         """! See PhysicsDriver.computeTimeStep(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.computeTimeStep)
-        dt = self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
-        stop = self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.computeTimeStep)
+        dt = self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
+        stop = self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
         return (dt, stop)
 
     def initTimeStep(self, dt):
         """! See PhysicsDriver.initTimeStep(). """
-        self.mpiComm_.send(dt, dest=self.workerRank_, tag=MPITag.initTimeStep)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(dt, dest=self._workerRank, tag=MPITag.initTimeStep)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def solve(self):
         """! See PhysicsDriver.solve(). """
-        if len(self.dataManagersToFree_) > 0:
-            self.mpiComm_.send(self.dataManagersToFree_, dest=self.workerRank_, tag=MPITag.deleteDataManager)
-            self.dataManagersToFree_ = []
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.solve)
+        if len(self._dataManagersToFree) > 0:
+            self.mpiComm.send(self._dataManagersToFree, dest=self._workerRank, tag=MPITag.deleteDataManager)
+            self._dataManagersToFree = []
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.solve)
 
     def getSolveStatus(self):
         """! See PhysicsDriver.getSolveStatus(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.getSolveStatus)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.getSolveStatus)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def solveTimeStep(self):
         """! See PhysicsDriver.solveTimeStep(). """
@@ -99,29 +99,29 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
 
     def validateTimeStep(self):
         """! See PhysicsDriver.validateTimeStep(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.validateTimeStep)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.validateTimeStep)
 
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.abortTimeStep)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.abortTimeStep)
 
     def isStationary(self):
         """! See PhysicsDriver.isStationary(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.isStationary)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.isStationary)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def iterate(self):
         """! See PhysicsDriver.iterate(). """
-        if len(self.dataManagersToFree_) > 0:
-            self.mpiComm_.send(self.dataManagersToFree_, dest=self.workerRank_, tag=MPITag.deleteDataManager)
-            self.dataManagersToFree_ = []
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.iterate)
+        if len(self._dataManagersToFree) > 0:
+            self.mpiComm.send(self._dataManagersToFree, dest=self._workerRank, tag=MPITag.deleteDataManager)
+            self._dataManagersToFree = []
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.iterate)
 
     def getIterateStatus(self):
         """! See PhysicsDriver.getIterateStatus(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.getIterateStatus)
-        succeed = self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
-        converged = self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.getIterateStatus)
+        succeed = self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
+        converged = self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
         return (succeed, converged)
 
     def iterateTimeStep(self):
@@ -131,55 +131,55 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
 
     def save(self, label, method):
         """! See PhysicsDriver.save(). """
-        self.mpiComm_.send((label, method), dest=self.workerRank_, tag=MPITag.save)
+        self.mpiComm.send((label, method), dest=self._workerRank, tag=MPITag.save)
 
     def restore(self, label, method):
         """! See PhysicsDriver.restore(). """
-        self.mpiComm_.send((label, method), dest=self.workerRank_, tag=MPITag.restore)
+        self.mpiComm.send((label, method), dest=self._workerRank, tag=MPITag.restore)
 
     def forget(self, label, method):
         """! See PhysicsDriver.forget(). """
-        self.mpiComm_.send((label, method), dest=self.workerRank_, tag=MPITag.forget)
+        self.mpiComm.send((label, method), dest=self._workerRank, tag=MPITag.forget)
 
     def getInputFieldsNames(self):
         """! See PhysicsDriver.getInputFieldsNames(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.getInputFieldsNames)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.getInputFieldsNames)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def getInputMEDFieldTemplate(self, name):
         """! See PhysicsDriver.getInputMEDFieldTemplate(). """
-        self.mpiComm_.send(name, dest=self.workerRank_, tag=MPITag.getInputMEDFieldTemplate)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(name, dest=self._workerRank, tag=MPITag.getInputMEDFieldTemplate)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def setInputMEDField(self, name, field):
         """! See PhysicsDriver.setInputMEDField(). """
-        self.mpiComm_.send((name, field), dest=self.workerRank_, tag=MPITag.setInputMEDField)
+        self.mpiComm.send((name, field), dest=self._workerRank, tag=MPITag.setInputMEDField)
 
     def getOutputFieldsNames(self):
         """! See PhysicsDriver.getOutputFieldsNames(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.getOutputFieldsNames)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.getOutputFieldsNames)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def getOutputMEDField(self, name):
         """! See PhysicsDriver.getOutputMEDField(). """
-        self.mpiComm_.send(name, dest=self.workerRank_, tag=MPITag.getOutputMEDField)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(name, dest=self._workerRank, tag=MPITag.getOutputMEDField)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def getInputValuesNames(self):
         """! See PhysicsDriver.getInputValuesNames(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.getInputValuesNames)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.getInputValuesNames)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def setValue(self, name, value):
         """! See PhysicsDriver.setValue(). """
-        self.mpiComm_.send((name, value), dest=self.workerRank_, tag=MPITag.setValue)
+        self.mpiComm.send((name, value), dest=self._workerRank, tag=MPITag.setValue)
 
     def getOutputValuesNames(self):
         """! See PhysicsDriver.getOutputValuesNames(). """
-        self.mpiComm_.send(0, dest=self.workerRank_, tag=MPITag.getOutputValuesNames)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(0, dest=self._workerRank, tag=MPITag.getOutputValuesNames)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def getValue(self, name):
         """! See PhysicsDriver.getValue(). """
-        self.mpiComm_.send(name, dest=self.workerRank_, tag=MPITag.getValue)
-        return self.mpiComm_.recv(source=self.workerRank_, tag=MPITag.answer)
+        self.mpiComm.send(name, dest=self._workerRank, tag=MPITag.getValue)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)

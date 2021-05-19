@@ -22,28 +22,35 @@ class MPIShortcutToData(object):
     """! INTERNAL """
 
     def __init__(self, containerToSet):
-        self.something_ = 0
-        self.containerToSet_ = containerToSet
+        """! INTERNAL """
+        self._something = 0
+        self._containerToSet = containerToSet
 
     def store(self, something):
-        self.something_ = something
+        """! INTERNAL """
+        self._something = something
 
     def getOutputMEDField(self):
-        return self.something_
+        """! INTERNAL """
+        return self._something
 
     def getInputMEDFieldTemplate(self):
-        return self.something_
+        """! INTERNAL """
+        return self._something
 
     def setInputMEDField(self, field):
-        if hasattr(self.containerToSet_, 'setInputMEDField'):
-            self.containerToSet_.setInputMEDField(field)
+        """! INTERNAL """
+        if hasattr(self._containerToSet, 'setInputMEDField'):
+            self._containerToSet.setInputMEDField(field)
 
     def getValue(self):
-        return self.something_
+        """! INTERNAL """
+        return self._something
 
     def setValue(self, value):
-        if hasattr(self.containerToSet_, 'setValue'):
-            self.containerToSet_.setValue(value)
+        """! INTERNAL """
+        if hasattr(self._containerToSet, 'setValue'):
+            self._containerToSet.setValue(value)
 
 
 class MPIExchanger(Exchanger):
@@ -91,8 +98,8 @@ class MPIExchanger(Exchanger):
         """
         Exchanger.__init__(self, method, medFieldsToGet, medFieldsToSet, valuesToGet, valuesToSet)
 
-        self.dataNeeded_ = False
-        self.isCollective_ = False
+        self._dataNeeded = False
+        self._isCollective = False
         destinations = []
 
         # On regarde si on a une communication collective dans les set, auquel cas toutes les communications deviennent collectives
@@ -100,70 +107,70 @@ class MPIExchanger(Exchanger):
             toSet = medFieldsToSet[i][0]
             if isinstance(toSet, MPICollectiveProcess):
                 destinations.append(toSet)
-                self.dataNeeded_ = True
-                self.isCollective_ = True
+                self._dataNeeded = True
+                self._isCollective = True
                 break
-        if not self.isCollective_:
+        if not self._isCollective:
             for i in range(len(valuesToSet)):
                 toSet = valuesToSet[i][0]
                 if isinstance(toSet, MPICollectiveProcess):
                     destinations.append(toSet)
-                    self.dataNeeded_ = True
-                    self.isCollective_ = True
+                    self._dataNeeded = True
+                    self._isCollective = True
                     break
 
         # Si on n'a pas de communications collectives, on cherche les destinataires des envois du rank local
-        if not self.isCollective_:
+        if not self._isCollective:
             for i in range(len(medFieldsToSet)):
                 toSet = medFieldsToSet[i][0]
                 if isinstance(toSet, MPIRemoteProcess) and toSet not in destinations:
                     destinations.append(toSet)
                 if not isinstance(toSet, MPIRemoteProcess):
-                    self.dataNeeded_ = True
+                    self._dataNeeded = True
             for i in range(len(valuesToSet)):
                 toSet = valuesToSet[i][0]
                 if isinstance(toSet, MPIRemoteProcess) and toSet not in destinations:
                     destinations.append(toSet)
                 if not isinstance(toSet, MPIRemoteProcess):
-                    self.dataNeeded_ = True
+                    self._dataNeeded = True
 
         # On cree enfin les objets Sender et Recipient
-        self.MPIexchanges_ = []
+        self._mpiExchanges = []
         for i in range(len(medFieldsToGet)):
             toGet = medFieldsToGet[i][0]
             if not isinstance(toGet, MPICollectiveProcess):
-                self.fieldsToGet_[i] = MPIShortcutToData(self.fieldsToGet_[i])
+                self._fieldsToGet[i] = MPIShortcutToData(self._fieldsToGet[i])
                 if not isinstance(toGet, MPIRemoteProcess):
-                    fieldSender = MPIFileFieldSender(destinations, ShortcutToData(medFieldsToGet[i][0], medFieldsToGet[i][1]), self.fieldsToGet_[i], False) if exchangeWithFiles else MPIFieldSender(destinations, ShortcutToData(medFieldsToGet[i][0], medFieldsToGet[i][1]), self.fieldsToGet_[i], False)
-                    self.MPIexchanges_.append(fieldSender)
-                elif self.dataNeeded_:
-                    fieldRecipient = MPIFileFieldRecipient(toGet, self.fieldsToGet_[i], self.isCollective_, False) if exchangeWithFiles else MPIFieldRecipient(toGet, self.fieldsToGet_[i], self.isCollective_, False)
-                    self.MPIexchanges_.append(fieldRecipient)
+                    fieldSender = MPIFileFieldSender(destinations, ShortcutToData(medFieldsToGet[i][0], medFieldsToGet[i][1]), self._fieldsToGet[i], False) if exchangeWithFiles else MPIFieldSender(destinations, ShortcutToData(medFieldsToGet[i][0], medFieldsToGet[i][1]), self._fieldsToGet[i], False)
+                    self._mpiExchanges.append(fieldSender)
+                elif self._dataNeeded:
+                    fieldRecipient = MPIFileFieldRecipient(toGet, self._fieldsToGet[i], self._isCollective, False) if exchangeWithFiles else MPIFieldRecipient(toGet, self._fieldsToGet[i], self._isCollective, False)
+                    self._mpiExchanges.append(fieldRecipient)
         for i in range(len(medFieldsToSet)):
             toSet = medFieldsToSet[i][0]
             if not isinstance(toSet, MPICollectiveProcess):
-                self.fieldsToSet_[i] = MPIShortcutToData(self.fieldsToSet_[i])
+                self._fieldsToSet[i] = MPIShortcutToData(self._fieldsToSet[i])
                 if not isinstance(toSet, MPIRemoteProcess):
-                    fieldSender = MPIFileFieldSender(destinations, ShortcutToData(medFieldsToSet[i][0], medFieldsToSet[i][1]), self.fieldsToSet_[i], True) if exchangeWithFiles else MPIFieldSender(destinations, ShortcutToData(medFieldsToSet[i][0], medFieldsToSet[i][1]), self.fieldsToSet_[i], True)
-                    self.MPIexchanges_.append(fieldSender)
-                elif self.dataNeeded_:
-                    fieldRecipient = MPIFileFieldRecipient(toSet, self.fieldsToSet_[i], self.isCollective_, True) if exchangeWithFiles else MPIFieldRecipient(toSet, self.fieldsToSet_[i], self.isCollective_, True)
-                    self.MPIexchanges_.append(fieldRecipient)
+                    fieldSender = MPIFileFieldSender(destinations, ShortcutToData(medFieldsToSet[i][0], medFieldsToSet[i][1]), self._fieldsToSet[i], True) if exchangeWithFiles else MPIFieldSender(destinations, ShortcutToData(medFieldsToSet[i][0], medFieldsToSet[i][1]), self._fieldsToSet[i], True)
+                    self._mpiExchanges.append(fieldSender)
+                elif self._dataNeeded:
+                    fieldRecipient = MPIFileFieldRecipient(toSet, self._fieldsToSet[i], self._isCollective, True) if exchangeWithFiles else MPIFieldRecipient(toSet, self._fieldsToSet[i], self._isCollective, True)
+                    self._mpiExchanges.append(fieldRecipient)
         for i in range(len(valuesToGet)):
             toGet = valuesToGet[i][0]
             if not isinstance(toGet, MPICollectiveProcess):
-                self.valuesToGet_[i] = MPIShortcutToData(self.valuesToGet_[i])
+                self._valuesToGet[i] = MPIShortcutToData(self._valuesToGet[i])
                 if not isinstance(toGet, MPIRemoteProcess):
-                    self.MPIexchanges_.append(MPIValueSender(destinations, ShortcutToData(valuesToGet[i][0], valuesToGet[i][1]), self.valuesToGet_[i]))
-                elif self.dataNeeded_:
-                    self.MPIexchanges_.append(MPIValueRecipient(toGet, self.valuesToGet_[i], self.isCollective_))
+                    self._mpiExchanges.append(MPIValueSender(destinations, ShortcutToData(valuesToGet[i][0], valuesToGet[i][1]), self._valuesToGet[i]))
+                elif self._dataNeeded:
+                    self._mpiExchanges.append(MPIValueRecipient(toGet, self._valuesToGet[i], self._isCollective))
 
     def exchange(self):
         """! Trigger the exchange of data.
 
         Must be called at the same time by all processes.
         """
-        for ex in self.MPIexchanges_:
-            ex.exchange()
-        if self.dataNeeded_:
+        for exc in self._mpiExchanges:
+            exc.exchange()
+        if self._dataNeeded:
             Exchanger.exchange(self)

@@ -11,14 +11,14 @@
 """ Contain the class SharedRemappingMulti1D3D. """
 from __future__ import print_function, division
 
-import c3po.medcoupling_compat as mc
-from c3po.medcoupling_compat import MEDCouplingRemapper
+import c3po.medcouplingCompat as mc
+from c3po.medcouplingCompat import MEDCouplingRemapper
 
 
 class Multi1D3DRemapper(MEDCouplingRemapper):
     """! Allow to share the mesh projection for different SharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
-    def __init__(self, XCoordinates, YCoordinates, indexTable, weights):
+    def __init__(self, xCoordinates, yCoordinates, indexTable, weights):
         """! Build a Multi1D3DRemapper object.
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.
@@ -27,126 +27,126 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
 
         Each cell of this 2D grid is associated to a 1D field.
 
-        @param XCoordinates x coordinates of the inner mesh to build.
-        @param YCoordinates y coordinates of the inner mesh to build.
+        @param xCoordinates x coordinates of the inner mesh to build.
+        @param yCoordinates y coordinates of the inner mesh to build.
         @param indexTable For each position of the 2D grid (x coordinate changes first), the index of the 1D field to associate. Put -1 to
         associate to nothing.
         @param weights Weigh of each 1D field to take into account for extensive variables.
         """
         MEDCouplingRemapper.__init__(self)
 
-        self.indexTable_ = [[] for k in range(max(indexTable) + 1)]
+        self._indexTable = [[] for k in range(max(indexTable) + 1)]
         for position, indice1D in enumerate(indexTable):
             if indice1D >= 0:
-                self.indexTable_[indice1D].append(position)
+                self._indexTable[indice1D].append(position)
 
-        if len(self.indexTable_) != len(weights):
-            raise Exception("Multi1D3DRemapper.__init__ we give " + str(len(weights)) + "weight values instead of " + str(len(self.indexTable_))
+        if len(self._indexTable) != len(weights):
+            raise Exception("Multi1D3DRemapper.__init__ we give " + str(len(weights)) + "weight values instead of " + str(len(self._indexTable))
                             + ", the number of 1D calculations.")
-        self.weights_ = weights
-        self.arrayX_ = mc.DataArrayDouble(XCoordinates)
-        self.arrayX_.setInfoOnComponent(0, "X [m]")
-        self.arrayY_ = mc.DataArrayDouble(YCoordinates)
-        self.arrayY_.setInfoOnComponent(0, "Y [m]")
-        self.arrayZ_ = 0
-        self.numberOf1DPositions_ = (self.arrayX_.getNumberOfTuples() - 1) * (self.arrayY_.getNumberOfTuples() - 1)
-        self.numberOfCellsIn1D_ = 0
-        self.innerMesh_ = mc.MEDCouplingCMesh("3DMeshFromMulti1D")
-        self.innerField_ = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
-        self.innerField_.setName("3DFieldFromMulti1D")
-        self.isInit_ = False
-        self.cellsToScreenOut3DMesh_ = []
-        self.cellsToScreenOutInnerMesh_ = []
+        self._weights = weights
+        self._arrayX = mc.DataArrayDouble(xCoordinates)
+        self._arrayX.setInfoOnComponent(0, "X [m]")
+        self._arrayY = mc.DataArrayDouble(yCoordinates)
+        self._arrayY.setInfoOnComponent(0, "Y [m]")
+        self._arrayZ = 0
+        self._numberOf1DPositions = (self._arrayX.getNumberOfTuples() - 1) * (self._arrayY.getNumberOfTuples() - 1)
+        self._numberOfCellsIn1D = 0
+        self._innerMesh = mc.MEDCouplingCMesh("3DMeshFromMulti1D")
+        self._innerField = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
+        self._innerField.setName("3DFieldFromMulti1D")
+        self.isInit = False
+        self._cellsToScreenOut3DMesh = []
+        self._cellsToScreenOutInnerMesh = []
 
-    def initialize(self, Mesh1D, Mesh3D, meshAlignment, offset, rescaling):
+    def initialize(self, mesh1D, mesh3D, meshAlignment, offset, rescaling):
         """! INTERNAL """
-        self.arrayZ_ = Mesh1D.getCoordsAt(0)
-        self.innerMesh_.setCoords(self.arrayX_, self.arrayY_, self.arrayZ_)
-        self.numberOfCellsIn1D_ = Mesh1D.getNumberOfCells()
-        self.innerField_.setMesh(self.innerMesh_)
+        self._arrayZ = mesh1D.getCoordsAt(0)
+        self._innerMesh.setCoords(self._arrayX, self._arrayY, self._arrayZ)
+        self._numberOfCellsIn1D = mesh1D.getNumberOfCells()
+        self._innerField.setMesh(self._innerMesh)
         array = mc.DataArrayDouble()
-        array.alloc(self.numberOfCellsIn1D_ * self.numberOf1DPositions_)
+        array.alloc(self._numberOfCellsIn1D * self._numberOf1DPositions)
         array.fillWithValue(0.)
-        self.innerField_.setArray(array)
+        self._innerField.setArray(array)
         if meshAlignment:
-            for mesh in [self.innerMesh_, Mesh3D]:
+            for mesh in [self._innerMesh, mesh3D]:
                 [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
                 offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
                 mesh.translate(offsettmp)
         if offset != [0., 0., 0.]:
-            self.innerMesh_.translate([-x for x in offset])
+            self._innerMesh.translate([-x for x in offset])
         if rescaling != 1.:
-            self.innerMesh_.scale([0., 0., 0.], 1. / rescaling)
-        self.prepare(self.innerMesh_, Mesh3D, "P0P0")
+            self._innerMesh.scale([0., 0., 0.], 1. / rescaling)
+        self.prepare(self._innerMesh, mesh3D, "P0P0")
 
         bary = []
         try:
-            bary = self.innerMesh_.computeCellCenterOfMass()  # MEDCoupling 9
+            bary = self._innerMesh.computeCellCenterOfMass()  # MEDCoupling 9
         except:
-            bary = self.innerMesh_.getBarycenterAndOwner()  # MEDCoupling 7
-        c, cI = Mesh3D.getCellsContainingPoints(bary, 1.0e-8)
-        dsi = cI.deltaShiftIndex()
+            bary = self._innerMesh.getBarycenterAndOwner()  # MEDCoupling 7
+        _, cellsId = mesh3D.getCellsContainingPoints(bary, 1.0e-8)
+        dsi = cellsId.deltaShiftIndex()
         try:
-            self.cellsToScreenOutInnerMesh_ = dsi.findIdsEqual(0)  # MEDCoupling 9
+            self._cellsToScreenOutInnerMesh = dsi.findIdsEqual(0)  # MEDCoupling 9
         except:
-            self.cellsToScreenOutInnerMesh_ = dsi.getIdsEqual(0)  # MEDCoupling 7
+            self._cellsToScreenOutInnerMesh = dsi.getIdsEqual(0)  # MEDCoupling 7
         try:
-            bary = Mesh3D.computeCellCenterOfMass()
+            bary = mesh3D.computeCellCenterOfMass()
         except:
-            bary = Mesh3D.getBarycenterAndOwner()
-        c, cI = self.innerMesh_.getCellsContainingPoints(bary, 1.0e-8)
-        dsi = cI.deltaShiftIndex()
+            bary = mesh3D.getBarycenterAndOwner()
+        _, cellsId = self._innerMesh.getCellsContainingPoints(bary, 1.0e-8)
+        dsi = cellsId.deltaShiftIndex()
         try:
-            self.cellsToScreenOut3DMesh_ = dsi.findIdsEqual(0)
+            self._cellsToScreenOut3DMesh = dsi.findIdsEqual(0)
         except:
-            self.cellsToScreenOut3DMesh_ = dsi.getIdsEqual(0)
+            self._cellsToScreenOut3DMesh = dsi.getIdsEqual(0)
 
-        self.isInit_ = True
+        self.isInit = True
 
-    def Build3DField(self, Fields1D, defaultValue, outsideCellsScreening):
+    def build3DField(self, fields1D, defaultValue, outsideCellsScreening):
         """! INTERNAL """
-        if len(Fields1D) > 0:
-            self.innerField_.setNature(Fields1D[0].getNature())
-        Array3D = self.innerField_.getArray()
-        NbOfElems3D = Array3D.getNbOfElems()
-        for i, field in enumerate(Fields1D):
-            Array1D = field.getArray()
-            if self.innerField_.getNature() == mc.ExtensiveMaximum or self.innerField_.getNature() == mc.ExtensiveConservation:
-                Array1D *= self.weights_[i]
-            for position in self.indexTable_[i]:
-                Array3D.setPartOfValues1(Array1D, position, NbOfElems3D, self.numberOf1DPositions_, 0, 1, 1)
-        resuField = self.transferField(self.innerField_, defaultValue)
+        if len(fields1D) > 0:
+            self._innerField.setNature(fields1D[0].getNature())
+        array3D = self._innerField.getArray()
+        nbOfElems3D = array3D.getNbOfElems()
+        for i, field in enumerate(fields1D):
+            array1D = field.getArray()
+            if self._innerField.getNature() == mc.ExtensiveMaximum or self._innerField.getNature() == mc.ExtensiveConservation:
+                array1D *= self._weights[i]
+            for position in self._indexTable[i]:
+                array3D.setPartOfValues1(array1D, position, nbOfElems3D, self._numberOf1DPositions, 0, 1, 1)
+        resuField = self.transferField(self._innerField, defaultValue)
         if outsideCellsScreening:
-            resuField.getArray()[self.cellsToScreenOut3DMesh_] = defaultValue
+            resuField.getArray()[self._cellsToScreenOut3DMesh] = defaultValue
         return resuField
 
-    def Build1DFields(self, Field3D, defaultValue, outsideCellsScreening):
+    def build1DFields(self, field3D, defaultValue, outsideCellsScreening):
         """! INTERNAL """
-        self.innerField_ = self.reverseTransferField(Field3D, defaultValue)
-        Array3D = self.innerField_.getArray()
+        self._innerField = self.reverseTransferField(field3D, defaultValue)
+        array3D = self._innerField.getArray()
         if outsideCellsScreening:
-            Array3D[self.cellsToScreenOutInnerMesh_] = defaultValue
-        Fields1D = []
-        for i, List1D in enumerate(self.indexTable_):
-            Fields1D.append(mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME))
-            Fields1D[-1].setName(Field3D.getName())
-            Mesh1D = mc.MEDCouplingCMesh("Mesh1D")
-            Mesh1D.setCoords(self.arrayZ_)
-            Fields1D[-1].setMesh(Mesh1D)
-            Array1D = mc.DataArrayDouble()
-            Array1D.alloc(self.numberOfCellsIn1D_)
-            Array1D.fillWithValue(0.)
-            for position in List1D:
-                Array1Dtmp = mc.DataArrayDouble()
-                Array1Dtmp.alloc(self.numberOfCellsIn1D_)
-                Array1Dtmp.setContigPartOfSelectedValuesSlice(0, Array3D, position, Array3D.getNumberOfTuples(), self.numberOf1DPositions_)
-                Array1D.addEqual(Array1Dtmp)
-            if len(List1D) > 0:
-                Array1D *= 1. / len(List1D)
-            if Field3D.getNature() == mc.ExtensiveMaximum or Field3D.getNature() == mc.ExtensiveConservation:
-                Array1D *= 1. / self.weights_[i]
-            Fields1D[-1].setArray(Array1D)
-        return Fields1D
+            array3D[self._cellsToScreenOutInnerMesh] = defaultValue
+        fields1D = []
+        for i, list1D in enumerate(self._indexTable):
+            fields1D.append(mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME))
+            fields1D[-1].setName(field3D.getName())
+            mesh1D = mc.MEDCouplingCMesh("mesh1D")
+            mesh1D.setCoords(self._arrayZ)
+            fields1D[-1].setMesh(mesh1D)
+            array1D = mc.DataArrayDouble()
+            array1D.alloc(self._numberOfCellsIn1D)
+            array1D.fillWithValue(0.)
+            for position in list1D:
+                array1Dtmp = mc.DataArrayDouble()
+                array1Dtmp.alloc(self._numberOfCellsIn1D)
+                array1Dtmp.setContigPartOfSelectedValuesSlice(0, array3D, position, array3D.getNumberOfTuples(), self._numberOf1DPositions)
+                array1D.addEqual(array1Dtmp)
+            if len(list1D) > 0:
+                array1D *= 1. / len(list1D)
+            if field3D.getNature() == mc.ExtensiveMaximum or field3D.getNature() == mc.ExtensiveConservation:
+                array1D *= 1. / self._weights[i]
+            fields1D[-1].setArray(array1D)
+        return fields1D
 
 
 class SharedRemappingMulti1D3D(object):
@@ -189,40 +189,40 @@ class SharedRemappingMulti1D3D(object):
             On the other hand, it will screen out cells actually intersected if their barycenter is outside of source mesh! Be careful with this
             option.
         """
-        self.remapper_ = remapper
-        self.isReverse_ = reverse
-        self.defaultValue_ = defaultValue
-        self.linearTransform_ = linearTransform
-        self.meshAlignment_ = meshAlignment
-        self.offset_ = offset
+        self._remapper = remapper
+        self._isReverse = reverse
+        self._defaultValue = defaultValue
+        self._linearTransform = linearTransform
+        self._meshAlignment = meshAlignment
+        self._offset = offset
         if rescaling <= 0.:
             raise Exception("SharedRemappingMulti1D3D : rescaling must be > 0!")
-        self.rescaling_ = rescaling
-        self.outsideCellsScreening_ = outsideCellsScreening
+        self._rescaling = rescaling
+        self._outsideCellsScreening = outsideCellsScreening
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! INTERNAL """
-        if not self.remapper_.isInit_:
-            if self.isReverse_:
-                self.remapper_.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self.meshAlignment_,
-                                          [-x for x in self.offset_], 1. / self.rescaling_)
+        if not self._remapper.isInit:
+            if self._isReverse:
+                self._remapper.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self._meshAlignment,
+                                          [-x for x in self._offset], 1. / self._rescaling)
             else:
-                self.remapper_.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self.meshAlignment_, self.offset_, self.rescaling_)
+                self._remapper.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self._meshAlignment, self._offset, self._rescaling)
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Project the input fields one by one before returning them as outputs, in the same order. """
         self.initialize(fieldsToGet, fieldsToSet, valuesToGet)
         resu = []
-        if self.isReverse_:
+        if self._isReverse:
             for field3D in fieldsToGet:
-                resu += self.remapper_.Build1DFields(field3D, self.defaultValue_, self.outsideCellsScreening_)
+                resu += self._remapper.build1DFields(field3D, self._defaultValue, self._outsideCellsScreening)
         else:
-            index_first = 0
-            while index_first + len(self.remapper_.indexTable_) <= len(fieldsToGet):
-                Fields1D = [fieldsToGet[index_first + k] for k in range(len(self.remapper_.indexTable_))]
-                resu += [self.remapper_.Build3DField(Fields1D, self.defaultValue_, self.outsideCellsScreening_)]
-                index_first += len(self.remapper_.indexTable_)
-        if self.linearTransform_ != (1., 0.):
+            indexFirst = 0
+            while indexFirst + len(self._remapper._indexTable) <= len(fieldsToGet):
+                fields1D = [fieldsToGet[indexFirst + k] for k in range(len(self._remapper._indexTable))]
+                resu += [self._remapper.build3DField(fields1D, self._defaultValue, self._outsideCellsScreening)]
+                indexFirst += len(self._remapper._indexTable)
+        if self._linearTransform != (1., 0.):
             for med in resu:
-                med.applyLin(*(self.linearTransform_))
+                med.applyLin(*(self._linearTransform))
         return resu, valuesToGet

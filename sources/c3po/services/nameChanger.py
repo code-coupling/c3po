@@ -8,16 +8,16 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class wrapper Tracer. """
+""" Contain the class wrapper tracer. """
 from __future__ import print_function, division
 from types import FunctionType
 
 
 class NameChangerMeta(type):
-    """! Metaclass related to the use of NameChanger. """
+    """! Metaclass related to the use of nameChanger. """
 
-    def __init__(self, clsname, superclasses, attributedict):
-        type.__init__(self, clsname, superclasses, attributedict)
+    def __init__(cls, clsname, superclasses, attributedict):
+        type.__init__(cls, clsname, superclasses, attributedict)
 
     def __new__(cls, clsname, superclasses, attributedict):
 
@@ -30,14 +30,14 @@ class NameChangerMeta(type):
                         name = self.static_nameMapping[name]
                         kwargs["name"] = name
                 else:
-                    ii = 0
-                    for arg_i in args:
-                        if type(arg_i) == str:
-                            name = arg_i
+                    i = 0
+                    for arg in args:
+                        if isinstance(arg, str):
+                            name = arg
                             if name in self.static_nameMapping.keys():
                                 name = self.static_nameMapping[name]
-                                args = args[:ii] + (name,) + args[ii + 1:]
-                        ii += 1
+                                args = args[:i] + (name,) + args[i + 1:]
+                        i += 1
                 return method(self, *args, **kwargs)
 
             methodWrapped.__name__ = method.__name__
@@ -47,7 +47,7 @@ class NameChangerMeta(type):
 
         newDct = {}
         for nameattr, method in attributedict.items():
-            if type(method) is FunctionType:
+            if isinstance(method, FunctionType):
                 newDct[nameattr] = methodWrapper(method)
             elif nameattr == "static_nameMapping":
                 newDct[nameattr] = method.copy()
@@ -56,8 +56,8 @@ class NameChangerMeta(type):
         return type.__new__(cls, clsname, superclasses, newDct)
 
 
-def NameChanger(nameMapping):
-    """! NameChanger is a class wrapper that allows to change the names of the variables used by the base class (usually a PhysicsDriver).
+def nameChanger(nameMapping):
+    """! nameChanger is a class wrapper that allows to change the names of the variables used by the base class (usually a PhysicsDriver).
 
     This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
 
@@ -69,24 +69,24 @@ def NameChanger(nameMapping):
 
     @param nameMapping a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code).
 
-    The parameter of NameChanger is added to the class ("static" attributes) with the names static_nameMapping.
+    The parameter of nameChanger is added to the class ("static" attributes) with the names static_nameMapping.
 
-    NameChanger can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere. For example:
+    nameChanger can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere. For example:
 
-        @c3po.NameChanger({"newName" : "oldName"})
+        @c3po.nameChanger({"newName" : "oldName"})
         class MyClass(...):
             ...
 
     or it can be used in order to redefined only locally the class like that:
 
-        MyNewClass = c3po.NameChanger({"newName" : "oldName"})(MyClass)
+        MyNewClass = c3po.nameChanger({"newName" : "oldName"})(MyClass)
 
     afterward "newName" can be used in place of "oldName" everywhere with MyNewClass. "oldName" is still working.
 
     @note nameMapping is copied.
 
-    @warning NameChanger only modifies the base class, not its parents. As a consequence, inherited methods are invisible to NameChanger. Redefine them in the daughter class if needed.
-    @warning A class that inherits from a class wrapped by NameChanger will be wrapped as well, with the same parameters.
+    @warning nameChanger only modifies the base class, not its parents. As a consequence, inherited methods are invisible to nameChanger. Redefine them in the daughter class if needed.
+    @warning A class that inherits from a class wrapped by nameChanger will be wrapped as well, with the same parameters.
              If the wrapping is applied (without changing the name of the class) after the building of the daughter class, it will result in TypeError when the daughter class will try to call mother methods (since its mother class does not exist anymore!).
              As a consequence, if applied to C3PO classes, it is recommended to change the name of the classes.
     """

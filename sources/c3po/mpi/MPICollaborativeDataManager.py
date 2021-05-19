@@ -45,28 +45,28 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
 
         @param dataManagers a list of c3po.DataManager.DataManager.
         """
-        self.mpiComm_ = -1
-        self.isMPI_ = False
+        self.mpiComm = -1
+        self.isMPI = False
         ranks = []
         localData = []
         for data in dataManagers:
             if isinstance(data, MPIRemoteProcess):
-                if not self.isMPI_:
-                    if data.mpiComm_ == MPI.COMM_NULL:
+                if not self.isMPI:
+                    if data.mpiComm == MPI.COMM_NULL:
                         raise Exception("MPICollaborativeDataManager.__init__ All distant process must be part of the communicator (MPI.COMM_NULL found).")
-                    self.isMPI_ = True
-                    self.mpiComm_ = data.mpiComm_
-                    ranks.append(data.mpiComm_.Get_rank())
+                    self.isMPI = True
+                    self.mpiComm = data.mpiComm
+                    ranks.append(data.mpiComm.Get_rank())
                 else:
-                    if self.mpiComm_ != data.mpiComm_:
+                    if self.mpiComm != data.mpiComm:
                         raise Exception("MPICollaborativeDataManager.__init__ All distant process must used the same MPI communicator")
-                rank = data.rank_
+                rank = data.rank
                 if rank not in ranks:
                     ranks.append(rank)
             else:
                 localData.append(data)
         if len(ranks) != 0:
-            if len(ranks) != self.mpiComm_.Get_size():
+            if len(ranks) != self.mpiComm.Get_size():
                 raise Exception("MPICollaborativeDataManager.__init__ All process of the MPI communicator are not involve in the MPICollaborativeDataManager")
         CollaborativeDataManager.__init__(self, localData)
 
@@ -76,9 +76,9 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         @return An empty clone of self.
         """
         notMPIoutput = CollaborativeDataManager.cloneEmpty(self)
-        output = MPICollaborativeDataManager(notMPIoutput.dataManagers_)
-        output.mpiComm_ = self.mpiComm_
-        output.isMPI_ = self.isMPI_
+        output = MPICollaborativeDataManager(notMPIoutput.dataManagers)
+        output.mpiComm = self.mpiComm
+        output.isMPI = self.isMPI
         return output
 
     def normMax(self):
@@ -87,8 +87,8 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
         """
         norm = CollaborativeDataManager.normMax(self)
-        if self.isMPI_:
-            norm = self.mpiComm_.allreduce(norm, op=MPI.MAX)
+        if self.isMPI:
+            norm = self.mpiComm.allreduce(norm, op=MPI.MAX)
         return norm
 
     def norm2(self):
@@ -97,8 +97,8 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = CollaborativeDataManager.norm2(self)
-        if self.isMPI_:
-            norm = self.mpiComm_.allreduce(norm * norm, op=MPI.SUM)
+        if self.isMPI:
+            norm = self.mpiComm.allreduce(norm * norm, op=MPI.SUM)
             norm = math.sqrt(norm)
         return norm
 
@@ -112,6 +112,6 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         @throw Exception if self and other are not consistent.
         """
         result = CollaborativeDataManager.dot(self, other)
-        if self.isMPI_:
-            result = self.mpiComm_.allreduce(result, op=MPI.SUM)
+        if self.isMPI:
+            result = self.mpiComm.allreduce(result, op=MPI.SUM)
         return result

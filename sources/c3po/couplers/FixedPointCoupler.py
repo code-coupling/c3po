@@ -44,10 +44,10 @@ class FixedPointCoupler(Coupler):
         @param dataManager list of only one DataManager.
         """
         Coupler.__init__(self, physics, exchangers, dataManager)
-        self.tolerance_ = 1.E-6
-        self.maxiter_ = 100
-        self.dampingFactor_ = 1.
-        self.isConverged_ = False
+        self._tolerance = 1.E-6
+        self._maxiter = 100
+        self._dampingFactor = 1.
+        self._isConverged = False
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManager, list):
             raise Exception("FixedPointCoupler.__init__ physics, exchangers and dataManager must be lists!")
@@ -64,15 +64,15 @@ class FixedPointCoupler(Coupler):
         @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
         @param maxiter the maximal number of iterations.
         """
-        self.tolerance_ = tolerance
-        self.maxiter_ = maxiter
+        self._tolerance = tolerance
+        self._maxiter = maxiter
 
     def setDampingFactor(self, dampingFactor):
         """! Set the damping factor of the method.
 
         @param dampingFactor the damping factor alpha in the formula X^{n+1} = alpha * F(X^{n}) + (1 - alpha) * X^{n}.
         """
-        self.dampingFactor_ = dampingFactor
+        self._dampingFactor = dampingFactor
 
     def solveTimeStep(self):
         """! Solve a time step using the damped fixed-point algorithm.
@@ -80,11 +80,11 @@ class FixedPointCoupler(Coupler):
         See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
         iiter = 0
-        error = self.tolerance_ + 1.
-        physics = self.physicsDrivers_[0]
-        physics2Data = self.exchangers_[0]
-        data2physics = self.exchangers_[1]
-        data = self.dataManagers_[0]
+        error = self._tolerance + 1.
+        physics = self._physicsDrivers[0]
+        physics2Data = self._exchangers[0]
+        data2physics = self._exchangers[1]
+        data = self._dataManagers[0]
 
         # Init
         print("iteration ", iiter)
@@ -93,19 +93,19 @@ class FixedPointCoupler(Coupler):
         previousData = data.clone()
         iiter += 1
 
-        while error > self.tolerance_ and iiter < self.maxiter_:
+        while error > self._tolerance and iiter < self._maxiter:
             print("iteration ", iiter)
 
             self.abortTimeStep()
-            self.initTimeStep(self.dt_)
+            self.initTimeStep(self._dt)
             data2physics.exchange()
 
             physics.solve()
             physics2Data.exchange()
 
-            if self.dampingFactor_ != 1.:
-                data *= self.dampingFactor_
-                data.imuladd(1. - self.dampingFactor_, previousData)
+            if self._dampingFactor != 1.:
+                data *= self._dampingFactor
+                data.imuladd(1. - self._dampingFactor, previousData)
 
             if iiter == 1:
                 diffData = data.clone()
@@ -113,16 +113,16 @@ class FixedPointCoupler(Coupler):
                 diffData.copy(data)
             diffData -= previousData
             error = self.getNorm(diffData) / self.getNorm(data)
-            error /= self.dampingFactor_
+            error /= self._dampingFactor
 
             previousData.copy(data)
 
             iiter += 1
             print("error : ", error)
 
-        return physics.getSolveStatus() and not(error > self.tolerance_)
+        return physics.getSolveStatus() and error <= self._tolerance
 
-    # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
+    # On definit les methodes suivantes pour qu'elles soient vues par tracer.
     def initialize(self):
         """! See Coupler.initialize(). """
         return Coupler.initialize(self)

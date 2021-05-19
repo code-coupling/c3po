@@ -33,49 +33,49 @@ class MPIWorker(object):
         first case point-to-point communications are used, in the second case collective communications are used.
         """
         found = False
-        for p in physicsDrivers:
-            if not isinstance(p, MPIRemoteProcess):
+        for phy in physicsDrivers:
+            if not isinstance(phy, MPIRemoteProcess):
                 if found:
                     raise Exception("MPIWorker.__init__ : we found more than one local PhysicsDriver (not MPIRemoteProcess) : there must be only one.")
                 found = True
-                self.physicsDriver_ = p
+                self._physicsDriver = phy
         if not found:
             raise Exception("MPIWorker.__init__ : we did not found any local PhysicsDriver : there must be one (and only one).")
-        self.mpiComm_ = masterProcess.mpiComm_
-        self.masterRank_ = 0
-        self.isCollective_ = False
+        self.mpiComm = masterProcess.mpiComm
+        self._masterRank = 0
+        self._isCollective = False
         if isinstance(masterProcess, MPIRemoteProcess):
-            self.masterRank_ = masterProcess.rank_
+            self._masterRank = masterProcess.rank
         elif isinstance(masterProcess, MPIMasterCollectivePhysicsDriver):
-            self.masterRank_ = masterProcess.masterRank_
-            self.isCollective_ = True
+            self._masterRank = masterProcess._masterRank
+            self._isCollective = True
         else:
             raise Exception("MPIWorker.__init__ : masterProcess type unknown.")
-        self.exchangers_ = exchangers
-        self.dataManagers_ = {}  # Used a little bit as a list but the [] operator of a dict is more convenent here.
+        self._exchangers = exchangers
+        self._dataManagers = {}  # Used a little bit as a list but the [] operator of a dict is more convenent here.
         for idata in range(len(dataManagers)):
-            self.dataManagers_[idata] = dataManagers[idata]
-        self.IdDataFree_ = []
+            self._dataManagers[idata] = dataManagers[idata]
+        self._idDataFree = []
 
-    def answer(self, data, CollectiveOperator=MPI.MIN):
+    def answer(self, data, collectiveOperator=MPI.MIN):
         """! INTERNAL """
-        if self.isCollective_:
-            self.mpiComm_.reduce(data, op=CollectiveOperator, root=self.masterRank_)
+        if self._isCollective:
+            self.mpiComm.reduce(data, op=collectiveOperator, root=self._masterRank)
         else:
-            self.mpiComm_.send(data, dest=self.masterRank_, tag=MPITag.answer)
+            self.mpiComm.send(data, dest=self._masterRank, tag=MPITag.answer)
 
     def getIdNewData(self):
         """! INTERNAL """
-        IdNewDataMan = len(self.dataManagers_)
-        if len(self.IdDataFree_) > 0:
-            IdNewDataMan = self.IdDataFree_.pop()
-        return IdNewDataMan
+        idNewDataMan = len(self._dataManagers)
+        if len(self._idDataFree) > 0:
+            idNewDataMan = self._idDataFree.pop()
+        return idNewDataMan
 
     def checkDataID(self, idList):
         """! INTERNAL """
         for iid in idList:
-            if iid >= len(self.dataManagers_):
-                raise Exception("MPIWorker.checkDataID : the asked DataManager does not exist : ID asked : " + str(iid) + ", maximum ID : " + str(len(self.dataManagers_) - 1) + ".")
+            if iid >= len(self._dataManagers):
+                raise Exception("MPIWorker.checkDataID : the asked DataManager does not exist : ID asked : " + str(iid) + ", maximum ID : " + str(len(self._dataManagers) - 1) + ".")
 
     def listen(self):
         """! Make the worker waits for instructions from the master.
@@ -85,113 +85,113 @@ class MPIWorker(object):
         status = MPI.Status()
         tag = MPITag.init
         while tag != MPITag.terminate:
-            if self.isCollective_:
-                data = self.mpiComm_.bcast(0, root=self.masterRank_)
+            if self._isCollective:
+                data = self.mpiComm.bcast(0, root=self._masterRank)
                 tag = data[0]
                 data = data[-1]
             else:
-                data = self.mpiComm_.recv(source=self.masterRank_, tag=MPI.ANY_TAG, status=status)
+                data = self.mpiComm.recv(source=self._masterRank, tag=MPI.ANY_TAG, status=status)
                 tag = status.Get_tag()
-            #print "rank ", self.mpiComm_.Get_rank(), ", tag = ", tag, "*****************************************************************"
+            #print "rank ", self.mpiComm.Get_rank(), ", tag = ", tag, "*****************************************************************"
             if tag == MPITag.init:
-                self.physicsDriver_.init()
+                self._physicsDriver.init()
             elif tag == MPITag.getInitStatus:
-                self.answer(self.physicsDriver_.getInitStatus())
+                self.answer(self._physicsDriver.getInitStatus())
             elif tag == MPITag.presentTime:
-                self.answer(self.physicsDriver_.presentTime())
+                self.answer(self._physicsDriver.presentTime())
             elif tag == MPITag.computeTimeStep:
-                (dt, stop) = self.physicsDriver_.computeTimeStep()
+                (dt, stop) = self._physicsDriver.computeTimeStep()
                 self.answer(dt)
                 self.answer(stop)
             elif tag == MPITag.initTimeStep:
-                self.answer(self.physicsDriver_.initTimeStep(data))
+                self.answer(self._physicsDriver.initTimeStep(data))
             elif tag == MPITag.solve:
-                self.physicsDriver_.solve()
+                self._physicsDriver.solve()
             elif tag == MPITag.getSolveStatus:
-                self.answer(self.physicsDriver_.getSolveStatus())
+                self.answer(self._physicsDriver.getSolveStatus())
             elif tag == MPITag.validateTimeStep:
-                self.physicsDriver_.validateTimeStep()
+                self._physicsDriver.validateTimeStep()
             elif tag == MPITag.abortTimeStep:
-                self.physicsDriver_.abortTimeStep()
+                self._physicsDriver.abortTimeStep()
             elif tag == MPITag.isStationary:
-                self.answer(self.physicsDriver_.isStationary())
+                self.answer(self._physicsDriver.isStationary())
             elif tag == MPITag.iterate:
-                self.physicsDriver_.iterate()
+                self._physicsDriver.iterate()
             elif tag == MPITag.getIterateStatus:
-                (succed, converged) = self.physicsDriver_.computeTimeStep()
+                (succeed, converged) = self._physicsDriver.computeTimeStep()
                 self.answer(succeed)
                 self.answer(converged)
             elif tag == MPITag.save:
-                self.physicsDriver_.save(*data)
+                self._physicsDriver.save(*data)
             elif tag == MPITag.restore:
-                self.physicsDriver_.restore(*data)
+                self._physicsDriver.restore(*data)
             elif tag == MPITag.forget:
-                self.physicsDriver_.forget(*data)
+                self._physicsDriver.forget(*data)
             elif tag == MPITag.getInputFieldsNames:
-                self.answer(self.physicsDriver_.getInputFieldsNames())
+                self.answer(self._physicsDriver.getInputFieldsNames())
             elif tag == MPITag.getInputMEDFieldTemplate:
-                self.answer(self.physicsDriver_.getInputMEDFieldTemplate(data))
+                self.answer(self._physicsDriver.getInputMEDFieldTemplate(data))
             elif tag == MPITag.setInputMEDField:
-                self.physicsDriver_.setInputMEDField(*data)
+                self._physicsDriver.setInputMEDField(*data)
             elif tag == MPITag.getOutputFieldsNames:
-                self.answer(self.physicsDriver_.getOutputFieldsNames())
+                self.answer(self._physicsDriver.getOutputFieldsNames())
             elif tag == MPITag.getOutputMEDField:
-                self.answer(self.physicsDriver_.getOutputMEDField(data))
+                self.answer(self._physicsDriver.getOutputMEDField(data))
             elif tag == MPITag.getInputValuesNames:
-                self.answer(self.physicsDriver_.getInputValuesNames())
+                self.answer(self._physicsDriver.getInputValuesNames())
             elif tag == MPITag.setValue:
-                self.physicsDriver_.setValue(*data)
+                self._physicsDriver.setValue(*data)
             elif tag == MPITag.getOutputValuesNames:
-                self.answer(self.physicsDriver_.getOutputValuesNames())
+                self.answer(self._physicsDriver.getOutputValuesNames())
             elif tag == MPITag.getValue:
-                self.answer(self.physicsDriver_.getValue(data))
+                self.answer(self._physicsDriver.getValue(data))
 
             elif tag == MPITag.deleteDataManager:
                 self.checkDataID(data)
-                self.IdDataFree_ += data
+                self._idDataFree += data
             elif tag == MPITag.cloneEmptyData:
-                IdNewDataMan = self.getIdNewData()
-                self.dataManagers_[IdNewDataMan] = self.dataManagers_[data].cloneEmpty()
-                self.answer(IdNewDataMan)
+                idNewDataMan = self.getIdNewData()
+                self._dataManagers[idNewDataMan] = self._dataManagers[data].cloneEmpty()
+                self.answer(idNewDataMan)
             elif tag == MPITag.copyData:
                 self.checkDataID(data)
-                self.dataManagers_[data[0]].copy(self.dataManagers_[data[1]])
+                self._dataManagers[data[0]].copy(self._dataManagers[data[1]])
             elif tag == MPITag.normMax:
-                self.answer(self.dataManagers_[data].normMax(), CollectiveOperator=MPI.MAX)
+                self.answer(self._dataManagers[data].normMax(), collectiveOperator=MPI.MAX)
             elif tag == MPITag.norm2:
-                norm = self.dataManagers_[data].norm2()
-                self.answer(norm * norm, CollectiveOperator=MPI.SUM)
+                norm = self._dataManagers[data].norm2()
+                self.answer(norm * norm, collectiveOperator=MPI.SUM)
             elif tag == MPITag.addData:
                 self.checkDataID(data)
-                IdNewDataMan = self.getIdNewData()
-                self.dataManagers_[IdNewDataMan] = self.dataManagers_[data[0]] + self.dataManagers_[data[1]]
-                self.answer(IdNewDataMan)
+                idNewDataMan = self.getIdNewData()
+                self._dataManagers[idNewDataMan] = self._dataManagers[data[0]] + self._dataManagers[data[1]]
+                self.answer(idNewDataMan)
             elif tag == MPITag.iaddData:
                 self.checkDataID(data)
-                self.dataManagers_[data[0]] += self.dataManagers_[data[1]]
+                self._dataManagers[data[0]] += self._dataManagers[data[1]]
             elif tag == MPITag.subData:
                 self.checkDataID(data)
-                IdNewDataMan = self.getIdNewData()
-                self.dataManagers_[IdNewDataMan] = self.dataManagers_[data[0]] - self.dataManagers_[data[1]]
-                self.answer(IdNewDataMan)
+                idNewDataMan = self.getIdNewData()
+                self._dataManagers[idNewDataMan] = self._dataManagers[data[0]] - self._dataManagers[data[1]]
+                self.answer(idNewDataMan)
             elif tag == MPITag.isubData:
                 self.checkDataID(data)
-                self.dataManagers_[data[0]] -= self.dataManagers_[data[1]]
+                self._dataManagers[data[0]] -= self._dataManagers[data[1]]
             elif tag == MPITag.mulData:
                 self.checkDataID([data[0]])
-                IdNewDataMan = self.getIdNewData()
-                self.dataManagers_[IdNewDataMan] = self.dataManagers_[data[0]] * data[1]
-                self.answer(IdNewDataMan)
+                idNewDataMan = self.getIdNewData()
+                self._dataManagers[idNewDataMan] = self._dataManagers[data[0]] * data[1]
+                self.answer(idNewDataMan)
             elif tag == MPITag.imulData:
                 self.checkDataID([data[0]])
-                self.dataManagers_[data[0]] *= data[1]
+                self._dataManagers[data[0]] *= data[1]
             elif tag == MPITag.imuladdData:
                 self.checkDataID([data[0], data[2]])
-                self.dataManagers_[data[0]].imuladd(data[1], self.dataManagers_[data[2]])
+                self._dataManagers[data[0]].imuladd(data[1], self._dataManagers[data[2]])
             elif tag == MPITag.dotData:
                 self.checkDataID(data)
-                self.answer(self.dataManagers_[data[0]].dot(self.dataManagers_[data[1]]), CollectiveOperator=MPI.SUM)
+                self.answer(self._dataManagers[data[0]].dot(self._dataManagers[data[1]]), collectiveOperator=MPI.SUM)
 
             elif tag == MPITag.exchange:
-                self.exchangers_[data].exchange()
-        self.physicsDriver_.terminate()
+                self._exchangers[data].exchange()
+        self._physicsDriver.terminate()

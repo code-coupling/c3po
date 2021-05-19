@@ -20,9 +20,9 @@ class CollaborativeExchanger(object):
 
         @param exchangers a list of Exchanger.
         """
-        self.exchangers_ = exchangers
+        self.exchangers = exchangers
 
     def exchange(self):
         """! Trigger the exchange of data. """
-        for e in self.exchangers_:
-            e.exchange()
+        for exc in self.exchangers:
+            exc.exchange()

@@ -15,8 +15,7 @@ from __future__ import print_function, division
 from mpi4py import MPI
 import numpy
 
-import c3po.medcoupling_compat as mc
-
+import c3po.medcouplingCompat as mc
 from c3po.mpi.MPITag import MPITag
 
 
@@ -24,69 +23,72 @@ class MPIFieldRecipient(object):
     """! INTERNAL """
 
     def __init__(self, sender, storing, isCollective, isTemplate):
-        self.sender_ = sender
-        self.storing_ = storing
-        self.isCollective_ = isCollective
-        self.isTemplate_ = isTemplate
-        self.field_ = 0
+        self._sender = sender
+        self._storing = storing
+        self._isCollective = isCollective
+        self._isTemplate = isTemplate
+        self._field = 0
 
     def exchange(self):
-        MPIComm = self.sender_.mpiComm_
-        senderRank = self.sender_.rank_
-        if not hasattr(self.field_, "getArray"):
-            if self.isCollective_:
-                self.field_ = MPIComm.bcast(self.field_, root=senderRank)
+        """! INTERNAL """
+        mpiComm = self._sender.mpiComm
+        senderRank = self._sender.rank
+        if not hasattr(self._field, "getArray"):
+            if self._isCollective:
+                self._field = mpiComm.bcast(self._field, root=senderRank)
             else:
-                self.field_ = MPIComm.recv(source=senderRank, tag=MPITag.data)
-        elif not self.isTemplate_:
-            arraySize = self.field_.getArray().getNbOfElems()
+                self._field = mpiComm.recv(source=senderRank, tag=MPITag.data)
+        elif not self._isTemplate:
+            arraySize = self._field.getArray().getNbOfElems()
             numpyArray = numpy.empty(arraySize)
-            if self.isCollective_:
-                MPIComm.Bcast([numpyArray, MPI.DOUBLE], root=senderRank)
+            if self._isCollective:
+                mpiComm.Bcast([numpyArray, MPI.DOUBLE], root=senderRank)
             else:
-                MPIComm.Recv([numpyArray, MPI.DOUBLE], source=senderRank, tag=MPITag.data)
+                mpiComm.Recv([numpyArray, MPI.DOUBLE], source=senderRank, tag=MPITag.data)
             dataArray = mc.DataArrayDouble(numpyArray)
-            self.field_.setArray(dataArray)
-        self.storing_.store(self.field_)
+            self._field.setArray(dataArray)
+        self._storing.store(self._field)
 
 
 class MPIFileFieldRecipient(object):
     """! INTERNAL """
 
     def __init__(self, sender, storing, isCollective, isTemplate):
-        self.sender_ = sender
-        self.storing_ = storing
-        self.isCollective_ = isCollective
-        self.isTemplate_ = isTemplate
-        self.field_ = 0
+        self._sender = sender
+        self._storing = storing
+        self._isCollective = isCollective
+        self._isTemplate = isTemplate
+        self._field = 0
 
     def exchange(self):
-        MPIComm = self.sender_.mpiComm_
-        senderRank = self.sender_.rank_
-        if not hasattr(self.field_, "getArray") or not self.isTemplate_:
-            MEDinfo = ()
-            if self.isCollective_:
-                MEDinfo = MPIComm.bcast(MEDinfo, root=senderRank)
+        """! INTERNAL """
+        mpiComm = self._sender.mpiComm
+        senderRank = self._sender.rank
+        if not hasattr(self._field, "getArray") or not self._isTemplate:
+            medInfo = ()
+            if self._isCollective:
+                medInfo = mpiComm.bcast(medInfo, root=senderRank)
             else:
-                MEDinfo = MPIComm.recv(source=senderRank, tag=MPITag.data)
-            self.field_ = mc.ReadField(*(MEDinfo[0]))
-            self.field_.setNature(MEDinfo[1])
-        self.storing_.store(self.field_)
+                medInfo = mpiComm.recv(source=senderRank, tag=MPITag.data)
+            self._field = mc.ReadField(*(medInfo[0]))
+            self._field.setNature(medInfo[1])
+        self._storing.store(self._field)
 
 
 class MPIValueRecipient(object):
     """! INTERNAL """
 
     def __init__(self, sender, storing, isCollective):
-        self.sender_ = sender
-        self.storing_ = storing
-        self.isCollective_ = isCollective
+        self._sender = sender
+        self._storing = storing
+        self._isCollective = isCollective
 
     def exchange(self):
-        MPIComm = self.sender_.mpiComm_
-        senderRank = self.sender_.rank_
-        if self.isCollective_:
+        """! INTERNAL """
+        mpiComm = self._sender.mpiComm
+        senderRank = self._sender.rank
+        if self._isCollective:
             value = 0
-            self.storing_.store(MPIComm.bcast(value, root=senderRank))
+            self._storing.store(mpiComm.bcast(value, root=senderRank))
         else:
-            self.storing_.store(MPIComm.recv(source=senderRank, tag=MPITag.data))
+            self._storing.store(mpiComm.recv(source=senderRank, tag=MPITag.data))

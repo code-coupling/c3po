@@ -12,99 +12,102 @@
 These classes send data to another process.
 """
 from __future__ import print_function, division
-from mpi4py import MPI
 import os
 
+from mpi4py import MPI
+
+import c3po.medcouplingCompat as mc
 from c3po.mpi.MPITag import MPITag
 from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
-
-import c3po.medcoupling_compat as mc
 
 
 class MPIFieldSender(object):
     """! INTERNAL """
 
     def __init__(self, destinations, dataAccess, storing, isTemplate):
-        self.destinations_ = destinations
-        self.dataAccess_ = dataAccess
-        self.storing_ = storing
-        self.isTemplate_ = isTemplate
-        self.isFirstSend_ = True
+        self._destinations = destinations
+        self._dataAccess = dataAccess
+        self._storing = storing
+        self._isTemplate = isTemplate
+        self._isFirstSend = True
 
     def exchange(self):
+        """! INTERNAL """
         field = 0
-        if self.isTemplate_:
-            field = self.dataAccess_.getInputMEDFieldTemplate()
+        if self._isTemplate:
+            field = self._dataAccess.getInputMEDFieldTemplate()
         else:
-            field = self.dataAccess_.getOutputMEDField()
-        for destination in self.destinations_:
-            MPIComm = destination.mpiComm_
-            if self.isFirstSend_ or not hasattr(field, "getArray"):
+            field = self._dataAccess.getOutputMEDField()
+        for destination in self._destinations:
+            mpiComm = destination.mpiComm
+            if self._isFirstSend or not hasattr(field, "getArray"):
                 if isinstance(destination, MPICollectiveProcess):
-                    MPIComm.bcast(field, root=MPIComm.Get_rank())
+                    mpiComm.bcast(field, root=mpiComm.Get_rank())
                 else:
-                    MPIComm.send(field, dest=destination.rank_, tag=MPITag.data)
-            elif not self.isTemplate_:
+                    mpiComm.send(field, dest=destination.rank, tag=MPITag.data)
+            elif not self._isTemplate:
                 npArray = field.getArray().toNumPyArray()
                 if isinstance(destination, MPICollectiveProcess):
-                    MPIComm.Bcast([npArray, MPI.DOUBLE], root=MPIComm.Get_rank())
+                    mpiComm.Bcast([npArray, MPI.DOUBLE], root=mpiComm.Get_rank())
                 else:
-                    MPIComm.Send([npArray, MPI.DOUBLE], dest=destination.rank_, tag=MPITag.data)
-        self.isFirstSend_ = False
-        self.storing_.store(field)
+                    mpiComm.Send([npArray, MPI.DOUBLE], dest=destination.rank, tag=MPITag.data)
+        self._isFirstSend = False
+        self._storing.store(field)
 
 
 class MPIFileFieldSender(object):
     """! INTERNAL """
 
     def __init__(self, destinations, dataAccess, storing, isTemplate):
-        self.destinations_ = destinations
-        self.dataAccess_ = dataAccess
-        self.storing_ = storing
-        self.isTemplate_ = isTemplate
-        self.isFirstSend_ = True
+        self._destinations = destinations
+        self._dataAccess = dataAccess
+        self._storing = storing
+        self._isTemplate = isTemplate
+        self._isFirstSend = True
 
     def exchange(self):
+        """! INTERNAL """
         field = 0
-        if self.isTemplate_:
-            field = self.dataAccess_.getInputMEDFieldTemplate()
+        if self._isTemplate:
+            field = self._dataAccess.getInputMEDFieldTemplate()
         else:
-            field = self.dataAccess_.getOutputMEDField()
+            field = self._dataAccess.getOutputMEDField()
 
-        if len(self.destinations_) > 0 and (self.isFirstSend_ or not self.isTemplate_):
+        if len(self._destinations) > 0 and (self._isFirstSend or not self._isTemplate):
             num = 0
             while os.path.exists("ExchangeField_" + str(num) + ".med"):
                 num += 1
-            name_file = "ExchangeField_" + str(num) + ".med"
+            nameFile = "ExchangeField_" + str(num) + ".med"
             mc.WriteField("ExchangeField_" + str(num) + ".med", field, True)
 
             _, iteration, order = field.getTime()
-            MEDinfo = [(field.getTypeOfField(), os.getcwd() + "/" + name_file, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
+            medInfo = [(field.getTypeOfField(), os.getcwd() + "/" + nameFile, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
 
-            for destination in self.destinations_:
-                MPIComm = destination.mpiComm_
+            for destination in self._destinations:
+                mpiComm = destination.mpiComm
                 if isinstance(destination, MPICollectiveProcess):
-                    MPIComm.bcast(MEDinfo, root=MPIComm.Get_rank())
+                    mpiComm.bcast(medInfo, root=mpiComm.Get_rank())
                 else:
-                    MPIComm.send(MEDinfo, dest=destination.rank_, tag=MPITag.data)
-        self.isFirstSend_ = False
-        self.storing_.store(field)
+                    mpiComm.send(medInfo, dest=destination.rank, tag=MPITag.data)
+        self._isFirstSend = False
+        self._storing.store(field)
 
 
 class MPIValueSender(object):
     """! INTERNAL """
 
     def __init__(self, destinations, dataAccess, storing):
-        self.destinations_ = destinations
-        self.dataAccess_ = dataAccess
-        self.storing_ = storing
+        self._destinations = destinations
+        self._dataAccess = dataAccess
+        self._storing = storing
 
     def exchange(self):
-        value = self.dataAccess_.getValue()
-        for destination in self.destinations_:
-            MPIComm = destination.mpiComm_
+        """! INTERNAL """
+        value = self._dataAccess.getValue()
+        for destination in self._destinations:
+            mpiComm = destination.mpiComm
             if isinstance(destination, MPICollectiveProcess):
-                MPIComm.bcast(value, root=MPIComm.Get_rank())
+                mpiComm.bcast(value, root=mpiComm.Get_rank())
             else:
-                MPIComm.send(value, dest=destination.rank_, tag=MPITag.data)
-        self.storing_.store(value)
+                mpiComm.send(value, dest=destination.rank, tag=MPITag.data)
+        self._storing.store(value)

@@ -24,21 +24,21 @@ class CollaborativeDataManager(object):
 
         @param dataManagers a list of DataManager.
         """
-        self.dataManagers_ = dataManagers
+        self.dataManagers = dataManagers
 
     def clone(self):
         """! Return a clone of self.
 
         @return A clone of self. Data are copied.
         """
-        return (self * 1.)
+        return self * 1.
 
     def cloneEmpty(self):
         """! Return a clone of self without copying the data.
 
         @return An empty clone of self.
         """
-        dataClone = [data.cloneEmpty() for data in self.dataManagers_]
+        dataClone = [data.cloneEmpty() for data in self.dataManagers]
         output = CollaborativeDataManager(dataClone)
         return output
 
@@ -50,8 +50,8 @@ class CollaborativeDataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        for i, data in enumerate(self.dataManagers_):
-            data.copy(other.dataManagers_[i])
+        for i, data in enumerate(self.dataManagers):
+            data.copy(other.dataManagers[i])
 
     def normMax(self):
         """! Return the infinite norm.
@@ -59,10 +59,10 @@ class CollaborativeDataManager(object):
         @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
         """
         norm = 0.
-        for data in self.dataManagers_:
-            local_norm = data.normMax()
-            if local_norm > norm:
-                norm = local_norm
+        for data in self.dataManagers:
+            localNorm = data.normMax()
+            if localNorm > norm:
+                norm = localNorm
         return norm
 
     def norm2(self):
@@ -71,14 +71,14 @@ class CollaborativeDataManager(object):
         @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = 0.
-        for data in self.dataManagers_:
-            local_norm = data.norm2()
-            norm += local_norm * local_norm
+        for data in self.dataManagers:
+            localNorm = data.norm2()
+            norm += localNorm * localNorm
         return math.sqrt(norm)
 
     def checkBeforeOperator(self, other):
         """! INTERNAL Make basic checks before the call of an operator. """
-        if len(self.dataManagers_) != len(other.dataManagers_):
+        if len(self.dataManagers) != len(other.dataManagers):
             raise Exception("CollaborativeDataManager.checkBeforeOperator : we cannot call an operator between two CollaborativeDataManager with different number of DataManager.")
 
     def __add__(self, other):
@@ -93,10 +93,10 @@ class CollaborativeDataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        new_data = self.cloneEmpty()
-        for i in range(len(self.dataManagers_)):
-            new_data.dataManagers_[i] = self.dataManagers_[i] + other.dataManagers_[i]
-        return new_data
+        newData = self.cloneEmpty()
+        for i in range(len(self.dataManagers)):
+            newData.dataManagers[i] = self.dataManagers[i] + other.dataManagers[i]
+        return newData
 
     def __iadd__(self, other):
         """! Add other in self (in place addition).
@@ -110,8 +110,8 @@ class CollaborativeDataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        for i in range(len(self.dataManagers_)):
-            self.dataManagers_[i] += other.dataManagers_[i]
+        for i in range(len(self.dataManagers)):
+            self.dataManagers[i] += other.dataManagers[i]
         return self
 
     def __sub__(self, other):
@@ -126,10 +126,10 @@ class CollaborativeDataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        new_data = self.cloneEmpty()
-        for i in range(len(self.dataManagers_)):
-            new_data.dataManagers_[i] = self.dataManagers_[i] - other.dataManagers_[i]
-        return new_data
+        newData = self.cloneEmpty()
+        for i in range(len(self.dataManagers)):
+            newData.dataManagers[i] = self.dataManagers[i] - other.dataManagers[i]
+        return newData
 
     def __isub__(self, other):
         """! Substract other to self (in place subtraction).
@@ -143,8 +143,8 @@ class CollaborativeDataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        for i in range(len(self.dataManagers_)):
-            self.dataManagers_[i] -= other.dataManagers_[i]
+        for i in range(len(self.dataManagers)):
+            self.dataManagers[i] -= other.dataManagers[i]
         return self
 
     def __mul__(self, scalar):
@@ -156,10 +156,10 @@ class CollaborativeDataManager(object):
 
         @return a new (consistent with self) CollaborativeDataManager where the data are multiplied by scalar.
         """
-        new_data = self.cloneEmpty()
-        for i in range(len(self.dataManagers_)):
-            new_data.dataManagers_[i] = self.dataManagers_[i] * scalar
-        return new_data
+        newData = self.cloneEmpty()
+        for i in range(len(self.dataManagers)):
+            newData.dataManagers[i] = self.dataManagers[i] * scalar
+        return newData
 
     def __imul__(self, scalar):
         """! Multiply self by scalar (in place multiplication).
@@ -170,8 +170,8 @@ class CollaborativeDataManager(object):
 
         @return self.
         """
-        for i in range(len(self.dataManagers_)):
-            self.dataManagers_[i] *= scalar
+        for i in range(len(self.dataManagers)):
+            self.dataManagers[i] *= scalar
         return self
 
     def imuladd(self, scalar, other):
@@ -207,6 +207,6 @@ class CollaborativeDataManager(object):
         """
         self.checkBeforeOperator(other)
         result = 0.
-        for i in range(len(self.dataManagers_)):
-            result += self.dataManagers_[i].dot(other.dataManagers_[i])
+        for i in range(len(self.dataManagers)):
+            result += self.dataManagers[i].dot(other.dataManagers[i])
         return result

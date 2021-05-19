@@ -11,11 +11,11 @@
 """ Contain the class CRONOS2Driver. """
 from __future__ import print_function, division
 
-import c3po.medcoupling_compat as mc
 import Access
 import MEDconvert
 import MEDtsetpt
 
+import c3po.medcouplingCompat as mc
 from c3po.PhysicsDriver import PhysicsDriver
 
 
@@ -35,24 +35,24 @@ class CRONOS2Driver(PhysicsDriver):
     def __init__(self):
         """! Build a CRONOS2Driver object. """
         PhysicsDriver.__init__(self)
-        self.isInit_ = False
+        self._isInit = False
 
         # CRONOS2 input file
-        self.dataFile_ = ""
+        self._dataFile = ""
 
         # Access session in python
-        self.a_ = 0
+        self._access = 0
 
         # physical time
-        self.t_ = 0
+        self._time = 0
 
         # time step for transient
-        self.dt_ = 0
+        self._dt = 0
 
         # Dictionary of names of CRONOS2 parameters in PARAM structures
         # The keys are defined in ParamKey and are used in C3PO coupling scripts for the names of MED fields
         # The values are set in "initialize" for use in gibiane instructions of CRONOS2
-        self.paramDict_ = {}
+        self._paramDict = {}
 
     def setParamDict(self, paramDict):
         """! Set a new dictionary of names of CRONOS2 parameters in PARAM structures.
@@ -60,61 +60,61 @@ class CRONOS2Driver(PhysicsDriver):
         This function is reserved for advanced use only ;
         do not use it unless you know exactly what you are doing.
         """
-        self.paramDict_ = paramDict
+        self._paramDict = paramDict
 
-    def setDataFile(self, dataFile):
+    def setDataFile(self, datafile):
         """! See PhysicsDriver.setDataFile(). """
-        self.dataFile_ = dataFile
+        self._dataFile = datafile
 
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
-        if not self.isInit_:
+        if not self._isInit:
             # start a session of python Access for CRONOS2
-            self.a_ = Access.Access()
-            self.a_.begin(10000, 0)
-            self.isInit_ = True
+            self._access = Access.Access()
+            self._access.begin(10000, 0)
+            self._isInit = True
             # run a CRONOS2 input file if defined
-            if bool(self.dataFile_):
-                self.a_.evalFile(self.dataFile_)
+            if bool(self._dataFile):
+                self._access.evalFile(self._dataFile)
             # initialize T_C3PO table
-            self.a_.eval("T_C3PO = TABLE: ; T_c3po.'ITH' = 0 ; T_c3po.'MED' = TABLE: ;")
-            self.a_.eval("T_c3po.'paramDict' = TABLE: ; T_c3po.'value' = TABLE: ;")
-            self.a_.eval("T_c3po.'paramDict'.'TECO' = 'TECO' ; ")
-            self.a_.eval("T_c3po.'paramDict'.'DMOD' = 'DMOD' ; ")
-            self.a_.eval("T_c3po.'paramDict'.'TMOD' = 'TMOD' ; ")
-            self.a_.eval("T_c3po.'paramDict'.'PUIS' = 'PUISSANCE_W' ; ")
+            self._access.eval("T_C3PO = TABLE: ; T_c3po.'ITH' = 0 ; T_c3po.'MED' = TABLE: ;")
+            self._access.eval("T_c3po.'paramDict' = TABLE: ; T_c3po.'value' = TABLE: ;")
+            self._access.eval("T_c3po.'paramDict'.'TECO' = 'TECO' ; ")
+            self._access.eval("T_c3po.'paramDict'.'DMOD' = 'DMOD' ; ")
+            self._access.eval("T_c3po.'paramDict'.'TMOD' = 'TMOD' ; ")
+            self._access.eval("T_c3po.'paramDict'.'PUIS' = 'PUISSANCE_W' ; ")
             # if need be, modify/add relevant T_C3PO variables inside ICOCO_INITIALIZE
-            self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INITIALIZE T_IMP T_STR T_OPT T_RES T_C3PO ;")
+            self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INITIALIZE T_IMP T_STR T_OPT T_RES T_C3PO ;")
             # initialize dictionary values
-            tc3po_ptr = self.a_.getTabPtr('T_C3PO')
-            param_ptr = self.a_.getTableTabPtr(tc3po_ptr, 'paramDict')
-            self.paramDict_[ParamKey.TECO] = self.a_.getTableString(param_ptr, 'TECO')
-            self.paramDict_[ParamKey.DMOD] = self.a_.getTableString(param_ptr, 'DMOD')
-            self.paramDict_[ParamKey.TMOD] = self.a_.getTableString(param_ptr, 'TMOD')
-            self.paramDict_[ParamKey.PUIS] = self.a_.getTableString(param_ptr, 'PUIS')
+            tc3poPtr = self._access.getTabPtr('T_C3PO')
+            paramPtr = self._access.getTableTabPtr(tc3poPtr, 'paramDict')
+            self._paramDict[ParamKey.TECO] = self._access.getTableString(paramPtr, 'TECO')
+            self._paramDict[ParamKey.DMOD] = self._access.getTableString(paramPtr, 'DMOD')
+            self._paramDict[ParamKey.TMOD] = self._access.getTableString(paramPtr, 'TMOD')
+            self._paramDict[ParamKey.PUIS] = self._access.getTableString(paramPtr, 'PUIS')
         return True
 
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
-        self.a_.eval("ICOCO_TERMINATE T_IMP T_STR T_OPT T_RES T_C3PO ;")
-        self.a_.eval("EDTIME: 'TOUT' ; MEMOIRE: -1 ; ARRET: ;")
-        self.a_.end()
-        self.isInit_ = False
-        self.dataFile_ = ""
-        self.t_ = 0
-        self.dt_ = 0
-        self.paramDict_ = {}
+        self._access.eval("ICOCO_TERMINATE T_IMP T_STR T_OPT T_RES T_C3PO ;")
+        self._access.eval("EDTIME: 'TOUT' ; MEMOIRE: -1 ; ARRET: ;")
+        self._access.end()
+        self._isInit = False
+        self._dataFile = ""
+        self._time = 0
+        self._dt = 0
+        self._paramDict = {}
 
     def initTimeStep(self, dt):
         """! See PhysicsDriver.initTimeStep(). """
-        self.dt_ = dt
-        self.a_.eval("T_c3po.'DT' = " + "{:.5f}".format(dt) + " ;")
-        self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INIT_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
+        self._dt = dt
+        self._access.eval("T_c3po.'DT' = " + "{:.5f}".format(dt) + " ;")
+        self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INIT_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
         return True
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """
-        return self.t_
+        return self._time
 
     def computeTimeStep(self):
         """! See PhysicsDriver.computeTimeStep().
@@ -126,30 +126,28 @@ class CRONOS2Driver(PhysicsDriver):
         - The stop flag (boolean) must be output in the variable T_c3po.'STOP'
         """
 
-        self.a_.eval("T_c3po.'PRESENT_TIME' = " + "{:.5f}".format(self.t_) + " ;")
-        self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_COMPUTE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
-        self.a_.eval("TIME_STEP = T_c3po.'DT' ; STOP_FLAG = T_c3po.'STOP' ;")
-        dt = self.a_.getFloat("TIME_STEP")
-        stop = bool(self.a_.getBool("STOP_FLAG"))
+        self._access.eval("T_c3po.'PRESENT_TIME' = " + "{:.5f}".format(self._time) + " ;")
+        self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_COMPUTE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
+        self._access.eval("TIME_STEP = T_c3po.'DT' ; STOP_FLAG = T_c3po.'STOP' ;")
+        dt = self._access.getFloat("TIME_STEP")
+        stop = bool(self._access.getBool("STOP_FLAG"))
         return (dt, stop)
 
     def solveTimeStep(self):
         """! See PhysicsDriver.solveTimeStep(). """
-        self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SOLVE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
+        self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SOLVE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
         return True
 
     def validateTimeStep(self):
         """! See PhysicsDriver.validateTimeStep(). """
-        self.t_ = self.t_ + self.dt_
-        self.a_.eval("T_c3po.'PRESENT_TIME' = " + "{:.5f}".format(self.t_) + " ;")
-        self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_VALIDATE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
+        self._time = self._time + self._dt
+        self._access.eval("T_c3po.'PRESENT_TIME' = " + "{:.5f}".format(self._time) + " ;")
+        self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_VALIDATE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
 
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
-        if self.dt_ > 0:
+        if self._dt > 0:
             raise Exception("CRONOS2Driver.abortTimeStep: NotImplemented.")
-        else:
-            pass
 
     def getOutputMEDField(self, name):
         """! See PhysicsDriver.getOutputMEDField().
@@ -161,16 +159,15 @@ class CRONOS2Driver(PhysicsDriver):
         - returns the required MED field in the variable T_c3po.'field_out' of type MEDFIELD.
         """
 
-        if (name in ParamKey.outputKeys):
-            self.a_.eval("T_c3po.'name' = '" + self.paramDict_[name] + "' ;")
-            self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_OUTPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
-            self.a_.eval("field_out = T_c3po.'field_out' ;")
-            myCppPtr = self.a_.getCppPtr("field_out")
-            field_output = MEDconvert.void2field(myCppPtr)
-            field_output.setNature(mc.ExtensiveMaximum)  # ExtensiveMaximum interpolation of extensive variables
-            return field_output
-        else:
-            raise Exception("CRONOS2Driver.getOutputMEDField Only " + str(ParamKey.outputKeys) + " output available but name='" + name + "'.")
+        if name in ParamKey.outputKeys:
+            self._access.eval("T_c3po.'name' = '" + self._paramDict[name] + "' ;")
+            self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_OUTPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
+            self._access.eval("field_out = T_c3po.'field_out' ;")
+            myCppPtr = self._access.getCppPtr("field_out")
+            fieldOutput = MEDconvert.void2field(myCppPtr)
+            fieldOutput.setNature(mc.ExtensiveMaximum)  # ExtensiveMaximum interpolation of extensive variables
+            return fieldOutput
+        raise Exception("CRONOS2Driver.getOutputMEDField Only " + str(ParamKey.outputKeys) + " output available but name='" + name + "'.")
 
     def getInputMEDFieldTemplate(self, name):
         """! See PhysicsDriver.getInputMEDFieldTemplate().
@@ -182,16 +179,15 @@ class CRONOS2Driver(PhysicsDriver):
         - returns the required MED field template in the variable T_c3po.'field_out' of type MEDFIELD.
         """
 
-        if (name in ParamKey.inputKeys):
-            self.a_.eval("T_c3po.'name' = '" + self.paramDict_[name] + "' ;")
-            self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_INPUT_MEDFIELD_TEMPLATE T_IMP T_STR T_OPT T_RES T_C3PO ;")
-            self.a_.eval("field_out = T_c3po.'field_out' ;")
-            myCppPtr = self.a_.getCppPtr("field_out")
-            field_template = MEDconvert.void2field(myCppPtr)
-            field_template.setNature(mc.IntensiveMaximum)  # IntensiveMaximum interpolation of intensive variables
-            return field_template
-        else:
-            raise Exception("CRONOS2Driver.getIntputMEDFieldTemplate Only " + str(ParamKey.inputKeys) + " template available but name='" + name + "'.")
+        if name in ParamKey.inputKeys:
+            self._access.eval("T_c3po.'name' = '" + self._paramDict[name] + "' ;")
+            self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_INPUT_MEDFIELD_TEMPLATE T_IMP T_STR T_OPT T_RES T_C3PO ;")
+            self._access.eval("field_out = T_c3po.'field_out' ;")
+            myCppPtr = self._access.getCppPtr("field_out")
+            fieldTemplate = MEDconvert.void2field(myCppPtr)
+            fieldTemplate.setNature(mc.IntensiveMaximum)  # IntensiveMaximum interpolation of intensive variables
+            return fieldTemplate
+        raise Exception("CRONOS2Driver.getIntputMEDFieldTemplate Only " + str(ParamKey.inputKeys) + " template available but name='" + name + "'.")
 
     def setInputMEDField(self, name, field):
         """! See PhysicsDriver.setInputMEDField().
@@ -205,13 +201,13 @@ class CRONOS2Driver(PhysicsDriver):
         - sorts away the MED field in the appropriate PARAM structures of CRONOS2.
         """
 
-        if (name in ParamKey.inputKeys):
-            field.setName(self.paramDict_[name])
-            self.a_.eval("T_c3po.'ITH' = T_c3po.'ITH' + 1 ; ITH = T_c3po.'ITH' ;")
+        if name in ParamKey.inputKeys:
+            field.setName(self._paramDict[name])
+            self._access.eval("T_c3po.'ITH' = T_c3po.'ITH' + 1 ; ITH = T_c3po.'ITH' ;")
             intField = MEDtsetpt.SaphGetIdFromPtr(field)
-            self.a_.eval("T_c3po.'MED'.ITH = MED_FIELD_SAPH: " + str(intField) + " ;")
-            self.a_.eval("T_c3po.'name' = '" + self.paramDict_[name] + "' ;")
-            self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_INPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
+            self._access.eval("T_c3po.'MED'.ITH = MED_FIELD_SAPH: " + str(intField) + " ;")
+            self._access.eval("T_c3po.'name' = '" + self._paramDict[name] + "' ;")
+            self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_INPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
         else:
             raise Exception("CRONOS2Driver.setInputMEDField Only " + str(ParamKey.inputKeys) + " input possible but name='" + name + "'.")
 
@@ -227,9 +223,9 @@ class CRONOS2Driver(PhysicsDriver):
         - sorts away the value in the appropriate data structures of CRONOS2.
         """
 
-        self.a_.eval("T_c3po.'name' = '" + name + "' ;")
-        self.a_.eval("T_c3po.'value'.'" + name + "' = " + "{:.5f}".format(value) + " ;")
-        self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_VALUE T_IMP T_STR T_OPT T_RES T_C3PO ;")
+        self._access.eval("T_c3po.'name' = '" + name + "' ;")
+        self._access.eval("T_c3po.'value'.'" + name + "' = " + "{:.5f}".format(value) + " ;")
+        self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_VALUE T_IMP T_STR T_OPT T_RES T_C3PO ;")
 
     def getValue(self, name):
         """! See PhysicsDriver.getValue().
@@ -241,7 +237,7 @@ class CRONOS2Driver(PhysicsDriver):
         - returns the required floating number value in the table T_c3po.'value' at the index name.
         """
 
-        self.a_.eval("T_c3po.'name' = '" + name + "' ;")
-        self.a_.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_VALUE T_IMP T_STR T_OPT T_RES T_C3PO ;")
-        self.a_.eval("return_value = T_c3po.'value'.'" + name + "' ;")
-        return self.a_.getFloat("return_value")
+        self._access.eval("T_c3po.'name' = '" + name + "' ;")
+        self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_GET_VALUE T_IMP T_STR T_OPT T_RES T_C3PO ;")
+        self._access.eval("return_value = T_c3po.'value'.'" + name + "' ;")
+        return self._access.getFloat("return_value")

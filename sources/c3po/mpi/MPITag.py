@@ -10,14 +10,6 @@
 
 """ Contain the class MPITag. """
 from __future__ import print_function, division
-#from enum import *
-
-# class AutoNumber(IntEnum):
-# def __new__(cls):
-#value = len(cls.__members__) + 1
-#obj = object.__new__(cls)
-#obj._value_ = value
-# return obj
 
 
 class MPITag(object):

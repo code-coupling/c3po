@@ -10,8 +10,8 @@
 
 """ Contain the class DataManager. """
 from __future__ import print_function, division
-import numpy
 import math
+import numpy
 
 
 class DataManager(object):
@@ -22,16 +22,16 @@ class DataManager(object):
 
     def __init__(self):
         """! Default constructor """
-        self.values_ = {}
-        self.MEDFields_ = {}
-        self.MEDFieldTemplates_ = {}
+        self.values = {}
+        self.medFields = {}
+        self.medFieldTemplates = {}
 
     def clone(self):
         """! Return a clone of self.
 
         @return A clone of self. Data are copied.
         """
-        return (self * 1.)
+        return self * 1.
 
     def cloneEmpty(self):
         """! Return a clone of self without copying the data.
@@ -39,7 +39,7 @@ class DataManager(object):
         @return An empty clone of self.
         """
         output = DataManager()
-        output.MEDFieldTemplates_ = self.MEDFieldTemplates_
+        output.medFieldTemplates = self.medFieldTemplates
         return output
 
     def copy(self, other):
@@ -50,11 +50,11 @@ class DataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        for name in self.values_.keys():
-            self.values_[name] = other.values_[name]
-        for name in self.MEDFields_.keys():
-            otherArray = other.MEDFields_[name].getArray()
-            self.MEDFields_[name].getArray().setPartOfValues1(other.MEDFields_[name].getArray(), 0, otherArray.getNumberOfTuples(), 1, 0, otherArray.getNumberOfComponents(), 1)
+        for name in self.values.keys():
+            self.values[name] = other.values[name]
+        for name in self.medFields.keys():
+            otherArray = other.medFields[name].getArray()
+            self.medFields[name].getArray().setPartOfValues1(other.medFields[name].getArray(), 0, otherArray.getNumberOfTuples(), 1, 0, otherArray.getNumberOfComponents(), 1)
 
     def normMax(self):
         """! Return the infinite norm.
@@ -62,11 +62,11 @@ class DataManager(object):
         @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
         """
         norm = 0.
-        for scalar in self.values_.values():
+        for scalar in self.values.values():
             if abs(scalar) > norm:
                 norm = abs(scalar)
-        for MED in self.MEDFields_.values():
-            normMED = MED.normMax()
+        for med in self.medFields.values():
+            normMED = med.normMax()
             try:
                 normMED = max(normMED)
             except:
@@ -81,22 +81,22 @@ class DataManager(object):
         @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = 0.
-        for scalar in self.values_.values():
+        for scalar in self.values.values():
             norm += scalar * scalar
-        for MED in self.MEDFields_.values():
-            localNorm = MED.norm2()
+        for med in self.medFields.values():
+            localNorm = med.norm2()
             norm += localNorm * localNorm
         return math.sqrt(norm)
 
     def checkBeforeOperator(self, other):
         """! INTERNAL Make basic checks before the call of an operator: same data names between self and other. """
-        if len(self.values_.keys()) != len(other.values_.keys()) or len(self.MEDFields_.keys()) != len(other.MEDFields_.keys()):
+        if len(self.values.keys()) != len(other.values.keys()) or len(self.medFields.keys()) != len(other.medFields.keys()):
             raise Exception("DataManager.checkBeforeOperator : we cannot call an operator between two DataManager with different number of stored data.")
-        for name in self.values_.keys():
-            if not(name in other.values_.keys()):
+        for name in self.values.keys():
+            if not name in other.values.keys():
                 raise Exception("DataManager.checkBeforeOperator : we cannot call an operator between two DataManager with different data.")
-        for name in self.MEDFields_.keys():
-            if not(name in other.MEDFields_.keys()):
+        for name in self.medFields.keys():
+            if not name in other.medFields.keys():
                 raise Exception("DataManager.checkBeforeOperator : we cannot call an operator between two DataManager with different data.")
 
     def __add__(self, other):
@@ -111,13 +111,13 @@ class DataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        new_data = self.cloneEmpty()
-        for name in self.values_.keys():
-            new_data.values_[name] = self.values_[name] + other.values_[name]
-        for name in self.MEDFields_.keys():
-            new_data.MEDFields_[name] = 1. * self.MEDFields_[name]
-            new_data.MEDFields_[name].getArray().addEqual(other.MEDFields_[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
-        return new_data
+        newData = self.cloneEmpty()
+        for name in self.values.keys():
+            newData.values[name] = self.values[name] + other.values[name]
+        for name in self.medFields.keys():
+            newData.medFields[name] = 1. * self.medFields[name]
+            newData.medFields[name].getArray().addEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        return newData
 
     def __iadd__(self, other):
         """! Add other in self (in place addition).
@@ -131,10 +131,10 @@ class DataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        for name in self.values_.keys():
-            self.values_[name] += other.values_[name]
-        for name in self.MEDFields_.keys():
-            self.MEDFields_[name].getArray().addEqual(other.MEDFields_[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name in self.values.keys():
+            self.values[name] += other.values[name]
+        for name in self.medFields.keys():
+            self.medFields[name].getArray().addEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return self
 
     def __sub__(self, other):
@@ -149,13 +149,13 @@ class DataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        new_data = self.cloneEmpty()
-        for name in self.values_.keys():
-            new_data.values_[name] = self.values_[name] - other.values_[name]
-        for name in self.MEDFields_.keys():
-            new_data.MEDFields_[name] = 1. * self.MEDFields_[name]
-            new_data.MEDFields_[name].getArray().substractEqual(other.MEDFields_[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
-        return new_data
+        newData = self.cloneEmpty()
+        for name in self.values.keys():
+            newData.values[name] = self.values[name] - other.values[name]
+        for name in self.medFields.keys():
+            newData.medFields[name] = 1. * self.medFields[name]
+            newData.medFields[name].getArray().substractEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        return newData
 
     def __isub__(self, other):
         """! Substract other to self (in place subtraction).
@@ -169,10 +169,10 @@ class DataManager(object):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        for name in self.values_.keys():
-            self.values_[name] -= other.values_[name]
-        for name in self.MEDFields_.keys():
-            self.MEDFields_[name].getArray().substractEqual(other.MEDFields_[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name in self.values.keys():
+            self.values[name] -= other.values[name]
+        for name in self.medFields.keys():
+            self.medFields[name].getArray().substractEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return self
 
     def __mul__(self, scalar):
@@ -184,12 +184,12 @@ class DataManager(object):
 
         @return a new (consistent with self) DataManager where the data are multiplied by scalar.
         """
-        new_data = self.cloneEmpty()
-        for name in self.values_.keys():
-            new_data.values_[name] = scalar * self.values_[name]
-        for name in self.MEDFields_.keys():
-            new_data.MEDFields_[name] = scalar * self.MEDFields_[name]
-        return new_data
+        newData = self.cloneEmpty()
+        for name in self.values.keys():
+            newData.values[name] = scalar * self.values[name]
+        for name in self.medFields.keys():
+            newData.medFields[name] = scalar * self.medFields[name]
+        return newData
 
     def __imul__(self, scalar):
         """! Multiply self by scalar (in place multiplication).
@@ -200,10 +200,10 @@ class DataManager(object):
 
         @return self.
         """
-        for name in self.values_.keys():
-            self.values_[name] *= scalar
-        for name in self.MEDFields_.keys():
-            self.MEDFields_[name] *= scalar
+        for name in self.values.keys():
+            self.values[name] *= scalar
+        for name in self.medFields.keys():
+            self.medFields[name] *= scalar
         return self
 
     def imuladd(self, scalar, other):
@@ -239,15 +239,15 @@ class DataManager(object):
         """
         self.checkBeforeOperator(other)
         result = 0.
-        for name in self.values_.keys():
-            result += self.values_[name] * other.values_[name]
-        for name in self.MEDFields_.keys():
-            nparr1 = self.MEDFields_[name].getArray().toNumPyArray()
-            nparr2 = other.MEDFields_[name].getArray().toNumPyArray()
-            Dim = 1
-            if self.MEDFields_[name].getArray().getNumberOfComponents() > 1:
-                Dim = 2
-            result += numpy.tensordot(nparr1, nparr2, Dim)
+        for name in self.values.keys():
+            result += self.values[name] * other.values[name]
+        for name in self.medFields.keys():
+            nparr1 = self.medFields[name].getArray().toNumPyArray()
+            nparr2 = other.medFields[name].getArray().toNumPyArray()
+            dim = 1
+            if self.medFields[name].getArray().getNumberOfComponents() > 1:
+                dim = 2
+            result += numpy.tensordot(nparr1, nparr2, dim)
         return result
 
     def setInputMEDField(self, name, field):
@@ -256,7 +256,7 @@ class DataManager(object):
         @param name the name given to the field to store.
         @param field a field to store.
         """
-        self.MEDFields_[name] = field
+        self.medFields[name] = field
 
     def getOutputMEDField(self, name):
         """! Return the MED field of name name previously stored.
@@ -267,9 +267,9 @@ class DataManager(object):
 
         @throw Exception If there is no stored name field.
         """
-        if name not in self.MEDFields_.keys():
+        if name not in self.medFields.keys():
             raise Exception("DataManager.getOutputMEDField unknown field " + name)
-        return self.MEDFields_[name]
+        return self.medFields[name]
 
     def setValue(self, name, value):
         """! Store the scalar value under the name name.
@@ -277,7 +277,7 @@ class DataManager(object):
         @param name the name given to the scalar to store.
         @param value a scalar value to store.
         """
-        self.values_[name] = value
+        self.values[name] = value
 
     def getValue(self, name):
         """! Return the scalar of name name previously stored.
@@ -288,9 +288,9 @@ class DataManager(object):
 
         @throw Exception If there is no stored name value.
         """
-        if name not in self.values_.keys():
+        if name not in self.values.keys():
             raise Exception("DataManager.getValue unknown value " + name)
-        return self.values_[name]
+        return self.values[name]
 
     def setInputMEDFieldTemplate(self, name, field):
         """! Store the MED field field as a MEDFieldTemplate under the name name.
@@ -300,7 +300,7 @@ class DataManager(object):
 
         @note These fields are not be part of data, and will therefore not be taken into account in data manipulations (operators, norms etc.).
         """
-        self.MEDFieldTemplates_[name] = field
+        self.medFieldTemplates[name] = field
 
     def getInputMEDFieldTemplate(self, name):
         """! Return the MED field previously stored as a MEDFieldTemplate under the name name. If there is not, returns 0.
@@ -309,6 +309,6 @@ class DataManager(object):
 
         @return the MED field of name name previously stored, or 0.
         """
-        if name not in self.MEDFieldTemplates_.keys():
+        if name not in self.medFieldTemplates.keys():
             return 0
-        return self.MEDFieldTemplates_[name]
+        return self.medFieldTemplates[name]

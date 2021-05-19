@@ -17,11 +17,6 @@ class DirectMatching(object):
 
     See c3po.Exchanger.Exchanger.__init__().
     """
-
-    def __init__(self):
-        """! Default constructor. """
-        pass
-
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Return the input MED fields and scalars as outputs, in the same order. """
         if len(fieldsToSet) != len(fieldsToGet):

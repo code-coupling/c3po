@@ -16,8 +16,8 @@ from .CollaborativeDataManager import CollaborativeDataManager
 from .Exchanger import Exchanger
 from .CollaborativeExchanger import CollaborativeExchanger
 from .Coupler import Coupler, NormChoice
-from .services.Tracer import Tracer
-from .services.NameChanger import NameChanger
+from .services.tracer import tracer
+from .services.nameChanger import nameChanger
 from .services.ListingWriter import ListingWriter, mergeListing, getTotalTimePhysicsDriver, getTimesExchanger
 from .couplers.FixedPointCoupler import FixedPointCoupler
 from .couplers.AndersonCoupler import AndersonCoupler

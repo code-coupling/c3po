@@ -144,14 +144,28 @@ disable=print-statement,
         deprecated-sys-function,
         exception-escape,
         comprehension-escape,
-        useless-object-inheritance
+        useless-object-inheritance,
+
+        dangerous-default-value,
+        consider-iterating-dictionary,
+        bare-except,
+        no-self-use,
+        unused-argument,
+        import-error,
+        consider-using-enumerate,
+        consider-using-with,
+        unnecessary-pass,
+        c-extension-no-member,
+        unused-wildcard-import,
+        duplicate-code,
+        no-member,
+        undefined-variable
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once). See also the "--disable" option for examples.
-enable=c-extension-no-member
-
+enable=
 
 [REPORTS]
 
@@ -181,7 +195,7 @@ score=yes
 [REFACTORING]
 
 # Maximum number of nested blocks for function / method body
-max-nested-blocks=5
+max-nested-blocks=10
 
 # Complete name of functions that never returns. When checking for
 # inconsistent-return-statements if a never returning function is called then
@@ -220,12 +234,12 @@ bad-names=foo,
 bad-names-rgxs=
 
 # Naming style matching correct class attribute names.
-class-attribute-naming-style=camelCase #redefini : camelCase (min 2
-# caracteres) ou n'importe quoi entoure de "__".
+class-attribute-naming-style=camelCase #redefini : camelCase ou PascalCase (min
+# 2 caracteres) ou n'importe quoi entoure de "__".
 
 # Regular expression matching correct class attribute names. Overrides class-
 # attribute-naming-style.
-class-attribute-rgx=([a-z][A-Za-z0-9]{1,30}|(__.*__))$
+class-attribute-rgx=([a-zA-Z][A-Za-z0-9]{1,30}|(__.*__))$
 
 # Naming style matching correct class constant names.
 class-const-naming-style=UPPER_CASE
@@ -263,7 +277,9 @@ function-naming-style=camelCase
 good-names=i,
            j,
            k,
-           _
+           _,
+           dt,
+           ok
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted

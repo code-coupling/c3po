@@ -37,32 +37,28 @@ class MPIMasterCollectivePhysicsDriver(PhysicsDriver):
         time than the workers. It enables the master to contribute to a collective computation.
         """
         PhysicsDriver.__init__(self)
-        self.mpiComm_ = collectiveWorkerProcess.mpiComm_
-        self.masterRank_ = masterRank
-        self.localPhysicsDriver_ = localPhysicsDriver
-        self.dataManagersToFree_ = []
+        self.mpiComm = collectiveWorkerProcess.mpiComm
+        self._masterRank = masterRank
+        self._localPhysicsDriver = localPhysicsDriver
+        self._dataManagersToFree = []
 
-    def setDataManagerToFree(self, IdDataManager):
+    def setDataManagerToFree(self, idDataManager):
         """! INTERNAL. """
-        self.dataManagersToFree_.append(IdDataManager)
-
-    def getCommunicator(self):
-        """! INTERNAL. """
-        return self.mpiComm_
+        self._dataManagersToFree.append(idDataManager)
 
     def init(self):
         """! See PhysicsDriver.init(). """
-        self.mpiComm_.bcast((MPITag.init,), root=self.masterRank_)
-        if self.localPhysicsDriver_ is not None:
-            self.localPhysicsDriver_.init()
+        self.mpiComm.bcast((MPITag.init,), root=self._masterRank)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.init()
 
     def getInitStatus(self):
         """! See PhysicsDriver.getInitStatus(). """
-        self.mpiComm_.bcast((MPITag.getInitStatus,), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.getInitStatus,), root=self._masterRank)
         data = True
-        if self.localPhysicsDriver_ is not None:
-            data = self.localPhysicsDriver_.getInitStatus()
-        return self.mpiComm_.reduce(data, op=MPI.MIN, root=self.masterRank_)
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.getInitStatus()
+        return self.mpiComm.reduce(data, op=MPI.MIN, root=self._masterRank)
 
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
@@ -71,54 +67,54 @@ class MPIMasterCollectivePhysicsDriver(PhysicsDriver):
 
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
-        self.mpiComm_.bcast((MPITag.terminate,), root=self.masterRank_)
-        if self.localPhysicsDriver_ is not None:
-            self.localPhysicsDriver_.terminate()
+        self.mpiComm.bcast((MPITag.terminate,), root=self._masterRank)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.terminate()
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """
-        self.mpiComm_.bcast((MPITag.presentTime,), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.presentTime,), root=self._masterRank)
         data = 1.E30
-        if self.localPhysicsDriver_ is not None:
-            data = self.localPhysicsDriver_.presentTime()
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.presentTime()
             return data
-        return self.mpiComm_.reduce(data, op=MPI.MIN, root=self.masterRank_)
+        return self.mpiComm.reduce(data, op=MPI.MIN, root=self._masterRank)
 
     def computeTimeStep(self):
         """! See PhysicsDriver.computeTimeStep(). """
-        self.mpiComm_.bcast((MPITag.computeTimeStep,), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.computeTimeStep,), root=self._masterRank)
         dt = 1.E30
         stop = True
-        if self.localPhysicsDriver_ is not None:
-            (dt, stop) = self.localPhysicsDriver_.computeTimeStep()
-        dt = self.mpiComm_.reduce(dt, op=MPI.MIN, root=self.masterRank_)
-        stop = self.mpiComm_.reduce(stop, op=MPI.MIN, root=self.masterRank_)
+        if self._localPhysicsDriver is not None:
+            (dt, stop) = self._localPhysicsDriver.computeTimeStep()
+        dt = self.mpiComm.reduce(dt, op=MPI.MIN, root=self._masterRank)
+        stop = self.mpiComm.reduce(stop, op=MPI.MIN, root=self._masterRank)
         return (dt, stop)
 
     def initTimeStep(self, dt):
         """! See PhysicsDriver.initTimeStep(). """
-        self.mpiComm_.bcast((MPITag.initTimeStep, dt), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.initTimeStep, dt), root=self._masterRank)
         data = True
-        if self.localPhysicsDriver_ is not None:
-            data = self.localPhysicsDriver_.initTimeStep(dt)
-        return self.mpiComm_.reduce(data, op=MPI.MIN, root=self.masterRank_)
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.initTimeStep(dt)
+        return self.mpiComm.reduce(data, op=MPI.MIN, root=self._masterRank)
 
     def solve(self):
         """! See PhysicsDriver.solve(). """
-        if len(self.dataManagersToFree_) > 0:
-            self.mpiComm_.bcast((MPITag.deleteDataManager, self.dataManagersToFree_), root=self.masterRank_)
-            self.dataManagersToFree_ = []
-        self.mpiComm_.bcast((MPITag.solve,), root=self.masterRank_)
-        if self.localPhysicsDriver_ is not None:
-            self.localPhysicsDriver_.solve()
+        if len(self._dataManagersToFree) > 0:
+            self.mpiComm.bcast((MPITag.deleteDataManager, self._dataManagersToFree), root=self._masterRank)
+            self._dataManagersToFree = []
+        self.mpiComm.bcast((MPITag.solve,), root=self._masterRank)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.solve()
 
     def getSolveStatus(self):
         """! See PhysicsDriver.getSolveStatus(). """
-        self.mpiComm_.bcast((MPITag.getSolveStatus,), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.getSolveStatus,), root=self._masterRank)
         data = True
-        if self.localPhysicsDriver_ is not None:
-            data = self.localPhysicsDriver_.getSolveStatus()
-        return self.mpiComm_.reduce(data, op=MPI.MIN, root=self.masterRank_)
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.getSolveStatus()
+        return self.mpiComm.reduce(data, op=MPI.MIN, root=self._masterRank)
 
     def solveTimeStep(self):
         """! See PhysicsDriver.solveTimeStep(). """
@@ -127,41 +123,41 @@ class MPIMasterCollectivePhysicsDriver(PhysicsDriver):
 
     def validateTimeStep(self):
         """! See PhysicsDriver.validateTimeStep(). """
-        self.mpiComm_.bcast((MPITag.validateTimeStep,), root=self.masterRank_)
-        if self.localPhysicsDriver_ is not None:
-            self.localPhysicsDriver_.validateTimeStep()
+        self.mpiComm.bcast((MPITag.validateTimeStep,), root=self._masterRank)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.validateTimeStep()
 
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
-        self.mpiComm_.bcast((MPITag.abortTimeStep,), root=self.masterRank_)
-        if self.localPhysicsDriver_ is not None:
-            self.localPhysicsDriver_.abortTimeStep()
+        self.mpiComm.bcast((MPITag.abortTimeStep,), root=self._masterRank)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.abortTimeStep()
 
     def isStationary(self):
         """! See PhysicsDriver.isStationary(). """
-        self.mpiComm_.bcast((MPITag.isStationary,), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.isStationary,), root=self._masterRank)
         data = True
-        if self.localPhysicsDriver_ is not None:
-            data = self.localPhysicsDriver_.isStationary()
-        return self.mpiComm_.reduce(data, op=MPI.MIN, root=self.masterRank_)
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.isStationary()
+        return self.mpiComm.reduce(data, op=MPI.MIN, root=self._masterRank)
 
     def iterate(self):
         """! See PhysicsDriver.iterate(). """
-        if len(self.dataManagersToFree_) > 0:
-            self.mpiComm_.bcast((MPITag.deleteDataManager, self.dataManagersToFree_), root=self.masterRank_)
-            self.dataManagersToFree_ = []
-        self.mpiComm_.bcast((MPITag.iterate,), root=self.masterRank_)
-        if self.localPhysicsDriver_ is not None:
-            self.localPhysicsDriver_.iterate()
+        if len(self._dataManagersToFree) > 0:
+            self.mpiComm.bcast((MPITag.deleteDataManager, self._dataManagersToFree), root=self._masterRank)
+            self._dataManagersToFree = []
+        self.mpiComm.bcast((MPITag.iterate,), root=self._masterRank)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.iterate()
 
     def getIterateStatus(self):
         """! See PhysicsDriver.getIterateStatus(). """
-        self.mpiComm_.bcast((MPITag.getIterateStatus,), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.getIterateStatus,), root=self._masterRank)
         (succeed, converged) = (True, True)
-        if self.localPhysicsDriver_ is not None:
-            (succeed, converged) = self.localPhysicsDriver_.getIterateStatus()
-        succeed = self.mpiComm_.reduce(succeed, op=MPI.MIN, root=self.masterRank_)
-        converged = self.mpiComm_.reduce(converged, op=MPI.MIN, root=self.masterRank_)
+        if self._localPhysicsDriver is not None:
+            (succeed, converged) = self._localPhysicsDriver.getIterateStatus()
+        succeed = self.mpiComm.reduce(succeed, op=MPI.MIN, root=self._masterRank)
+        converged = self.mpiComm.reduce(converged, op=MPI.MIN, root=self._masterRank)
         return (succeed, converged)
 
     def iterateTimeStep(self):
@@ -171,18 +167,18 @@ class MPIMasterCollectivePhysicsDriver(PhysicsDriver):
 
     def save(self, label, method):
         """! See PhysicsDriver.save(). """
-        self.mpiComm_.bcast((MPITag.save, (label, method)), root=self.masterRank_)
-        if self.localPhysicsDriver_ is not None:
-            self.localPhysicsDriver_.save(label, method)
+        self.mpiComm.bcast((MPITag.save, (label, method)), root=self._masterRank)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.save(label, method)
 
     def restore(self, label, method):
         """! See PhysicsDriver.restore(). """
-        self.mpiComm_.bcast((MPITag.restore, (label, method)), root=self.masterRank_)
-        if self.localPhysicsDriver_ is not None:
-            self.localPhysicsDriver_.restore(label, method)
+        self.mpiComm.bcast((MPITag.restore, (label, method)), root=self._masterRank)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.restore(label, method)
 
     def forget(self, label, method):
         """! See PhysicsDriver.forget(). """
-        self.mpiComm_.bcast((MPITag.forget, (label, method)), root=self.masterRank_)
-        if self.localPhysicsDriver_ is not None:
-            self.localPhysicsDriver_.forget(label, method)
+        self.mpiComm.bcast((MPITag.forget, (label, method)), root=self._masterRank)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.forget(label, method)

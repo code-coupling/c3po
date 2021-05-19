@@ -3,7 +3,7 @@
 from __future__ import print_function, division
 from math import *
 
-import c3po.medcoupling_compat as mc
+import c3po.medcouplingCompat as mc
 
 
 def makePrismeQuelconqueMED(x0, y0, coordzbas, coordzhaut):

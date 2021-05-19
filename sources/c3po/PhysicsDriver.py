@@ -21,9 +21,9 @@ class PhysicsDriver(object):
 
     def __init__(self):
         """! Default constructor """
-        self.initStatus_ = True
-        self.solveStatus_ = True
-        self.iterateStatus_ = (True, True)
+        self._initStatus = True
+        self._solveStatus = True
+        self._iterateStatus = (True, True)
 
     def setDataFile(self, datafile):
         """! Give the path of a data file to the code.
@@ -53,7 +53,7 @@ class PhysicsDriver(object):
         is not adapted to C3PO MPI Master-Workers paradigm.
         @warning This method should never be redefined: define initialize() instead!
         """
-        self.initStatus_ = self.initialize()
+        self._initStatus = self.initialize()
 
     def getInitStatus(self):
         """! Return the output status of the last call to initialize() made through init().
@@ -64,7 +64,7 @@ class PhysicsDriver(object):
         adapted to C3PO MPI Master-Workers paradigm.
         @warning This method should never be redefined: define initialize() instead!
         """
-        return self.initStatus_
+        return self._initStatus
 
     def initialize(self):
         """! Initialize the code using the arguments of setDataFile() and setMPIComm().
@@ -130,7 +130,7 @@ class PhysicsDriver(object):
         They fit better with MPI use.
         @warning This method should never be redefined: define solveTimeStep() instead!
         """
-        self.solveStatus_ = self.solveTimeStep()
+        self._solveStatus = self.solveTimeStep()
 
     def getSolveStatus(self):
         """! Return the output of the last call to solveTimeStep() made through solve().
@@ -141,7 +141,7 @@ class PhysicsDriver(object):
         They fit better with MPI use.
         @warning This method should never be redefined: define solveTimeStep() instead!
         """
-        return self.solveStatus_
+        return self._solveStatus
 
     def solveTimeStep(self):
         """! Perform the computation on the current interval, using input data.
@@ -191,7 +191,7 @@ class PhysicsDriver(object):
         They fit better with MPI use.
         @warning This method should never be redefined: define iterateTimeStep() instead!
         """
-        self.iterateStatus_ = self.iterateTimeStep()
+        self._iterateStatus = self.iterateTimeStep()
 
     def getIterateStatus(self):
         """! Return the output of the last call to iterateTimeStep() made through iterate().
@@ -202,7 +202,7 @@ class PhysicsDriver(object):
         better with MPI use.
         @warning This method should never be redefined: define iterateTimeStep() instead!
         """
-        return self.iterateStatus_
+        return self._iterateStatus
 
     def iterateTimeStep(self):
         """! Perform a single solving iteration of the current time-step.
@@ -343,6 +343,6 @@ class PhysicsDriver(object):
             else:
                 self.abortTimeStep()
                 (dt2, stop) = self.computeTimeStep()
-                if (dt == dt2):
+                if dt == dt2:
                     raise Exception("PhysicsDriver.solveTransient : we are about to repeat a failed time-step calculation !")
                 dt = dt2

@@ -11,9 +11,9 @@ class ScalarPhysicsCoupler(c3po.Coupler):
         c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
 
     def solveTimeStep(self):
-        self.physicsDrivers_[0].solve()
-        self.exchangers_[0].exchange()
-        self.physicsDrivers_[1].solve()
+        self._physicsDrivers[0].solve()
+        self._exchangers[0].exchange()
+        self._physicsDrivers[1].solve()
         return self.getSolveStatus()
 
 
@@ -28,10 +28,10 @@ class Listings_test(unittest.TestCase):
         file5 = open("listingGeneral.log", "wb+")
         listingW = c3po.ListingWriter(file5)
 
-        Physics1 = c3po.Tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
-        Physics1 = c3po.NameChanger({"toto": "x"})(Physics1)
-        Physics2 = c3po.Tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
-        c3po.Exchanger = c3po.Tracer(listingWriter=listingW)(c3po.Exchanger)
+        Physics1 = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
+        Physics1 = c3po.nameChanger({"toto": "x"})(Physics1)
+        Physics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
+        c3po.Exchanger = c3po.tracer(listingWriter=listingW)(c3po.Exchanger)
 
         myPhysics = Physics1()
         myPhysics2 = Physics2()

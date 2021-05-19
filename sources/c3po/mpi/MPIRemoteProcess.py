@@ -29,10 +29,10 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         """
         PhysicsDriver.__init__(self)
         DataManager.__init__(self)
-        self.mpiComm_ = mpiComm
-        self.rank_ = rank
-        self.t_ = 0.
-        self.dt_ = 1.e30
+        self.mpiComm = mpiComm
+        self.rank = rank
+        self._time = 0.
+        self._dt = 1.e30
 
     def setMPIComm(self, mpicomm):
         """! pass """
@@ -48,15 +48,15 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
 
     def presentTime(self):
         """! return the time. """
-        return self.t_
+        return self._time
 
     def computeTimeStep(self):
         """! return (1.e30, True) """
         return (1.e30, True)
 
     def initTimeStep(self, dt):
-        """! self.dt_ = dt and return True """
-        self.dt_ = dt
+        """! self._dt = dt and return True """
+        self._dt = dt
         return True
 
     def solveTimeStep(self):
@@ -64,14 +64,14 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         return True
 
     def validateTimeStep(self):
-        """! self.t_ += self.dt_ """
-        if self.dt_ > 0.:
-            self.t_ += self.dt_
-            self.dt_ = 0.
+        """! self._time += self._dt """
+        if self._dt > 0.:
+            self._time += self._dt
+            self._dt = 0.
 
     def abortTimeStep(self):
-        """! self.dt_ = 0. """
-        self.dt_ = 0.
+        """! self._dt = 0. """
+        self._dt = 0.
 
     def isStationary(self):
         """! return True """
@@ -91,5 +91,5 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
 
     def cloneEmpty(self):
         """! return a clone. """
-        new = MPIRemoteProcess(self.mpiComm_, self.rank_)
+        new = MPIRemoteProcess(self.mpiComm, self.rank)
         return new

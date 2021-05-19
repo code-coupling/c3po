@@ -16,18 +16,18 @@ import numpy as np
 from c3po.Coupler import Coupler
 
 
-def solveTriang(A, b):
+def solveTriang(matrixA, vectorB):
     """! INTERNAL.
 
     Solves a triangular linear system.
     """
-    n = b.shape[0]
-    resu = np.zeros(shape=(n))
-    for i in range(n - 1, -1, -1):
-        resu[i] = b[i]
-        for j in range(n - 1, i, -1):
-            resu[i] -= A[i, j] * resu[j]
-        resu[i] /= A[i, i]
+    dim = vectorB.shape[0]
+    resu = np.zeros(shape=(dim))
+    for i in range(dim - 1, -1, -1):
+        resu[i] = vectorB[i]
+        for j in range(dim - 1, i, -1):
+            resu[i] -= matrixA[i, j] * resu[j]
+        resu[i] /= matrixA[i, i]
     return resu
 
 
@@ -70,12 +70,12 @@ class JFNKCoupler(Coupler):
         @param dataManager list of only one DataManager.
         """
         Coupler.__init__(self, physics, exchangers, dataManager)
-        self.NewtonTolerance_ = 1.E-6
-        self.NewtonMaxIter_ = 10
-        self.KrylovTolerance_ = 1.E-4
-        self.KrylovMaxIter_ = 100
-        self.epsilon_ = 1.E-4
-        self.isConverged_ = False
+        self._newtonTolerance = 1.E-6
+        self._newtonMaxIter = 10
+        self._krylovTolerance = 1.E-4
+        self._krylovMaxIter = 100
+        self._epsilon = 1.E-4
+        self._isConverged = False
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManager, list):
             raise Exception("JFNKCoupler.__init__ physics, exchangers and dataManager must be lists!")
@@ -92,8 +92,8 @@ class JFNKCoupler(Coupler):
         @param tolerance the convergence threshold in ||f(X^{n}) - X^{n}|| / ||f(X^{n})|| < tolerance.
         @param maxiter the maximal number of iterations.
         """
-        self.NewtonTolerance_ = tolerance
-        self.NewtonMaxIter_ = maxiter
+        self._newtonTolerance = tolerance
+        self._newtonMaxIter = maxiter
 
     def setKrylovConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations) of the Krylov method.
@@ -101,39 +101,39 @@ class JFNKCoupler(Coupler):
         @param tolerance the convergence threshold of the Krylov method.
         @param maxiter the maximal number of iterations of the Krylov method.
         """
-        self.KrylovTolerance_ = tolerance
-        self.KrylovMaxIter_ = maxiter
+        self._krylovTolerance = tolerance
+        self._krylovMaxIter = maxiter
 
     def setEpsilon(self, epsilon):
         """! Set the epsilon value of the method.
 
         @param epsilon the epsilon value in the formula J_u v ~= (F(u + epsilon v) - F(u))/epsilon.
         """
-        self.epsilon_ = epsilon
+        self._epsilon = epsilon
 
     def solveTimeStep(self):
         """! Solve a time step using Jacobian-Free Newton Krylov algorithm.
 
         See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
-        physics = self.physicsDrivers_[0]
-        physics2Data = self.exchangers_[0]
-        data2physics = self.exchangers_[1]
-        data = self.dataManagers_[0]
+        physics = self._physicsDrivers[0]
+        physics2Data = self._exchangers[0]
+        data2physics = self._exchangers[1]
+        data = self._dataManagers[0]
         iterNewton = 0
         iterKrylov = 0
         residual = 0
         previousData = 0
-        Q = []
+        matrixQ = []
 
         print("Initialisation ")
         # On calcul ici l'etat "0"
         physics.solve()
         physics2Data.exchange()
 
-        errorNewton = self.NewtonTolerance_ + 1
+        errorNewton = self._newtonTolerance + 1
 
-        while errorNewton > self.NewtonTolerance_ and iterNewton < self.NewtonMaxIter_:
+        while errorNewton > self._newtonTolerance and iterNewton < self._newtonMaxIter:
             print("Newton iteration ", iterNewton)
 
             if iterNewton == 0:
@@ -144,110 +144,110 @@ class JFNKCoupler(Coupler):
                 previousData.copy(data)
 
             self.abortTimeStep()
-            self.initTimeStep(self.dt_)
+            self.initTimeStep(self._dt)
             data2physics.exchange()
             physics.solve()
             physics2Data.exchange()
 
             residual -= data  # residual is the second member of the linear system: -F(x) = -(f(x)-x)
-            Norm2Residual = residual.norm2()
+            norm2Residual = residual.norm2()
 
             errorNewton = self.getNorm(residual) / self.getNorm(data)
-            if errorNewton > self.NewtonTolerance_:
+            if errorNewton > self._newtonTolerance:
 
-                if len(Q) < 1:
-                    Q.append(residual * (1. / Norm2Residual))
+                if len(matrixQ) < 1:
+                    matrixQ.append(residual * (1. / norm2Residual))
                 else:
-                    Q[0].copy(residual)
-                    Q[0] *= (1. / Norm2Residual)
+                    matrixQ[0].copy(residual)
+                    matrixQ[0] *= (1. / norm2Residual)
 
-                H = np.zeros(shape=(1))
-                O_transpose = np.zeros(shape=(1, 1))
-                O_transpose[0, 0] = 1.
-                R = np.zeros(shape=(1, 0))
-                KrylovResidual = np.zeros(shape=(1))
-                KrylovResidual[0] = Norm2Residual
+                vectorH = np.zeros(shape=(1))
+                transposeO = np.zeros(shape=(1, 1))
+                transposeO[0, 0] = 1.
+                matrixR = np.zeros(shape=(1, 0))
+                krylovResidual = np.zeros(shape=(1))
+                krylovResidual[0] = norm2Residual
 
-                errorKrylov = self.KrylovTolerance_ + 1
+                errorKrylov = self._krylovTolerance + 1
                 iterKrylov = 0
 
-                while errorKrylov > self.KrylovTolerance_ and iterKrylov < self.KrylovMaxIter_:
+                while errorKrylov > self._krylovTolerance and iterKrylov < self._krylovMaxIter:
                     print("    Krylov iteration ", iterKrylov)
                     iterKrylov += 1
 
                     data.copy(previousData)
-                    data.imuladd(self.epsilon_, Q[iterKrylov - 1])
+                    data.imuladd(self._epsilon, matrixQ[iterKrylov - 1])
 
                     self.abortTimeStep()
-                    self.initTimeStep(self.dt_)
+                    self.initTimeStep(self._dt)
                     data2physics.exchange()
                     physics.solve()
                     physics2Data.exchange()
 
                     data -= previousData
-                    data.imuladd(-self.epsilon_, Q[iterKrylov - 1])
+                    data.imuladd(-self._epsilon, matrixQ[iterKrylov - 1])
 
-                    if len(Q) < iterKrylov + 1:
-                        Q.append(data + residual)
+                    if len(matrixQ) < iterKrylov + 1:
+                        matrixQ.append(data + residual)
                     else:
-                        Q[iterKrylov].copy(data)
-                        Q[iterKrylov] += residual
-                    Q[iterKrylov] *= 1. / self.epsilon_
+                        matrixQ[iterKrylov].copy(data)
+                        matrixQ[iterKrylov] += residual
+                    matrixQ[iterKrylov] *= 1. / self._epsilon
 
                     for i in range(iterKrylov):
-                        H[i] = Q[i].dot(Q[iterKrylov])
-                        Q[iterKrylov].imuladd(-H[i], Q[i])
-                    H = np.append(H, Q[iterKrylov].norm2())
-                    Q[iterKrylov] *= 1. / H[-1]
+                        vectorH[i] = matrixQ[i].dot(matrixQ[iterKrylov])
+                        matrixQ[iterKrylov].imuladd(-vectorH[i], matrixQ[i])
+                    vectorH = np.append(vectorH, matrixQ[iterKrylov].norm2())
+                    matrixQ[iterKrylov] *= 1. / vectorH[-1]
 
                     # Ajout des nouvelles ligne/colonne a O
-                    tmpO = np.zeros(shape=(O_transpose.shape[0] + 1, O_transpose.shape[1] + 1))
-                    tmpO[0:O_transpose.shape[0], 0:O_transpose.shape[1]] += O_transpose
-                    O_transpose = tmpO
-                    O_transpose[O_transpose.shape[0] - 1, O_transpose.shape[1] - 1] = 1.
+                    tmpO = np.zeros(shape=(transposeO.shape[0] + 1, transposeO.shape[1] + 1))
+                    tmpO[0:transposeO.shape[0], 0:transposeO.shape[1]] += transposeO
+                    transposeO = tmpO
+                    transposeO[transposeO.shape[0] - 1, transposeO.shape[1] - 1] = 1.
 
-                    H = np.dot(O_transpose, H)
+                    vectorH = np.dot(transposeO, vectorH)
 
-                    Rot = np.zeros(shape=(iterKrylov + 1, iterKrylov + 1))
+                    rot = np.zeros(shape=(iterKrylov + 1, iterKrylov + 1))
                     for i in range(iterKrylov - 1):
-                        Rot[i, i] = 1.
-                    normtmp = math.sqrt(H[-2] * H[-2] + H[-1] * H[-1])
-                    Rot[iterKrylov - 1, iterKrylov - 1] = H[-2] / normtmp
-                    Rot[iterKrylov, iterKrylov] = H[-2] / normtmp
-                    Rot[iterKrylov - 1, iterKrylov] = H[-1] / normtmp
-                    Rot[iterKrylov, iterKrylov - 1] = -H[-1] / normtmp
+                        rot[i, i] = 1.
+                    normtmp = math.sqrt(vectorH[-2] * vectorH[-2] + vectorH[-1] * vectorH[-1])
+                    rot[iterKrylov - 1, iterKrylov - 1] = vectorH[-2] / normtmp
+                    rot[iterKrylov, iterKrylov] = vectorH[-2] / normtmp
+                    rot[iterKrylov - 1, iterKrylov] = vectorH[-1] / normtmp
+                    rot[iterKrylov, iterKrylov - 1] = -vectorH[-1] / normtmp
 
-                    O_transpose = np.dot(Rot, O_transpose)
+                    transposeO = np.dot(rot, transposeO)
 
-                    # Ajout des nouvelles ligne/colonne a R
-                    tmpR = np.zeros(shape=(R.shape[0] + 1, R.shape[1] + 1))
-                    tmpR[0:R.shape[0], 0:R.shape[1]] += R
-                    R = tmpR
+                    # Ajout des nouvelles ligne/colonne a matrixR
+                    tmpR = np.zeros(shape=(matrixR.shape[0] + 1, matrixR.shape[1] + 1))
+                    tmpR[0:matrixR.shape[0], 0:matrixR.shape[1]] += matrixR
+                    matrixR = tmpR
                     for i in range(iterKrylov + 1):
-                        R[i, R.shape[1] - 1] = H[i]
-                    R = np.dot(Rot, R)
+                        matrixR[i, matrixR.shape[1] - 1] = vectorH[i]
+                    matrixR = np.dot(rot, matrixR)
 
-                    KrylovResidual = np.append(KrylovResidual, 0.)
-                    KrylovResidual = np.dot(Rot, KrylovResidual)
+                    krylovResidual = np.append(krylovResidual, 0.)
+                    krylovResidual = np.dot(rot, krylovResidual)
 
-                    errorKrylov = abs(KrylovResidual[-1]) / Norm2Residual
+                    errorKrylov = abs(krylovResidual[-1]) / norm2Residual
 
                     print("    error Krylov : ", errorKrylov)
 
-                SquareR = R[0:iterKrylov, 0:iterKrylov]
-                ReduceKrylovResidual = KrylovResidual[0:iterKrylov]
-                KrylovResu = solveTriang(SquareR, ReduceKrylovResidual)
+                squareR = matrixR[0:iterKrylov, 0:iterKrylov]
+                reduceKrylovResidual = krylovResidual[0:iterKrylov]
+                krylovResu = solveTriang(squareR, reduceKrylovResidual)
 
                 data.copy(previousData)
                 for i in range(iterKrylov):
-                    data.imuladd(KrylovResu[i], Q[i])
+                    data.imuladd(krylovResu[i], matrixQ[i])
 
             iterNewton += 1
             print("error Newton : ", errorNewton)
 
-        return physics.getSolveStatus() and not(errorNewton > self.NewtonTolerance_)
+        return physics.getSolveStatus() and errorNewton <= self._newtonTolerance
 
-    # On definit les methodes suivantes pour qu'elles soient vues par Tracer.
+    # On definit les methodes suivantes pour qu'elles soient vues par tracer.
     def initialize(self):
         """! See Coupler.initialize(). """
         return Coupler.initialize(self)

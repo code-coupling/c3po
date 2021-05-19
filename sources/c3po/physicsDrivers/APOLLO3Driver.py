@@ -22,52 +22,51 @@ class APOLLO3Driver(PhysicsDriver):
         @param ICOCOclass implementation of the ICOCO interface for APOLLO3.
         """
         PhysicsDriver.__init__(self)
-        self.neutro_ = ICOCOclass
-        self.isInit_ = False
+        self._apollo3 = ICOCOclass
+        self._isInit = False
 
-    def setDataFile(self, df):
-        self.neutro_.setDataFile(df)
+    def setDataFile(self, datafile):
+        self._apollo3.setDataFile(datafile)
 
     def initialize(self):
-        if not self.isInit_:
-            self.isInit_ = True
-            return self.neutro_.initialize()
-        else:
-            return True
+        if not self._isInit:
+            self._isInit = True
+            return self._apollo3.initialize()
+        return True
 
     def terminate(self):
-        self.isInit_ = False
-        self.neutro_.terminate()
+        self._isInit = False
+        self._apollo3.terminate()
 
     def presentTime(self):
-        return self.neutro_.presentTime()
+        return self._apollo3.presentTime()
 
     def computeTimeStep(self):
-        return self.neutro_.computeTimeStep()
+        return self._apollo3.computeTimeStep()
 
     def initTimeStep(self, dt):
-        return self.neutro_.initTimeStep(dt)
+        return self._apollo3.initTimeStep(dt)
 
     def solveTimeStep(self):
-        return self.neutro_.solveTimeStep()
+        return self._apollo3.solveTimeStep()
 
     def validateTimeStep(self):
-        self.neutro_.validateTimeStep()
+        self._apollo3.validateTimeStep()
 
     def abortTimeStep(self):
-        self.neutro_.abortTimeStep()
+        self._apollo3.abortTimeStep()
 
     def getInputMEDFieldTemplate(self, name):
-        return self.neutro_.getInputMEDFieldTemplate(name)
+        return self._apollo3.getInputMEDFieldTemplate(name)
 
     def setInputMEDField(self, name, field):
-        self.neutro_.setInputMEDField(name, field)
+        self._apollo3.setInputMEDField(name, field)
 
     def getOutputMEDField(self, name):
-        return self.neutro_.getOutputMEDField(name)
+        return self._apollo3.getOutputMEDField(name)
 
     def setValue(self, name, value):
-        self.neutro_.setValue(name, value)
+        self._apollo3.setValue(name, value)
 
     def getValue(self, name):
-        return self.neutro_.getValue(name)
+        return self._apollo3.getValue(name)

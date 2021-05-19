@@ -33,128 +33,128 @@ class MPIMasterCollectiveDataManager(object):
         @param localDataManager a c3po.DataManager.DataManager the MPIMasterCollectiveDataManager object will use together with the
         remote ones. It enables the master to contribute to a collective computation.
         """
-        self.physicsDriver_ = mpiMasterCollectivephysicsD
-        self.mpiComm_ = mpiMasterCollectivephysicsD.getCommunicator()
-        self.masterRank_ = mpiMasterCollectivephysicsD.masterRank_
-        self.idDataWorker_ = idDataWorker
-        self.localDataManager_ = localDataManager
+        self.physicsDriver = mpiMasterCollectivephysicsD
+        self.mpiComm = mpiMasterCollectivephysicsD.mpiComm
+        self._masterRank = mpiMasterCollectivephysicsD._masterRank
+        self.idDataWorker = idDataWorker
+        self.localDataManager = localDataManager
 
     def __del__(self):
         """! Destructor. """
-        self.physicsDriver_.setDataManagerToFree(self.idDataWorker_)
+        self.physicsDriver.setDataManagerToFree(self.idDataWorker)
 
     def checkCompatibility(self, other):
         """! INTERNAL """
-        if not isinstance(other, MPIMasterCollectiveDataManager) or self.physicsDriver_ != other.physicsDriver_ or (self.localDataManager_ is not None) and (other.localDataManager_ is None):
+        if not isinstance(other, MPIMasterCollectiveDataManager) or self.physicsDriver != other.physicsDriver or (self.localDataManager is not None) and (other.localDataManager is None):
             raise Exception("MPIMasterCollectiveDataManager.checkCompatibility : self and other are not compatible.")
 
     def clone(self):
         """! See c3po.DataManager.DataManager.clone(). """
-        return (self * 1.)
+        return self * 1.
 
     def cloneEmpty(self):
         """! See c3po.DataManager.DataManager.cloneEmpty(). """
-        self.mpiComm_.bcast((MPITag.cloneEmptyData, self.idDataWorker_), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.cloneEmptyData, self.idDataWorker), root=self._masterRank)
         localData = None
-        if self.localDataManager_ is not None:
-            localData = self.localDataManager_.cloneEmpty()
-        newIdDataWorker = self.mpiComm_.reduce(1E30, op=MPI.MIN, root=self.masterRank_)
-        new_data = MPIMasterCollectiveDataManager(self.physicsDriver_, newIdDataWorker, localData)
-        return new_data
+        if self.localDataManager is not None:
+            localData = self.localDataManager.cloneEmpty()
+        newIdDataWorker = self.mpiComm.reduce(1E30, op=MPI.MIN, root=self._masterRank)
+        newData = MPIMasterCollectiveDataManager(self.physicsDriver, newIdDataWorker, localData)
+        return newData
 
     def copy(self, other):
         """! See c3po.DataManager.DataManager.copy(). """
         self.checkCompatibility(other)
-        self.mpiComm_.bcast((MPITag.copyData, [self.idDataWorker_, other.idDataWorker_]), root=self.masterRank_)
-        if self.localDataManager_ is not None:
-            self.localDataManager_.copy(other.localDataManager_)
+        self.mpiComm.bcast((MPITag.copyData, [self.idDataWorker, other.idDataWorker]), root=self._masterRank)
+        if self.localDataManager is not None:
+            self.localDataManager.copy(other.localDataManager)
 
     def normMax(self):
         """! See c3po.DataManager.DataManager.normMax(). """
-        self.mpiComm_.bcast((MPITag.normMax, self.idDataWorker_), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.normMax, self.idDataWorker), root=self._masterRank)
         resu = 0.
-        if self.localDataManager_ is not None:
-            resu = self.localDataManager_.normMax()
-        return self.mpiComm_.reduce(resu, op=MPI.MAX, root=self.masterRank_)
+        if self.localDataManager is not None:
+            resu = self.localDataManager.normMax()
+        return self.mpiComm.reduce(resu, op=MPI.MAX, root=self._masterRank)
 
     def norm2(self):
         """! See c3po.DataManager.DataManager.norm2(). """
-        self.mpiComm_.bcast((MPITag.norm2, self.idDataWorker_), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.norm2, self.idDataWorker), root=self._masterRank)
         resu = 0.
-        if self.localDataManager_ is not None:
-            resu = self.localDataManager_.norm2()
+        if self.localDataManager is not None:
+            resu = self.localDataManager.norm2()
             resu = resu * resu
-        resu = self.mpiComm_.reduce(resu, op=MPI.SUM, root=self.masterRank_)
+        resu = self.mpiComm.reduce(resu, op=MPI.SUM, root=self._masterRank)
         return math.sqrt(resu)
 
     def __add__(self, other):
         """! See c3po.DataManager.DataManager.__add__(). """
         self.checkCompatibility(other)
-        self.mpiComm_.bcast((MPITag.addData, [self.idDataWorker_, other.idDataWorker_]), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.addData, [self.idDataWorker, other.idDataWorker]), root=self._masterRank)
         localData = None
-        if self.localDataManager_ is not None:
-            localData = self.localDataManager_ + other.localDataManager_
-        newIdDataWorker = self.mpiComm_.reduce(1E30, op=MPI.MIN, root=self.masterRank_)
-        new_data = MPIMasterCollectiveDataManager(self.physicsDriver_, newIdDataWorker, localData)
-        return new_data
+        if self.localDataManager is not None:
+            localData = self.localDataManager + other.localDataManager
+        newIdDataWorker = self.mpiComm.reduce(1E30, op=MPI.MIN, root=self._masterRank)
+        newData = MPIMasterCollectiveDataManager(self.physicsDriver, newIdDataWorker, localData)
+        return newData
 
     def __iadd__(self, other):
         """! See c3po.DataManager.DataManager.__iadd__(). """
         self.checkCompatibility(other)
-        self.mpiComm_.bcast((MPITag.iaddData, [self.idDataWorker_, other.idDataWorker_]), root=self.masterRank_)
-        if self.localDataManager_ is not None:
-            self.localDataManager_ += other.localDataManager_
+        self.mpiComm.bcast((MPITag.iaddData, [self.idDataWorker, other.idDataWorker]), root=self._masterRank)
+        if self.localDataManager is not None:
+            self.localDataManager += other.localDataManager
         return self
 
     def __sub__(self, other):
         """! See c3po.DataManager.DataManager.__sub__(). """
         self.checkCompatibility(other)
-        self.mpiComm_.bcast((MPITag.subData, [self.idDataWorker_, other.idDataWorker_]), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.subData, [self.idDataWorker, other.idDataWorker]), root=self._masterRank)
         localData = None
-        if self.localDataManager_ is not None:
-            localData = self.localDataManager_ - other.localDataManager_
-        newIdDataWorker = self.mpiComm_.reduce(1E30, op=MPI.MIN, root=self.masterRank_)
-        new_data = MPIMasterCollectiveDataManager(self.physicsDriver_, newIdDataWorker, localData)
-        return new_data
+        if self.localDataManager is not None:
+            localData = self.localDataManager - other.localDataManager
+        newIdDataWorker = self.mpiComm.reduce(1E30, op=MPI.MIN, root=self._masterRank)
+        newData = MPIMasterCollectiveDataManager(self.physicsDriver, newIdDataWorker, localData)
+        return newData
 
     def __isub__(self, other):
         """! See c3po.DataManager.DataManager.__isub__(). """
         self.checkCompatibility(other)
-        self.mpiComm_.bcast((MPITag.isubData, [self.idDataWorker_, other.idDataWorker_]), root=self.masterRank_)
-        if self.localDataManager_ is not None:
-            self.localDataManager_ -= other.localDataManager_
+        self.mpiComm.bcast((MPITag.isubData, [self.idDataWorker, other.idDataWorker]), root=self._masterRank)
+        if self.localDataManager is not None:
+            self.localDataManager -= other.localDataManager
         return self
 
     def __mul__(self, scalar):
         """! See c3po.DataManager.DataManager.__mul__(). """
-        self.mpiComm_.bcast((MPITag.mulData, (self.idDataWorker_, scalar)), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.mulData, (self.idDataWorker, scalar)), root=self._masterRank)
         localData = None
-        if self.localDataManager_ is not None:
-            localData = self.localDataManager_ * scalar
-        newIdDataWorker = self.mpiComm_.reduce(1E30, op=MPI.MIN, root=self.masterRank_)
-        new_data = MPIMasterCollectiveDataManager(self.physicsDriver_, newIdDataWorker, localData)
-        return new_data
+        if self.localDataManager is not None:
+            localData = self.localDataManager * scalar
+        newIdDataWorker = self.mpiComm.reduce(1E30, op=MPI.MIN, root=self._masterRank)
+        newData = MPIMasterCollectiveDataManager(self.physicsDriver, newIdDataWorker, localData)
+        return newData
 
     def __imul__(self, scalar):
         """! See c3po.DataManager.DataManager.__imul__(). """
-        self.mpiComm_.bcast((MPITag.imulData, (self.idDataWorker_, scalar)), root=self.masterRank_)
-        if self.localDataManager_ is not None:
-            self.localDataManager_ *= scalar
+        self.mpiComm.bcast((MPITag.imulData, (self.idDataWorker, scalar)), root=self._masterRank)
+        if self.localDataManager is not None:
+            self.localDataManager *= scalar
         return self
 
     def imuladd(self, scalar, other):
         """! See c3po.DataManager.DataManager.imuladd(). """
         self.checkCompatibility(other)
-        self.mpiComm_.bcast((MPITag.imuladdData, (self.idDataWorker_, scalar, other.idDataWorker_)), root=self.masterRank_)
-        if self.localDataManager_ is not None:
-            self.localDataManager_.imuladd(scalar, other.localDataManager_)
+        self.mpiComm.bcast((MPITag.imuladdData, (self.idDataWorker, scalar, other.idDataWorker)), root=self._masterRank)
+        if self.localDataManager is not None:
+            self.localDataManager.imuladd(scalar, other.localDataManager)
         return self
 
     def dot(self, other):
         """! See c3po.DataManager.DataManager.dot(). """
         self.checkCompatibility(other)
-        self.mpiComm_.bcast((MPITag.dotData, [self.idDataWorker_, other.idDataWorker_]), root=self.masterRank_)
+        self.mpiComm.bcast((MPITag.dotData, [self.idDataWorker, other.idDataWorker]), root=self._masterRank)
         resu = 0
-        if self.localDataManager_ is not None:
-            resu = self.localDataManager_.dot(other.localDataManager_)
-        return self.mpiComm_.reduce(resu, op=MPI.SUM, root=self.masterRank_)
+        if self.localDataManager is not None:
+            resu = self.localDataManager.dot(other.localDataManager)
+        return self.mpiComm.reduce(resu, op=MPI.SUM, root=self._masterRank)

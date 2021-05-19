@@ -43,37 +43,37 @@ class Coupler(PhysicsDriver):
         @param dataManagers a list (or dictionary) of DataManager used in the coupling.
         """
         PhysicsDriver.__init__(self)
-        self.physicsDrivers_ = physics
-        self.physicsDriversList_ = physics if not isinstance(physics, dict) else list(physics.values())
-        self.exchangers_ = exchangers
-        self.dataManagers_ = dataManagers
-        self.norm_ = NormChoice.normMax
-        self.dt_ = 1.e30
+        self._physicsDrivers = physics
+        self._physicsDriversList = physics if not isinstance(physics, dict) else list(physics.values())
+        self._exchangers = exchangers
+        self._dataManagers = dataManagers
+        self._norm = NormChoice.normMax
+        self._dt = 1.e30
 
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
-        for physics in self.physicsDriversList_:
+        for physics in self._physicsDriversList:
             physics.init()
         resu = True
-        for physics in self.physicsDriversList_:
+        for physics in self._physicsDriversList:
             resu = (resu and physics.getInitStatus())
         return resu
 
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
-        for physics in self.physicsDriversList_:
+        for physics in self._physicsDriversList:
             physics.terminate()
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """
-        if len(self.physicsDriversList_) > 0:
-            return self.physicsDriversList_[0].presentTime()
+        if len(self._physicsDriversList) > 0:
+            return self._physicsDriversList[0].presentTime()
         return 0.
 
     def computeTimeStep(self):
         """! See PhysicsDriver.computeTimeStep(). """
         (dt, stop) = (1.e30, True)
-        for physics in self.physicsDriversList_:
+        for physics in self._physicsDriversList:
             (dtPhysics, stopPhysics) = physics.computeTimeStep()
             if dtPhysics < dt:
                 dt = dtPhysics
@@ -82,33 +82,33 @@ class Coupler(PhysicsDriver):
 
     def initTimeStep(self, dt):
         """! See PhysicsDriver.initTimeStep(). """
-        self.dt_ = dt
+        self._dt = dt
         resu = True
-        for physics in self.physicsDriversList_:
+        for physics in self._physicsDriversList:
             resu = (physics.initTimeStep(dt) and resu)
         return resu
 
     def getSolveStatus(self):
         """! See PhysicsDriver.getSolveStatus(). """
         resu = True
-        for physics in self.physicsDriversList_:
+        for physics in self._physicsDriversList:
             resu = resu and physics.getSolveStatus()
         return resu
 
     def validateTimeStep(self):
         """! See PhysicsDriver.validateTimeStep(). """
-        for physics in self.physicsDriversList_:
+        for physics in self._physicsDriversList:
             physics.validateTimeStep()
 
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
-        for physics in self.physicsDriversList_:
+        for physics in self._physicsDriversList:
             physics.abortTimeStep()
 
     def isStationary(self):
         """! See PhysicsDriver.isStationary(). """
         resu = True
-        for physics in self.physicsDriversList_:
+        for physics in self._physicsDriversList:
             resu = (resu and physics.isStationary())
         return resu
 
@@ -119,7 +119,7 @@ class Coupler(PhysicsDriver):
             - NormChoice.normMax : infinite norm. This is the default choice.
             - NormChoice.norm2 : norm 2 ( sqrt(sum_i(val[i] * val[i])) ).
         """
-        self.norm_ = choice
+        self._norm = choice
 
     def getNorm(self, data):
         """! Return the norm choosen by setNormChoice of data (a DataManager).
@@ -128,9 +128,8 @@ class Coupler(PhysicsDriver):
 
         @return the asked norm of data.
         """
-        if self.norm_ == NormChoice.normMax:
+        if self._norm == NormChoice.normMax:
             return data.normMax()
-        elif self.norm_ == NormChoice.norm2:
+        if self._norm == NormChoice.norm2:
             return data.norm2()
-        else:
-            raise Exception("Coupler.getNorm The required norm is unknown.")
+        raise Exception("Coupler.getNorm The required norm is unknown.")
