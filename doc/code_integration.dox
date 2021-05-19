@@ -1,8 +1,8 @@
 
-/*! 
+/*!
 \page Code_integration_pag How to use a code with C3PO
 
-In order to be usable with C3PO, a code must be wrapped into a Python class that implements a precise Application Programming Interface (API), called ICoCo (Interface for Code Coupling) [1]. It includes all required capabilities for multiphysics simulations such as initialization, termination, time-step control, solving, exchange of variables etc. C3PO.PhysicsDriver.PhysicsDriver class lists these methods with related documentation. Since the C3PO.PhysicsDriver.PhysicsDriver class provides some additional services, the wrapping class should inherit from C3PO.PhysicsDriver.PhysicsDriver class.
+In order to be usable with C3PO, a code must be wrapped into a Python class that implements a precise Application Programming Interface (API), called ICoCo (Interface for Code Coupling) [1]. It includes all required capabilities for multiphysics simulations such as initialization, termination, time-step control, solving, exchange of variables etc. c3po.PhysicsDriver.PhysicsDriver class lists these methods with related documentation. Since the c3po.PhysicsDriver.PhysicsDriver class provides some additional services, the wrapping class should inherit from c3po.PhysicsDriver.PhysicsDriver class.
 
 This wrapping has four main consequences listed below.
 
@@ -10,7 +10,7 @@ This wrapping has four main consequences listed below.
 
 \section Python_sec 1. Use of Python as high-level language.
 
-Every code has to be wrapped into a Python class, which allows to coordinate them in a homogeneous way regardless of their native programming language. The required API being very macroscopic (e.g. asking to a code to solve its problem), this wrapping should not alter significantly codes performance.  
+Every code has to be wrapped into a Python class, which allows to coordinate them in a homogeneous way regardless of their native programming language. The required API being very macroscopic (e.g. asking to a code to solve its problem), this wrapping should not alter significantly codes performance.
 
 SWIG [2] is, for example, a well-known and easy to use tool to wrap a C++ or a FORTRAN code into a Python interface. Other examples are F2PY [3] for FORTRAN and pybind11 [4] for C++.
 
@@ -82,7 +82,7 @@ Finally, these methods are for specific uses:
 
 [2] “SWIG website”, www.swig.org.
 
-[3] “F2PY website”, www.f2py.com. 
+[3] “F2PY website”, www.f2py.com.
 
 [4] “pybind11 github access”, https://github.com/pybind/pybind11.
 
