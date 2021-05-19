@@ -61,11 +61,15 @@ class TracerMeta(type):
 
         def _wrapper(method):
             def _trace(self, *args, **kwargs):
+                if hasattr(self, "tracerRecurrenceDepth") and self.tracerRecurrenceDepth > 0:
+                    return method(self, *args, **kwargs)
+
                 if method.__name__ == "__init__":
                     if name not in self.static_Objectcounter:
                         self.static_Objectcounter[name] = 0
                     self.tracerObjectUniqueId = self.static_Objectcounter[name]
                     self.static_Objectcounter[name] += 1
+                    self.tracerRecurrenceDepth = 0
 
                 if self.static_saveInputMED and method.__name__ == "setInputMEDField":
                     (nameField, field) = getSetInputMEDFieldInput(*args, **kwargs)
@@ -104,11 +108,15 @@ class TracerMeta(type):
                     prevIdstderr = os.dup(sys.stderr.fileno())
                     os.dup2(self.static_stderr.fileno(), sys.stderr.fileno())
 
+                self.tracerRecurrenceDepth += 1
+
                 start = time.time()
 
                 result = method(self, *args, **kwargs)
 
                 end = time.time()
+
+                self.tracerRecurrenceDepth -= 1
 
                 if self.static_stdout is not None:
                     sys.stdout.flush()
@@ -179,9 +187,9 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
     The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveInputMED,
     static_saveOutputMED, static_stdout, static_stderr and static_lWriter.
 
-    One additional static attributes is added for internal use: static_Objectcounter.
+    One additional static attribute is added for internal use: static_Objectcounter.
 
-    One addition attribute (not static!) is added for internal use: tracerObjectUniqueId.
+    Two additional attributes (not static!) are added for internal use: tracerObjectUniqueId and tracerRecurrenceDepth.
 
     tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
 
