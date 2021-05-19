@@ -23,6 +23,11 @@ def getSetInputMEDFieldInput(name, field):
     return (name, field)
 
 
+def getGetOutputMEDFieldInput(name):
+    """! INTERNAL """
+    return name
+
+
 def getInitTimeStepInput(dt):
     """! INTERNAL """
     return dt
@@ -50,13 +55,26 @@ class TracerMeta(type):
 
     def __init__(cls, name, bases, dct):
         type.__init__(cls, name, bases, dct)
-        cls.static_MEDinfo = {}
         cls.static_Objectcounter = {}
 
     def __new__(cls, name, bases, dct):
 
         def _wrapper(method):
             def _trace(self, *args, **kwargs):
+                if self.static_saveInputMED and method.__name__ == "setInputMEDField":
+                    (nameField, field) = getSetInputMEDFieldInput(*args, **kwargs)
+                    nameMEDFile = name + "_input_" + nameField + "_"
+                    num = 0
+                    while os.path.exists(nameMEDFile + str(num) + ".med"):
+                        num += 1
+                    nameMEDFile = nameMEDFile + str(num) + ".med"
+                    _, iteration, order = field.getTime()
+                    medInfo = (field.getTypeOfField(), nameMEDFile, field.getMesh().getName(),
+                                                            0, field.getName(), iteration, order)
+                    mc.WriteField(nameMEDFile, field, True)
+                    if self.static_pythonFile is not None:
+                        self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
+
                 if self.static_pythonFile is not None:
                     objectNameBase = "my" + name
                     if objectNameBase not in self.static_Objectcounter:
@@ -68,17 +86,8 @@ class TracerMeta(type):
                         objectName = "my" + name + str(self.static_Objectcounter[objectNameBase])
                         self.static_pythonFile.write(objectName + " = " + name + stringArgs + "\n")
                     elif method.__name__ == "setInputMEDField":
-                        (nameField, field) = getSetInputMEDFieldInput(*args, **kwargs)
-                        if self.static_saveMED:
-                            if nameField not in self.static_MEDinfo:
-                                self.static_MEDinfo[nameField] = []
-                            nameMEDFile = nameField + str(len(self.static_MEDinfo[nameField])) + ".med"
-                            _, iteration, order = field.getTime()
-                            self.static_MEDinfo[nameField].append((field.getTypeOfField(), nameMEDFile, field.getMesh().getName(),
-                                                                    0, field.getName(), iteration, order))
-                            mc.WriteField(nameMEDFile, field, True)
-                            self.static_pythonFile.write("field_" + objectName + " = mc.ReadField" + str(self.static_MEDinfo[nameField][-1]) + "\n")
-                        self.static_pythonFile.write(objectName + "." + method.__name__ + "('" + nameField + "', field_" + objectName + ")" + "\n")
+                        (nameField, _) = getSetInputMEDFieldInput(*args, **kwargs)
+                        self.static_pythonFile.write(objectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n")
                     else:
                         self.static_pythonFile.write(objectName + "." + method.__name__ + stringArgs + "\n")
                     self.static_pythonFile.flush()
@@ -109,6 +118,15 @@ class TracerMeta(type):
                     os.dup2(prevIdstderr, sys.stderr.fileno())
                     os.close(prevIdstderr)
 
+                if self.static_saveOutputMED and method.__name__ == "getOutputMEDField":
+                    nameField = getGetOutputMEDFieldInput(*args, **kwargs)
+                    nameMEDFile = name + "_output_" + nameField + "_"
+                    num = 0
+                    while os.path.exists(nameMEDFile + str(num) + ".med"):
+                        num += 1
+                    nameMEDFile = nameMEDFile + str(num) + ".med"
+                    mc.WriteField(nameMEDFile, result, True)
+
                 if self.static_lWriter is not None:
                     if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
                                            "validateTimeStep", "abortTimeStep", "terminate", "exchange"]:
@@ -133,33 +151,33 @@ class TracerMeta(type):
         return type.__new__(cls, name, bases, newDct)
 
 
-def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, listingWriter=None):
+def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=None, stderrFile=None, listingWriter=None):
     """! tracer is a class wrapper allowing to trace the calls of the methods of the base class.
 
     It has different functions:
 
     1. It can write all calls of the methods of the base class in a text file in python format in order to allow to replay what
-    happened from the code point of view outside of the coupling.
-    2. It can redirect code standard and error outputs in text files.
-    3. It can contribute (with ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
+        happened from the code point of view outside of the coupling.
+    2. It can save in .med files input or output MEDFields.
+    3. It can redirect code standard and error outputs in text files.
+    4. It can contribute (with ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
 
     @param pythonFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script
-    is written there. It has to be closed (file.close()) by caller.
-    @param saveMED This is related to the python file writing.
-        - if set to True (default value), every time setInputMEDField is called, the input MED field is stored in an independant .med
-        file, and MEDLoader reading call is written in the output file.
-        - if set to False, the MED field is not stored and the MEDLoader call is not written. Only the setInputMEDField call is written.
-        The replay is not possible.
+        is written there. It has to be closed (file.close()) by caller. The script can be run only if saveInputMED is set to True:
+        otherwise, input MED fields are not stored.
+    @param saveInputMED if set to True, every time setInputMEDField is called, the input MED field is stored in a .med file.
+        If pythonFile is activated, a MEDLoader reading instruction is also written in the Python file.
+    @param saveOutputMED if set to True, every time getOutputMEDField is called, the output MED field is stored in a .med file.
     @param stdoutFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output
-    is redirected there. It has to be closed (file.close()) by caller.
+        is redirected there. It has to be closed (file.close()) by caller.
     @param stderrFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is
-    redirected there. It has to be closed (file.close()) by caller.
+        redirected there. It has to be closed (file.close()) by caller.
     @param listingWriter a ListingWriter object which will manage the writing of the coupling listing file. Refer to the documentation
-    of ListingWriter.
+        of ListingWriter.
 
-    The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveMED, static_stdout,
-    static_stderr and static_lWriter.
-    Two additional static attributes are added for internal use: static_MEDinfo and static_Objectcounter.
+    The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveInputMED,
+    static_saveOutputMED, static_stdout, static_stderr and static_lWriter.
+    One additional static attributes are added for internal use: static_Objectcounter.
 
     tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
 
@@ -189,7 +207,6 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
              If the wrapping is applied (without changing the name of the class) after the building of the daughter class, it will result
              in TypeError when the daughter class will try to call mother methods (since its mother class does not exist anymore!).
              As a consequence, if applied to C3PO classes, it is recommended to change the name of the classes.
-
     """
 
     def classWrapper(baseclass):
@@ -200,14 +217,16 @@ def tracer(pythonFile=None, saveMED=True, stdoutFile=None, stderrFile=None, list
             pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
 
         baseclass.static_pythonFile = pythonFile
-        baseclass.static_saveMED = saveMED
+        baseclass.static_saveInputMED = saveInputMED
+        baseclass.static_saveOutputMED = saveOutputMED
         baseclass.static_stdout = stdoutFile
         baseclass.static_stderr = stderrFile
         baseclass.static_lWriter = listingWriter
         newclass = TracerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         delattr(baseclass, "static_pythonFile")
-        delattr(baseclass, "static_saveMED")
+        delattr(baseclass, "static_saveInputMED")
+        delattr(baseclass, "static_saveOutputMED")
         delattr(baseclass, "static_stdout")
         delattr(baseclass, "static_stderr")
         delattr(baseclass, "static_lWriter")

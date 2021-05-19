@@ -74,8 +74,9 @@ This directory contains the definition of the following elements:
 
   - c3po.services.tracer.tracer is a class wrapper allowing to trace the calls of the methods of the base class. It has different functions:
     1. It can write all calls of the methods of the base class in a text file in Python format in order to allow to replay what happened from the code point of view outside of the coupling.
-    2. It can redirect code standard and error outputs in text files.
-    3. It can contribute (with c3po.services.ListingWriter.ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
+    2. It can save in .med files input or output MEDFields.
+    3. It can redirect code standard and error outputs in text files.
+    4. It can contribute (with c3po.services.ListingWriter.ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
   - c3po.services.ListingWriter.ListingWriter allows, in association with c3po.services.tracer.tracer, to write a global coupling listing file with calculation time measurement. Three funtions complete this class:
     1. mergeListing() that allows to merge listing files produced by c3po.services.ListingWriter.ListingWriter (or by previous call to mergeListing()). It is designed to produce a comprehensive view of a MPI calculation.
     2. getTotalTimePhysicsDriver() that reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns the total time spent by one c3po.PhysicsDriver.PhysicsDriver in indicated methods.
