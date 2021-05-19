@@ -17,22 +17,36 @@ from c3po.medcouplingCompat import MEDCouplingRemapper
 class Remapper(MEDCouplingRemapper):
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
 
-    def __init__(self):
-        """! Default constructor. """
+    def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
+        """! Build a Remapper object.
+
+        @param meshAlignment If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding
+            box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
+        @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
+            The given vector is used to translate the source mesh (after the mesh alignment, if any).
+        @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is
+            initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh
+            alignment or translation, if any.
+        """
         MEDCouplingRemapper.__init__(self)
         self.isInit = False
+        self._meshAlignment = meshAlignment
+        self._offset = offset
+        if rescaling <= 0.:
+            raise Exception("Remapper: rescaling must be > 0!")
+        self._rescaling = rescaling
 
-    def initialize(self, sourceMesh, targetMesh, meshAlignment, offset, rescaling):
+    def initialize(self, sourceMesh, targetMesh):
         """! INTERNAL """
-        if meshAlignment:
+        if self._meshAlignment:
             for mesh in [sourceMesh, targetMesh]:
                 [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
                 offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
                 mesh.translate(offsettmp)
-        if offset != [0., 0., 0.]:
-            sourceMesh.translate([-x for x in offset])
-        if rescaling != 1.:
-            sourceMesh.scale([0., 0., 0.], 1. / rescaling)
+        if self._offset != [0., 0., 0.]:
+            sourceMesh.translate([-x for x in self._offset])
+        if self._rescaling != 1.:
+            sourceMesh.scale([0., 0., 0.], 1. / self._rescaling)
         self.prepare(sourceMesh, targetMesh, "P0P0")
         self.isInit = True
 
@@ -52,8 +66,7 @@ class SharedRemapping(object):
     SharedRemapping through a Remapper object.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.),
-                 meshAlignment=False, offset=[0., 0., 0.], rescaling=1., outsideCellsScreening=False):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), outsideCellsScreening=False):
         """! Build an SharedRemapping object, to be given to an Exchanger.
 
         @param remapper A Remapper object (defined in C3PO and inheriting from MEDCouplingRemapper) performing the projection. It
@@ -64,13 +77,6 @@ class SharedRemapping(object):
                intersected by the source mesh.
         @param linearTransform Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation
                is applied after the mesh projection.
-        @param meshAlignment If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding
-               box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
-        @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
-               The given vector is used to translate the source mesh (after the mesh alignment, if any).
-        @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is
-               initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh
-               alignment or translation, if any.
         @param outsideCellsScreening If set to True, target cells whose barycentre is outside of source mesh are screen out (defaultValue is
                assigned to them). It can be useful to screen out cells that are in contact with the source mesh, but that should not be intersected
                by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of source mesh !
@@ -80,11 +86,6 @@ class SharedRemapping(object):
         self._isReverse = reverse
         self._defaultValue = defaultValue
         self._linearTransform = linearTransform
-        self._meshAlignment = meshAlignment
-        self._offset = offset
-        if rescaling <= 0.:
-            raise Exception("sharedRemapping : rescaling must be > 0!")
-        self._rescaling = rescaling
         self._outsideCellsScreening = outsideCellsScreening
         self._cellIdsToScreenOut = []
         self._isCellScreeningInit = False
@@ -93,11 +94,9 @@ class SharedRemapping(object):
         """! INTERNAL """
         if not self._remapper.isInit:
             if self._isReverse:
-                self._remapper.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(),
-                                          self._meshAlignment, [-x for x in self._offset], 1. / self._rescaling)
+                self._remapper.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh())
             else:
-                self._remapper.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(),
-                                          self._meshAlignment, self._offset, self._rescaling)
+                self._remapper.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh())
         if self._outsideCellsScreening and not self._isCellScreeningInit:
             bary = []
             try:

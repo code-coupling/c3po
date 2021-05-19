@@ -18,7 +18,7 @@ from c3po.medcouplingCompat import MEDCouplingRemapper
 class Multi1D3DRemapper(MEDCouplingRemapper):
     """! Allow to share the mesh projection for different SharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
-    def __init__(self, xCoordinates, yCoordinates, indexTable, weights):
+    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, meshAlignment=False, offset=[0., 0., 0.], rescaling=1.):
         """! Build a Multi1D3DRemapper object.
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.
@@ -32,6 +32,13 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         @param indexTable For each position of the 2D grid (x coordinate changes first), the index of the 1D field to associate. Put -1 to
         associate to nothing.
         @param weights Weigh of each 1D field to take into account for extensive variables.
+        @param meshAlignment If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box"
+               are radially centred on (x = 0., y = 0.) and have zmin = 0.
+        @param offset Value of the 3D offset between the source (multi1D) and the target (3D) meshes (>0 on z means that the source mesh is above the
+               target one). The given vector is used to translate the source mesh (after the mesh alignment, if any).
+        @param rescaling Value of a rescaling factor to be applied between the source (multi1D) and the target (3D) meshes (>1 means that the source
+               mesh is initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh
+               alignment or translation, if any.
         """
         MEDCouplingRemapper.__init__(self)
 
@@ -55,10 +62,15 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         self._innerField = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
         self._innerField.setName("3DFieldFromMulti1D")
         self.isInit = False
+        self._meshAlignment = meshAlignment
+        self._offset = offset
+        if rescaling <= 0.:
+            raise Exception("Multi1D3DRemapper: rescaling must be > 0!")
+        self._rescaling = rescaling
         self._cellsToScreenOut3DMesh = []
         self._cellsToScreenOutInnerMesh = []
 
-    def initialize(self, mesh1D, mesh3D, meshAlignment, offset, rescaling):
+    def initialize(self, mesh1D, mesh3D):
         """! INTERNAL """
         self._arrayZ = mesh1D.getCoordsAt(0)
         self._innerMesh.setCoords(self._arrayX, self._arrayY, self._arrayZ)
@@ -68,15 +80,15 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         array.alloc(self._numberOfCellsIn1D * self._numberOf1DPositions)
         array.fillWithValue(0.)
         self._innerField.setArray(array)
-        if meshAlignment:
+        if self._meshAlignment:
             for mesh in [self._innerMesh, mesh3D]:
                 [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
                 offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
                 mesh.translate(offsettmp)
-        if offset != [0., 0., 0.]:
-            self._innerMesh.translate([-x for x in offset])
-        if rescaling != 1.:
-            self._innerMesh.scale([0., 0., 0.], 1. / rescaling)
+        if self._offset != [0., 0., 0.]:
+            self._innerMesh.translate([-x for x in self._offset])
+        if self._rescaling != 1.:
+            self._innerMesh.scale([0., 0., 0.], 1. / self._rescaling)
         self.prepare(self._innerMesh, mesh3D, "P0P0")
 
         bary = []
@@ -166,7 +178,7 @@ class SharedRemappingMulti1D3D(object):
     of SharedRemappingMulti1D3D.
     """
 
-    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), meshAlignment=False, offset=[0., 0., 0.], rescaling=1., outsideCellsScreening=False):
+    def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.), outsideCellsScreening=False):
         """! Build a SharedRemappingMulti1D3D object, to be given to an Exchanger.
 
         @param remapper A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of
@@ -177,13 +189,6 @@ class SharedRemappingMulti1D3D(object):
                intersected by the source mesh.
         @param linearTransform Tuple (a,b): apply a linear function to all output fields f such as they become a * f + b. The transformation
                is applied after the mesh projection.
-        @param meshAlignment If set to True, at the initialization phase of the remapper object, meshes are translated such as their "bounding box"
-               are radially centred on (x = 0., y = 0.) and have zmin = 0.
-        @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
-               The given vector is used to translate the source mesh (after the mesh alignment, if any).
-        @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is
-               initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh alignment
-               or translation, if any.
         @param outsideCellsScreening If set to True, target cells whose barycentre is outside of source mesh are screen out (defaultValue is assigned
             to them). It can be useful to screen out cells that are in contact with the source mesh, but that should not be intersected by it.
             On the other hand, it will screen out cells actually intersected if their barycenter is outside of source mesh! Be careful with this
@@ -193,21 +198,15 @@ class SharedRemappingMulti1D3D(object):
         self._isReverse = reverse
         self._defaultValue = defaultValue
         self._linearTransform = linearTransform
-        self._meshAlignment = meshAlignment
-        self._offset = offset
-        if rescaling <= 0.:
-            raise Exception("SharedRemappingMulti1D3D : rescaling must be > 0!")
-        self._rescaling = rescaling
         self._outsideCellsScreening = outsideCellsScreening
 
     def initialize(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! INTERNAL """
         if not self._remapper.isInit:
             if self._isReverse:
-                self._remapper.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh(), self._meshAlignment,
-                                          [-x for x in self._offset], 1. / self._rescaling)
+                self._remapper.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh())
             else:
-                self._remapper.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh(), self._meshAlignment, self._offset, self._rescaling)
+                self._remapper.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh())
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Project the input fields one by one before returning them as outputs, in the same order. """
