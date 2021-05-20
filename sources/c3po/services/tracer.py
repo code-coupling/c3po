@@ -67,7 +67,7 @@ class TracerMeta(type):
                 if method.__name__ == "__init__":
                     if name not in self.static_Objectcounter:
                         self.static_Objectcounter[name] = 0
-                    self.tracerObjectUniqueId = self.static_Objectcounter[name]
+                    self.tracerObjectName = "my" + name + str(self.static_Objectcounter[name])
                     self.static_Objectcounter[name] += 1
                     self.tracerRecurrenceDepth = 0
 
@@ -86,15 +86,14 @@ class TracerMeta(type):
                         self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
 
                 if self.static_pythonFile is not None:
-                    objectName = "my" + name + str(self.tracerObjectUniqueId)
                     stringArgs = getArgsString(*args, **kwargs)
                     if method.__name__ == "__init__":
-                        self.static_pythonFile.write(objectName + " = " + name + stringArgs + "\n")
+                        self.static_pythonFile.write(self.tracerObjectName + " = " + name + stringArgs + "\n")
                     elif method.__name__ == "setInputMEDField":
                         (nameField, _) = getSetInputMEDFieldInput(*args, **kwargs)
-                        self.static_pythonFile.write(objectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n")
+                        self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n")
                     else:
-                        self.static_pythonFile.write(objectName + "." + method.__name__ + stringArgs + "\n")
+                        self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ + stringArgs + "\n")
                     self.static_pythonFile.flush()
 
                 prevIdstdout = 0
@@ -189,7 +188,7 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
 
     One additional static attribute is added for internal use: static_Objectcounter.
 
-    Two additional attributes (not static!) are added for internal use: tracerObjectUniqueId and tracerRecurrenceDepth.
+    Two additional attributes (not static!) are added for internal use: tracerObjectName and tracerRecurrenceDepth.
 
     tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
 
@@ -201,15 +200,21 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
 
         MyNewClass = c3po.tracer(...)(MyClass)
 
+    @note In case a method calls another method of self, tracer modifies only to the first method call.
+
     @warning tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger.
              It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or
              outputs).
     @warning tracer only modifies the base class, not its parents. As a consequence, inherited methods are invisible to tracer.
              Redefine them in the daughter class if needed.
     @warning A class that inherits from a class wrapped by tracer will be wrapped as well, with the same parameters.
-             If the wrapping is applied (without changing the name of the class) after the building of the daughter class, it will result
-             in TypeError when the daughter class will try to call mother methods (since its mother class does not exist anymore!).
-             As a consequence, if applied to C3PO classes, it is recommended to change the name of the classes.
+             It may be a workaround for the previous warning.
+             The definition of the daughter class ("class Daughter(Mother): ...") must be done after the application of tracer on Mother.
+             Otherwise it will result in TypeError when the daughter class will try to call mother methods (since its mother class does
+             not exist anymore!). As a consequence, if tracer is to be applied to C3PO classes, it is recommended to change their name
+             "(MyNewClass = c3po.tracer(...)(MyClass)").
+
+    @throw Exception if applied to a class already modified by tracer, because it could result in an unexpected behavior.
     """
 
     def classWrapper(baseclass):
@@ -219,6 +224,8 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
             pythonFile.write("import c3po.medcouplingCompat as mc" + "\n")
             pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
 
+        if hasattr(baseclass, "static_pythonFile"):
+            raise Exception("tracer: the class " + baseclass.__name__ + " has already been modified by tracer. It is not allowed.")
         baseclass.static_pythonFile = pythonFile
         baseclass.static_saveInputMED = saveInputMED
         baseclass.static_saveOutputMED = saveOutputMED

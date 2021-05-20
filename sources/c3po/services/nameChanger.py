@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class wrapper tracer. """
+""" Contain the class wrapper nameChanger. """
 from __future__ import print_function, division
 from types import FunctionType
 
@@ -62,8 +62,8 @@ def nameChanger(nameMapping):
     This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
 
     When a method of the base class is called there is two possibilities :
-    1. The call used a named argument "name" (for example myObject.setValue(name="myName", value=0.)). In this case, the value passed to the argument "name" is modified (if the value used is a key of nameMapping).
-    2. Their is no named argument "name" (for ecample myObject.setValue("myName", 0.)). In this case, the value of all arguments of type "str" is modified (if the value used is a key of nameMapping).
+    1. The call uses a named argument "name" (for example myObject.setValue(name="myName", value=0.)). In this case, the value passed to the argument "name" is modified (if this is a key of nameMapping).
+    2. Their is no named argument "name" (for example myObject.setValue("myName", 0.)). In this case, the value of all arguments of type "str" is modified (if the value used is a key of nameMapping).
 
     In both cases, nothing is done (no error) if the initial value is not in the keys of nameMapping.
 
@@ -87,11 +87,18 @@ def nameChanger(nameMapping):
 
     @warning nameChanger only modifies the base class, not its parents. As a consequence, inherited methods are invisible to nameChanger. Redefine them in the daughter class if needed.
     @warning A class that inherits from a class wrapped by nameChanger will be wrapped as well, with the same parameters.
-             If the wrapping is applied (without changing the name of the class) after the building of the daughter class, it will result in TypeError when the daughter class will try to call mother methods (since its mother class does not exist anymore!).
-             As a consequence, if applied to C3PO classes, it is recommended to change the name of the classes.
+             It may be a workaround for the previous warning.
+             The definition of the daughter class ("class Daughter(Mother): ...") must be done after the application of nameChanger on Mother.
+             Otherwise it will result in TypeError when the daughter class will try to call mother methods (since its mother class does
+             not exist anymore!). As a consequence, if nameChanger is to be applied to C3PO classes, it is recommended to change their name
+             "(MyNewClass = c3po.nameChanger(...)(MyClass)").
+
+    @throw Exception if applied to a class already modified by nameChanger, because it could result in an unexpected behavior.
     """
 
     def classWrapper(baseclass):
+        if hasattr(baseclass, "static_nameMapping"):
+            raise Exception("nameChanger: the class " + baseclass.__name__ + " has already been modified by nameChanger. It is not allowed.")
         baseclass.static_nameMapping = nameMapping
         newclass = NameChangerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
