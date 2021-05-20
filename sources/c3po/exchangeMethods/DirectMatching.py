@@ -11,12 +11,15 @@
 """ Contain the class DirectMatching. """
 from __future__ import print_function, division
 
+from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 
-class DirectMatching(object):
-    """! DirectMatching is the most simple exchange method: it does nothing else than output = input.
+
+class DirectMatching(ExchangeMethod):
+    """! DirectMatching is the most simple ExchangeMethod: it does nothing else than output = input.
 
     See c3po.Exchanger.Exchanger.__init__().
     """
+
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Return the input MED fields and scalars as outputs, in the same order. """
         if len(fieldsToSet) != len(fieldsToGet):

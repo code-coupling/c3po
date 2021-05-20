@@ -15,9 +15,9 @@ class Matrix_test(unittest.TestCase):
 
         Transformer = c3po.DirectMatching()
 
-        DataCoupler = c3po.DataManager()
-        Physics2Data = c3po.Exchanger(Transformer, [], [], [(myPhysics, str(i)) for i in range(taille)], [(DataCoupler, str(i)) for i in range(taille)])
-        Data2Physics = c3po.Exchanger(Transformer, [], [], [(DataCoupler, str(i)) for i in range(taille)], [(myPhysics, str(i)) for i in range(taille)])
+        DataCoupler = c3po.LocalDataManager()
+        Physics2Data = c3po.LocalExchanger(Transformer, [], [], [(myPhysics, str(i)) for i in range(taille)], [(DataCoupler, str(i)) for i in range(taille)])
+        Data2Physics = c3po.LocalExchanger(Transformer, [], [], [(DataCoupler, str(i)) for i in range(taille)], [(myPhysics, str(i)) for i in range(taille)])
 
         CouplerGS = c3po.FixedPointCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
         CouplerGS.setDampingFactor(0.5)

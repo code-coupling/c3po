@@ -8,23 +8,16 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the classe CollaborativeExchanger.  """
+""" Contain the class ExchangeMethod. """
 from __future__ import print_function, division
 
-from c3po.Exchanger import Exchanger
 
+class ExchangeMethod(object):
+    """! ExchangeMethod is a class interface (to be implemented) which standardizes exchange methods to be used with LocalExchanger.
 
-class CollaborativeExchanger(Exchanger):
-    """! CollaborativeExchanger is an Exchanger that allows to handle a set of Exchanger as a single one. """
+    See c3po.LocalExchanger.LocalExchanger.__init__().
+    """
 
-    def __init__(self, exchangers):
-        """! Build an CollaborativeExchanger object.
-
-        @param exchangers a list of Exchanger.
-        """
-        self.exchangers = exchangers
-
-    def exchange(self):
-        """! Trigger the exchange of data. """
-        for exc in self.exchangers:
-            exc.exchange()
+    def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
+        """! Return the MED fields and scalars to be provided to the target DataAccessor. """
+        raise NotImplementedError

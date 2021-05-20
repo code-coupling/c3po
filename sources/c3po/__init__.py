@@ -10,11 +10,14 @@
 
 """ Import user non-MPI C3PO objects. """
 
-from .DataManager import DataManager
+from .DataAccessor import DataAccessor
 from .PhysicsDriver import PhysicsDriver
-from .CollaborativeDataManager import CollaborativeDataManager
 from .Exchanger import Exchanger
+from .LocalExchanger import LocalExchanger
 from .CollaborativeExchanger import CollaborativeExchanger
+from .DataManager import DataManager
+from .LocalDataManager import LocalDataManager
+from .CollaborativeDataManager import CollaborativeDataManager
 from .Coupler import Coupler, NormChoice
 from .services.tracer import tracer
 from .services.nameChanger import nameChanger
@@ -22,6 +25,7 @@ from .services.ListingWriter import ListingWriter, mergeListing, getTotalTimePhy
 from .couplers.FixedPointCoupler import FixedPointCoupler
 from .couplers.AndersonCoupler import AndersonCoupler
 from .couplers.JFNKCoupler import JFNKCoupler
+from .exchangeMethods.ExchangeMethod import ExchangeMethod
 from .exchangeMethods.DirectMatching import DirectMatching
 from .exchangeMethods.SharedRemapping import SharedRemapping, Remapper
 from .exchangeMethods.SharedRemappingMulti1D3D import SharedRemappingMulti1D3D, Multi1D3DRemapper

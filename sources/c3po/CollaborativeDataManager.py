@@ -12,12 +12,11 @@
 from __future__ import print_function, division
 import math
 
+from c3po.DataManager import DataManager
 
-class CollaborativeDataManager(object):
-    """! CollaborativeDataManager allows to handle a set of DataManager as a single one.
 
-    Exchanges are still to be done with the individual DataManager.
-    """
+class CollaborativeDataManager(DataManager):
+    """! CollaborativeDataManager is a DataManager that handles a set of DataManager as a single one. """
 
     def __init__(self, dataManagers):
         """! Build a CollaborativeDataManager object.

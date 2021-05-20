@@ -27,10 +27,10 @@ class Scalar_linear_test(unittest.TestCase):
 
         Transformer = c3po.DirectMatching()
 
-        DataCoupler = c3po.DataManager()
-        First2Second = c3po.Exchanger(Transformer, [], [], [(myPhysics, "y")], [(myPhysics2, "x")])
-        Second2Data = c3po.Exchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
-        Data2First = c3po.Exchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "x")])
+        DataCoupler = c3po.LocalDataManager()
+        First2Second = c3po.LocalExchanger(Transformer, [], [], [(myPhysics, "y")], [(myPhysics2, "x")])
+        Second2Data = c3po.LocalExchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
+        Data2First = c3po.LocalExchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "x")])
 
         OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 

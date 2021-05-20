@@ -11,12 +11,13 @@
 """ Contain the class MPIMasterExchanger. """
 from __future__ import print_function, division
 
+from c3po.Exchanger import Exchanger
 from c3po.mpi.MPITag import MPITag
 from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
 from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 
 
-class MPIMasterExchanger(object):
+class MPIMasterExchanger(Exchanger):
     """! MPIMasterExchanger is used by the master to control remote c3po.Exchanger.Exchanger(s).
 
     It can, in addition, be in charge of a local one (that allows the master to participate to the calculation).

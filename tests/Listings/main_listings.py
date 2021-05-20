@@ -31,17 +31,17 @@ class Listings_test(unittest.TestCase):
         Physics1 = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
         Physics1 = c3po.nameChanger({"toto": "x"})(Physics1)
         Physics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
-        c3po.Exchanger = c3po.tracer(listingWriter=listingW)(c3po.Exchanger)
+        c3po.LocalExchanger = c3po.tracer(listingWriter=listingW)(c3po.LocalExchanger)
 
         myPhysics = Physics1()
         myPhysics2 = Physics2()
 
         Transformer = c3po.DirectMatching()
 
-        DataCoupler = c3po.DataManager()
-        First2Second = c3po.Exchanger(Transformer, [], [], [(myPhysics, "y")], [(myPhysics2, "x")])
-        Second2Data = c3po.Exchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
-        Data2First = c3po.Exchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "toto")])
+        DataCoupler = c3po.LocalDataManager()
+        First2Second = c3po.LocalExchanger(Transformer, [], [], [(myPhysics, "y")], [(myPhysics2, "x")])
+        Second2Data = c3po.LocalExchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
+        Data2First = c3po.LocalExchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "toto")])
 
         OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 

@@ -11,12 +11,16 @@
 """ Contain the class PhysicsDriver. """
 from __future__ import print_function, division
 
+from c3po.DataAccessor import DataAccessor
 
-class PhysicsDriver(object):
-    """! PhysicsDriver defines and standardizes the functionalities expected by computer codes. It follows the ICOCO standard.
+
+class PhysicsDriver(DataAccessor):
+    """! PhysicsDriver is a class interface (to be implemented) which standardizes the functionalities expected by computer codes. It follows the ICOCO standard.
+
+    The methods to set / get data are defined in the mother class DataAccessor.
 
     In order to integrate a new code in C3PO it is necessary to define a class inheriting from PhysicsDriver and to overload
-    its methods raising exception.
+    its methods raising exception (including the ones of DataAccessor).
     """
 
     def __init__(self):
@@ -33,7 +37,7 @@ class PhysicsDriver(object):
 
         @param datafile path to a data file.
         """
-        raise Exception("PhysicsDriver.setDataFile : not supported")
+        raise NotImplementedError
 
     def setMPIComm(self, mpicomm):
         """! Give an MPI communicator to the code, for its internal use.
@@ -44,7 +48,7 @@ class PhysicsDriver(object):
 
         @param mpicomm MPI communicator to be used by the code.
         """
-        raise Exception("PhysicsDriver.setMPIComm : not supported")
+        raise NotImplementedError
 
     def init(self):
         """! Call initialize() but store its return value instead of returning it. The output is accessible with getInitStatus().
@@ -80,7 +84,7 @@ class PhysicsDriver(object):
         @warning This method is not adapted to MPI Master-Workers paradigm. init() and getInitStatus() methods should be used
         in C3PO instead.
         """
-        raise Exception("PhysicsDriver.initialize : not supported")
+        raise NotImplementedError
 
     def terminate(self):
         """! Terminate the computation, free the memory and save whatever needs to be saved.
@@ -88,7 +92,7 @@ class PhysicsDriver(object):
         This method is called once at the end of the computation or after a non-recoverable error.
         After terminate(), no method (except setDataFile() and setMPIComm()) can be called before a new call to initialize().
         """
-        raise Exception("PhysicsDriver.terminate : not supported")
+        raise NotImplementedError
 
     def presentTime(self):
         """! Return the current time t.
@@ -98,7 +102,7 @@ class PhysicsDriver(object):
 
         @return the current time t.
         """
-        raise Exception("PhysicsDriver.presentTime : not supported")
+        raise NotImplementedError
 
     def computeTimeStep(self):
         """! Return two things : the preferred time step for this code and a boolean = True if the code wants to stop.
@@ -108,7 +112,7 @@ class PhysicsDriver(object):
 
         @return a tuple (dt, stop). dt is the preferred time step for this code and stop = True if the code wants to stop.
         """
-        raise Exception("PhysicsDriver.computeTimeStep : not supported")
+        raise NotImplementedError
 
     def initTimeStep(self, dt):
         """! Give the next time step to the code.
@@ -121,7 +125,7 @@ class PhysicsDriver(object):
         @param dt next time step size.
         @return False if dt is not compatible with the code time scheme.
         """
-        raise Exception("PhysicsDriver.initTimeStep : not supported")
+        raise NotImplementedError
 
     def solve(self):
         """! Call solveTimeStep() but store its return value instead of returning it. The output is accessible with getSolveStatus().
@@ -154,7 +158,7 @@ class PhysicsDriver(object):
         @warning This method is not adapted to MPI Master-Workers paradigm. solve() and getSolveStatus() methods should be
         used in C3PO instead.
         """
-        raise Exception("PhysicsDriver.solveTimeStep : not supported")
+        raise NotImplementedError
 
     def validateTimeStep(self):
         """! Validate the computation performed by solveTimeStep().
@@ -163,7 +167,7 @@ class PhysicsDriver(object):
         After this call, the present time has been advanced to the end of the computation time step, and the computation time
         step is undefined, so the input and output data are not accessible any more.
         """
-        raise Exception("PhysicsDriver.validateTimeStep : not supported")
+        raise NotImplementedError
 
     def abortTimeStep(self):
         """! Abort the computation on the current time-step.
@@ -172,7 +176,7 @@ class PhysicsDriver(object):
         After this call, the present time is left unchanged, and the computation time step is undefined, so the input and output
         data are not accessible any more.
         """
-        raise Exception("PhysicsDriver.abortTimeStep : not supported")
+        raise NotImplementedError
 
     def isStationary(self):
         """! Return True if the solution is constant on the last computed time step.
@@ -182,7 +186,7 @@ class PhysicsDriver(object):
         @return True if the solution is constant on the last computed time step. If the solution has not been computed, the return
         value is of course not meaningful.
         """
-        raise Exception("PhysicsDriver.isStationary : not supported")
+        raise NotImplementedError
 
     def iterate(self):
         """! Call iterateTimeStep() but store its return value instead of returning it. The output is accessible with getIterateStatus().
@@ -215,7 +219,7 @@ class PhysicsDriver(object):
 
         @warning This method is not adapted to MPI Master-Workers paradigm. iterate() and getIterateStatus() methods should be used in C3PO instead.
         """
-        raise Exception("PhysicsDriver.iterateTimeStep : not supported")
+        raise NotImplementedError
 
     def save(self, label, method):
         """! Save the state of the code.
@@ -228,7 +232,7 @@ class PhysicsDriver(object):
 
         @note If save() has already been called with the same two arguments, the saved state is overwritten.
         """
-        raise Exception("PhysicsDriver.save : not supported")
+        raise NotImplementedError
 
     def restore(self, label, method):
         """! Restore a state previously saved with the same couple of arguments.
@@ -240,7 +244,7 @@ class PhysicsDriver(object):
         @param label an integer identifying, in association with method, the saved state to restore.
         @param method a string identifying, in association with label, the saved state to restore.
         """
-        raise Exception("PhysicsDriver.restore : not supported")
+        raise NotImplementedError
 
     def forget(self, label, method):
         """! Forget a state previously saved with the same couple of arguments.
@@ -252,81 +256,35 @@ class PhysicsDriver(object):
         @param label an integer identifying, in association with method, the saved state to forget.
         @param method a string identifying, in association with label, the saved state to forget.
         """
-        raise Exception("PhysicsDriver.forget : not supported")
+        raise NotImplementedError
 
     def getInputFieldsNames(self):
         """! Return a list of strings identifying input fields.
 
         @return a list of strings identifying input fields.
         """
-        raise Exception("PhysicsDriver.getInputFieldsNames : not supported")
-
-    def getInputMEDFieldTemplate(self, name):
-        """! Get a template of the field expected by the code for a given name.
-
-        This method is useful to know the mesh, discretization… on which an input field is expected.
-
-        @param name string identifying the asked MEDField template.
-        @return a ParaMEDMEM::MEDCouplingFieldDouble field.
-        """
-        raise Exception("PhysicsDriver.getInputMEDFieldTemplate : not supported")
-
-    def setInputMEDField(self, name, field):
-        """! Provide the input field corresponding to name to the code.
-
-        After this call, the state of the computation and of the output fields are invalidated.
-        It should always be possible to switch consecutive calls to setInputMEDField().
-        At least one call to iterateTimeStep() or solveTimeStep() must be performed before getOutputMEDField() or validateTimeStep() can be called.
-
-        @param name string identifying the input field.
-        @param field a ParaMEDMEM::MEDCouplingFieldDouble field.
-        """
-        raise Exception("PhysicsDriver.setInputMEDField : not supported")
+        raise NotImplementedError
 
     def getOutputFieldsNames(self):
         """! Return a list of strings identifying output fields.
 
         @return a list of strings identifying output fields.
         """
-        raise Exception("PhysicsDriver.getOutputFieldsNames : not supported")
-
-    def getOutputMEDField(self, name):
-        """! Return the output field corresponding to name from the code.
-
-        @param name string identifying the output field.
-        @return a ParaMEDMEM::MEDCouplingFieldDouble field.
-        """
-        raise Exception("PhysicsDriver.getOutputMEDField : not supported")
+        raise NotImplementedError
 
     def getInputValuesNames(self):
         """! Return a list of strings identifying input scalars.
 
         @return a list of strings identifying input scalars.
         """
-        raise Exception("PhysicsDriver.getInputValuesNames : not supported")
-
-    def setValue(self, name, value):
-        """! Provide the input scalar value corresponding to name to the code.
-
-        @param name string identifying the input scalar.
-        @param value a scalar.
-        """
-        raise Exception("PhysicsDriver.setValue is not supported")
+        raise NotImplementedError
 
     def getOutputValuesNames(self):
         """! Return a list of strings identifying output scalars.
 
         @return a list of strings identifying output scalars.
         """
-        raise Exception("PhysicsDriver.getOutputValuesNames : not supported")
-
-    def getValue(self, name):
-        """! Return the output scalar corresponding to name from the code.
-
-        @param name string identifying the output scalar.
-        @return a scalar.
-        """
-        raise Exception("PhysicsDriver.getValue is not supported")
+        raise NotImplementedError
 
     def solveTransient(self, tmax):
         """! Call the methods that makes the code to advance in time until it reaches the time tmax or computeTimeStep() asks to stop.

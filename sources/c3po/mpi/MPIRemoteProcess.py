@@ -28,7 +28,6 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         @param rank Rank of the remote process on mpiComm.
         """
         PhysicsDriver.__init__(self)
-        DataManager.__init__(self)
         self.mpiComm = mpiComm
         self.rank = rank
         self._time = 0.

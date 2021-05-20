@@ -26,26 +26,28 @@ The sources directory contains:
 
 The directory sources/c3po contains the definition of the following classes:
 
-  - c3po.PhysicsDriver.PhysicsDriver defines and standardizes the functionalities expected by computer codes. It follows the ICoCo API.
-  - c3po.DataManager.DataManager stores and manipulates (as a single mathematical vector) data outside of c3po.PhysicsDriver.PhysicsDriver. This is necessary for some coupling techniques or time schemes.
+  - c3po.DataAccessor.DataAccessor is a class interface (to be implemented) which standardizes the accesses to data. It follows the ICOCO standard.
+  - c3po.PhysicsDriver.PhysicsDriver is a class interface (to be implemented) which standardizes the functionalities expected by computer codes. It derives from c3po.DataAccessor.DataAccessor for the data accesses. It follows the ICoCo standard.
+  - c3po.DataManager.DataManager is a class interface (to be implemented) which standardizes methods to handle data outside of codes. This is necessary for some coupling techniques or time schemes.
+  - c3po.LocalDataManager.LocalDataManager implements both c3po.DataManager.DataManager and c3po.DataAccessor.DataAccessor: it can store and handle local data.
   - c3po.CollaborativeDataManager.CollaborativeDataManager handles a set of c3po.DataManager.DataManager as a single one.
-  - c3po.Exchanger.Exchanger manages data exchanges between c3po.PhysicsDriver.PhysicsDriver and / or c3po.DataManager.DataManager.
+  - c3po.Exchanger.Exchanger is a class interface (to be implemented) which standardizes data exchanges between c3po.DataAccessor.DataAccessor objects (c3po.PhysicsDriver.PhysicsDriver or c3po.LocalDataManager.LocalDataManager).
+  - c3po.LocalExchanger.LocalExchanger is a c3po.Exchanger.Exchanger for local data exchanges.
   - c3po.CollaborativeExchanger.CollaborativeExchanger allows to handle a set of c3po.Exchanger.Exchanger as a single one.
   - c3po.Coupler.Coupler is the base class for the definition of a coupling, based on c3po.PhysicsDriver.PhysicsDriver, c3po.DataManager.DataManager and c3po.Exchanger.Exchanger concepts.
 
 Basic couplings can be made only with these classes.
 
-c3po.DataManager.DataManager, c3po.CollaborativeDataManager.CollaborativeDataManager, c3po.Exchanger.Exchanger and c3po.Coupler.Coupler can be respectively substituted by c3po.mpi.MPICollectiveDataManager.MPICollectiveDataManager (or c3po.mpi.MPICollaborativeDataManager.MPICollaborativeDataManager), c3po.mpi.MPICollaborativeDataManager.MPICollaborativeDataManager, c3po.mpi.MPIExchanger.MPIExchanger and c3po.mpi.MPICoupler.MPICoupler if mpi4py is available, without any impact on calculations without parallelism.
+c3po.LocalDataManager.LocalDataManager, c3po.CollaborativeDataManager.CollaborativeDataManager, c3po.LocalExchanger.LocalExchanger and c3po.Coupler.Coupler can be respectively substituted by c3po.mpi.MPICollectiveDataManager.MPICollectiveDataManager, c3po.mpi.MPICollaborativeDataManager.MPICollaborativeDataManager, c3po.mpi.MPIExchanger.MPIExchanger and c3po.mpi.MPICoupler.MPICoupler if mpi4py is available, without any impact on calculations without parallelism.
 
 The directory sources/c3po also contains six directories:
 
   - couplers with specific implementations of c3po.Coupler.Coupler for the main coupling algorithms. See below.
-  - exchangeMethods with specific implementations of exchange methods (to be used with a c3po.Exchanger.Exchanger). See below.
+  - exchangeMethods with specific implementations of exchange methods (to be used with a c3po.LocalExchanger.LocalExchanger). See below.
   - medcouplingCompat which deals with various versions of MEDCoupling. Import this module to use all versions of MEDCoupling in an identical way (following the last version API).
   - physicsDrivers with specific implementations of c3po.PhysicsDriver.PhysicsDriver for some codes.
   - services with some optionnal services (mainly for monitoring of coupled calculations). See below.
   - mpi with C3PO sources related to MPI. See below.
-
 
 \note When "import c3po" is made, the classes and functions defined in c3po/couplers, c3po/exchangeMethods and c3po/services are imported and made available directly in c3po module.
 \note "import c3po.medcouplingCompat" must be done if one wants to use directly MEDCoupling (using this helper).
@@ -62,8 +64,9 @@ This directory contains the definition of the following classes (coupling algori
 
 \subsection exchMeth_sec II.2. c3po/exchangeMethods directory
 
-This directory contains the definition of the following classes (exchange methods to be used with a c3po.Exchanger.Exchanger):
+This directory contains the definition of the following classes (exchange methods to be used with a c3po.LocalExchanger.LocalExchanger):
 
+  - c3po.exchangeMethods.ExchangeMethod.ExchangeMethod is a class interface (to be implemented) which standardizes exchange methods to be used with c3po.LocalExchanger.LocalExchanger.
   - c3po.exchangeMethods.DirectMatching.DirectMatching is the most simple exchange method: it does nothing else than output = input.
   - c3po.exchangeMethods.SharedRemapping.SharedRemapping projects the input fields one by one before returning them as outputs, in the same order.
   - c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D is similar to c3po.exchangeMethods.SharedRemapping.SharedRemapping but one side of the exchange is a set of 1D fields.
@@ -81,7 +84,7 @@ This directory contains the definition of the following elements:
     1. mergeListing() that allows to merge listing files produced by c3po.services.ListingWriter.ListingWriter (or by previous call to mergeListing()). It is designed to produce a comprehensive view of a MPI calculation.
     2. getTotalTimePhysicsDriver() that reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns the total time spent by one c3po.PhysicsDriver.PhysicsDriver in indicated methods.
     3. getTimesExchanger() that reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns time information about a chosen exchanger.
-  - c3po.services.nameChanger.nameChanger is a class wrapper that allows to change the names of the variables used by a c3po.PhysicsDriver.PhysicsDriver (or a c3po.DataManager.DataManager). The idea is to improve the genericity of coupling scripts by using generic variable names without modifying the c3po.PhysicsDriver.PhysicsDriver "by hand".
+  - c3po.services.nameChanger.nameChanger is a class wrapper that allows to change the names of the variables used by a c3po.DataAccessor.DataAccessor object. The idea is to improve the genericity of coupling scripts by using generic variable names without having to modify the names "by hand".
 
 \subsection C3POMPIsources_sec II.4. c3po/mpi directory
 
@@ -98,12 +101,12 @@ These two parallelization modes share a common base of concepts.
 
   - c3po.mpi.MPIRemoteProcess.MPIRemoteProcess identifies a remote process. It inherits from c3po.PhysicsDriver.PhysicsDriver and c3po.DataManager.DataManager but passes most of the methods: it does nothing.
   - c3po.mpi.MPICollectiveProcess.MPICollectiveProcess defines a collective process. In particular, it allows, by inheritance (a new class that inherits from c3po.mpi.MPICollectiveProcess.MPICollectiveProcess must be defined), to define a collective c3po.PhysicsDriver.PhysicsDriver: all processors will locally launch this component.
-  - c3po.mpi.MPIExchanger.MPIExchanger is the MPI version of c3po.Exchanger.Exchanger. The class takes in charge data exchanges between MPI processes (in the case where each code exposes its data on a single MPI process).
+  - c3po.mpi.MPIExchanger.MPIExchanger is the MPI version of c3po.LocalExchanger.LocalExchanger. The class takes in charge data exchanges between MPI processes (in the case where each code exposes its data on a single MPI process) then uses locally c3po.LocalExchanger.LocalExchanger.
 
 \subsubsection CollaborativeMPIsources_sec II.2.2. Collaborative mode
 
   - c3po.mpi.MPICollaborativeDataManager.MPICollaborativeDataManager is the MPI collaborative version of c3po.CollaborativeDataManager.CollaborativeDataManager. It allows to handle a set of c3po.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class, data can be distributed on different MPI processes but still used in the same way.
-  - c3po.mpi.MPICollectiveDataManager.MPICollectiveDataManager is the MPI collaborative version of the c3po.DataManager.DataManager in which all processes have all data locally.
+  - c3po.mpi.MPICollectiveDataManager.MPICollectiveDataManager is the MPI collaborative version of the c3po.LocalDataManager.LocalDataManager in which all processes have all data locally.
   - c3po.mpi.MPICoupler.MPICoupler is the MPI collaborative version of c3po.Coupler.Coupler.
 
 \subsubsection MasterWorkersMPIsources_sec II.2.3. Master/workers mode

@@ -10,37 +10,27 @@
 
 """ Contain the class DataManager. """
 from __future__ import print_function, division
-import math
-import numpy
 
 
 class DataManager(object):
-    """! DataManager stores and manipulates data outside of PhysicsDriver. This is necessary for some coupling techniques or time schemes.
+    """! DataManager is a class interface (to be implemented) which standardizes methods to handle data outside of codes.
 
-    Data are scalars or MEDCoupling fields, identified by their names.
+    They are mainly mathematical operators needed for some coupling algorithms.
     """
-
-    def __init__(self):
-        """! Default constructor """
-        self.values = {}
-        self.medFields = {}
-        self.medFieldTemplates = {}
 
     def clone(self):
         """! Return a clone of self.
 
         @return A clone of self. Data are copied.
         """
-        return self * 1.
+        raise NotImplementedError
 
     def cloneEmpty(self):
         """! Return a clone of self without copying the data.
 
         @return An empty clone of self.
         """
-        output = DataManager()
-        output.medFieldTemplates = self.medFieldTemplates
-        return output
+        raise NotImplementedError
 
     def copy(self, other):
         """! Copy data of other in self.
@@ -49,55 +39,21 @@ class DataManager(object):
 
         @throw Exception if self and other are not consistent.
         """
-        self.checkBeforeOperator(other)
-        for name in self.values.keys():
-            self.values[name] = other.values[name]
-        for name in self.medFields.keys():
-            otherArray = other.medFields[name].getArray()
-            self.medFields[name].getArray().setPartOfValues1(other.medFields[name].getArray(), 0, otherArray.getNumberOfTuples(), 1, 0, otherArray.getNumberOfComponents(), 1)
+        raise NotImplementedError
 
     def normMax(self):
         """! Return the infinite norm.
 
-        @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
+        @return The infinite norm of all data.
         """
-        norm = 0.
-        for scalar in self.values.values():
-            if abs(scalar) > norm:
-                norm = abs(scalar)
-        for med in self.medFields.values():
-            normMED = med.normMax()
-            try:
-                normMED = max(normMED)
-            except:
-                pass
-            if normMED > norm:
-                norm = normMED
-        return norm
+        raise NotImplementedError
 
     def norm2(self):
         """! Return the norm 2.
 
-        @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
+        @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of stored data.
         """
-        norm = 0.
-        for scalar in self.values.values():
-            norm += scalar * scalar
-        for med in self.medFields.values():
-            localNorm = med.norm2()
-            norm += localNorm * localNorm
-        return math.sqrt(norm)
-
-    def checkBeforeOperator(self, other):
-        """! INTERNAL Make basic checks before the call of an operator: same data names between self and other. """
-        if len(self.values.keys()) != len(other.values.keys()) or len(self.medFields.keys()) != len(other.medFields.keys()):
-            raise Exception("DataManager.checkBeforeOperator : we cannot call an operator between two DataManager with different number of stored data.")
-        for name in self.values.keys():
-            if not name in other.values.keys():
-                raise Exception("DataManager.checkBeforeOperator : we cannot call an operator between two DataManager with different data.")
-        for name in self.medFields.keys():
-            if not name in other.medFields.keys():
-                raise Exception("DataManager.checkBeforeOperator : we cannot call an operator between two DataManager with different data.")
+        raise NotImplementedError
 
     def __add__(self, other):
         """! Return self + other.
@@ -110,14 +66,7 @@ class DataManager(object):
 
         @throw Exception if self and other are not consistent.
         """
-        self.checkBeforeOperator(other)
-        newData = self.cloneEmpty()
-        for name in self.values.keys():
-            newData.values[name] = self.values[name] + other.values[name]
-        for name in self.medFields.keys():
-            newData.medFields[name] = 1. * self.medFields[name]
-            newData.medFields[name].getArray().addEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
-        return newData
+        raise NotImplementedError
 
     def __iadd__(self, other):
         """! Add other in self (in place addition).
@@ -130,12 +79,7 @@ class DataManager(object):
 
         @throw Exception if self and other are not consistent.
         """
-        self.checkBeforeOperator(other)
-        for name in self.values.keys():
-            self.values[name] += other.values[name]
-        for name in self.medFields.keys():
-            self.medFields[name].getArray().addEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
-        return self
+        raise NotImplementedError
 
     def __sub__(self, other):
         """! Return self - other.
@@ -148,14 +92,7 @@ class DataManager(object):
 
         @throw Exception if self and other are not consistent.
         """
-        self.checkBeforeOperator(other)
-        newData = self.cloneEmpty()
-        for name in self.values.keys():
-            newData.values[name] = self.values[name] - other.values[name]
-        for name in self.medFields.keys():
-            newData.medFields[name] = 1. * self.medFields[name]
-            newData.medFields[name].getArray().substractEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
-        return newData
+        raise NotImplementedError
 
     def __isub__(self, other):
         """! Substract other to self (in place subtraction).
@@ -168,12 +105,7 @@ class DataManager(object):
 
         @throw Exception if self and other are not consistent.
         """
-        self.checkBeforeOperator(other)
-        for name in self.values.keys():
-            self.values[name] -= other.values[name]
-        for name in self.medFields.keys():
-            self.medFields[name].getArray().substractEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
-        return self
+        raise NotImplementedError
 
     def __mul__(self, scalar):
         """! Return scalar * self.
@@ -184,12 +116,7 @@ class DataManager(object):
 
         @return a new (consistent with self) DataManager where the data are multiplied by scalar.
         """
-        newData = self.cloneEmpty()
-        for name in self.values.keys():
-            newData.values[name] = scalar * self.values[name]
-        for name in self.medFields.keys():
-            newData.medFields[name] = scalar * self.medFields[name]
-        return newData
+        raise NotImplementedError
 
     def __imul__(self, scalar):
         """! Multiply self by scalar (in place multiplication).
@@ -200,11 +127,7 @@ class DataManager(object):
 
         @return self.
         """
-        for name in self.values.keys():
-            self.values[name] *= scalar
-        for name in self.medFields.keys():
-            self.medFields[name] *= scalar
-        return self
+        raise NotImplementedError
 
     def imuladd(self, scalar, other):
         """! Add in self scalar * other (in place operation).
@@ -220,13 +143,7 @@ class DataManager(object):
 
         @throw Exception if self and other are not consistent.
         """
-        if scalar == 0:
-            return self
-        self.checkBeforeOperator(other)
-        other *= scalar
-        self += other
-        other *= 1. / scalar
-        return self
+        raise NotImplementedError
 
     def dot(self, other):
         """! Return the scalar product of self with other.
@@ -237,78 +154,4 @@ class DataManager(object):
 
         @throw Exception if self and other are not consistent.
         """
-        self.checkBeforeOperator(other)
-        result = 0.
-        for name in self.values.keys():
-            result += self.values[name] * other.values[name]
-        for name in self.medFields.keys():
-            nparr1 = self.medFields[name].getArray().toNumPyArray()
-            nparr2 = other.medFields[name].getArray().toNumPyArray()
-            dim = 1
-            if self.medFields[name].getArray().getNumberOfComponents() > 1:
-                dim = 2
-            result += numpy.tensordot(nparr1, nparr2, dim)
-        return result
-
-    def setInputMEDField(self, name, field):
-        """! Store the MED field field under the name name.
-
-        @param name the name given to the field to store.
-        @param field a field to store.
-        """
-        self.medFields[name] = field
-
-    def getOutputMEDField(self, name):
-        """! Return the MED field of name name previously stored.
-
-        @param name the name of the field to return.
-
-        @return the MED field of name name previously stored.
-
-        @throw Exception If there is no stored name field.
-        """
-        if name not in self.medFields.keys():
-            raise Exception("DataManager.getOutputMEDField unknown field " + name)
-        return self.medFields[name]
-
-    def setValue(self, name, value):
-        """! Store the scalar value under the name name.
-
-        @param name the name given to the scalar to store.
-        @param value a scalar value to store.
-        """
-        self.values[name] = value
-
-    def getValue(self, name):
-        """! Return the scalar of name name previously stored.
-
-        @param name the name of the value to return.
-
-        @return the value of name name previously stored.
-
-        @throw Exception If there is no stored name value.
-        """
-        if name not in self.values.keys():
-            raise Exception("DataManager.getValue unknown value " + name)
-        return self.values[name]
-
-    def setInputMEDFieldTemplate(self, name, field):
-        """! Store the MED field field as a MEDFieldTemplate under the name name.
-
-        @param name the name given to the field to store.
-        @param field a field to store.
-
-        @note These fields are not be part of data, and will therefore not be taken into account in data manipulations (operators, norms etc.).
-        """
-        self.medFieldTemplates[name] = field
-
-    def getInputMEDFieldTemplate(self, name):
-        """! Return the MED field previously stored as a MEDFieldTemplate under the name name. If there is not, returns 0.
-
-        @param name the name of the field to return.
-
-        @return the MED field of name name previously stored, or 0.
-        """
-        if name not in self.medFieldTemplates.keys():
-            return 0
-        return self.medFieldTemplates[name]
+        raise NotImplementedError

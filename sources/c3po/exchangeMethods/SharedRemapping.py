@@ -12,6 +12,7 @@
 from __future__ import print_function, division
 
 from c3po.medcouplingCompat import MEDCouplingRemapper
+from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 
 
 class Remapper(MEDCouplingRemapper):
@@ -57,8 +58,9 @@ class Remapper(MEDCouplingRemapper):
         self.isInit = True
 
 
-class SharedRemapping(object):
-    """! SharedRemapping projects the input fields one by one before returning them as outputs, in the same order.
+class SharedRemapping(ExchangeMethod):
+    """! SharedRemapping is an ExchangeMethod which projects the input fields one by one before returning them as outputs,
+    in the same order.
 
     See c3po.Exchanger.Exchanger.__init__().
 

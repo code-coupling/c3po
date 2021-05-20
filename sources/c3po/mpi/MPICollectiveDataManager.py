@@ -12,13 +12,13 @@
 from __future__ import print_function, division
 
 from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
-from c3po.DataManager import DataManager
+from c3po.LocalDataManager import LocalDataManager
 
 
-class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
+class MPICollectiveDataManager(LocalDataManager, MPICollectiveProcess):
     """! MPICollectiveDataManager is the MPI collaborative version of the c3po.DataManager.DataManager in which all processes have locally all data.
 
-    Can replace, without impact, a c3po.DataManager.DataManager for a calculation on a single process, if the MPI environment is available.
+    Can replace, without impact, a c3po.LocalDataManager.LocalDataManager for a calculation on a single process, if the MPI environment is available.
     """
 
     def __init__(self, mpiComm):
@@ -27,7 +27,7 @@ class MPICollectiveDataManager(DataManager, MPICollectiveProcess):
         @param mpiComm MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all
         processes of this MPI communicator must be involed in the MPICollectiveDataManager).
         """
-        DataManager.__init__(self)
+        LocalDataManager.__init__(self)
         MPICollectiveProcess.__init__(self, mpiComm)
 
     def cloneEmpty(self):

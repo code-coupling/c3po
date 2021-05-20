@@ -22,7 +22,7 @@ comm = mpi.COMM_WORLD
 myNeutroDriver = c3po.mpi.MPIRemoteProcess(comm, 2)
 myThermoDriver = ThermoDriver()
 MasterProcess = c3po.mpi.MPIRemoteProcess(comm, 0)
-DataCoupler = c3po.DataManager()
+DataCoupler = c3po.LocalDataManager()
 
 basicTransformer = c3po.Remapper()
 Thermo2DataTransformer = c3po.DirectMatching()

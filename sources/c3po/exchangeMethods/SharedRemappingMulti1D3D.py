@@ -13,6 +13,7 @@ from __future__ import print_function, division
 
 import c3po.medcouplingCompat as mc
 from c3po.medcouplingCompat import MEDCouplingRemapper
+from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 
 
 class Multi1D3DRemapper(MEDCouplingRemapper):
@@ -167,8 +168,9 @@ class Multi1D3DRemapper(MEDCouplingRemapper):
         return fields1D
 
 
-class SharedRemappingMulti1D3D(object):
-    """! SharedRemappingMulti1D3D projects the input fields one by one before returning them as outputs, in the same order.
+class SharedRemappingMulti1D3D(ExchangeMethod):
+    """! SharedRemappingMulti1D3D is an ExchangeMethod which projects the input fields one by one before returning them as
+    outputs, in the same order.
 
     See c3po.Exchanger.Exchanger.__init__().
 

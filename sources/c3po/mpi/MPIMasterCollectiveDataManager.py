@@ -15,13 +15,15 @@ from mpi4py import MPI
 
 from c3po.mpi.MPITag import MPITag
 
+from c3po.DataManager import DataManager
 
-class MPIMasterCollectiveDataManager(object):
+
+class MPIMasterCollectiveDataManager(DataManager):
     """! MPIMasterCollectiveDataManager is used by the master process to control a set of remote c3po.DataManager.DataManager as a single one..
 
     It can, in addition, be in charge of a local one. This class is well suited to steer a code using an internal collaborative MPI parallelization.
 
-    MPIMasterCollectiveDataManager implements the data manipulation methods of c3po.DataManager.DataManager by instructing the workers to execute them.
+    MPIMasterCollectiveDataManager implements the methods of c3po.DataManager.DataManager by instructing the workers to execute them.
     """
 
     def __init__(self, mpiMasterCollectivephysicsD, idDataWorker, localDataManager=None):

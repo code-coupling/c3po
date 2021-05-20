@@ -24,14 +24,9 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
     It allows to handle a set of c3po.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class,
     data can be distributed on different MPI processes but still used in the same way.
 
-    Exchanges are still to be done with the individual c3po.DataManager.DataManager.
-
     When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must
     be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes
     of that communicator must be involved.
-
-    Can replace, without impact, a c3po.CollaborativeDataManager.CollaborativeDataManager of a single processor calculation, if the MPI
-    environment is available.
     """
 
     def __init__(self, dataManagers):
