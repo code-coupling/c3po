@@ -286,12 +286,16 @@ class PhysicsDriver(DataAccessor):
         """
         raise NotImplementedError
 
-    def solveTransient(self, tmax):
-        """! Call the methods that makes the code to advance in time until it reaches the time tmax or computeTimeStep() asks to stop.
+    def solveTransient(self, tmax, finishAtTmax=False):
+        """! Make the PhysicsDriver to advance in time until it reaches the time tmax or computeTimeStep() asks to stop.
 
         @param tmax maximum time to be reached (compared with presentTime()) """
         (dt, stop) = self.computeTimeStep()
-        while (self.presentTime() < tmax and not stop):
+        lastTimeStep = False
+        while (self.presentTime() < tmax and not (lastTimeStep or stop)):
+            if finishAtTmax and self.presentTime() + dt >= tmax:
+                dt = tmax - presentTime
+                lastTimeStep = True
             self.initTimeStep(dt)
             self.solve()
             ok = self.getSolveStatus()
