@@ -53,7 +53,7 @@ class ListingWriter(object):
         self._timeValid = 0.
         self._charPerLine = 0
         self._sumCalculationTime = 0.
-        self._validatedPhysics = []
+        self._timeValidatedPhysics = []
         self._terminatedPhysics = []
         self._boxFormat = [""] * 7
 
@@ -79,7 +79,7 @@ class ListingWriter(object):
         self._timeValid = 0.
         self._charPerLine = 0
         self._sumCalculationTime = 0.
-        self._validatedPhysics = [False for phy in self._physics]
+        self._timeValidatedPhysics = [-1. for phy in self._physics]
         self._terminatedPhysics = [False for phy in self._physics]
 
         self._boxFormat = [""] * 7
@@ -164,8 +164,8 @@ class ListingWriter(object):
 
         self._timeValid = timeValid
         self._sumCalculationTime = 0.
-        for i in range(len(self._validatedPhysics)):
-            self._validatedPhysics[i] = False
+        for i in range(len(self._timeValidatedPhysics)):
+            self._timeValidatedPhysics[i] = -1.
 
     def writeTerminate(self):
         """! INTERNAL """
@@ -207,8 +207,9 @@ class ListingWriter(object):
                 toWrite += "succeed = " + ("yes" if outputTuple[0] else "no")
                 toWrite += ", cv. = " + ("yes" if outputTuple[1] else "no")
             elif methodName == "validateTimeStep":
-                toWrite += "time = " + "{:.4f}".format(sourceObject.presentTime())
-                self._validatedPhysics[self._physics.index(sourceObject)] = True
+                objectPresentTime = sourceObject.presentTime()
+                toWrite += "time = " + "{:.4f}".format(objectPresentTime)
+                self._timeValidatedPhysics[self._physics.index(sourceObject)] = objectPresentTime
 
             self._listingFile.write(self._physicsData[ind][1].format(toWrite, methodName, presentTimeToWrite,
                                                                      calculationTimeToWrite).encode('utf-8'))
@@ -218,8 +219,11 @@ class ListingWriter(object):
             self._listingFile.write(self._exchangersData[ind][1].format(self._exchangersData[ind][0], methodName, presentTimeToWrite,
                                                                         calculationTimeToWrite).encode('utf-8'))
 
-        if self._autoFormat and min(self._validatedPhysics):
-            self.writeValidate(presentTime + calculationTime)
+        if self._autoFormat :
+            minTValid = min(self._timeValidatedPhysics)
+            if minTValid > 0.:
+                if (max(self._timeValidatedPhysics) - minTValid) < 1.E-8:
+                    self.writeValidate(presentTime + calculationTime)
         if self._autoFormat and min(self._terminatedPhysics):
             self.writeTerminate()
 
