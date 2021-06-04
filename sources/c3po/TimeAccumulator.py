@@ -42,13 +42,13 @@ class TimeAccumulator(PhysicsDriver):
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
         result = self._physics.initialize()
-        if saveParameters is not None:
+        if self._saveParameters is not None:
             self._physics.save(*self._saveParameters)
         return result
 
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
-        if saveParameters is not None:
+        if self._saveParameters is not None:
             self._physics.forget(*self._saveParameters)
         self._physics.terminate()
 
@@ -81,14 +81,14 @@ class TimeAccumulator(PhysicsDriver):
     def validateTimeStep(self):
         """! See PhysicsDriver.validateTimeStep(). """
         self._dt = 0
-        if saveParameters is not None and self._macrodt is not None:
+        if self._saveParameters is not None and self._macrodt is not None:
             self._physics.save(*self._saveParameters)
 
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
         self._dt = 0
         if self._macrodt is not None:
-            if saveParameters is not None:
+            if self._saveParameters is not None:
                 self._physics.restore(*self._saveParameters)
             else:
                 raise Exception("TimeAccumulator.abortTimeStep : not available without saveParameters.")

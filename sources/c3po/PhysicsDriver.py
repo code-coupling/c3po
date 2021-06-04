@@ -292,16 +292,21 @@ class PhysicsDriver(DataAccessor):
         @param tmax maximum time to be reached (compared with presentTime()) """
         (dt, stop) = self.computeTimeStep()
         lastTimeStep = False
-        while (self.presentTime() < tmax and not (lastTimeStep or stop)):
-            if finishAtTmax and self.presentTime() + dt >= tmax:
-                dt = tmax - presentTime
-                lastTimeStep = True
+        while (self.presentTime() < tmax and not stop):
+            if finishAtTmax:
+                if self.presentTime() + 1.5 * dt >= tmax:
+                    if self.presentTime() + dt >= tmax - dt*1.E-4:
+                        dt = tmax - self.presentTime()
+                        lastTimeStep = True
+                    else:
+                        dt = 0.5 * (tmax - self.presentTime())
             self.initTimeStep(dt)
             self.solve()
             ok = self.getSolveStatus()
             if ok:
                 self.validateTimeStep()
                 (dt, stop) = self.computeTimeStep()
+                stop = stop or lastTimeStep
             else:
                 self.abortTimeStep()
                 (dt2, stop) = self.computeTimeStep()
