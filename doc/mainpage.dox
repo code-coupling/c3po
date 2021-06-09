@@ -21,13 +21,14 @@ C3PO is code- and physics-agnostic, and therefore constitutes a kernel of generi
 The sources directory contains:
 
   - The directory c3po with all C3PO sources. It can be imported without any MPI dependency.
-  - The file setup.py that can be used to install C3PO via pip: "pip install <path> --user" (with <path> the path to the setup.py file)
+  - The file setup.py that can be used to install C3PO via pip: "pip install path --user" (with path the path to the setup.py file)
   - The file .pylintrc that define coding standards to be followed in C3PO. Install pylint (python3 module available with pip) and run "pylint c3po" from the sources directory to check your code. You must get the grade 10/10!
 
 The directory sources/c3po contains the definition of the following classes:
 
   - c3po.DataAccessor.DataAccessor is a class interface (to be implemented) which standardizes the accesses to data. It follows the ICOCO standard.
   - c3po.PhysicsDriver.PhysicsDriver is a class interface (to be implemented) which standardizes the functionalities expected by computer codes. It derives from c3po.DataAccessor.DataAccessor for the data accesses. It follows the ICoCo standard.
+  - c3po.TimeAccumulator.TimeAccumulator is a class that allows to distinguish a notion of macro time steps to be used to drive a c3po.PhysicsDriver.PhysicsDriver in a coupling from the notion of micro time steps actually used by the c3po.PhysicsDriver.PhysicsDriver.
   - c3po.DataManager.DataManager is a class interface (to be implemented) which standardizes methods to handle data outside of codes. This is necessary for some coupling techniques or time schemes.
   - c3po.LocalDataManager.LocalDataManager implements both c3po.DataManager.DataManager and c3po.DataAccessor.DataAccessor: it can store and handle local data.
   - c3po.CollaborativeDataManager.CollaborativeDataManager handles a set of c3po.DataManager.DataManager as a single one.

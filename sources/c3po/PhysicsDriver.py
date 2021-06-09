@@ -289,7 +289,8 @@ class PhysicsDriver(DataAccessor):
     def solveTransient(self, tmax, finishAtTmax=False):
         """! Make the PhysicsDriver to advance in time until it reaches the time tmax or computeTimeStep() asks to stop.
 
-        @param tmax maximum time to be reached (compared with presentTime()) """
+        @param tmax maximum time to be reached (compared with presentTime())
+        @param finishAtTmax if set to true, the method ends with time = tmax (instead of time >= tmax). """
         (dt, stop) = self.computeTimeStep()
         lastTimeStep = False
         while (self.presentTime() < tmax and not stop):

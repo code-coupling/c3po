@@ -15,14 +15,16 @@ from c3po.PhysicsDriver import PhysicsDriver
 
 
 class TimeAccumulator(PhysicsDriver):
-    """! TimeAccumulator wraps a PhysicsDriver in order to allow it to use multiple
-    internal time steps for each "macro" time step asked to TimeAccumulator.
+    """! TimeAccumulator wraps a PhysicsDriver into a macro time step procedure.
+
+    The TimeAccumulator object is driven like an usual PhysicsDriver, but it will use macro time steps (chosen with
+    setValue("macrodt", dt)) whereas the wraped PhysicsDriver may use smaller internal time steps (given by computeTimeStep()).
     """
 
     def __init__(self, physics, saveParameters=None):
         """! Build a TimeAccumulator object.
 
-        @param physics the PhysicsDriver to deal with.
+        @param physics the PhysicsDriver to wrap.
         @param saveParameters the tuple (label, method) that can be used to save / restore results in order to provide abortTimeStep capabilities.
         """
         PhysicsDriver.__init__(self)
@@ -41,10 +43,10 @@ class TimeAccumulator(PhysicsDriver):
 
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
-        result = self._physics.initialize()
+        self._physics.init()
         if self._saveParameters is not None:
             self._physics.save(*self._saveParameters)
-        return result
+        return self._physics.getInitStatus()
 
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
@@ -59,7 +61,7 @@ class TimeAccumulator(PhysicsDriver):
     def computeTimeStep(self):
         """! See PhysicsDriver.computeTimeStep().
 
-        Return the asked macro time step if set, the prefered time step of the PhysicsDriver otherwise.
+        Return the asked macro time step if set (by setValue("macrodt", dt)), the prefered time step of the PhysicsDriver otherwise.
         """
         (dtPhysics, stop) = self._physics.computeTimeStep()
         if self._macrodt is not None:
@@ -114,19 +116,19 @@ class TimeAccumulator(PhysicsDriver):
         return self._physics.getOutputValuesNames()
 
     def getInputMEDFieldTemplate(self, name):
-        """! See DataAccessor.getInputMEDFieldTemplate(). """
+        """! See c3po.DataAccessor.DataAccessor.getInputMEDFieldTemplate(). """
         return self._physics.getInputMEDFieldTemplate(name)
 
     def setInputMEDField(self, name, field):
-        """! See DataAccessor.setInputMEDField(). """
+        """! See c3po.DataAccessor.DataAccessor.setInputMEDField(). """
         self._physics.setInputMEDField(name, field)
 
     def getOutputMEDField(self, name):
-        """! See DataAccessor.getOutputMEDField(). """
+        """! See c3po.DataAccessor.DataAccessor.getOutputMEDField(). """
         return self._physics.getOutputMEDField(name)
 
     def setValue(self, name, value):
-        """! See DataAccessor.setValue().
+        """! See c3po.DataAccessor.DataAccessor.setValue().
 
         The macro time step used by the object can be modified here, using name="macrodt".
         """
@@ -136,5 +138,5 @@ class TimeAccumulator(PhysicsDriver):
             self._physics.setValue(name, value)
 
     def getValue(self, name):
-        """! See DataAccessor.getValue(). """
+        """! See c3po.DataAccessor.DataAccessor.getValue(). """
         return self._physics.getValue(name)
