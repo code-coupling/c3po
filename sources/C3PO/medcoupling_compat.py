@@ -21,6 +21,7 @@ except:
     WriteFieldUsingAlreadyWrittenMesh = MEDLoader.WriteFieldUsingAlreadyWrittenMesh
     WriteUMesh = MEDLoader.WriteUMesh
     WriteMesh = MEDLoader.WriteMesh
+    ReadField = MEDLoader.ReadField
 
     IntensiveConservation = RevIntegral
     IntensiveMaximum = ConservativeVolumic
