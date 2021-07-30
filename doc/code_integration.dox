@@ -6,15 +6,15 @@ In order to be usable with C3PO, a code must be wrapped into a Python class that
 
 This wrapping has four main consequences listed below.
 
-<b>Note :</b> it is possible to add a CORBA or a socket exchange layer between the Python wrapping class and the code itself. This would further alleviate the compatibility requirements (compared to what follows). This additional layer may however strongly degrade the performance of the coupling of codes using MPI parallelization.
+<b>Note :</b> it is possible to add a CORBA or a socket exchange layer between the Python wrapping class and the code itself. This would further alleviate the compatibility requirements (compared to what follows). This additional layer may however degrade the performance of the coupling of codes using MPI parallelization.
 
 \section Python_sec 1. Use of Python as high-level language.
 
-Every code has to be wrapped into a Python class, which allows to coordinate them in a homogeneous way regardless of their native programming language. The required API being very macroscopic (e.g. asking to a code to solve its problem), this wrapping should not alter significantly codes performance.
+Every code has to be wrapped into a Python class, which allows to coordinate them in a homogeneous way regardless of their native programming language. The required API being very macroscopic (e.g. asking a code to solve its problem), this wrapping should not alter significantly codes performance.  
 
-SWIG [2] is, for example, a well-known and easy to use tool to wrap a C++ or a FORTRAN code into a Python interface. Other examples are F2PY [3] for FORTRAN and pybind11 [4] for C++.
+SWIG [2] is, for example, a well-known and easy to use tool to wrap a C, C++ or a FORTRAN code into a Python interface. Other examples are F2PY [3] for FORTRAN and pybind11 [4] for C++.
 
-C3PO is compatible with both Python 2 and Python 3, but all codes involved in a coupling should be wrapped using the same Python version.
+C3PO is compatible with both Python 2 and Python 3, but all codes involved in a coupling should be wrapped using the same Python version. We recommend Python 3.
 
 \section MEDCoupling_sec 2. Use of MEDCoupling for data exchanges.
 
@@ -28,11 +28,11 @@ Ideally, all codes involved in a coupling should use the same version of MEDCoup
 
 ICoCo is compatible with the use of MPI, but does not support other distributed memory parallelization standards (MPI is by far the dominant one). Full flexibility is given for the intra-code shared memory parallelization.
 
-MPI can be used for intra-code parallelization, inter-code parallelization, or just to separate computing processes (in case of incompatibility between codes for example), but it is not mandatory. If used, because it has to be managed consistently in the whole calculation, the same implementation of MPI (the same dynamic library) must be shared by all codes and by C3PO (through mpi4py).
+MPI can be used for intra-code parallelization, inter-code parallelization, or just to separate computing processes (in case of incompatibility between codes for example), but it is not mandatory. If used, because it has to be managed consistently in the whole calculation, the same implementation of MPI (the same dynamic library) must be shared by all codes and by C3PO (through mpi4py). In particular, mpi4py has to be compiled with the same MPI dynamic library as the codes.
 
 \section ICOCO_sec 4. Use of an ICoCo API.
 
-Finally, the methods listed in Appendix A must be implemented. Not all of them are compulsory. Their absence would only limit the possible applications.
+Finally, the methods listed in Appendix A must be implemented by the python wrapping class. Not all of them are compulsory. Their absence would only limit the possible applications.
 
 These methods are always required:
 
@@ -62,7 +62,7 @@ If a code uses MPI parallelization (for its own needs), it must provide:
 
   - setMPIComm.
 
-Note that C3PO is designed mainly for Single Program Multiple Data (SPMD) parallelism paradigm (all processes involved in a calculation call the same methods at the same time), but can adapt to other situations.
+Note that C3PO is designed mainly for codes following the Single Program Multiple Data (SPMD) parallelism paradigm (all processes involved in a calculation call the same methods at the same time), but can adapt to other situations.
 
 These methods have to be provided for some coupling algorithms:
 

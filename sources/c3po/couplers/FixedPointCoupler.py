@@ -12,16 +12,20 @@
 from __future__ import print_function, division
 
 from c3po.Coupler import Coupler
+from c3po.CollaborativeDataManager import CollaborativeDataManager
 
 
 class FixedPointCoupler(Coupler):
     """! FixedPointCoupler inherits from Coupler and proposes a damped fixed point algorithm.
 
-    The class proposes an algorithm for the resolution of F(X) = X. Thus FixedPointCoupler is a Coupler working with precisely :
+    The class proposes an algorithm for the resolution of F(X) = X. Thus FixedPointCoupler is a Coupler working with :
 
     - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
-    - A single DataManager allowing to manipulate the data in the coupling (the X).
+    - A list of DataManager allowing to manipulate the data in the coupling (the X).
     - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+
+    Each DataManager is normalized with its own norm got after the first iteration.
+    They are then used as a single DataManager using CollaborativeDataManager.
 
     At each iteration we do (with n the iteration number and alpha the damping factor):
 
@@ -36,27 +40,25 @@ class FixedPointCoupler(Coupler):
     The default damping factor is 1 (no damping). Call setDampingFactor() to change it.
     """
 
-    def __init__(self, physics, exchangers, dataManager):
+    def __init__(self, physics, exchangers, dataManagers):
         """! Build a FixedPointCoupler object.
 
         @param physics list of only one PhysicsDriver (possibly a Coupler).
         @param exchangers list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
-        @param dataManager list of only one DataManager.
+        @param dataManagers list of DataManager.
         """
-        Coupler.__init__(self, physics, exchangers, dataManager)
+        Coupler.__init__(self, physics, exchangers, dataManagers)
         self._tolerance = 1.E-6
         self._maxiter = 100
         self._dampingFactor = 1.
         self._isConverged = False
 
-        if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManager, list):
-            raise Exception("FixedPointCoupler.__init__ physics, exchangers and dataManager must be lists!")
+        if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
+            raise Exception("FixedPointCoupler.__init__ physics, exchangers and dataManagers must be lists!")
         if len(physics) != 1:
             raise Exception("FixedPointCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:
             raise Exception("FixedPointCoupler.__init__ There must be exactly two Exchanger")
-        if len(dataManager) != 1:
-            raise Exception("FixedPointCoupler.__init__ There must be only one DataManager")
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations).
@@ -84,12 +86,17 @@ class FixedPointCoupler(Coupler):
         physics = self._physicsDrivers[0]
         physics2Data = self._exchangers[0]
         data2physics = self._exchangers[1]
-        data = self._dataManagers[0]
 
         # Init
         print("iteration ", iiter)
         physics.solve()
         physics2Data.exchange()
+
+        data = CollaborativeDataManager(self._dataManagers)
+        normData = self.readNormData()
+        print("normData", normData)
+        self.normalizeData(normData)
+
         previousData = data.clone()
         iiter += 1
 
@@ -98,10 +105,12 @@ class FixedPointCoupler(Coupler):
 
             self.abortTimeStep()
             self.initTimeStep(self._dt)
+            self.denormalizeData(normData)
             data2physics.exchange()
 
             physics.solve()
             physics2Data.exchange()
+            self.normalizeData(normData)
 
             if self._dampingFactor != 1.:
                 data *= self._dampingFactor
@@ -120,7 +129,8 @@ class FixedPointCoupler(Coupler):
             iiter += 1
             print("error : ", error)
 
-        return physics.getSolveStatus() and error <= self._tolerance
+        self.denormalizeData(normData)
+        return physics.getSolveStatus() and not(error > self._tolerance)
 
     # On definit les methodes suivantes pour qu'elles soient vues par tracer.
     def initialize(self):

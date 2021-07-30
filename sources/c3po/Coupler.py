@@ -133,3 +133,19 @@ class Coupler(PhysicsDriver):
         if self._norm == NormChoice.norm2:
             return data.norm2()
         raise Exception("Coupler.getNorm The required norm is unknown.")
+
+    def readNormData(self):
+        normData = []
+        for data in self._dataManagers:
+            normData.append(self.getNorm(data))
+        return normData
+
+    def normalizeData(self, norms):
+        for i, norm in enumerate(norms):
+            if norm > 0.:
+                self._dataManagers[i] *= 1. / norm
+
+    def denormalizeData(self, norms):
+        for i, norm in enumerate(norms):
+            if norm > 0.:
+                self._dataManagers[i] *= norm
