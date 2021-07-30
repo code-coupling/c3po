@@ -130,7 +130,7 @@ class FixedPointCoupler(Coupler):
             print("error : ", error)
 
         self.denormalizeData(normData)
-        return physics.getSolveStatus() and not(error > self._tolerance)
+        return physics.getSolveStatus() and error <= self._tolerance
 
     # On definit les methodes suivantes pour qu'elles soient vues par tracer.
     def initialize(self):

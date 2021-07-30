@@ -135,17 +135,29 @@ class Coupler(PhysicsDriver):
         raise Exception("Coupler.getNorm The required norm is unknown.")
 
     def readNormData(self):
+        """! Return a list of the norms of the DataManager objects hold by self.
+
+        @return list of the norm of the DataManager objects.
+        """
         normData = []
         for data in self._dataManagers:
             normData.append(self.getNorm(data))
         return normData
 
     def normalizeData(self, norms):
+        """! Divide the DataManager objects by the scalar values provided.
+
+        @param norms list of scalar values. The DataManager are divided by these scalars.
+        """
         for i, norm in enumerate(norms):
             if norm > 0.:
                 self._dataManagers[i] *= 1. / norm
 
     def denormalizeData(self, norms):
+        """! Multiply the DataManager objects by the scalar values provided.
+
+        @param norms list of scalar values. The DataManager are multiplied by these scalars.
+        """
         for i, norm in enumerate(norms):
             if norm > 0.:
                 self._dataManagers[i] *= norm

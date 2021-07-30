@@ -45,14 +45,14 @@ class JFNKCoupler(Coupler):
 
     JFNKCoupler is a Coupler working with :
 
-    - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called. 
+    - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
     - A list of DataManager allowing to manipulate the data in the coupling.
     - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
 
     Each DataManager is normalized with its own norm got after the first iteration.
     They are then used as a single DataManager using CollaborativeDataManager.
 
-    As the Newton algorithm solves for F(X) = 0, in order to be coherent with the fixed point coupling algorithms, F(x) is defined as F(X) = f(X) - X, where f is the output of the physicsDriver.    
+    As the Newton algorithm solves for F(X) = 0, in order to be coherent with the fixed point coupling algorithms, F(x) is defined as F(X) = f(X) - X, where f is the output of the physicsDriver.
 
     The convergence criteria is : ||f(X^{n}) - X^{n}|| / ||f(X^{n})|| < tolerance. The default norm used is the infinite norm. Coupler.setNormChoice() allows to choose another one.
 
@@ -255,7 +255,7 @@ class JFNKCoupler(Coupler):
             print("error Newton : ", errorNewton)
 
         self.denormalizeData(normData)
-        return physics.getSolveStatus() and not(errorNewton > self._newtonTolerance)
+        return physics.getSolveStatus() and errorNewton <= self._newtonTolerance
 
     # On definit les methodes suivantes pour qu'elles soient vues par tracer.
     def initialize(self):
