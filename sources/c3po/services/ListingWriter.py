@@ -159,7 +159,7 @@ class ListingWriter(object):
 
         self._listingFile.write(self._boxFormat[ListingWriter.enumInterrupt].encode('utf-8'))
         self._listingFile.write(self._boxFormat[ListingWriter.enumBilan].format("SpentTime " + calculationTimeToWrite, timeToWrite,
-                                                                             sumCalculationTimeToWrite).encode('utf-8'))
+                                                                                sumCalculationTimeToWrite).encode('utf-8'))
         self._listingFile.write(self._boxFormat[ListingWriter.enumContinue].encode('utf-8'))
 
         self._timeValid = timeValid
@@ -219,7 +219,7 @@ class ListingWriter(object):
             self._listingFile.write(self._exchangersData[ind][1].format(self._exchangersData[ind][0], methodName, presentTimeToWrite,
                                                                         calculationTimeToWrite).encode('utf-8'))
 
-        if self._autoFormat :
+        if self._autoFormat:
             minTValid = min(self._timeValidatedPhysics)
             if minTValid > 0.:
                 if (max(self._timeValidatedPhysics) - minTValid) < 1.E-8:
@@ -484,7 +484,7 @@ def mergeListing(listingsName, newListingName):
             else:
                 if lineNature[imin] == natureEnd:
                     writer.writeAfterNew(mydumbPhysics[physicsInd[imin][0]][0], lineWords[imin][0], lastStarted[physicsInd[imin][0]],
-                                      runningPhysics, currentTime[imin])
+                                         runningPhysics, currentTime[imin])
                     runningPhysics[physicsInd[imin][0]] = False
                     if lastStarted[physicsInd[imin][0]] == "validateTimeStep":
                         timeStepValidated[physicsInd[imin][0]] = True

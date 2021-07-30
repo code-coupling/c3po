@@ -296,7 +296,7 @@ class PhysicsDriver(DataAccessor):
         while (self.presentTime() < tmax and not stop):
             if finishAtTmax:
                 if self.presentTime() + 1.5 * dt >= tmax:
-                    if self.presentTime() + dt >= tmax - dt*1.E-4:
+                    if self.presentTime() + dt >= tmax - dt * 1.E-4:
                         dt = tmax - self.presentTime()
                         lastTimeStep = True
                     else:

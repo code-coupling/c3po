@@ -80,7 +80,7 @@ class TracerMeta(type):
                     nameMEDFile = nameMEDFile + str(num) + ".med"
                     _, iteration, order = field.getTime()
                     medInfo = (field.getTypeOfField(), nameMEDFile, field.getMesh().getName(),
-                                                            0, field.getName(), iteration, order)
+                               0, field.getName(), iteration, order)
                     mc.WriteField(nameMEDFile, field, True)
                     if self.static_pythonFile is not None:
                         self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
