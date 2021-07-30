@@ -16,7 +16,7 @@ Run "pip install <path>" (or "pip install --user <path>") to do so, with <path> 
 from setuptools import setup
 
 setup(name="C3PO",
-      version="1.1",
+      version="1.2",
       author="CEA",
       author_email="cyril.patricot@cea.fr",
       maintainer="Cyril Patricot",
