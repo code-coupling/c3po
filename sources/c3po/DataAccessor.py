@@ -13,50 +13,280 @@ from __future__ import print_function, division
 
 
 class DataAccessor(object):
-    """! DataAccessor is a class interface (to be implemented) which standardizes the accesses to data. It follows the ICOCO standard. """
+    """! DataAccessor is an abstract class which standardizes I/O (in/out) methods.
 
-    def getInputMEDFieldTemplate(self, name):
-        """! Get a template of the field expected for a given name.
+    It follows the ICOCO V2 standard.
+    See also PhysicsDriver.
+    """
 
-        This method is useful to know the mesh, discretization… on which an input field is expected.
+    class ValueType:
+        """! The various possible types for fields or scalar values. """
+        Double = "Double"
+        Int = "Int"
+        String = "String"
 
-        @param name string identifying the asked MEDField template.
-        @return a ParaMEDMEM::MEDCouplingFieldDouble field.
+    def getInputFieldsNames(self):
+        """! (Optional) Get the list of input fields accepted by the code.
+
+        @return (list) the list of field names that represent inputs of the code.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
         """
         raise NotImplementedError
 
-    def setInputMEDField(self, name, field):
-        """! Provide the input field corresponding to name.
+    def getOutputFieldsNames(self):
+        """! (Optional) Get the list of output fields that can be provided by the code.
 
-        After this call, the state of the computation and of the output fields are invalidated.
-        It should always be possible to switch consecutive calls to setInputMEDField().
-        At least one call to iterateTimeStep() or solveTimeStep() must be performed before getOutputMEDField() or validateTimeStep() can be called.
-
-        @param name string identifying the input field.
-        @param field a ParaMEDMEM::MEDCouplingFieldDouble field.
+        @return (list) the list of field names that can be produced by the code.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
         """
         raise NotImplementedError
 
-    def getOutputMEDField(self, name):
-        """! Return the output field corresponding to name.
+    def getFieldType(self, name):
+        """! (Optional) Get the type of a field managed by the code.
 
-        @param name string identifying the output field.
-        @return a ParaMEDMEM::MEDCouplingFieldDouble field.
+        (New in version 2) The three possible types are 'Double', 'Int' and 'String', as defined by ValueType.
+
+        @param name (string) field name.
+        @return (string) 'Double', 'Int' or 'String', as defined by ValueType.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the field name is invalid.
         """
         raise NotImplementedError
 
-    def setValue(self, name, value):
-        """! Provide the input scalar value corresponding to name.
+    def getMeshUnit(self):
+        """! (Optional) Get the (length) unit used to define the meshes supporting the fields.
 
-        @param name string identifying the input scalar.
-        @param value a scalar.
+        (New in version 2)
+
+        @return (string) length unit in which the mesh coordinates should be understood (e.g. 'm', 'cm', ...).
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
         """
         raise NotImplementedError
 
-    def getValue(self, name):
-        """! Return the output scalar corresponding to name.
+    def getFieldUnit(self, name):
+        """! (Optional) Get the physical unit used for a given field.
 
-        @param name string identifying the output scalar.
-        @return a scalar.
+        (New in version 2)
+
+        @param name (string) field name.
+        @return (string) unit in which the field values should be understood (e.g. 'W', 'J', 'Pa', ...).
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the field name is invalid.
         """
+        raise NotImplementedError
+
+    def getInputMEDDoubleFieldTemplate(self, name):
+        """! (Optional) Retrieve an empty shell for an input field. This shell can be filled by the caller and then be
+        given to the code via setInputMEDDoubleField().
+
+        The code returns a field with all the data that represents the context of the field (i.e. its support mesh,
+        its discretization -- on nodes, on elements, ...).
+        The remaining job for the caller of this method is to fill the actual values of the field itself.
+        When this is done the field can be sent back to the code through the method setInputMEDDoubleField().
+        This method is not mandatory but is useful to know the mesh, discretization... on which an input field is
+        expected. Is is required by C3PO remapping functionalities.
+
+        See PhysicsDriver documentation for more details on the time semantic of a field.
+
+        @param name (string) name of the field for which we would like the empty shell.
+        @return (medcoupling.MEDCouplingFieldDouble) field with all the contextual information.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the field name is invalid.
+        """
+        raise NotImplementedError
+
+    def setInputMEDDoubleField(self, name, field):
+        """! (Optional) Provide the code with input data in the form of a MEDCouplingFieldDouble.
+
+        The method getInputMEDDoubleFieldTemplate(), if implemented, may be used first to prepare an empty shell of the field to
+        pass to the code.
+
+        See PhysicsDriver documentation for more details on the time semantic of a field.
+
+        @param name (string) name of the field that is given to the code.
+        @param field (medcoupling.MEDCouplingFieldDouble) field containing the input data to be read by the code. The name
+        of the field set on this instance (with the Field::setName() method) should not be checked. However its time value
+        should be to ensure it is within the proper time interval ]t, t+dt].
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the field name ('name' parameter) is invalid.
+        @throws ValueError if the time property of 'field' does not belong to the currently computed time step ]t, t + dt].
+        """
+        raise NotImplementedError
+
+    def getOutputMEDDoubleField(self, name):
+        """! (Optional) Return output data from the code in the form of a MEDCouplingFieldDouble.
+
+        See PhysicsDriver documentation for more details on the time semantic of a field.
+
+        @param name (string) name of the field that the caller requests from the code.
+        @return (medcoupling.MEDCouplingFieldDouble) field with the data read by the code. The name
+        and time properties of the field should be set in accordance with the 'name' parameter and with the current
+        time step being computed.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the field name is invalid.
+        """
+        raise NotImplementedError
+
+    def updateOutputMEDDoubleField(self, name, field):
+        """! (Optional) Update a previously retrieved output field.
+
+        (New in version 2) This method allows the code to implement a more efficient update of a given output field,
+        thus avoiding the caller to invoke getOutputMEDDoubleField() each time.
+        A previous call to getOutputMEDDoubleField() with the same name must have been done prior to this call.
+        The code should check the consistency of the field object with the requested data (same support mesh,
+        discretization -- on nodes, on elements, etc.).
+
+        See PhysicsDriver documentation for more details on the time semantic of a field.
+
+        @param name (string) name of the field that the caller requests from the code.
+        @param field (medcoupling.MEDCouplingFieldDouble) object updated with the data read from the code. Notably
+        the time indicated in the field should be updated to be within the current time step being computed.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the field name ('name' parameter) is invalid.
+        @throws ValueError if the field object is inconsistent with the field being requested.
+        """
+        raise NotImplementedError
+
+    def getInputMEDIntFieldTemplate(self, name):
+        """! Similar to getInputMEDDoubleFieldTemplate() but for MEDCouplingFieldInt. """
+        raise NotImplementedError
+
+    def setInputMEDIntField(self, name, field):
+        """! Similar to setInputMEDDoubleField() but for MEDCouplingFieldInt. """
+        raise NotImplementedError
+
+    def getOutputMEDIntField(self, name):
+        """! Similar to getOutputMEDDoubleField() but for MEDCouplingFieldInt. """
+        raise NotImplementedError
+
+    def updateOutputMEDIntField(self, name, field):
+        """! Similar to updateOutputMEDDoubleField() but for MEDCouplingFieldInt. """
+        raise NotImplementedError
+
+    def getInputMEDStringFieldTemplate(self, name):
+        """! Similar to getInputMEDDoubleFieldTemplate() but for MEDCouplingFieldString.
+
+        @warning at the time of writing, MEDCouplingFieldString are not yet implemented anywhere.
+        """
+        raise NotImplementedError
+
+    def setInputMEDStringField(self, name, field):
+        """! Similar to setInputMEDDoubleField() but for MEDCouplingFieldString.
+
+        @warning at the time of writing, MEDCouplingFieldString are not yet implemented anywhere.
+        """
+        raise NotImplementedError
+
+    def getOutputMEDStringField(self, name):
+        """! Similar to getOutputMEDDoubleField() but for MEDCouplingFieldString.
+
+        @warning at the time of writing, MEDCouplingFieldString are not yet implemented anywhere.
+        """
+        raise NotImplementedError
+
+    def updateOutputMEDStringField(self, name, field):
+        """! Similar to updateOutputMEDDoubleField() but for MEDCouplingFieldString.
+
+        @warning at the time of writing, MEDCouplingFieldString are not yet implemented anywhere.
+        """
+        raise NotImplementedError
+
+    def getMEDCouplingMajorVersion(self):
+        """! (Optional) Get MEDCoupling major version, if the code was built with MEDCoupling support.
+
+        Method to implement if the code was built with MEDCoupling support.
+        This can be used to assess compatibility between codes when coupling them.
+
+        @return (int) the MEDCoupling major version number (typically 7, 8, 9, ...).
+        """
+        raise NotImplementedError
+
+    def isMEDCoupling64Bits(self):
+        """! (Optional) Indicate whether the code was built with a 64-bits version of MEDCoupling.
+
+        Method to implement if the code was built with MEDCoupling support.
+        This can be used to assess compatibility between codes when coupling them.
+
+        @return (bool) True if the code was built with a 64-bits version of MEDCoupling.
+        """
+        raise NotImplementedError
+
+    def getInputValuesNames(self):
+        """! (Optional) Get the list of input scalars accepted by the code.
+
+        @return (list) the list of scalar names that represent inputs of the code.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        """
+        raise NotImplementedError
+
+    def getOutputValuesNames(self):
+        """! (Optional) Get the list of output scalars that can be provided by the code.
+
+        @return (list) the list of scalar names that can be returned by the code.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        """
+        raise NotImplementedError
+
+    def getValueType(self, name):
+        """! (Optional) Get the type of a scalar managed by the code.
+
+        (New in version 2) The three possible types are 'Double', 'Int' and 'String', as defined by ValueType.
+
+        @param name (string) scalar value name.
+        @return (string) 'Double', 'Int' or 'String', as defined by ValueType.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the scalar name is invalid.
+        """
+        raise NotImplementedError
+
+    def getValueUnit(self, name):
+        """! (Optional) Get the physical unit used for a given value.
+
+        (New in version 2)
+
+        @param name (string) scalar value name.
+        @return (string) unit in which the scalar value should be understood (e.g. 'W', 'J', 'Pa', ...).
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the value name is invalid.
+        """
+        raise NotImplementedError
+
+    def setInputDoubleValue(self, name, value):
+        """! (Optional) Provide the code with a scalar float data.
+
+        See PhysicsDriver documentation for more details on the time semantic of a scalar value.
+
+        @param name (string) name of the scalar value that is given to the code.
+        @param value (float) value passed to the code.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the scalar name is invalid.
+        """
+        raise NotImplementedError
+
+    def getOutputDoubleValue(self, name):
+        """! (Optional) Retrieve a scalar float value from the code.
+
+        See PhysicsDriver documentation for more details on the time semantic of a scalar value.
+
+        @param name (string) name of the scalar value to be read from the code.
+        @return (float) the value read from the code.
+        @throws AssertionError if implemented in a PhysicsDriver and called before initialize() or after terminate().
+        @throws ValueError if the scalar name is invalid.
+        """
+        raise NotImplementedError
+
+    def setInputIntValue(self, name, value):
+        """! (Optional) Similar to setInputDoubleValue() but for an Int value. """
+        raise NotImplementedError
+
+    def getOutputIntValue(self, name):
+        """! (Optional) Similar to getOutputDoubleValue() but for an Int value. """
+        raise NotImplementedError
+
+    def setInputStringValue(self, name, value):
+        """! (Optional) Similar to setInputDoubleValue() but for an String value. """
+        raise NotImplementedError
+
+    def getOutputStringValue(self, name):
+        """! (Optional) Similar to getOutputDoubleValue() but for an String value. """
         raise NotImplementedError
