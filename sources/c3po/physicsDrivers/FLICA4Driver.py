@@ -25,10 +25,20 @@ class FLICA4Driver(PhysicsDriver):
         """! Build a FLICA4Driver object. """
         PhysicsDriver.__init__(self)
         self._isInit = False
-        self._isStationnary = False
         self._permSteps = 1000
         self._flica4, self._handle = FlicaICoCo.openLib(str(os.path.join(os.getenv("FLICA_SHARED_LIB"), "libflica4.so")))
        # self._flica4.setDataFile(os.path.join(os.getenv("DATADIR"), "flica4_static.dat"))
+        self._timeShift = 0.
+        self._stationaryMode = False
+
+    def getICOCOVersion(self):
+        return '2.0'
+
+    def getMEDCouplingMajorVersion(self):
+        return mc.MEDCouplingVersionMajMinRel()[0]
+
+    def isMEDCoupling64Bits(self):
+        return mc.MEDCouplingSizeOfIDs() == 64
 
     def __del__(self):
         FlicaICoCo.closeLib(self._handle)
@@ -47,60 +57,72 @@ class FLICA4Driver(PhysicsDriver):
         self._flica4.terminate()
 
     def presentTime(self):
-        return self._flica4.presentTime()
+        return self._flica4.presentTime() - self._timeShift
 
     def computeTimeStep(self):
         return self._flica4.computeTimeStep()
 
     def initTimeStep(self, dt):
-        if dt < 0.:
-            self._isStationnary = True
+        if self._stationaryMode:
             return True
         return self._flica4.initTimeStep(dt)
 
     def solveTimeStep(self):
-        if self._isStationnary:
+        if self._stationaryMode:
             return self._flica4.solveSteadyState(self._permSteps)
         return self._flica4.solveTimeStep()
 
     def validateTimeStep(self):
-        if not self._isStationnary:
+        if not self._stationaryMode:
             self._flica4.validateTimeStep()
+
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
 
     def abortTimeStep(self):
         self._flica4.abortTimeStep()
 
+    def resetTime(self, time_):
+        self._timeShift = self._flica4.presentTime() - time_
+
     def getInputFieldsNames(self):
         return self._flica4.getInputFieldsNames()
-
-    def getInputMEDFieldTemplate(self, name):
-        if name == "FuelPower":
-            return self.getOutputMEDField("FuelDopplerTemperature")
-        return self.getOutputMEDField("LiquidTemperature")
 
     def getOutputFieldsNames(self):
         return self._flica4.getOutputFieldsNames()
 
-    def setInputMEDField(self, name, field):
+    def getInputMEDDoubleFieldTemplate(self, name):
+        if name == "FuelPower":
+            return self.getOutputMEDField("FuelDopplerTemperature")
+        return self.getOutputMEDField("LiquidTemperature")
+
+    def setInputMEDDoubleField(self, name, field):
         self._flica4.setInputMEDField(name, field)
 
-    def getOutputMEDField(self, name):
+    def getOutputMEDDoubleField(self, name):
         field = self._flica4.getOutputMEDField(name)
         field.setNature(mc.IntensiveMaximum)
         return field
 
-    def setValue(self, name, value):
+    def setInputDoubleValue(self, name, value):
+        self._flica4.setValue(name, value)
+
+    def setInputIntValue(self, name,  value):
         if name == "nbIterMaxSteadyState":
             self._permSteps = value
         else:
-            self._flica4.setValue(name, value)
+            raise Exception("FLICA4Driver.setInputIntValue : unknown scalar "+ name + ".")
 
-    def getValue(self, name):
+    def getOutputDoubleValue(self, name):
         return self._flica4.getValue(name)
 
 
 class FLICA4AutoSwitchDriver(PhysicsDriver):
-    """ This PhysicsDriver drives two FLICA4Driver, for stationnary and transient, and switches from one to the other automatically.
+    """! This PhysicsDriver drives two FLICA4Driver, for stationnary and transient,
+    and switches from one to the other automatically.
     """
 
     dataFileStationnary = os.path.join(os.getenv("DATADIR"), "flica4_static.dat")
@@ -108,12 +130,22 @@ class FLICA4AutoSwitchDriver(PhysicsDriver):
 
     def __init__(self):
         PhysicsDriver.__init__(self)
-
         self._flica4Steady = FLICA4Driver()
         self._flica4Transient = FLICA4Driver()
         self._flica4Current = self._flica4Steady
         self._isStationnary = True
+        self._stationaryMode = False
         self._isInit = False
+        self._timeShift = 0.
+
+    def getICOCOVersion(self):
+        return self._flica4Current.getICOCOVersion()
+
+    def getMEDCouplingMajorVersion(self):
+        return self._flica4Current.getMEDCouplingMajorVersion()
+
+    def isMEDCoupling64Bits(self):
+        return self._flica4Current.isMEDCoupling64Bits()
 
     def initialize(self):
         if self._isStationnary:
@@ -122,22 +154,23 @@ class FLICA4AutoSwitchDriver(PhysicsDriver):
             self._isInit = True
             self._flica4Steady.setDataFile(FLICA4AutoSwitchDriver.dataFileStationnary)
             return self._flica4Steady.initialize()
-        raise Exception("FLICA4AutoSwitchDriver.initialize : only available in stationnary mode.")
+        raise Exception("FLICA4AutoSwitchDriver.initialize : only available with stationary FLICA4Driver.")
 
     def terminate(self):
         self._flica4Current.terminate()
 
     def presentTime(self):
-        return self._flica4Current.presentTime()
+        return self._flica4Current.presentTime() - self._timeShift
 
     def computeTimeStep(self):
         return self._flica4Current.computeTimeStep()
 
     def initTimeStep(self, dt):
-        if dt < 0.:
+        if self._stationaryMode:
             if self._isStationnary:
                 return self._flica4Current.initTimeStep(dt)
             self._isStationnary = True
+            time_ = self._flica4Current.presentTime()
             self._flica4Transient.terminate()
             self._flica4Transient = FLICA4Driver()
             if not self._isInit:
@@ -145,15 +178,18 @@ class FLICA4AutoSwitchDriver(PhysicsDriver):
                 self._flica4Steady.setDataFile(FLICA4AutoSwitchDriver.dataFileStationnary)
                 self._flica4Steady.initialize()
             self._flica4Current = self._flica4Steady
+            self._timeShift = self._flica4Current.presentTime() - time_
             return self._flica4Current.initTimeStep(dt)
         if self._isStationnary:
             self._isStationnary = False
+            time_ = self._flica4Current.presentTime()
             self._flica4Steady.terminate()
             self._flica4Steady = FLICA4Driver()
             self._isInit = False
             self._flica4Transient.setDataFile(FLICA4AutoSwitchDriver.dataFileTransient)
             self._flica4Transient.initialize()
             self._flica4Current = self._flica4Transient
+            self._timeShift = self._flica4Current.presentTime() - time_
             return self._flica4Current.initTimeStep(dt)
         return self._flica4Current.initTimeStep(dt)
 
@@ -163,26 +199,38 @@ class FLICA4AutoSwitchDriver(PhysicsDriver):
     def validateTimeStep(self):
         self._flica4Current.validateTimeStep()
 
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
+
     def abortTimeStep(self):
         self._flica4Current.abortTimeStep()
+
+    def resetTime(self, time_):
+        self._timeShift = self._flica4Current.presentTime() - time_
 
     def getInputFieldsNames(self):
         return self._flica4Current.getInputFieldsNames()
 
-    def getInputMEDFieldTemplate(self, name):
-        return self._flica4Current.getInputMEDFieldTemplate(name)
-
     def getOutputFieldsNames(self):
         return self._flica4Current.getOutputFieldsNames()
 
-    def setInputMEDField(self, name, field):
-        self._flica4Current.setInputMEDField(name, field)
+    def getInputMEDDoubleFieldTemplate(self, name):
+        return self._flica4Current.getInputMEDDoubleFieldTemplate(name)
 
-    def getOutputMEDField(self, name):
-        return self._flica4Current.getOutputMEDField(name)
+    def setInputMEDDoubleField(self, name, field):
+        self._flica4Current.setInputMEDDoubleField(name, field)
 
-    def setValue(self, name, value):
-        self._flica4Current.setValue(name, value)
+    def getOutputMEDDoubleField(self, name):
+        return self._flica4Current.getOutputMEDDoubleField(name)
 
-    def getValue(self, name):
-        return self._flica4Current.getValue(name)
+    def setInputDoubleValue(self, name, value):
+        self._flica4Current.setInputDoubleValue(name, value)
+
+    def setInputIntValue(self, name, value):
+        self._flica4Current.setInputIntValue(name, value)
+
+    def getOutputDoubleValue(self, name):
+        return self._flica4Current.getOutputDoubleValue(name)

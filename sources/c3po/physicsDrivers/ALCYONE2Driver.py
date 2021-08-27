@@ -35,6 +35,17 @@ class ALCYONE2Driver(PhysicsDriver):
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpi.COMM_SELF)
         self._dtFactor = 1.
         self._isInit = False
+        self._timeShift = 0.
+        self._stationaryMode = False
+
+    def getICOCOVersion(self):
+        return '2.0'
+
+    def getMEDCouplingMajorVersion(self):
+        return mc.MEDCouplingVersionMajMinRel()[0]
+
+    def isMEDCoupling64Bits(self):
+        return mc.MEDCouplingSizeOfIDs() == 64
 
     def setMPIComm(self, mpicomm):
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpicomm)
@@ -51,14 +62,14 @@ class ALCYONE2Driver(PhysicsDriver):
         self._alcyone2.terminate()
 
     def presentTime(self):
-        return self._alcyone2.presentTime()
+        return self._alcyone2.presentTime() - self._timeShift
 
     def computeTimeStep(self):
         dt = self._alcyone2.computeTimeStep()
         return (self._dtFactor * dt, True)
 
     def initTimeStep(self, dt):
-        if dt <= 0:
+        if dt == 0:
             dt = 0.001  # Tres specifique a notre cas test !
         self._alcyone2.initTimeStep(dt)
         return True
@@ -73,11 +84,20 @@ class ALCYONE2Driver(PhysicsDriver):
         self._alcyone2.validateTimeStep()
         self._dtFactor = 1.
 
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
+
     def abortTimeStep(self):
         self._alcyone2.abortTimeStep()
 
     def isStationary(self):
         return self._alcyone2.isStationary()
+
+    def resetTime(self, time_):
+        self._timeShift = self._alcyone2.presentTime() - time_
 
     def iterateTimeStep(self):
         return self._alcyone2.iterateTimeStep()
@@ -96,10 +116,15 @@ class ALCYONE2Driver(PhysicsDriver):
         fieldNames += ["LinearPower"]
         return fieldNames
 
-    def getInputMEDFieldTemplate(self, name):
+    def getOutputFieldsNames(self):
+        fieldNames = self._alcyone2.getOutputMEDField()
+        fieldNames += ["Temperature_FUEL_Rowland"]
+        return fieldNames
+
+    def getInputMEDDoubleFieldTemplate(self, name):
         return self._alcyone2.getOutputMEDField("Temperature_SCE")
 
-    def setInputMEDField(self, name, field):
+    def setInputMEDDoubleField(self, name, field):
         if name == "LinearPower":
             arrayZ = field.getMesh().getCoordsAt(0)
             arrayDz = mc.DataArrayDouble()
@@ -109,12 +134,7 @@ class ALCYONE2Driver(PhysicsDriver):
             field.getArray().divideEqual(arrayDz)
         self._alcyone2.setInputField(name, field)
 
-    def getOutputFieldsNames(self):
-        fieldNames = self._alcyone2.getOutputMEDField()
-        fieldNames += ["Temperature_FUEL_Rowland"]
-        return fieldNames
-
-    def getOutputMEDField(self, name):
+    def getOutputMEDDoubleField(self, name):
         field = 0
         if name == "Temperature_FUEL_Rowland":
             field = self._alcyone2.getOutputMEDField("Temperature_PCI")

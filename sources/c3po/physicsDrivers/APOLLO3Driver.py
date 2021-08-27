@@ -10,6 +10,7 @@
 
 """ Contain the class APOLLO3Driver. """
 from __future__ import print_function, division
+
 from c3po.PhysicsDriver import PhysicsDriver
 
 
@@ -25,8 +26,14 @@ class APOLLO3Driver(PhysicsDriver):
         self._apollo3 = ICOCOclass
         self._isInit = False
 
-    def setDataFile(self, datafile):
-        self._apollo3.setDataFile(datafile)
+    def getICOCOVersion(self):
+        return self._apollo3.getICOCOVersion()
+
+    def getMEDCouplingMajorVersion(self):
+        return self._apollo3.getMEDCouplingMajorVersion()
+
+    def isMEDCoupling64Bits(self):
+        return self._apollo3.isMEDCoupling64Bits()
 
     def initialize(self):
         if not self._isInit:
@@ -53,20 +60,86 @@ class APOLLO3Driver(PhysicsDriver):
     def validateTimeStep(self):
         self._apollo3.validateTimeStep()
 
+    def setStationaryMode(self, stationaryMode):
+        self._apollo3.setStationaryMode(stationaryMode)
+
+    def getStationaryMode(self):
+        return self._apollo3.getStationaryMode()
+
+    def isStationary(self):
+        return self._apollo3.isStationary()
+
     def abortTimeStep(self):
         self._apollo3.abortTimeStep()
 
-    def getInputMEDFieldTemplate(self, name):
-        return self._apollo3.getInputMEDFieldTemplate(name)
+    def resetTime(self, time_):
+        self._apollo3.resetTime(time_)
 
-    def setInputMEDField(self, name, field):
-        self._apollo3.setInputMEDField(name, field)
+    def iterateTimeStep(self):
+        return self._apollo3.iterateTimeStep()
 
-    def getOutputMEDField(self, name):
-        return self._apollo3.getOutputMEDField(name)
+    def save(self, label, method):
+        self._apollo3.save(label, method)
 
-    def setValue(self, name, value):
-        self._apollo3.setValue(name, value)
+    def restore(self, label, method):
+        self._apollo3.restore(label, method)
 
-    def getValue(self, name):
-        return self._apollo3.getValue(name)
+    def forget(self, label, method):
+        self._apollo3.forget(label, method)
+
+    def getInputFieldsNames(self):
+        return self._apollo3.getInputFieldsNames()
+
+    def getOutputFieldsNames(self):
+        return self._apollo3.getOutputFieldsNames()
+
+    def getFieldType(self, name):
+        return self._apollo3.getFieldType(name)
+
+    def getMeshUnit(self):
+        return self._apollo3.getMeshUnit()
+
+    def getFieldUnit(self, name):
+        return self._apollo3.getFieldUnit(name)
+
+    def getInputMEDDoubleFieldTemplate(self, name):
+        return self._apollo3.getInputMEDDoubleFieldTemplate(name)
+
+    def setInputMEDDoubleField(self, name, field):
+        self._apollo3.setInputMEDDoubleField(name, field)
+
+    def getOutputMEDDoubleField(self, name):
+        return self._apollo3.getOutputMEDDoubleField(name)
+
+    def updateOutputMEDDoubleField(self, name, field):
+        self._apollo3.updateOutputMEDDoubleField(name, field)
+
+    def getInputValuesNames(self):
+        return self._apollo3.getInputValuesNames()
+
+    def getOutputValuesNames(self):
+        return self._apollo3.getOutputValuesNames()
+
+    def getValueType(self, name):
+        return self._apollo3.getValueType(name)
+
+    def getValueUnit(self, name):
+        return self._apollo3.getValueUnit(name)
+
+    def setInputDoubleValue(self, name, value):
+        self._apollo3.setInputDoubleValue(name, value)
+
+    def getOutputDoubleValue(self, name):
+        return self._apollo3.getOutputDoubleValue(name)
+
+    def setInputIntValue(self, name, value):
+        self._apollo3.setInputIntValue(name, value)
+
+    def getOutputIntValue(self, name):
+        return self._apollo3.getOutputIntValue(name)
+
+    def setInputStringValue(self, name, value):
+        self._apollo3.setInputStringValue(name, value)
+
+    def getOutputStringValue(self, name):
+        return self._apollo3.getOutputStringValue(name)

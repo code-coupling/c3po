@@ -11,14 +11,6 @@
 """ Contain the class THEDIDriver. """
 from __future__ import print_function, division
 
-import pyTHEDI as THEDI
-try:
-    import pyTHEDI_MED as THEDI_MED
-except:
-    pass
-from THEDIInit import THEDIInit
-
-import c3po.medcouplingCompat as mc
 from c3po.PhysicsDriver import PhysicsDriver
 
 
@@ -32,176 +24,125 @@ class THEDIDriver(PhysicsDriver):
     - An (empty) list of THEDI materials to build.
     """
 
-    def __init__(self):
+    def __init__(self, ICOCOclass):
         PhysicsDriver.__init__(self)
+        self._thedi = ICOCOclass
         self._isInit = False
-        self._time = 0.
-        self._dt = 1.e30
-        self._coeur = THEDI.COEUR()
-        try:
-            self._medInterface = THEDI_MED.INTERFACE()
-        except:
-            self._medInterface = THEDI.MED_INTERFACE()
-        self._canaux = []
-        self._materiaux = []
-        self._outputFieldCorrespondence = {}
-        if hasattr(THEDI, "Sortie_MED"):
-            self._outputFieldCorrespondence["TEMPERATURE_LIQUIDE"] = THEDI.Sortie_MED.TEMPERATURE_LIQUIDE
-            self._outputFieldCorrespondence["TEMPERATURE_VAPEUR"] = THEDI.Sortie_MED.TEMPERATURE_VAPEUR
-            self._outputFieldCorrespondence["TEMPERATURE_MOYENNE"] = THEDI.Sortie_MED.TEMPERATURE_MOYENNE
-            self._outputFieldCorrespondence["MASSE_VOLUMIQUE"] = THEDI.Sortie_MED.MASSE_VOLUMIQUE
-            self._outputFieldCorrespondence["PRESSION"] = THEDI.Sortie_MED.PRESSION
-            self._outputFieldCorrespondence["TAUX_DE_VIDE"] = THEDI.Sortie_MED.TAUX_DE_VIDE
-            self._outputFieldCorrespondence["VITESSE_MASSIQUE"] = THEDI.Sortie_MED.VITESSE_MASSIQUE
-            self._outputFieldCorrespondence["VITESSE_LIQUIDE"] = THEDI.Sortie_MED.VITESSE_LIQUIDE
-            self._outputFieldCorrespondence["VITESSE_VAPEUR"] = THEDI.Sortie_MED.VITESSE_VAPEUR
-            self._outputFieldCorrespondence["TITRE"] = THEDI.Sortie_MED.TITRE
-            self._outputFieldCorrespondence["ENERGIE_INTERNE"] = THEDI.Sortie_MED.ENERGIE_INTERNE
-            self._outputFieldCorrespondence["ENTHALPIE"] = THEDI.Sortie_MED.ENTHALPIE
-            self._outputFieldCorrespondence["FLUX_CRITIQUE_SUR_FLUX"] = THEDI.Sortie_MED.FLUX_CRITIQUE_SUR_FLUX
-            self._outputFieldCorrespondence["T_PAROI"] = THEDI.Sortie_MED.T_PAROI
-            self._outputFieldCorrespondence["T_INTERNE"] = THEDI.Sortie_MED.T_INTERNE
-            self._outputFieldCorrespondence["T_EFFECTIVE"] = THEDI.Sortie_MED.T_EFFECTIVE
-        else:
-            self._outputFieldCorrespondence["TEMPERATURE_LIQUIDE"] = THEDI_MED.Sortie_MED.TEMPERATURE_LIQUIDE
-            self._outputFieldCorrespondence["TEMPERATURE_VAPEUR"] = THEDI_MED.Sortie_MED.TEMPERATURE_VAPEUR
-            self._outputFieldCorrespondence["TEMPERATURE_MOYENNE"] = THEDI_MED.Sortie_MED.TEMPERATURE_MOYENNE
-            self._outputFieldCorrespondence["MASSE_VOLUMIQUE"] = THEDI_MED.Sortie_MED.MASSE_VOLUMIQUE
-            self._outputFieldCorrespondence["PRESSION"] = THEDI_MED.Sortie_MED.PRESSION
-            self._outputFieldCorrespondence["TAUX_DE_VIDE"] = THEDI_MED.Sortie_MED.TAUX_DE_VIDE
-            self._outputFieldCorrespondence["VITESSE_MASSIQUE"] = THEDI_MED.Sortie_MED.VITESSE_MASSIQUE
-            self._outputFieldCorrespondence["VITESSE_LIQUIDE"] = THEDI_MED.Sortie_MED.VITESSE_LIQUIDE
-            self._outputFieldCorrespondence["VITESSE_VAPEUR"] = THEDI_MED.Sortie_MED.VITESSE_VAPEUR
-            self._outputFieldCorrespondence["TITRE"] = THEDI_MED.Sortie_MED.TITRE
-            self._outputFieldCorrespondence["ENERGIE_INTERNE"] = THEDI_MED.Sortie_MED.ENERGIE_INTERNE
-            self._outputFieldCorrespondence["ENTHALPIE"] = THEDI_MED.Sortie_MED.ENTHALPIE
-            self._outputFieldCorrespondence["FLUX_CRITIQUE_SUR_FLUX"] = THEDI_MED.Sortie_MED.FLUX_CRITIQUE_SUR_FLUX
-            self._outputFieldCorrespondence["T_PAROI"] = THEDI_MED.Sortie_MED.T_PAROI
-            self._outputFieldCorrespondence["T_INTERNE"] = THEDI_MED.Sortie_MED.T_INTERNE
-            self._outputFieldCorrespondence["T_EFFECTIVE"] = THEDI_MED.Sortie_MED.T_EFFECTIVE
-            self._outputFieldCorrespondence["PUISSANCE_SOLIDE"] = THEDI_MED.Sortie_MED.PUISSANCE_SOLIDE
-            self._outputFieldCorrespondence["PUISSANCE_LIQUIDE"] = THEDI_MED.Sortie_MED.PUISSANCE_LIQUIDE
 
-    def getTHEDIObjects(self):
-        """! Return THEDI objects.
+    def getICOCOVersion(self):
+        return self._thedi.getICOCOVersion()
 
-        @return THEDI.COEUR and THEDI.MED_INTERFACE.
-        """
-        return self._coeur, self._medInterface
+    def getMEDCouplingMajorVersion(self):
+        return self._thedi.getMEDCouplingMajorVersion()
+
+    def isMEDCoupling64Bits(self):
+        return self._thedi.isMEDCoupling64Bits()
 
     def initialize(self):
         if not self._isInit:
             self._isInit = True
-            self._canaux[:] = []
-            self._materiaux[:] = []
-            THEDIInit(self._coeur, self._medInterface, self._canaux, self._materiaux)
+            return self._thedi.initialize()
         return True
 
     def terminate(self):
-        pass
+        self._isInit = False
+        self._thedi.terminate()
 
     def presentTime(self):
-        return self._time
+        return self._thedi.presentTime()
 
     def computeTimeStep(self):
-        return (self._dt, False)
+        return self._thedi.computeTimeStep()
 
     def initTimeStep(self, dt):
-        self._dt = dt
-        return True
+        return self._thedi.initTimeStep(dt)
 
     def solveTimeStep(self):
-        self._coeur.Calcule_pas_de_temps(self._dt)
-        return self._coeur.Get_taille_dernier_pas_de_temps() == self._dt
+        return self._thedi.solveTimeStep()
 
     def validateTimeStep(self):
-        if self._dt > 0.:
-            self._time += self._dt
-        self._coeur.Valide_pas_de_temps()
+        self._thedi.validateTimeStep()
+
+    def setStationaryMode(self, stationaryMode):
+        self._thedi.setStationaryMode(stationaryMode)
+
+    def getStationaryMode(self):
+        return self._thedi.getStationaryMode()
+
+    def isStationary(self):
+        return self._thedi.isStationary()
 
     def abortTimeStep(self):
-        pass
+        self._thedi.abortTimeStep()
 
-    def getInputMEDFieldTemplate(self, name):
-        """! Return an empty field lying on the MEDCouplingMesh object used by THEDI.
+    def resetTime(self, time_):
+        self._thedi.resetTime(time_)
 
-        See PhysicsDriver.getInputMEDFieldTemplate().
+    def iterateTimeStep(self):
+        return self._thedi.iterateTimeStep()
 
-        THEDI can take fields given on any mesh and performs projection if needed, but no projection are done if this mesh is used.
-        """
-        outputField = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
-        try:
-            self._medInterface.Place_maillage_interne_dans_champ(outputField)
-        except:
-            self._medInterface.Place_maillage_interne_thermohydro_dans_champ(outputField)
-        return outputField
+    def save(self, label, method):
+        self._thedi.save(label, method)
 
-    def setInputMEDField(self, name, field):
-        """! Set the MED field field to the component under the name name.
+    def restore(self, label, method):
+        self._thedi.restore(label, method)
 
-        See PhysicsDriver.setInputMEDField().
+    def forget(self, label, method):
+        self._thedi.forget(label, method)
 
-        Accepted fields are :
-        - "fluidPower"
-        - "solidPower::NameObject::NameMats" with NameObject the name of a solid object in THEDI and NameMats a list of material names.
-        - "setParamLambda::NameObject::NameMat::Int" with NameObject the name of a solid object in THEDI, NameMat a material name and Int a number identifying the parameter to set for thermal conductivity calculation.
-        - "setParamCapa::NameObject::NameMat::Int" idem previous but for heat capacity.
-        - "feedbackCoef::Int" with Int a number identifying the given parameter (used for point-kinetics reactivity calculation).
-        """
-        mots = name.split("::")
-        if len(mots) == 1 and mots[0] == "fluidPower":
-            self._medInterface.Set_puissance_fluide(field)
-        elif len(mots) > 2 and mots[0] == "solidPower":
-            materialNames = []
-            for i in range(2, len(mots)):
-                materialNames.append(mots[i])
-            self._medInterface.Set_puissance_solide(field, mots[1], materialNames)
-        elif len(mots) == 4 and (mots[0] == "setParamLambda" or mots[0] == "setParamCapa"):
-            typeProp = 0
-            if mots[0] == "setParamLambda":
-                typeProp = THEDI.Type_propriete_thermique.LAMBDA
-            else:
-                typeProp = THEDI.Type_propriete_thermique.RHOCP
-            self._medInterface.Set_parametres_divers_thermiques(field, mots[1], mots[2], typeProp, int(mots[3]))
-        elif len(mots) == 2 and mots[0] == "feedbackCoef":
-            self._medInterface.Set_coef_CR(field, int(mots[1]))
-        else:
-            raise Exception("THEDIDriver.setInputMEDField the field " + name + " cannot be set.")
+    def getInputFieldsNames(self):
+        return self._thedi.getInputFieldsNames()
 
     def getOutputFieldsNames(self):
-        return list(self._outputFieldCorrespondence.keys())
+        return self._thedi.getOutputFieldsNames()
 
-    def getOutputMEDField(self, name):
-        """! Return the MED field of name name extracted from the component.
+    def getFieldType(self, name):
+        return self._thedi.getFieldType(name)
 
-        See PhysicsDriver.getOutputMEDField().
+    def getMeshUnit(self):
+        return self._thedi.getMeshUnit()
 
-        Fields that can be returned :
-        - "TEMPERATURE_LIQUIDE"
-        - "TEMPERATURE_VAPEUR"
-        - "TEMPERATURE_MOYENNE"
-        - "MASSE_VOLUMIQUE"
-        - "PRESSION"
-        - "TAUX_DE_VIDE"
-        - "VITESSE_MASSIQUE"
-        - "VITESSE_LIQUIDE"
-        - "VITESSE_VAPEUR"
-        - "TITRE"
-        - "ENERGIE_INTERNE"
-        - "ENTHALPIE"
-        - "FLUX_CRITIQUE_SUR_FLUX"
-        - "T_PAROI"
-        - "T_INTERNE"
-        - "T_EFFECTIVE"
-        """
-        outputField = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
-        if name in self._outputFieldCorrespondence.keys():
-            self._medInterface.Get_champ(self._outputFieldCorrespondence[name], outputField)
-            return outputField
-        raise Exception("THEDIDriver.getOutputMEDField the field " + name + " is not available.")
+    def getFieldUnit(self, name):
+        return self._thedi.getFieldUnit(name)
 
-    def setValue(self, name, value):
-        raise Exception("THEDIDriver.setValue is not supported")
+    def getInputMEDDoubleFieldTemplate(self, name):
+        return self._thedi.getInputMEDDoubleFieldTemplate(name)
 
-    def getValue(self, name):
-        raise Exception("THEDIDriver.getValue is not supported")
+    def setInputMEDDoubleField(self, name, field):
+        self._thedi.setInputMEDDoubleField(name, field)
+
+    def getOutputMEDDoubleField(self, name):
+        return self._thedi.getOutputMEDDoubleField(name)
+
+    def updateOutputMEDDoubleField(self, name, field):
+        self._thedi.updateOutputMEDDoubleField(name, field)
+
+    def getInputValuesNames(self):
+        return self._thedi.getInputValuesNames()
+
+    def getOutputValuesNames(self):
+        return self._thedi.getOutputValuesNames()
+
+    def getValueType(self, name):
+        return self._thedi.getValueType(name)
+
+    def getValueUnit(self, name):
+        return self._thedi.getValueUnit(name)
+
+    def setInputDoubleValue(self, name, value):
+        self._thedi.setInputDoubleValue(name, value)
+
+    def getOutputDoubleValue(self, name):
+        return self._thedi.getOutputDoubleValue(name)
+
+    def setInputIntValue(self, name, value):
+        self._thedi.setInputIntValue(name, value)
+
+    def getOutputIntValue(self, name):
+        return self._thedi.getOutputIntValue(name)
+
+    def setInputStringValue(self, name, value):
+        self._thedi.setInputStringValue(name, value)
+
+    def getOutputStringValue(self, name):
+        return self._thedi.getOutputStringValue(name)

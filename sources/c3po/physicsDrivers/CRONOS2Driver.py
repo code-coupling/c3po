@@ -54,6 +54,8 @@ class CRONOS2Driver(PhysicsDriver):
         # The values are set in "initialize" for use in gibiane instructions of CRONOS2
         self._paramDict = {}
 
+        self._stationaryMode = False
+
     def setParamDict(self, paramDict):
         """! Set a new dictionary of names of CRONOS2 parameters in PARAM structures.
 
@@ -61,6 +63,15 @@ class CRONOS2Driver(PhysicsDriver):
         do not use it unless you know exactly what you are doing.
         """
         self._paramDict = paramDict
+
+    def getICOCOVersion(self):
+        return '2.0'
+
+    def getMEDCouplingMajorVersion(self):
+        return mc.MEDCouplingVersionMajMinRel()[0]
+
+    def isMEDCoupling64Bits(self):
+        return mc.MEDCouplingSizeOfIDs() == 64
 
     def setDataFile(self, datafile):
         """! See PhysicsDriver.setDataFile(). """
@@ -144,13 +155,22 @@ class CRONOS2Driver(PhysicsDriver):
         self._access.eval("T_c3po.'PRESENT_TIME' = " + "{:.5f}".format(self._time) + " ;")
         self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_VALIDATE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
 
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
+
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
         if self._dt > 0:
             raise Exception("CRONOS2Driver.abortTimeStep: NotImplemented.")
 
-    def getOutputMEDField(self, name):
-        """! See PhysicsDriver.getOutputMEDField().
+    def resetTime(self, time_):
+        self._time = time_
+
+    def getOutputMEDDoubleField(self, name):
+        """! See PhysicsDriver.getOutputMEDDoubleField().
 
         The gibiane subroutine ICOCO_GET_OUTPUT_MEDFIELD :
 
@@ -169,8 +189,8 @@ class CRONOS2Driver(PhysicsDriver):
             return fieldOutput
         raise Exception("CRONOS2Driver.getOutputMEDField Only " + str(ParamKey.outputKeys) + " output available but name='" + name + "'.")
 
-    def getInputMEDFieldTemplate(self, name):
-        """! See PhysicsDriver.getInputMEDFieldTemplate().
+    def getInputMEDDoubleFieldTemplate(self, name):
+        """! See PhysicsDriver.getInputMEDDoubleFieldTemplate().
 
         The gibiane subroutine ICOCO_GET_INPUT_MEDFIELD_TEMPLATE :
 
@@ -189,8 +209,8 @@ class CRONOS2Driver(PhysicsDriver):
             return fieldTemplate
         raise Exception("CRONOS2Driver.getIntputMEDFieldTemplate Only " + str(ParamKey.inputKeys) + " template available but name='" + name + "'.")
 
-    def setInputMEDField(self, name, field):
-        """! See PhysicsDriver.setInputMEDField().
+    def setInputMEDDoubleField(self, name, field):
+        """! See PhysicsDriver.setInputMEDDoubleField().
 
         The gibiane subroutine ICOCO_SET_INPUT_MEDFIELD :
 
@@ -211,8 +231,8 @@ class CRONOS2Driver(PhysicsDriver):
         else:
             raise Exception("CRONOS2Driver.setInputMEDField Only " + str(ParamKey.inputKeys) + " input possible but name='" + name + "'.")
 
-    def setValue(self, name, value):
-        """! See PhysicsDriver.setValue().
+    def setInputDoubleValue(self, name, value):
+        """! See PhysicsDriver.setInputDoubleValue().
 
         The gibiane subroutine ICOCO_SET_VALUE :
 
@@ -227,8 +247,8 @@ class CRONOS2Driver(PhysicsDriver):
         self._access.eval("T_c3po.'value'.'" + name + "' = " + "{:.5f}".format(value) + " ;")
         self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_VALUE T_IMP T_STR T_OPT T_RES T_C3PO ;")
 
-    def getValue(self, name):
-        """! See PhysicsDriver.getValue().
+    def getOutputDoubleValue(self, name):
+        """! See PhysicsDriver.getOutputDoubleValue().
 
         The gibiane subroutine ICOCO_GET_VALUE :
 

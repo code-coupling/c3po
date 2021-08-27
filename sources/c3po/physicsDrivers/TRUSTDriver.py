@@ -12,6 +12,7 @@
 from __future__ import print_function, division
 
 import trusticoco as ti
+import c3po.medcouplingCompat as mc
 from c3po.PhysicsDriver import PhysicsDriver
 
 
@@ -23,12 +24,26 @@ class TRUSTDriver(ti.ProblemTrio, PhysicsDriver):
         ti.ProblemTrio.__init__(self)
         PhysicsDriver.__init__(self)
         self._dt = 0.
+        self._timeShift = 0.
+        self._stationaryMode = False
+
+    def getICOCOVersion(self):
+        return '2.0'
+
+    def getMEDCouplingMajorVersion(self):
+        return mc.MEDCouplingVersionMajMinRel()[0]
+
+    def isMEDCoupling64Bits(self):
+        return mc.MEDCouplingSizeOfIDs() == 64
 
     def initialize(self):
         return ti.ProblemTrio.initialize(self)
 
     def terminate(self):
         ti.ProblemTrio.terminate(self)
+
+    def presentTime(self):
+        return ti.ProblemTrio.presentTime(self) - self._timeShift
 
     def computeTimeStep(self):
         return ti.ProblemTrio.computeTimeStep(self)
@@ -43,9 +58,24 @@ class TRUSTDriver(ti.ProblemTrio, PhysicsDriver):
     def validateTimeStep(self):
         ti.ProblemTrio.validateTimeStep(self)
 
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
+
     def abortTimeStep(self):
         ti.ProblemTrio.abortTimeStep(self)
 
-    def setInputMEDField(self, name, field):
+    def resetTime(self, time_):
+        self._timeShift = ti.ProblemTrio.presentTime(self) - time_
+
+    def setInputMEDDoubleField(self, name, field):
         medField = ti.MEDField(field)
         ti.ProblemTrio.setInputMEDFieldAsMF(self, name, medField)
+
+    def getInputMEDDoubleFieldTemplate(self, name):
+        return ti.ProblemTrio.getInputMEDFieldTemplate(self, name)
+
+    def getOutputMEDDoubleField(self, name):
+        return ti.ProblemTrio.getOutputMEDField(self, name)

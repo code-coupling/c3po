@@ -41,6 +41,17 @@ class CATHARE3Driver(C3, PhysicsDriver):
         C3.__init__(self)
         PhysicsDriver.__init__(self)
         self.io = 0
+        self._timeShift = 0.
+        self._stationaryMode = False
+
+    def getICOCOVersion(self):
+        return '2.0'
+
+    def getMEDCouplingMajorVersion(self):
+        return mc.MEDCouplingVersionMajMinRel()[0]
+
+    def isMEDCoupling64Bits(self):
+        return mc.MEDCouplingSizeOfIDs() == 64
 
     def solveTimeStep(self):
         return C3.solveTimeStep(self)
@@ -55,6 +66,12 @@ class CATHARE3Driver(C3, PhysicsDriver):
         C3.validateTimeStep(self)
         self.post()
 
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
+
     def abortTimeStep(self):
         return C3.abortTimeStep(self)
 
@@ -63,6 +80,12 @@ class CATHARE3Driver(C3, PhysicsDriver):
 
     def terminate(self):
         C3.terminate(self)
+
+    def presentTime(self):
+        return C3.presentTime(self) - self._timeShift
+
+    def resetTime(self, time_):
+        self._timeShift = C3.presentTime(self) - time_
 
     def getOutputMEDFieldDriver(self, name):
         """! INTERNAL """
@@ -77,8 +100,8 @@ class CATHARE3Driver(C3, PhysicsDriver):
 
     def getRowland(self, cname, loc):
         """! INTERNAL """
-        fieldC = self.getOutputMEDField(buildName("UO2CTEMP", cname, loc))
-        fieldS = self.getOutputMEDField(buildName("UO2STEMP", cname, loc))
+        fieldC = self.getOutputMEDDoubleField(buildName("UO2CTEMP", cname, loc))
+        fieldS = self.getOutputMEDDoubleField(buildName("UO2STEMP", cname, loc))
         fieldC *= 4. / 9.
         fieldS *= 5. / 9.
         fieldC.getArray().addEqual(fieldS.getArray())
@@ -86,11 +109,11 @@ class CATHARE3Driver(C3, PhysicsDriver):
 
     def getWeightedVolume(self, cname, loc, irad=-1):
         """! INTERNAL """
-        field = self.getOutputMEDField(buildName("VOLMED", cname, loc, irad))
+        field = self.getOutputMEDDoubleField(buildName("VOLMED", cname, loc, irad))
         field *= float(self.getIValue("IWPOI@{}".format(cname)))
         return field
 
-    def getOutputMEDField(self, name):
+    def getOutputMEDDoubleField(self, name):
         if name.startswith("reconstruction"):
             reco, keyword, listofobjects = name.split("__")
             _, loc, irad = reco.split(":")
@@ -107,7 +130,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
             return field
         return self.getOutputMEDFieldDriver(name)
 
-    def setInputMEDField(self, name, field):
+    def setInputMEDDoubleField(self, name, field):
 
         if name.startswith("reconstruction"):
             reco, keyword, listofobjects = name.split("__")
@@ -120,7 +143,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
                 count = 0
                 for cname in listofobjects.split("//"):
                     newName = buildName(keyword, cname, loc, irad)
-                    f1d = self.getInputMEDFieldTemplate(newName)
+                    f1d = self.getInputMEDDoubleFieldTemplate(newName)
                     nbCells = f1d.getMesh().getNumberOfCells()
 
                     localArray = mc.DataArrayDouble.New(nbCells)
@@ -133,8 +156,8 @@ class CATHARE3Driver(C3, PhysicsDriver):
         else:
             C3.setInputMEDField(self, name, field)
 
-    def getInputMEDFieldTemplate(self, name):
-        field = self.getOutputMEDField(name)
+    def getInputMEDDoubleFieldTemplate(self, name):
+        field = self.getOutputMEDDoubleField(name)
         field *= 0.0
         return field
 
@@ -143,7 +166,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
         # ecriture des maillages et entete fichier colonne
         if self.io == 0:
             for name in self.post_names["fields"]:
-                field = self.getOutputMEDField(name)
+                field = self.getOutputMEDDoubleField(name)
                 mc.WriteUMesh("{}.med".format(shortName(name)), field.getMesh(), True)
 
             with open("suivi_c3.txt", "w") as fic:
@@ -154,7 +177,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
         with open("suivi_c3.txt", "a") as fic:
             fic.write("{:12.5f} ".format(temps))
             for name in self.post_names["fields"]:
-                field = self.getOutputMEDField(name)
+                field = self.getOutputMEDDoubleField(name)
                 fic.write("{:12.5g} ".format(field.normMax()[0]))
                 field.setTime(temps, self.io, 0)
                 mc.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(shortName(name)), field)
