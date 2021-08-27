@@ -17,47 +17,43 @@ class MPITag(object):
 
     MPITag defines tags used in MPI communications.
     """
-    answer = 0
-    data = 1
+    answer                              = 0
+    data                                = 1
 
-    init = 2
-    getInitStatus = 3
-    terminate = 4
-    presentTime = 5
-    computeTimeStep = 6
-    initTimeStep = 7
-    solve = 8
-    getSolveStatus = 9
-    validateTimeStep = 10
-    abortTimeStep = 11
-    isStationary = 12
-    iterate = 13
-    getIterateStatus = 14
-    save = 15
-    restore = 16
-    forget = 17
-    getInputFieldsNames = 18
-    getInputMEDFieldTemplate = 19
-    setInputMEDField = 20
-    getOutputFieldsNames = 21
-    getOutputMEDField = 22
-    getInputValuesNames = 23
-    setValue = 24
-    getOutputValuesNames = 25
-    getValue = 26
+    init                                = 2
+    getInitStatus                       = 3
+    terminate                           = 4
+    presentTime                         = 5
+    computeTimeStep                     = 6
+    initTimeStep                        = 7
+    solve                               = 8
+    getSolveStatus                      = 9
+    validateTimeStep                    = 10
+    setStationaryMode                   = 11
+    getStationaryMode                   = 12
+    abortTimeStep                       = 13
+    isStationary                        = 14
+    resetTime                           = 15
+    iterate                             = 16
+    getIterateStatus                    = 17
+    save                                = 18
+    restore                             = 19
+    forget                              = 20
 
-    deleteDataManager = 27
-    cloneEmptyData = 28
-    copyData = 29
-    normMax = 30
-    norm2 = 31
-    addData = 32
-    iaddData = 33
-    subData = 34
-    isubData = 35
-    mulData = 36
-    imulData = 37
-    imuladdData = 38
-    dotData = 39
+    tagBARRIER                          = 100
 
-    exchange = 40
+    deleteDataManager                   = 101
+    cloneEmptyData                      = 102
+    copyData                            = 103
+    normMax                             = 104
+    norm2                               = 105
+    addData                             = 106
+    iaddData                            = 107
+    subData                             = 108
+    isubData                            = 109
+    mulData                             = 110
+    imulData                            = 111
+    imuladdData                         = 112
+    dotData                             = 113
+
+    exchange                            = 150

@@ -39,8 +39,8 @@ class MPICoupler(Coupler):
         @param dataManagers list (or dictionary) of c3po.DataManager.DataManager used in the coupling.
         @param mpiComm The optional mpiComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess
         or MPICollectiveProcess are found.
-                        It has to be given to the constructor of the object on all involved processes.
-                        If at least one MPIRemoteProcess or MPICollectiveProcess is present, this mpiComm parameter must be the same than theirs.
+        It has to be given to the constructor of the object on all involved processes.
+        If at least one MPIRemoteProcess or MPICollectiveProcess is present, this mpiComm parameter must be the same than theirs.
         """
         Coupler.__init__(self, physics, exchangers, dataManagers)
         self.mpiComm = None
@@ -61,6 +61,46 @@ class MPICoupler(Coupler):
                     raise Exception("MPIcoupler.__init__ The given mpiComm parameter is not the same than the one used by the MPI process found.")
             self.mpiComm = mpiComm
             self._isMPI = self.mpiComm.allreduce(self._isMPI, op=MPI.MAX)
+
+    def getMEDCouplingMajorVersion(self):
+        """! See Coupler.getMEDCouplingMajorVersion(). """
+        version = 0
+        try:
+            version = Coupler.getICOCOVersion(self)
+        except NotImplementedError:
+            version = 0
+        if self._isMPI:
+            versionList = self.mpiComm.allgather(version)
+            for ver in versionList:
+                if ver != 0:
+                    if ver != version:
+                        if version == 0:
+                            version = ver
+                        else:
+                            raise Exception("MPICoupler.getMEDCouplingMajorVersion Not a unique version.")
+        if version == 0:
+            raise NotImplementedError
+        return version
+
+    def isMEDCoupling64Bits(self):
+        """! See Coupler.isMEDCoupling64Bits(). """
+        resu = None
+        try:
+            resu = Coupler.isMEDCoupling64Bits(self)
+        except NotImplementedError:
+            resu = None
+        if self._isMPI:
+            resuList = self.mpiComm.allgather(resu)
+            for res in resuList:
+                if res is not None:
+                    if res != resu:
+                        if resu is None:
+                            resu = res
+                        else:
+                            raise Exception("MPICoupler.isMEDCoupling64Bits Not a unique answer.")
+        if resu is None:
+            raise NotImplementedError
+        return resu
 
     def initialize(self):
         """! See Coupler.initialize(). """
@@ -89,6 +129,16 @@ class MPICoupler(Coupler):
         resu = Coupler.getSolveStatus(self)
         if self._isMPI:
             resu = self.mpiComm.allreduce(resu, op=MPI.MIN)
+        return resu
+
+    def getStationaryMode(self):
+        """! See Coupler.getStationaryMode(). """
+        resu = Coupler.getStationaryMode(self)
+        if self._isMPI:
+            resuMin = self.mpiComm.allreduce(resu, op=MPI.MIN)
+            resuMax = self.mpiComm.allreduce(resu, op=MPI.MAX)
+            if resuMin != resuMax:
+                raise Exception("MPICoupler.getStationaryMode Not a unique stationary mode.")
         return resu
 
     def isStationary(self):

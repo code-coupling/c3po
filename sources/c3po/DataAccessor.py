@@ -191,26 +191,6 @@ class DataAccessor(object):
         """
         raise NotImplementedError
 
-    def getMEDCouplingMajorVersion(self):
-        """! (Optional) Get MEDCoupling major version, if the code was built with MEDCoupling support.
-
-        Method to implement if the code was built with MEDCoupling support.
-        This can be used to assess compatibility between codes when coupling them.
-
-        @return (int) the MEDCoupling major version number (typically 7, 8, 9, ...).
-        """
-        raise NotImplementedError
-
-    def isMEDCoupling64Bits(self):
-        """! (Optional) Indicate whether the code was built with a 64-bits version of MEDCoupling.
-
-        Method to implement if the code was built with MEDCoupling support.
-        This can be used to assess compatibility between codes when coupling them.
-
-        @return (bool) True if the code was built with a 64-bits version of MEDCoupling.
-        """
-        raise NotImplementedError
-
     def getInputValuesNames(self):
         """! (Optional) Get the list of input scalars accepted by the code.
 

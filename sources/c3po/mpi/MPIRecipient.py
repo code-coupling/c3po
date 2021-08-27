@@ -33,7 +33,7 @@ class MPIFieldRecipient(object):
         """! INTERNAL """
         mpiComm = self._sender.mpiComm
         senderRank = self._sender.rank
-        if not hasattr(self._field, "getArray"):
+        if not isinstance(self._field, mc.MEDCouplingFieldDouble):
             if self._isCollective:
                 self._field = mpiComm.bcast(self._field, root=senderRank)
             else:
@@ -64,7 +64,7 @@ class MPIFileFieldRecipient(object):
         """! INTERNAL """
         mpiComm = self._sender.mpiComm
         senderRank = self._sender.rank
-        if not hasattr(self._field, "getArray") or not self._isTemplate:
+        if self._field == 0 or not self._isTemplate:
             medInfo = ()
             if self._isCollective:
                 medInfo = mpiComm.bcast(medInfo, root=senderRank)

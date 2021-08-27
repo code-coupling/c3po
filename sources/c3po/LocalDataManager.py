@@ -20,14 +20,19 @@ from c3po.DataAccessor import DataAccessor
 class LocalDataManager(DataManager, DataAccessor):
     """! LocalDataManager is the implementation of DataManager for local data. It also implements DataAccessor.
 
-    Data are scalars or MEDCoupling fields, identified by their names.
+    Data can be double, int, string, fields of double of fields of int.
+    Only double and fields of double are affected by the methods herited from DataManager.
+    Other data are just (shallow) copied in new objects created by these methods.
     """
 
     def __init__(self):
         """! Default constructor """
-        self.values = {}
-        self.medFields = {}
-        self.medFieldTemplates = {}
+        self.valuesDouble = {}
+        self.valuesInt = {}
+        self.valuesString = {}
+        self.fieldsDouble = {}
+        self.fieldsInt = {}
+        self.fieldsDoubleTemplates = {}
 
     def clone(self):
         """! Return a clone of self.
@@ -42,7 +47,10 @@ class LocalDataManager(DataManager, DataAccessor):
         @return An empty clone of self.
         """
         output = LocalDataManager()
-        output.medFieldTemplates = self.medFieldTemplates
+        output.valuesInt = self.valuesInt
+        output.valuesString = self.valuesString
+        output.fieldsInt = self.fieldsInt
+        output.fieldsDoubleTemplates = self.fieldsDoubleTemplates
         return output
 
     def copy(self, other):
@@ -53,11 +61,11 @@ class LocalDataManager(DataManager, DataAccessor):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        for name in self.values.keys():
-            self.values[name] = other.values[name]
-        for name in self.medFields.keys():
-            otherArray = other.medFields[name].getArray()
-            self.medFields[name].getArray().setPartOfValues1(other.medFields[name].getArray(), 0, otherArray.getNumberOfTuples(), 1, 0, otherArray.getNumberOfComponents(), 1)
+        for name in self.valuesDouble:
+            self.valuesDouble[name] = other.valuesDouble[name]
+        for name in self.fieldsDouble:
+            otherArray = other.fieldsDouble[name].getArray()
+            self.fieldsDouble[name].getArray().setPartOfValues1(other.fieldsDouble[name].getArray(), 0, otherArray.getNumberOfTuples(), 1, 0, otherArray.getNumberOfComponents(), 1)
 
     def normMax(self):
         """! Return the infinite norm.
@@ -65,10 +73,10 @@ class LocalDataManager(DataManager, DataAccessor):
         @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
         """
         norm = 0.
-        for scalar in self.values.values():
+        for scalar in self.valuesDouble.values():
             if abs(scalar) > norm:
                 norm = abs(scalar)
-        for med in self.medFields.values():
+        for med in self.fieldsDouble.values():
             normMED = med.normMax()
             try:
                 normMED = max(normMED)
@@ -84,22 +92,22 @@ class LocalDataManager(DataManager, DataAccessor):
         @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = 0.
-        for scalar in self.values.values():
+        for scalar in self.valuesDouble.values():
             norm += scalar * scalar
-        for med in self.medFields.values():
+        for med in self.fieldsDouble.values():
             localNorm = med.norm2()
             norm += localNorm * localNorm
         return math.sqrt(norm)
 
     def checkBeforeOperator(self, other):
         """! INTERNAL Make basic checks before the call of an operator: same data names between self and other. """
-        if len(self.values.keys()) != len(other.values.keys()) or len(self.medFields.keys()) != len(other.medFields.keys()):
+        if len(self.valuesDouble) != len(other.valuesDouble) or len(self.fieldsDouble) != len(other.fieldsDouble):
             raise Exception("LocalDataManager.checkBeforeOperator : we cannot call an operator between two LocalDataManager with different number of stored data.")
-        for name in self.values.keys():
-            if not name in other.values.keys():
+        for name in self.valuesDouble:
+            if name not in other.valuesDouble:
                 raise Exception("LocalDataManager.checkBeforeOperator : we cannot call an operator between two LocalDataManager with different data.")
-        for name in self.medFields.keys():
-            if not name in other.medFields.keys():
+        for name in self.fieldsDouble:
+            if name not in other.fieldsDouble:
                 raise Exception("LocalDataManager.checkBeforeOperator : we cannot call an operator between two LocalDataManager with different data.")
 
     def __add__(self, other):
@@ -115,11 +123,11 @@ class LocalDataManager(DataManager, DataAccessor):
         """
         self.checkBeforeOperator(other)
         newData = self.cloneEmpty()
-        for name in self.values.keys():
-            newData.values[name] = self.values[name] + other.values[name]
-        for name in self.medFields.keys():
-            newData.medFields[name] = 1. * self.medFields[name]
-            newData.medFields[name].getArray().addEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name in self.valuesDouble:
+            newData.valuesDouble[name] = self.valuesDouble[name] + other.valuesDouble[name]
+        for name in self.fieldsDouble:
+            newData.fieldsDouble[name] = 1. * self.fieldsDouble[name]
+            newData.fieldsDouble[name].getArray().addEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return newData
 
     def __iadd__(self, other):
@@ -134,10 +142,10 @@ class LocalDataManager(DataManager, DataAccessor):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        for name in self.values.keys():
-            self.values[name] += other.values[name]
-        for name in self.medFields.keys():
-            self.medFields[name].getArray().addEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name in self.valuesDouble:
+            self.valuesDouble[name] += other.valuesDouble[name]
+        for name in self.fieldsDouble:
+            self.fieldsDouble[name].getArray().addEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return self
 
     def __sub__(self, other):
@@ -153,11 +161,11 @@ class LocalDataManager(DataManager, DataAccessor):
         """
         self.checkBeforeOperator(other)
         newData = self.cloneEmpty()
-        for name in self.values.keys():
-            newData.values[name] = self.values[name] - other.values[name]
-        for name in self.medFields.keys():
-            newData.medFields[name] = 1. * self.medFields[name]
-            newData.medFields[name].getArray().substractEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name in self.valuesDouble:
+            newData.valuesDouble[name] = self.valuesDouble[name] - other.valuesDouble[name]
+        for name in self.fieldsDouble:
+            newData.fieldsDouble[name] = 1. * self.fieldsDouble[name]
+            newData.fieldsDouble[name].getArray().substractEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return newData
 
     def __isub__(self, other):
@@ -172,10 +180,10 @@ class LocalDataManager(DataManager, DataAccessor):
         @throw Exception if self and other are not consistent.
         """
         self.checkBeforeOperator(other)
-        for name in self.values.keys():
-            self.values[name] -= other.values[name]
-        for name in self.medFields.keys():
-            self.medFields[name].getArray().substractEqual(other.medFields[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name in self.valuesDouble:
+            self.valuesDouble[name] -= other.valuesDouble[name]
+        for name in self.fieldsDouble:
+            self.fieldsDouble[name].getArray().substractEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return self
 
     def __mul__(self, scalar):
@@ -188,10 +196,10 @@ class LocalDataManager(DataManager, DataAccessor):
         @return a new (consistent with self) LocalDataManager where the data are multiplied by scalar.
         """
         newData = self.cloneEmpty()
-        for name in self.values.keys():
-            newData.values[name] = scalar * self.values[name]
-        for name in self.medFields.keys():
-            newData.medFields[name] = scalar * self.medFields[name]
+        for name in self.valuesDouble:
+            newData.valuesDouble[name] = scalar * self.valuesDouble[name]
+        for name in self.fieldsDouble:
+            newData.fieldsDouble[name] = scalar * self.fieldsDouble[name]
         return newData
 
     def __imul__(self, scalar):
@@ -203,10 +211,10 @@ class LocalDataManager(DataManager, DataAccessor):
 
         @return self.
         """
-        for name in self.values.keys():
-            self.values[name] *= scalar
-        for name in self.medFields.keys():
-            self.medFields[name] *= scalar
+        for name in self.valuesDouble:
+            self.valuesDouble[name] *= scalar
+        for name in self.fieldsDouble:
+            self.fieldsDouble[name] *= scalar
         return self
 
     def imuladd(self, scalar, other):
@@ -242,60 +250,108 @@ class LocalDataManager(DataManager, DataAccessor):
         """
         self.checkBeforeOperator(other)
         result = 0.
-        for name in self.values.keys():
-            result += self.values[name] * other.values[name]
-        for name in self.medFields.keys():
-            nparr1 = self.medFields[name].getArray().toNumPyArray()
-            nparr2 = other.medFields[name].getArray().toNumPyArray()
+        for name in self.valuesDouble:
+            result += self.valuesDouble[name] * other.valuesDouble[name]
+        for name in self.fieldsDouble:
+            nparr1 = self.fieldsDouble[name].getArray().toNumPyArray()
+            nparr2 = other.fieldsDouble[name].getArray().toNumPyArray()
             dim = 1
-            if self.medFields[name].getArray().getNumberOfComponents() > 1:
+            if self.fieldsDouble[name].getArray().getNumberOfComponents() > 1:
                 dim = 2
             result += numpy.tensordot(nparr1, nparr2, dim)
         return result
 
-    def setInputMEDField(self, name, field):
+    def setInputMEDDoubleField(self, name, field):
         """! Store the MED field field under the name name.
 
         @param name the name given to the field to store.
         @param field a field to store.
         """
-        self.medFields[name] = field
+        self.fieldsDouble[name] = field
 
-    def getOutputMEDField(self, name):
+    def getOutputMEDDoubleField(self, name):
         """! Return the MED field of name name previously stored.
 
         @param name the name of the field to return.
 
         @return the MED field of name name previously stored.
 
-        @throw Exception If there is no stored name field.
+        @throw Exception If there is no stored name Double field.
         """
-        if name not in self.medFields.keys():
-            raise Exception("LocalDataManager.getOutputMEDField unknown field " + name)
-        return self.medFields[name]
+        if name not in self.fieldsDouble:
+            raise Exception("LocalDataManager.getOutputMEDDoubleField unknown field " + name)
+        return self.fieldsDouble[name]
 
-    def setValue(self, name, value):
+    def setInputMEDIntField(self, name, field):
+        """! Similar to setInputMEDDoubleField() but for MEDIntField. """
+        self.fieldsInt[name] = field
+
+    def getOutputMEDIntField(self, name):
+        """! Similar to getOutputMEDDoubleField() but for MEDIntField. """
+        if name not in self.fieldsInt:
+            raise Exception("LocalDataManager.getOutputMEDIntField unknown field " + name)
+        return self.fieldsInt[name]
+
+    def getFieldType(self, name):
+        """! Return the type of a previously stored field. """
+        if name in self.fieldsDouble:
+            return DataAccessor.ValueType.Double
+        if name in self.fieldsInt:
+            return DataAccessor.ValueType.Int
+        raise Exception("LocalDataManager.getFieldType unknown field " + name)
+
+    def setInputDoubleValue(self, name, value):
         """! Store the scalar value under the name name.
 
         @param name the name given to the scalar to store.
         @param value a scalar value to store.
         """
-        self.values[name] = value
+        self.valuesDouble[name] = value
 
-    def getValue(self, name):
+    def getOutputDoubleValue(self, name):
         """! Return the scalar of name name previously stored.
 
         @param name the name of the value to return.
 
         @return the value of name name previously stored.
 
-        @throw Exception If there is no stored name value.
+        @throw Exception If there is no stored name Double value.
         """
-        if name not in self.values.keys():
-            raise Exception("LocalDataManager.getValue unknown value " + name)
-        return self.values[name]
+        if name not in self.valuesDouble:
+            raise Exception("LocalDataManager.getOutputDoubleValue unknown value " + name)
+        return self.valuesDouble[name]
 
-    def setInputMEDFieldTemplate(self, name, field):
+    def setInputIntValue(self, name, value):
+        """! Similar to setInputDoubleValue() but for Int. """
+        self.valuesInt[name] = value
+
+    def getOutputIntValue(self, name):
+        """! Similar to getOutputDoubleValue() but for Int. """
+        if name not in self.valuesInt:
+            raise Exception("LocalDataManager.getOutputIntValue unknown value " + name)
+        return self.valuesInt[name]
+
+    def setInputStringValue(self, name, value):
+        """! Similar to setInputDoubleValue() but for String. """
+        self.valuesString[name] = value
+
+    def getOutputStringValue(self, name):
+        """! Similar to getOutputDoubleValue() but for String. """
+        if name not in self.valuesString:
+            raise Exception("LocalDataManager.getOutputStringValue unknown value " + name)
+        return self.valuesString[name]
+
+    def getValueType(self, name):
+        """! Return the type of a previously stored field. """
+        if name in self.valuesDouble:
+            return DataAccessor.ValueType.Double
+        if name in self.valuesInt:
+            return DataAccessor.ValueType.Int
+        if name in self.valuesString:
+            return DataAccessor.ValueType.String
+        raise Exception("LocalDataManager.getValueType unknown scalar " + name)
+
+    def setInputMEDDoubleFieldTemplate(self, name, field):
         """! Store the MED field field as a MEDFieldTemplate under the name name.
 
         @param name the name given to the field to store.
@@ -303,15 +359,15 @@ class LocalDataManager(DataManager, DataAccessor):
 
         @note These fields are not be part of data, and will therefore not be taken into account in data manipulations (operators, norms etc.).
         """
-        self.medFieldTemplates[name] = field
+        self.fieldsDoubleTemplates[name] = field
 
-    def getInputMEDFieldTemplate(self, name):
-        """! Return the MED field previously stored as a MEDFieldTemplate under the name name. If there is not, returns 0.
+    def getInputMEDDoubleFieldTemplate(self, name):
+        """! Return the MED field previously stored as a MEDDoubleFieldTemplate under the name name. If there is not, returns 0.
 
         @param name the name of the field to return.
 
         @return the MED field of name name previously stored, or 0.
         """
-        if name not in self.medFieldTemplates.keys():
+        if name not in self.fieldsDoubleTemplates:
             return 0
-        return self.medFieldTemplates[name]
+        return self.fieldsDoubleTemplates[name]

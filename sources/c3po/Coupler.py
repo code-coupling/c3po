@@ -30,7 +30,7 @@ class Coupler(PhysicsDriver):
 
     A coupling is defined using PhysicsDriver, DataManager and Exchanger objects.
     A user needs to define his own class inheriting from Coupler and to define its solveTimeStep() method.
-    It may also be necessary to overload the get/set methods (of fields and / or of scalars) inherited from PhysicsDriver.
+    It may also be necessary to overload the I/O methods (for fields and/or of scalars) inherited from PhysicsDriver.
 
     @note Coupler inherits from PhysicsDriver what allows to define a coupling of couplings!
     """
@@ -49,6 +49,46 @@ class Coupler(PhysicsDriver):
         self._dataManagers = dataManagers
         self._norm = NormChoice.normMax
         self._dt = 1.e30
+
+    def getICOCOVersion(self):
+        """! See PhysicsDriver.getICOCOVersion(). """
+        return '2.0'
+
+    def getMEDCouplingMajorVersion(self):
+        """! See PhysicsDriver.getMEDCouplingMajorVersion(). """
+        version = 0
+        for physics in self._physicsDriversList:
+            localVersion = version
+            try:
+                localVersion = physics.getMEDCouplingMajorVersion()
+            except NotImplementedError:
+                localVersion = version
+            if localVersion != version:
+                if version == 0:
+                    version = localVersion
+                else:
+                    raise Exception("Coupler.getMEDCouplingMajorVersion Not a unique version.")
+        if version == 0:
+            raise NotImplementedError
+        return version
+
+    def isMEDCoupling64Bits(self):
+        """! See PhysicsDriver.isMEDCoupling64Bits(). """
+        resu = None
+        for physics in self._physicsDriversList:
+            localResu = resu
+            try:
+                localResu = physics.isMEDCoupling64Bits()
+            except NotImplementedError:
+                pass
+            if localResu != resu:
+                if resu is None:
+                    resu = localResu
+                else:
+                    raise Exception("Coupler.isMEDCoupling64Bits Not a unique answer.")
+        if resu is None:
+            raise NotImplementedError
+        return resu
 
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
@@ -100,6 +140,21 @@ class Coupler(PhysicsDriver):
         for physics in self._physicsDriversList:
             physics.validateTimeStep()
 
+    def setStationaryMode(self, stationaryMode):
+        """! See PhysicsDriver.setStationaryMode(). """
+        for physics in self._physicsDriversList:
+            physics.setStationaryMode(stationaryMode)
+
+    def getStationaryMode(self):
+        """! See PhysicsDriver.getStationaryMode(). """
+        resu = False
+        if len(self._physicsDriversList) > 0:
+            resu = self._physicsDriversList[0]
+        for physics in self._physicsDriversList[1:]:
+            if physics.getStationaryMode() != resu:
+                raise Exception("Coupler.getStationaryMode Not a unique stationary mode.")
+        return resu
+
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
         for physics in self._physicsDriversList:
@@ -111,6 +166,11 @@ class Coupler(PhysicsDriver):
         for physics in self._physicsDriversList:
             resu = (resu and physics.isStationary())
         return resu
+
+    def resetTime(self, time_):
+        """! See PhysicsDriver.resetTime(). """
+        for physics in self._physicsDriversList:
+            physics.resetTime(time_)
 
     def setNormChoice(self, choice):
         """! Choose a norm for future use.

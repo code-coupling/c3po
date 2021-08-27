@@ -198,7 +198,6 @@ class ListingWriter(object):
                 else:
                     toWrite += "{:.4f}".format(inputVar)
                 toWrite += ", ok = " + ("yes" if outputTuple else "no")
-
             elif methodName in ["solveTimeStep", "initialize"]:
                 toWrite += "succeed = " + ("yes" if outputTuple else "no")
             elif methodName == "terminate":
@@ -210,6 +209,14 @@ class ListingWriter(object):
                 objectPresentTime = sourceObject.presentTime()
                 toWrite += "time = " + "{:.4f}".format(objectPresentTime)
                 self._timeValidatedPhysics[self._physics.index(sourceObject)] = objectPresentTime
+            elif methodName == "setStationaryMode":
+                toWrite += "Mode = " + "Stationary" if inputVar else "Transient"
+            elif methodName == "resetTime":
+                toWrite += "time = "
+                if inputVar > 1e2 or inputVar < 0.1:
+                    toWrite += "{:.4e}".format(inputVar)
+                else:
+                    toWrite += "{:.4f}".format(inputVar)
 
             self._listingFile.write(self._physicsData[ind][1].format(toWrite, methodName, presentTimeToWrite,
                                                                      calculationTimeToWrite).encode('utf-8'))
@@ -520,14 +527,15 @@ def mergeListing(listingsName, newListingName):
 
 def getTotalTimePhysicsDriver(listingName, physicsDriverName,
                               methodNames=["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
-                                           "validateTimeStep", "abortTimeStep", "terminate"]):
+                                           "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate"]):
     """! getTotalTimePhysicsDriver() reads a listing file produced by ListingWriter or mergeListing and returns the total time
     spent by one PhysicsDriver in indicated methods.
 
     @param listingName name of the listing file to read.
     @param physicsDriverName name (given in the listing file) of the PhysicsDriver for which the total time is requested.
     @param methodNames list of the names of the methods to take into account. By defaut: everything but "exchange": ["initialize",
-    "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep", "abortTimeStep", "terminate"].
+    "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep",  "setStationaryMode", "abortTimeStep",
+    "resetTime", "terminate"].
 
     @return The total time spent by the PhysicsDriver in the indicated methods.
     """

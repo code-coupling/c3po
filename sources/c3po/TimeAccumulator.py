@@ -29,9 +29,21 @@ class TimeAccumulator(PhysicsDriver):
         """
         PhysicsDriver.__init__(self)
         self._physics = physics
-        self._dt = 0
+        self._dt = None
         self._macrodt = None
         self._saveParameters = saveParameters
+
+    def getICOCOVersion(self):
+        """! See PhysicsDriver.getICOCOVersion(). """
+        return self._physics.getICOCOVersion()
+
+    def getMEDCouplingMajorVersion(self):
+        """! See PhysicsDriver.getMEDCouplingMajorVersion(). """
+        return self._physics.getMEDCouplingMajorVersion()
+
+    def isMEDCoupling64Bits(self):
+        """! See PhysicsDriver.isMEDCoupling64Bits(). """
+        return self._physics.isMEDCoupling64Bits()
 
     def setDataFile(self, datafile):
         """! See PhysicsDriver.setDataFile(). """
@@ -77,18 +89,30 @@ class TimeAccumulator(PhysicsDriver):
         """! Make the PhysicsDriver to reach the end of the macro time step asked to TimeAccumulator
         using its own time advance procedure.
         """
-        self._physics.solveTransient(self.presentTime() + self._dt, finishAtTmax=True)
-        return self.getSolveStatus()
+        if self._dt == 0.:
+            self._physics.initTimeStep(self._dt)
+            self._physics.solve()
+        else:
+            self._physics.solveTransient(self.presentTime() + self._dt, finishAtTmax=True)
+        return self._physics.getSolveStatus()
 
     def validateTimeStep(self):
         """! See PhysicsDriver.validateTimeStep(). """
-        self._dt = 0
+        self._dt = None
         if self._saveParameters is not None and self._macrodt is not None:
             self._physics.save(*self._saveParameters)
 
+    def setStationaryMode(self, stationaryMode):
+        """! See PhysicsDriver.setStationaryMode(). """
+        self._physics.setStationaryMode(stationaryMode)
+
+    def getStationaryMode(self):
+        """! See PhysicsDriver.getStationaryMode(). """
+        return self._physics.getStationaryMode()
+
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
-        self._dt = 0
+        self._dt = None
         if self._macrodt is not None:
             if self._saveParameters is not None:
                 self._physics.restore(*self._saveParameters)
@@ -99,44 +123,104 @@ class TimeAccumulator(PhysicsDriver):
         """! See PhysicsDriver.isStationary(). """
         return self._physics.isStationary()
 
+    def resetTime(self, time_):
+        """! See PhysicsDriver.resetTime(). """
+        self._physics.resetTime(time_)
+
     def getInputFieldsNames(self):
-        """! See PhysicsDriver.getInputFieldsNames(). """
+        """! See c3po.DataAccessor.DataAccessor.getInputFieldsNames(). """
         return self._physics.getInputFieldsNames()
 
     def getOutputFieldsNames(self):
-        """! See PhysicsDriver.getOutputFieldsNames(). """
+        """! See c3po.DataAccessor.DataAccessor.getOutputFieldsNames(). """
         return self._physics.getOutputFieldsNames()
 
+    def getFieldType(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getFieldType(). """
+        return self._physics.getFieldType(name)
+
+    def getMeshUnit(self):
+        """! See c3po.DataAccessor.DataAccessor.getMeshUnit(). """
+        return self._physics.getMeshUnit()
+
+    def getFieldUnit(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getFieldUnit(). """
+        return self._physics.getFieldUnit(name)
+
+    def getInputMEDDoubleFieldTemplate(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getInputMEDDoubleFieldTemplate(). """
+        return self._physics.getInputMEDDoubleFieldTemplate(name)
+
+    def setInputMEDDoubleField(self, name, field):
+        """! See c3po.DataAccessor.DataAccessor.setInputMEDDoubleField(). """
+        self._physics.setInputMEDDoubleField(name, field)
+
+    def getOutputMEDDoubleField(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getOutputMEDDoubleField(). """
+        return self._physics.getOutputMEDDoubleField(name)
+
+    def updateOutputMEDDoubleField(self, name, field):
+        """! See c3po.DataAccessor.DataAccessor.updateOutputMEDDoubleField(). """
+        return self._physics.updateOutputMEDDoubleField(name, field)
+
+    def getInputMEDIntFieldTemplate(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getInputMEDIntFieldTemplate(). """
+        return self._physics.getInputMEDIntFieldTemplate(name)
+
+    def setInputMEDIntField(self, name, field):
+        """! See c3po.DataAccessor.DataAccessor.setInputMEDIntField(). """
+        self._physics.setInputMEDIntField(name, field)
+
+    def getOutputMEDIntField(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getOutputMEDIntField(). """
+        return self._physics.getOutputMEDIntField(name)
+
+    def updateOutputMEDIntField(self, name, field):
+        """! See c3po.DataAccessor.DataAccessor.updateOutputMEDIntField(). """
+        return self._physics.updateOutputMEDIntField(name, field)
+
     def getInputValuesNames(self):
-        """! See PhysicsDriver.getInputValuesNames(). """
+        """! See c3po.DataAccessor.DataAccessor.getInputValuesNames(). """
         return self._physics.getInputValuesNames() + ["macrodt"]
 
     def getOutputValuesNames(self):
-        """! See PhysicsDriver.getOutputValuesNames(). """
+        """! See c3po.DataAccessor.DataAccessor.getOutputValuesNames(). """
         return self._physics.getOutputValuesNames()
 
-    def getInputMEDFieldTemplate(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getInputMEDFieldTemplate(). """
-        return self._physics.getInputMEDFieldTemplate(name)
+    def getValueType(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getValueType(). """
+        return self._physics.getValueType(name)
 
-    def setInputMEDField(self, name, field):
-        """! See c3po.DataAccessor.DataAccessor.setInputMEDField(). """
-        self._physics.setInputMEDField(name, field)
+    def getValueUnit(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getValueUnit(). """
+        return self._physics.getValueUnit(name)
 
-    def getOutputMEDField(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getOutputMEDField(). """
-        return self._physics.getOutputMEDField(name)
-
-    def setValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setValue().
+    def setInputDoubleValue(self, name, value):
+        """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue().
 
         The macro time step used by the object can be modified here, using name="macrodt".
         """
         if name == "macrodt":
             self._macrodt = value
         else:
-            self._physics.setValue(name, value)
+            self._physics.setInputDoubleValue(name, value)
 
-    def getValue(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getValue(). """
-        return self._physics.getValue(name)
+    def getOutputDoubleValue(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getOutputDoubleValue(). """
+        return self._physics.getOutputDoubleValue(name)
+
+    def setInputIntValue(self, name, value):
+        """! See c3po.DataAccessor.DataAccessor.setInputIntValue(). """
+        self._physics.setInputIntValue(name, value)
+
+    def getOutputIntValue(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getOutputIntValue(). """
+        return self._physics.getOutputIntValue(name)
+
+    def setInputStringValue(self, name, value):
+        """! See c3po.DataAccessor.DataAccessor.setInputStringValue(). """
+        self._physics.setInputStringValue(name, value)
+
+    def getOutputStringValue(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getOutputStringValue(). """
+        return self._physics.getOutputStringValue(name)

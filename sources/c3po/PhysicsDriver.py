@@ -51,9 +51,29 @@ class PhysicsDriver(DataAccessor):
         self._iterateStatus = (True, True)
 
     def getICOCOVersion(self):
-        """! Return ICoCo interface version number in a string.
+        """! (Mandatory) Return ICoCo interface version number in a string.
 
         @return (string) Should return '2.0'.
+        """
+        raise NotImplementedError
+
+    def getMEDCouplingMajorVersion(self):
+        """! (Optional) Get MEDCoupling major version, if the code was built with MEDCoupling support.
+
+        Mandatory if the code is built with MEDCoupling support.
+        This can be used to assess compatibility between codes when coupling them.
+
+        @return (int) the MEDCoupling major version number (typically 7, 8, 9, ...).
+        """
+        raise NotImplementedError
+
+    def isMEDCoupling64Bits(self):
+        """! (Optional) Indicate whether the code was built with a 64-bits version of MEDCoupling.
+
+        Mandatory if the code is built with MEDCoupling support.
+        This can be used to assess compatibility between codes when coupling them.
+
+        @return (bool) True if the code was built with a 64-bits version of MEDCoupling.
         """
         raise NotImplementedError
 

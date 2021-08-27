@@ -278,6 +278,14 @@ class JFNKCoupler(Coupler):
         """! See Coupler.validateTimeStep(). """
         Coupler.validateTimeStep(self)
 
+    def setStationaryMode(self, stationaryMode):
+        """! See Coupler.setStationaryMode(). """
+        Coupler.setStationaryMode(self, stationaryMode)
+
     def abortTimeStep(self):
         """! See Coupler.abortTimeStep(). """
         Coupler.abortTimeStep(self)
+
+    def resetTime(self, time_):
+        """! See Coupler.resetTime(). """
+        Coupler.resetTime(self, time_)

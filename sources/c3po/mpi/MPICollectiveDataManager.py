@@ -36,5 +36,8 @@ class MPICollectiveDataManager(LocalDataManager, MPICollectiveProcess):
         @return An empty clone of self.
         """
         output = MPICollectiveDataManager(self.mpiComm)
-        output.medFieldTemplates = self.medFieldTemplates
+        output.valuesInt = self.valuesInt
+        output.valuesString = self.valuesString
+        output.fieldsInt = self.fieldsInt
+        output.fieldsDoubleTemplates = self.fieldsDoubleTemplates
         return output

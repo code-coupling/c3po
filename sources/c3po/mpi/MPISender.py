@@ -35,12 +35,12 @@ class MPIFieldSender(object):
         """! INTERNAL """
         field = 0
         if self._isTemplate:
-            field = self._dataAccess.getInputMEDFieldTemplate()
+            field = self._dataAccess.getFieldTemplate()
         else:
-            field = self._dataAccess.getOutputMEDField()
+            field = self._dataAccess.get()
         for destination in self._destinations:
             mpiComm = destination.mpiComm
-            if self._isFirstSend or not hasattr(field, "getArray"):
+            if self._isFirstSend or not isinstance(field, mc.MEDCouplingFieldDouble):
                 if isinstance(destination, MPICollectiveProcess):
                     mpiComm.bcast(field, root=mpiComm.Get_rank())
                 else:
@@ -69,9 +69,9 @@ class MPIFileFieldSender(object):
         """! INTERNAL """
         field = 0
         if self._isTemplate:
-            field = self._dataAccess.getInputMEDFieldTemplate()
+            field = self._dataAccess.getFieldTemplate()
         else:
-            field = self._dataAccess.getOutputMEDField()
+            field = self._dataAccess.get()
 
         if len(self._destinations) > 0 and (self._isFirstSend or not self._isTemplate):
             num = 0
@@ -103,7 +103,7 @@ class MPIValueSender(object):
 
     def exchange(self):
         """! INTERNAL """
-        value = self._dataAccess.getValue()
+        value = self._dataAccess.get()
         for destination in self._destinations:
             mpiComm = destination.mpiComm
             if isinstance(destination, MPICollectiveProcess):

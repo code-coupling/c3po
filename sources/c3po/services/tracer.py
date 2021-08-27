@@ -18,19 +18,29 @@ import os
 import c3po.medcouplingCompat as mc
 
 
-def getSetInputMEDFieldInput(name, field):
+def getNameFieldInput(name, field):
     """! INTERNAL """
     return (name, field)
 
 
-def getGetOutputMEDFieldInput(name):
+def getNameInput(name):
     """! INTERNAL """
     return name
 
 
-def getInitTimeStepInput(dt):
+def getDtInput(dt):
     """! INTERNAL """
     return dt
+
+
+def getStationaryModeInput(stationaryMode):
+    """! INTERNAL """
+    return stationaryMode
+
+
+def getTimeInput(time_):
+    """! INTERNAL """
+    return time_
 
 
 def getArgsString(*args, **kwargs):
@@ -71,8 +81,8 @@ class TracerMeta(type):
                     self.static_Objectcounter[name] += 1
                     self.tracerRecurrenceDepth = 0
 
-                if self.static_saveInputMED and method.__name__ == "setInputMEDField":
-                    (nameField, field) = getSetInputMEDFieldInput(*args, **kwargs)
+                if self.static_saveInputMED and method.__name__.startswith("setInputMED"):
+                    (nameField, field) = getNameFieldInput(*args, **kwargs)
                     nameMEDFile = name + "_input_" + nameField + "_"
                     num = 0
                     while os.path.exists(nameMEDFile + str(num) + ".med"):
@@ -89,8 +99,8 @@ class TracerMeta(type):
                     stringArgs = getArgsString(*args, **kwargs)
                     if method.__name__ == "__init__":
                         self.static_pythonFile.write(self.tracerObjectName + " = " + name + stringArgs + "\n")
-                    elif method.__name__ == "setInputMEDField":
-                        (nameField, _) = getSetInputMEDFieldInput(*args, **kwargs)
+                    elif method.__name__.startswith("setInputMED"):
+                        (nameField, _) = getNameFieldInput(*args, **kwargs)
                         self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n")
                     else:
                         self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ + stringArgs + "\n")
@@ -126,8 +136,8 @@ class TracerMeta(type):
                     os.dup2(prevIdstderr, sys.stderr.fileno())
                     os.close(prevIdstderr)
 
-                if self.static_saveOutputMED and method.__name__ == "getOutputMEDField":
-                    nameField = getGetOutputMEDFieldInput(*args, **kwargs)
+                if self.static_saveOutputMED and method.__name__.startswith("getOutputMED"):
+                    nameField = getNameInput(*args, **kwargs)
                     nameMEDFile = name + "_output_" + nameField + "_"
                     num = 0
                     while os.path.exists(nameMEDFile + str(num) + ".med"):
@@ -137,10 +147,15 @@ class TracerMeta(type):
 
                 if self.static_lWriter is not None:
                     if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
-                                           "validateTimeStep", "abortTimeStep", "terminate", "exchange"]:
+                                           "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate", "exchange"]:
                         inputVar = 0.
                         if method.__name__ == "initTimeStep":
-                            inputVar = getInitTimeStepInput(*args, **kwargs)
+                            inputVar = getDtInput(*args, **kwargs)
+                        elif method.__name__ == "setStationaryMode":
+                            inputVar = getStationaryModeInput(*args, **kwargs)
+                        elif method.__name__ == "resetTime":
+                            inputVar = getTimeInput(*args, **kwargs)
+
                         self.static_lWriter.writeAfter(self, inputVar, result, method.__name__, start, end - start)
 
                 return result

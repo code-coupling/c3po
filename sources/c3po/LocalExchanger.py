@@ -14,33 +14,114 @@ from __future__ import print_function, division
 from c3po.Exchanger import Exchanger
 
 
-class ShortcutToData(object):
-    """! INTERNAL. It associates a DataAccessor with a name to ease further handling. """
+class ShortcutToField(object):
+    """! INTERNAL. """
 
-    def __init__(self, container, name):
+    def __init__(self, container, name, type_=None):
         """! INTERNAL."""
         self._container = container
         self._name = name
+        self._type = type_
+        self._setMethod = None
+        self._getMethod = None
+        self._getTemplateMethod = None
+        self._updateMethod = None
+        self._update = True
+        self._fieldToUpdate = None
 
-    def getOutputMEDField(self):
+    def initialize(self):
         """! INTERNAL."""
-        return self._container.getOutputMEDField(self._name)
+        if self._type is None:
+            try:
+                self._type = self._container.getFieldType(name)
+            except:
+                self._type = 'Double'
+        if self._type == 'Double':
+            self._setMethod = self._container.setInputMEDDoubleField
+            self._getMethod = self._container.getOutputMEDDoubleField
+            self._getTemplateMethod = self._container.getInputMEDDoubleFieldTemplate
+            self._updateMethod = self._container.updateOutputMEDDoubleField
+        elif self._type == 'Int':
+            self._setMethod = self._container.setInputMEDIntField
+            self._getMethod = self._container.getOutputMEDIntField
+            self._getTemplateMethod = self._container.getInputMEDIntFieldTemplate
+            self._updateMethod = self._container.updateOutputMEDIntField
+        elif self._type == 'String':
+            self._setMethod = self._container.setInputMEDStringField
+            self._getMethod = self._container.getOutputMEDIntField
+            self._getTemplateMethod = self._container.getInputMEDStringFieldTemplate
+            self._updateMethod = self._container.updateOutputMEDStringField
+        else:
+            raise Exception("ShortcutToField.initialize unknown field type.")
 
-    def getInputMEDFieldTemplate(self):
+    def get(self):
         """! INTERNAL."""
-        return self._container.getInputMEDFieldTemplate(self._name)
+        if self._getMethod is None:
+            self.initialize()
+        elif self._fieldToUpdate is not None and self._update:
+            try:
+                self._updateMethod(self._name, self._fieldToUpdate)
+            except:
+                self._update = False
+                self._fieldToUpdate = self._getMethod(self._name)
+        else:
+            self._fieldToUpdate = self._getMethod(self._name)
+        return self._fieldToUpdate
 
-    def setInputMEDField(self, field):
+    def getFieldTemplate(self):
         """! INTERNAL."""
-        self._container.setInputMEDField(self._name, field)
+        if self._getTemplateMethod is None:
+            self.initialize()
+        return self._getTemplateMethod(self._name)
 
-    def getValue(self):
+    def set(self, field):
         """! INTERNAL."""
-        return self._container.getValue(self._name)
+        if self._setMethod is None:
+            self.initialize()
+        self._setMethod(self._name, field)
 
-    def setValue(self, value):
+
+class ShortcutToValue(object):
+    """! INTERNAL. """
+
+    def __init__(self, container, name, type_=None):
         """! INTERNAL."""
-        self._container.setValue(self._name, value)
+        self._container = container
+        self._name = name
+        self._type = type_
+        self._setMethod = None
+        self._getMethod = None
+
+    def initialize(self):
+        """! INTERNAL."""
+        if self._type is None:
+            try:
+                self._type = self._container.getValueType(name)
+            except:
+                self._type = 'Double'
+        if self._type == 'Double':
+            self._setMethod = self._container.setInputDoubleValue
+            self._getMethod = self._container.getOutputDoubleValue
+        elif self._type == 'Int':
+            self._setMethod = self._container.setInputIntValue
+            self._getMethod = self._container.getOutputIntValue
+        elif self._type == 'String':
+            self._setMethod = self._container.setInputStringValue
+            self._getMethod = self._container.getOutputStringValue
+        else:
+            raise Exception("ShortcutToValue.initialize unknown value type.")
+
+    def get(self):
+        """! INTERNAL."""
+        if self._getMethod is None:
+            self.initialize(False)
+        return self._getMethod(self._name)
+
+    def set(self, value):
+        """! INTERNAL."""
+        if self._setMethod is None:
+            self.initialize()
+        self._setMethod(self._name, value)
 
 
 class LocalExchanger(Exchanger):
@@ -49,41 +130,43 @@ class LocalExchanger(Exchanger):
     Once the object has been constructed, a call to exchange() triggers the exchanges of data.
     """
 
-    def __init__(self, method, medFieldsToGet, medFieldsToSet, valuesToGet=[], valuesToSet=[]):
+    def __init__(self, method, fieldsToGet, fieldsToSet, valuesToGet=[], valuesToSet=[]):
         """! Build an LocalExchanger object.
 
         @param method a user-defined function (or class with the special method __call__).
 
         * method must have three input lists:
-            * The MED fields obtained by getOutputMEDField() on the medFieldsToGet objects, in the same order.
-            * The MED fields obtained by getInputMEDFieldTemplate() on the medFieldsToSet objects, in the same order.
-            * The scalars obtained by getValue() on the valuesToGet objects, in the same order.
+            * The MED fields obtained by getOutputMED(Double/Int/String)Field() on the fieldsToGet objects, in the same order.
+            * The MED fields obtained by getInputMED(Double/Int/String)FieldTemplate() on the fieldsToSet objects, in the same order.
+            * The scalars obtained by getOutput(Double/Int/String)Value() on the valuesToGet objects, in the same order.
 
         * It must have two ouput lists:
-            * The MED fields to impose by setInputMEDField() on the medFieldsToSet objects, in the same order.
-            * The scalars to impose by setValue() on the valuesToSet objects, in the same order.
+            * The MED fields to impose by setInputMED(Double/Int/String)Field() on the fieldsToSet objects, in the same order.
+            * The scalars to impose by setIntput(Double/Int/String)Value() on the valuesToSet objects, in the same order.
 
-        @param medFieldsToGet a list of tuples (object, name). object must be a DataAccessor (PhysicsDriver or a LocalDataManager),
-            and name is the name of the field to get from object.
-        @param medFieldsToSet a list of tuples in the same format as medFieldsToGet. name is the name of the field to set in object.
-        @param valuesToGet idem medFieldsToGet but for scalars.
-        @param valuesToSet idem medFieldsToSet but for scalars.
+        @param fieldsToGet a list of tuples (object, name, type). object must be a DataAccessor (PhysicsDriver or a LocalDataManager),
+            name is the name of the field to get from object and type is either 'Double', 'Int' or 'String' (see DataAccessor.ValueType).
+            type can be omitted: in this case, LocalExchanger uses getFieldType() to get the type. If getFieldType() is not
+            implemented, 'Double' is tried.
+        @param fieldsToSet a list of tuples in the same format as fieldsToGet. name is the name of the field to set in object.
+        @param valuesToGet idem fieldsToGet but for scalars.
+        @param valuesToSet idem fieldsToSet but for scalars.
         """
-        self._fieldsToSet = [ShortcutToData(field[0], field[1]) for field in medFieldsToSet]
-        self._fieldsToGet = [ShortcutToData(field[0], field[1]) for field in medFieldsToGet]
-        self._valuesToSet = [ShortcutToData(field[0], field[1]) for field in valuesToSet]
-        self._valuesToGet = [ShortcutToData(field[0], field[1]) for field in valuesToGet]
+        self._fieldsToSet = [ShortcutToField(*tupleData) for tupleData in fieldsToSet]
+        self._fieldsToGet = [ShortcutToField(*tupleData) for tupleData in fieldsToGet]
+        self._valuesToSet = [ShortcutToValue(*tupleData) for tupleData in valuesToSet]
+        self._valuesToGet = [ShortcutToValue(*tupleData) for tupleData in valuesToGet]
         self._method = method
 
     def exchange(self):
         """! Trigger the exchange of data. """
-        fieldsToSet = [ds.getInputMEDFieldTemplate() for ds in self._fieldsToSet]
-        fieldsToGet = [ds.getOutputMEDField() for ds in self._fieldsToGet]
-        valuesToGet = [ds.getValue() for ds in self._valuesToGet]
+        fieldsToSet = [ds.getFieldTemplate() for ds in self._fieldsToSet]
+        fieldsToGet = [ds.get() for ds in self._fieldsToGet]
+        valuesToGet = [ds.get() for ds in self._valuesToGet]
         fieldsToSet, valuesToSet = self._method(fieldsToGet, fieldsToSet, valuesToGet)
         if (len(fieldsToSet) != len(self._fieldsToSet) or len(valuesToSet) != len(self._valuesToSet)):
             raise Exception("LocalExchanger.exchange the method does not have the good number of outputs.")
         for i, field in enumerate(fieldsToSet):
-            self._fieldsToSet[i].setInputMEDField(field)
+            self._fieldsToSet[i].set(field)
         for i, value in enumerate(valuesToSet):
-            self._valuesToSet[i].setValue(value)
+            self._valuesToSet[i].set(value)

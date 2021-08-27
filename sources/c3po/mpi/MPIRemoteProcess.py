@@ -32,6 +32,11 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         self.rank = rank
         self._time = 0.
         self._dt = 1.e30
+        self._stationaryMode = False
+
+    def getICOCOVersion(self):
+        """! return '2.0' """
+        return '2.0'
 
     def setMPIComm(self, mpicomm):
         """! pass """
@@ -68,6 +73,14 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
             self._time += self._dt
             self._dt = 0.
 
+    def setStationaryMode(self, stationaryMode):
+        """! self._stationaryMode = stationaryMode """
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        """! return self._stationaryMode """
+        return self._stationaryMode
+
     def abortTimeStep(self):
         """! self._dt = 0. """
         self._dt = 0.
@@ -76,15 +89,35 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         """! return True """
         return True
 
+    def resetTime(self, time_):
+        """! reset time. """
+        self._time = time_
+
     def iterateTimeStep(self):
         """! return (True, True) """
         return (True, True)
 
-    def setInputMEDField(self, name, field):
+    def setInputMEDDoubleField(self, name, field):
         """! pass """
         pass
 
-    def setValue(self, name, value):
+    def setInputMEDIntField(self, name, field):
+        """! pass """
+        pass
+
+    def setInputMEDStringField(self, name, field):
+        """! pass """
+        pass
+
+    def setInputDoubleValue(self, name, value):
+        """! pass """
+        pass
+
+    def setInputIntValue(self, name, value):
+        """! pass """
+        pass
+
+    def setInputStringValue(self, name, value):
         """! pass """
         pass
 
