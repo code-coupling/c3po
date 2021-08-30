@@ -27,10 +27,10 @@ class MPIWorker(object):
         worker is responsible for.
         @param exchangers List of c3po.Exchanger.Exchanger. The indices in this list are the numbers identifying the c3po.Exchanger.Exchanger
         for the master.
-        @param dataManagers List of c3po.DataManager.DataManager. The indices in this list are the numbers identifying the
+        @param dataManagers List of c3po.DataManager.DataManager. The indices of this list are the numbers identifying the
         c3po.DataManager.DataManager for the master.
         @param masterProcess A MPIRemoteProcess identifying the master process.
-        @param isCollective Put True if the master process use collective MPI methods (if it has been initialized with a
+        @param isCollective Put True if the master process uses collective MPI methods (if it has been initialized with a
         c3po.mpi.MPICollectiveProcess.MPICollectiveProcess object as worker).
         """
         found = False

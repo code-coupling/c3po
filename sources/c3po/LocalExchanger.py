@@ -145,7 +145,7 @@ class LocalExchanger(Exchanger):
             * The scalars to impose by setIntput(Double/Int/String)Value() on the valuesToSet objects, in the same order.
 
         @param fieldsToGet a list of tuples (object, name, type). object must be a DataAccessor (PhysicsDriver or a LocalDataManager),
-            name is the name of the field to get from object and type is either 'Double', 'Int' or 'String' (see DataAccessor.ValueType).
+            name is the name of the field to get from object and type is either 'Double', 'Int' or 'String' (see c3po.DataAccessor.DataAccessor.ValueType).
             type can be omitted: in this case, LocalExchanger uses getFieldType() to get the type. If getFieldType() is not
             implemented, 'Double' is tried.
         @param fieldsToSet a list of tuples in the same format as fieldsToGet. name is the name of the field to set in object.

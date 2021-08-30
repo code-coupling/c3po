@@ -19,7 +19,7 @@ from c3po.DataManager import DataManager
 
 
 class MPIMasterDataManager(DataManager):
-    """! MPIMasterDataManager is used by the master process to control a (set of) remote c3po.DataManager.DataManager as a local one.
+    """! MPIMasterDataManager is used by the master process to control a (set of) remote c3po.DataManager.DataManager(s) as a local one.
 
     It can, in addition, be in charge of a local one (can be usefull to contribute to a collaborative computation).
 

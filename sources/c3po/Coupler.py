@@ -32,7 +32,7 @@ class Coupler(PhysicsDriver):
     A user needs to define his own class inheriting from Coupler and to define its solveTimeStep() method.
     It may also be necessary to overload the I/O methods (for fields and/or of scalars) inherited from PhysicsDriver.
 
-    @note Coupler inherits from PhysicsDriver what allows to define a coupling of couplings!
+    @note Coupler inherits from PhysicsDriver, it is therefore possible to couple of Coupler objects!
     """
 
     def __init__(self, physics, exchangers, dataManagers=[]):

@@ -8,7 +8,7 @@ C3PO (Collaborative Code Coupling PlatfOrm) is a high-level Python library, offe
   - Use of Python. Codes have to be wrapped into a Python class, which allows to coordinate them in a homogeneous way regardless of their native programming language.
   - Use of MEDCoupling for data exchanges. MEDCoupling is the common format choosen for the exchanges of space-dependent variables. MEDCoupling is a C++ library, with Python binding, provided by the open-source SALOME platform [1].
   - If needed, use of MPI as distributed memory parallelization standard. MPI is by far the dominant distributed memory parallelization standard. C3PO is compatible with the use of MPI, but does not support other distributed memory parallelization standards. On the other hand, full flexibility is given for the intra-code shared memory parallelization.
-  - Implementation of an ICoCo API [2]. ICoCo is the code API used by C3PO. It includes all required capabilities for multiphysics simulations such as initialization, termination, time-step control, solving, exchange of variables etc. It is defined by c3po.PhysicsDriver.PhysicsDriver.
+  - Implementation of an ICoCo API [2]. ICoCo (V2) is the code API used by C3PO. It includes all required capabilities for multiphysics simulations such as initialization, termination, time-step control, solving, exchange of variables etc. It is defined by c3po.PhysicsDriver.PhysicsDriver.
 
 For more information about code integration, see @ref Code_integration_pag.
 
@@ -112,10 +112,8 @@ These two parallelization modes share a common base of concepts.
 
 \subsubsection MasterWorkersMPIsources_sec II.2.3. Master/workers mode
 
-  - c3po.mpi.MPIMasterPhysicsDriver.MPIMasterPhysicsDriver is used by the master process to control a remote c3po.PhysicsDriver.PhysicsDriver.
-  - c3po.mpi.MPIMasterCollectivePhysicsDriver.MPIMasterCollectivePhysicsDriver is used by the master process to control a set of remote c3po.PhysicsDriver.PhysicsDriver as a single one.
-  - c3po.mpi.MPIMasterDataManager.MPIMasterDataManager is used by the master process to control a remote c3po.DataManager.DataManager.
-  - c3po.mpi.MPIMasterCollectiveDataManager.MPIMasterCollectiveDataManager is used by the master process to control a set of remote c3po.DataManager.DataManager as a single one.
+  - c3po.mpi.MPIMasterPhysicsDriver.MPIMasterPhysicsDriver is used by the master process to control remote c3po.PhysicsDriver.PhysicsDriver(s) as a local one.
+  - c3po.mpi.MPIMasterDataManager.MPIMasterDataManager is used by the master process to control remote c3po.DataManager.DataManager(s) as a local one.
   - c3po.mpi.MPIMasterExchanger.MPIMasterExchanger is used by the master to control remote c3po.Exchanger.Exchanger(s).
   - c3po.mpi.MPIWorker.MPIWorker defines the behavior of workers.
 

@@ -18,7 +18,7 @@ from c3po.mpi.MPITag import MPITag
 
 
 class MPIMasterPhysicsDriver(PhysicsDriver):
-    """! MPIMasterPhysicsDriver is used by a master process to control a (set of) remote c3po.PhysicsDriver.PhysicsDriver as a local one.
+    """! MPIMasterPhysicsDriver is used by a master process to control a (set of) remote c3po.PhysicsDriver.PhysicsDriver(s) as a local one.
 
     It can, in addition, be in charge of a local one (can be usefull for codes using an internal collaborative MPI parallelization).
 
@@ -72,6 +72,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         self._dataManagersToFree.append(idDataManager)
 
     def getICOCOVersion(self):
+        """! See PhysicsDriver.getICOCOVersion(). """
         return '2.0'
 
     def init(self):
@@ -235,19 +236,19 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
             self._localPhysicsDriver.forget(label, method)
 
     def setInputDoubleValue(self, name, value):
-        """! See PhysicsDriver.setValue(). """
+        """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue(). """
         self.sendData(MPITag.setInputDoubleValue, (name, value))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setInputDoubleValue(name, value)
 
     def setInputIntValue(self, name, value):
-        """! See PhysicsDriver.setValue(). """
+        """! See c3po.DataAccessor.DataAccessor.setInputIntValue(). """
         self.sendData(MPITag.setInputIntValue, (name, value))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setInputIntValue(name, value)
 
     def setInputStringValue(self, name, value):
-        """! See PhysicsDriver.setValue(). """
+        """! See c3po.DataAccessor.DataAccessor.setInputStringValue(). """
         self.sendData(MPITag.setInputStringValue, (name, value))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setInputStringValue(name, value)
