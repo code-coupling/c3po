@@ -53,7 +53,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
     def sendData(self, tag, data=None):
         """! INTERNAL """
         if self._isCollective:
-            toSend = (tag,) if data is None else (tag,data)
+            toSend = (tag,) if data is None else (tag, data)
             self.mpiComm.bcast(toSend, root=self._masterRank)
         else:
             if data is None:
@@ -64,8 +64,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         """! INTERNAL """
         if self._isCollective:
             return self.mpiComm.reduce(data, op=collectiveOperator, root=self._masterRank)
-        else:
-            return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
+        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
 
     def setDataManagerToFree(self, idDataManager):
         """! INTERNAL """

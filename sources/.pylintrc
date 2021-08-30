@@ -280,7 +280,8 @@ good-names=i,
            k,
            _,
            dt,
-           ok
+           ok,
+           time_
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted

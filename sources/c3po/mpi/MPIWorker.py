@@ -14,7 +14,6 @@ from mpi4py import MPI
 
 from c3po.mpi.MPITag import MPITag
 from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
-from c3po.mpi.MPIMasterPhysicsDriver import MPIMasterPhysicsDriver
 
 
 class MPIWorker(object):
@@ -74,7 +73,7 @@ class MPIWorker(object):
     def listen(self):
         """! Make the worker waits for instructions from the master.
 
-        The worker gets out of this waiting mode when the master call the terminate method of the related MPIMasterPhysicsDriver.
+        The worker gets out of this waiting mode when the master call the terminate method of the related c3po.mpi.MPIMasterPhysicsDriver.MPIMasterPhysicsDriver.
         """
         status = MPI.Status()
         tag = MPITag.init

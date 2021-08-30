@@ -110,11 +110,11 @@ class FLICA4Driver(PhysicsDriver):
     def setInputDoubleValue(self, name, value):
         self._flica4.setValue(name, value)
 
-    def setInputIntValue(self, name,  value):
+    def setInputIntValue(self, name, value):
         if name == "nbIterMaxSteadyState":
             self._permSteps = value
         else:
-            raise Exception("FLICA4Driver.setInputIntValue : unknown scalar "+ name + ".")
+            raise Exception("FLICA4Driver.setInputIntValue : unknown scalar " + name + ".")
 
     def getOutputDoubleValue(self, name):
         return self._flica4.getValue(name)
