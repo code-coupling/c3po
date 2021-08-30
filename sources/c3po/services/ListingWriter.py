@@ -97,19 +97,19 @@ class ListingWriter(object):
         for i, ph1 in enumerate(self._physicsData):
             for j in range(len(self._physicsData)):
                 if i == j:
-                    ph1[1] += u"{:^22}│"
+                    ph1[1] += u"{:^23}│"
                 else:
                     ph1[1] += u"                      │"
             for exc in self._exchangersData:
-                exc[1] += u"{1:-^22}│"
-            self._boxFormat[ListingWriter.enumTop] += u"━━━━━━━━━━━━━━━━━━━━━━┯"
-            self._boxFormat[ListingWriter.enumEntete] += u"{:^22.22}│"
-            self._boxFormat[ListingWriter.enumCloseTop] += u"──────────────────────┼"
-            self._boxFormat[ListingWriter.enumTerm] += u"━━━━━━━━━━━━━━━━━━━━━━┷"
-            self._boxFormat[ListingWriter.enumInterrupt] += u"──────────────────────" + (u"┴" if i != (len(self._physicsData) - 1) else u"┼")
-            self._boxFormat[ListingWriter.enumContinue] += u"──────────────────────" + (u"┬" if i != (len(self._physicsData) - 1) else u"┼")
+                exc[1] += u"{1:-^23}│"
+            self._boxFormat[ListingWriter.enumTop] += u"━━━━━━━━━━━━━━━━━━━━━━━┯"
+            self._boxFormat[ListingWriter.enumEntete] += u"{:^23.23}│"
+            self._boxFormat[ListingWriter.enumCloseTop] += u"───────────────────────┼"
+            self._boxFormat[ListingWriter.enumTerm] += u"━━━━━━━━━━━━━━━━━━━━━━━┷"
+            self._boxFormat[ListingWriter.enumInterrupt] += u"───────────────────────" + (u"┴" if i != (len(self._physicsData) - 1) else u"┼")
+            self._boxFormat[ListingWriter.enumContinue] += u"───────────────────────" + (u"┬" if i != (len(self._physicsData) - 1) else u"┼")
 
-        decalage = (22 + 1) * len(self._physicsData) - 1
+        decalage = (23 + 1) * len(self._physicsData) - 1
         self._boxFormat[ListingWriter.enumBilan] += u"{:^" + str(decalage) + u"}│"
 
         for phy in self._physicsData:
@@ -262,8 +262,8 @@ class MergedListingWriter(ListingWriter):
         self._boxFormat[MergedListingWriter.enumPhysicsEnd] += u"┃{:^28}│"
 
         for _ in self._physicsData:
-            self._boxFormat[MergedListingWriter.enumPhysicsStart] += u"{:^22}│"
-            self._boxFormat[MergedListingWriter.enumPhysicsEnd] += u"{:^22}│"
+            self._boxFormat[MergedListingWriter.enumPhysicsStart] += u"{:^23}│"
+            self._boxFormat[MergedListingWriter.enumPhysicsEnd] += u"{:^23}│"
 
         self._boxFormat[MergedListingWriter.enumPhysicsStart] += u"{:^12}│"
         self._boxFormat[MergedListingWriter.enumPhysicsEnd] += u"{:^12}│"
@@ -271,7 +271,7 @@ class MergedListingWriter(ListingWriter):
         self._boxFormat[MergedListingWriter.enumPhysicsStart] += u"{:^12}┃\n"
         self._boxFormat[MergedListingWriter.enumPhysicsEnd] += u"            ┃\n"
 
-        self._boxFormat[MergedListingWriter.enumExchangeElem] += u"{:-^22}"
+        self._boxFormat[MergedListingWriter.enumExchangeElem] += u"{:-^23}"
 
     def readLastLine(self):
         """! INTERNAL """

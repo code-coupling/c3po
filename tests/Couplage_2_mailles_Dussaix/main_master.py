@@ -29,16 +29,22 @@ class DussaixSeq_master_worker(unittest.TestCase):
 
         myThermoDriver = c3po.mpi.MPIMasterPhysicsDriver(ThermoProcess)
         myThermoDriver.init()
-        myThermoDriver.setValue("Vv_Vl", 10.)
+        myThermoDriver.setInputDoubleValue("Vv_Vl", 10.)
 
         myNeutroDriver = c3po.mpi.MPIMasterPhysicsDriver(NeutroProcess)
         myNeutroDriver.init()
-        myNeutroDriver.setValue("meanT", 1000.)
+        myNeutroDriver.setInputDoubleValue("meanT", 1000.)
+
+        dataResu = c3po.LocalDataManager()
 
         DataCoupler = c3po.mpi.MPIMasterDataManager(myThermoDriver, 0)
         ExchangerNeutro2Thermo = c3po.mpi.MPIMasterExchanger([ThermoProcess, NeutroProcess], 0)
         ExchangerThermo2Data = c3po.mpi.MPIMasterExchanger([ThermoProcess, NeutroProcess], 1)
         ExchangerData2Neutro = c3po.mpi.MPIMasterExchanger([ThermoProcess, NeutroProcess], 2)
+        ExchangerNeutro2MasterLocal = c3po.mpi.MPIExchanger(c3po.DirectMatching(), [(NeutroProcess, "Temperatures")], [(dataResu, "Temperatures")])
+        ExchangerNeutro2Master = c3po.mpi.MPIMasterExchanger([NeutroProcess], 3, ExchangerNeutro2MasterLocal)
+        ExchangerThermo2MasterLocal = c3po.mpi.MPIExchanger(c3po.DirectMatching(), [(ThermoProcess, "Densities")], [(dataResu, "Densities")])
+        ExchangerThermo2Master = c3po.mpi.MPIMasterExchanger([ThermoProcess], 3, ExchangerThermo2MasterLocal)
 
         OneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [ExchangerNeutro2Thermo])
 
@@ -47,9 +53,11 @@ class DussaixSeq_master_worker(unittest.TestCase):
         mycoupler.setConvergenceParameters(1E-5, 100)
 
         mycoupler.solve()
-        FieldT = myNeutroDriver.getOutputMEDField("Temperatures")
+        ExchangerNeutro2Master.exchange()
+        ExchangerThermo2Master.exchange()
+        FieldT = dataResu.getOutputMEDDoubleField("Temperatures")
         ArrayT = FieldT.getArray()
-        FieldRho = myThermoDriver.getOutputMEDField("Densities")
+        FieldRho = dataResu.getOutputMEDDoubleField("Densities")
         ArrayRho = FieldRho.getArray()
 
         print("Convergence :", mycoupler.getSolveStatus())

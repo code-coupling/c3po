@@ -53,14 +53,20 @@ class Listings_test(unittest.TestCase):
 
         mycoupler.init()
 
+        mycoupler.setStationaryMode(False)
+        print('Stationary mode :', mycoupler.getStationaryMode())
+
         myPhysics.setOption(1., 0.5)
         myPhysics2.setOption(3., -1.)
 
         mycoupler.solveTransient(2.)
-        print(myPhysics.getValue("y"), myPhysics2.getValue("y"))
+        print(myPhysics.getOutputDoubleValue("y"), myPhysics2.getOutputDoubleValue("y"))
 
-        self.assertAlmostEqual(myPhysics.getValue("y"), 3.166666, 4)
-        self.assertAlmostEqual(myPhysics2.getValue("y"), 2.533333, 4)
+        self.assertAlmostEqual(myPhysics.getOutputDoubleValue("y"), 3.166666, 4)
+        self.assertAlmostEqual(myPhysics2.getOutputDoubleValue("y"), 2.533333, 4)
+
+        mycoupler.resetTime(0.)
+        mycoupler.solveTransient(1.)
 
         mycoupler.terminate()
 

@@ -149,7 +149,7 @@ class Coupler(PhysicsDriver):
         """! See PhysicsDriver.getStationaryMode(). """
         resu = False
         if len(self._physicsDriversList) > 0:
-            resu = self._physicsDriversList[0]
+            resu = self._physicsDriversList[0].getStationaryMode()
         for physics in self._physicsDriversList[1:]:
             if physics.getStationaryMode() != resu:
                 raise Exception("Coupler.getStationaryMode Not a unique stationary mode.")

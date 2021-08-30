@@ -9,16 +9,6 @@ import c3po
 import c3po.mpi
 
 
-class Thermo2Neutro(c3po.SharedRemapping):
-    def __init__(self, remapper):
-        c3po.SharedRemapping.__init__(self, remapper, reverse=False)
-
-
-class Neutro2Thermo(c3po.SharedRemapping):
-    def __init__(self, remapper):
-        c3po.SharedRemapping.__init__(self, remapper, reverse=True)
-
-
 class OneIterationCoupler(c3po.mpi.MPICoupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
         c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
@@ -37,16 +27,16 @@ class DussaixSeq_test(unittest.TestCase):
 
         myThermoDriver = ThermoDriver()
         myThermoDriver.init()
-        myThermoDriver.setValue("Vv_Vl", 10.)
+        myThermoDriver.setInputDoubleValue("Vv_Vl", 10.)
 
         myNeutroDriver = NeutroDriver()
         myNeutroDriver.init()
-        myNeutroDriver.setValue("meanT", 1000.)
+        myNeutroDriver.setInputDoubleValue("meanT", 1000.)
 
         basicTransformer = c3po.Remapper()
         Thermo2DataTransformer = c3po.DirectMatching()
-        Data2NeutroTransformer = Thermo2Neutro(basicTransformer)
-        Neutro2ThermoTransformer = Neutro2Thermo(basicTransformer)
+        Data2NeutroTransformer = c3po.SharedRemapping(basicTransformer, reverse=False)
+        Neutro2ThermoTransformer = c3po.SharedRemapping(basicTransformer, reverse=True)
 
         DataCoupler = c3po.mpi.MPICollectiveDataManager(MPI.COMM_WORLD)
         ExchangerNeutro2Thermo = c3po.mpi.MPIExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")])
@@ -60,9 +50,9 @@ class DussaixSeq_test(unittest.TestCase):
         mycoupler.setConvergenceParameters(1E-5, 100)
 
         mycoupler.solve()
-        FieldT = myNeutroDriver.getOutputMEDField("Temperatures")
+        FieldT = myNeutroDriver.getOutputMEDDoubleField("Temperatures")
         ArrayT = FieldT.getArray()
-        FieldRho = myThermoDriver.getOutputMEDField("Densities")
+        FieldRho = myThermoDriver.getOutputMEDDoubleField("Densities")
         ArrayRho = FieldRho.getArray()
 
         print("Convergence :", mycoupler.getSolveStatus())

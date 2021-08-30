@@ -65,20 +65,26 @@ class ListingsCollab_test(unittest.TestCase):
 
         mycoupler.init()
 
+        mycoupler.setStationaryMode(False)
+        print('Stationary mode :', mycoupler.getStationaryMode())
+
         if rank == 0:
             myPhysics.setOption(1., 0.5)
         else:
             myPhysics2.setOption(3., -1.)
 
         mycoupler.solveTransient(2.)
-        print(localPhysics.getValue("y"))
+        print(localPhysics.getOutputDoubleValue("y"))
         reference = 0.
         if rank == 0:
             reference = round(3.166666, 4)
         else:
             reference = round(2.533333, 4)
 
-        self.assertAlmostEqual(localPhysics.getValue("y"), reference, 4)
+        self.assertAlmostEqual(localPhysics.getOutputDoubleValue("y"), reference, 4)
+
+        mycoupler.resetTime(0.)
+        mycoupler.solveTransient(1.)
 
         mycoupler.terminate()
 

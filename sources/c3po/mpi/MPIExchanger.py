@@ -11,7 +11,7 @@
 """ Contain the classes MPIExchanger and MPIShortcutToData, MPIShortcutToData is for internal use only. """
 from __future__ import print_function, division
 
-from c3po.LocalExchanger import LocalExchanger, ShortcutToData
+from c3po.LocalExchanger import LocalExchanger, ShortcutToField, ShortcutToValue
 from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
 from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 from c3po.mpi.MPISender import MPIFieldSender, MPIFileFieldSender, MPIValueSender

@@ -17,6 +17,8 @@ class PhysicsMatrix(PhysicsDriver):
         self.vp_ = 0.
         self.x_ = np.zeros(shape=(self.taille_))
 
+        self._stationaryMode = False
+
     # Initialize the object.
     def initialize(self):
         self.A_[0, 0] = 2.
@@ -58,12 +60,21 @@ class PhysicsMatrix(PhysicsDriver):
         self.result_ /= self.vp_
         return True
 
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
+
     # Abort previous time-step solving. No return. No return.
     def abortTimeStep(self):
         pass
 
+    def validateTimeStep(self):
+        pass
+
     # Return an output scalar
-    def getValue(self, name):
+    def getOutputDoubleValue(self, name):
         if name == "taille":
             return self.taille_
         if name == "valeur_propre":
@@ -72,12 +83,12 @@ class PhysicsMatrix(PhysicsDriver):
         if int_name >= 0 and int_name < self.taille_:
             return self.result_[int_name]
         else:
-            raise Exception("PhysicsMatrix.getValue only outputs between 0 and " + str(self.taille_ - 1) + " available.")
+            raise Exception("PhysicsMatrix.getOutputDoubleValue only outputs between 0 and " + str(self.taille_ - 1) + " available.")
 
     # Import an input scalar. No return.
-    def setValue(self, name, value):
+    def setInputDoubleValue(self, name, value):
         int_name = int(name)
         if int_name >= 0 and int_name < self.taille_:
             self.x_[int_name] = value
         else:
-            raise Exception("PhysicsMatrix.setValue only inputs between 0 and " + str(self.taille_ - 1) + " allowed.")
+            raise Exception("PhysicsMatrix.setInputDoubleValue only inputs between 0 and " + str(self.taille_ - 1) + " allowed.")

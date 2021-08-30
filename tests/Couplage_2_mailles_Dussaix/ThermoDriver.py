@@ -36,6 +36,7 @@ class ThermoDriver(PhysicsDriver):
         self.MEDResu_ = 0
         self.Vv_Vl_ = 1.
         self.isInit_ = False
+        self._stationaryMode = False
 
     # Initialize the object.
     def initialize(self):
@@ -50,7 +51,6 @@ class ThermoDriver(PhysicsDriver):
     def initTimeStep(self, dt):
         return True
 
-    # Solve next time-step problem. Solves a steady state if dt < 0.
     def solveTimeStep(self):
         T1 = self.T_[0]
         T2 = self.T_[1]
@@ -80,27 +80,44 @@ class ThermoDriver(PhysicsDriver):
         self.MEDResu_.setArray(array)
         return True
 
-    # Abort previous time-step solving.
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
+
+    def validateTimeStep(self):
+        pass
+
     def abortTimeStep(self):
         pass
 
-    # Return an output scalar
-    def getOutputMEDField(self, name):
+    def getOutputMEDDoubleField(self, name):
         if name == "Densities":
-            return self.MEDResu_
+            resu = self.MEDResu_
+            try:
+                resu.setMesh(self.MEDResu_.getMesh().deepCopy())
+            except:
+                resu.setMesh(self.MEDResu_.getMesh().deepCpy())
+            return resu
         else:
-            raise Exception("ThermoDriver.getOutputMEDField Only Densities output available.")
+            raise Exception("ThermoDriver.getOutputMEDDoubleField Only Densities output available.")
 
-    # Import an input scalar. No return.
-    def setInputMEDField(self, name, field):
+    def updateOutputMEDDoubleField(self, name, field):
+        if name == "Densities":
+            field.setArray(self.MEDResu_.getArray())
+        else:
+            raise Exception("ThermoDriver.updateOutputMEDDoubleField Only Densities output available.")
+
+    def setInputMEDDoubleField(self, name, field):
         if name == "Temperatures":
             array = field.getArray()
             self.T_[0] = array.getIJ(0, 0)
             self.T_[1] = array.getIJ(1, 0)
 
-    def getInputMEDFieldTemplate(self, name):
+    def getInputMEDDoubleFieldTemplate(self, name):
         return self.MEDResu_
 
-    def setValue(self, name, value):
+    def setInputDoubleValue(self, name, value):
         if name == "Vv_Vl":
             self.Vv_Vl_ = value

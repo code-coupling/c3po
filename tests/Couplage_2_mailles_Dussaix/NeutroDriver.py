@@ -17,8 +17,8 @@ class NeutroDriver(PhysicsDriver):
         self.MEDResu_ = 0
         self.meanT_ = 1.
         self.isInit_ = False
+        self._stationaryMode = False
 
-    # Initialize the object.
     def initialize(self):
         if not self.isInit_:
             self.MEDResu_ = MEDBuilder.makeFieldCarre()
@@ -31,7 +31,6 @@ class NeutroDriver(PhysicsDriver):
     def initTimeStep(self, dt):
         return True
 
-    # Solve next time-step problem. Solves a steady state if dt < 0.
     def solveTimeStep(self):
         v = [self.meanT_ * self.densities_[0] / (self.densities_[0] + self.densities_[1]) + self.meanT_ / 2., self.meanT_ * self.densities_[1] / (self.densities_[0] + self.densities_[1]) + self.meanT_ / 2.]
         array = mc.DataArrayDouble.New()
@@ -39,27 +38,44 @@ class NeutroDriver(PhysicsDriver):
         self.MEDResu_.setArray(array)
         return True
 
-    # Abort previous time-step solving. No return.
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
+
+    def validateTimeStep(self):
+        pass
+
     def abortTimeStep(self):
         pass
 
-    # Return an output scalar
-    def getOutputMEDField(self, name):
+    def getOutputMEDDoubleField(self, name):
         if name == "Temperatures":
-            return self.MEDResu_
+            resu = self.MEDResu_
+            try:
+                resu.setMesh(self.MEDResu_.getMesh().deepCopy())
+            except:
+                resu.setMesh(self.MEDResu_.getMesh().deepCpy())
+            return resu
         else:
-            raise Exception("NeutroDriver.getOutputMEDField Only Temperatures output available.")
+            raise Exception("NeutroDriver.getOutputMEDDoubleField Only Temperatures output available.")
 
-    # Import an input scalar. No return.
-    def setInputMEDField(self, name, field):
+    def updateOutputMEDDoubleField(self, name, field):
+        if name == "Temperatures":
+            field.setArray(self.MEDResu_.getArray())
+        else:
+            raise Exception("NeutroDriver.updateOutputMEDDoubleField Only Temperatures output available.")
+
+    def setInputMEDDoubleField(self, name, field):
         if name == "Densities":
             array = field.getArray()
             self.densities_[0] = array.getIJ(0, 0)
             self.densities_[1] = array.getIJ(1, 0)
 
-    def getInputMEDFieldTemplate(self, name):
+    def getInputMEDDoubleFieldTemplate(self, name):
         return self.MEDResu_
 
-    def setValue(self, name, value):
+    def setInputDoubleValue(self, name, value):
         if name == "meanT":
             self.meanT_ = value

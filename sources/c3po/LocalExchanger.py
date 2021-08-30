@@ -33,7 +33,7 @@ class ShortcutToField(object):
         """! INTERNAL."""
         if self._type is None:
             try:
-                self._type = self._container.getFieldType(name)
+                self._type = self._container.getFieldType(self._name)
             except:
                 self._type = 'Double'
         if self._type == 'Double':
@@ -48,7 +48,7 @@ class ShortcutToField(object):
             self._updateMethod = self._container.updateOutputMEDIntField
         elif self._type == 'String':
             self._setMethod = self._container.setInputMEDStringField
-            self._getMethod = self._container.getOutputMEDIntField
+            self._getMethod = self._container.getOutputMEDStringField
             self._getTemplateMethod = self._container.getInputMEDStringFieldTemplate
             self._updateMethod = self._container.updateOutputMEDStringField
         else:
@@ -58,7 +58,7 @@ class ShortcutToField(object):
         """! INTERNAL."""
         if self._getMethod is None:
             self.initialize()
-        elif self._fieldToUpdate is not None and self._update:
+        if self._fieldToUpdate is not None and self._update:
             try:
                 self._updateMethod(self._name, self._fieldToUpdate)
             except:
@@ -96,7 +96,7 @@ class ShortcutToValue(object):
         """! INTERNAL."""
         if self._type is None:
             try:
-                self._type = self._container.getValueType(name)
+                self._type = self._container.getValueType(self._name)
             except:
                 self._type = 'Double'
         if self._type == 'Double':
@@ -114,7 +114,7 @@ class ShortcutToValue(object):
     def get(self):
         """! INTERNAL."""
         if self._getMethod is None:
-            self.initialize(False)
+            self.initialize()
         return self._getMethod(self._name)
 
     def set(self, value):

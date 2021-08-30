@@ -11,7 +11,7 @@ class Matrix_test(unittest.TestCase):
         from PhysicsMatrix import PhysicsMatrix
 
         myPhysics = PhysicsMatrix()
-        taille = myPhysics.getValue("taille")
+        taille = myPhysics.getOutputDoubleValue("taille")
 
         Transformer = c3po.DirectMatching()
 
@@ -30,28 +30,28 @@ class Matrix_test(unittest.TestCase):
         print(myPhysics.A_)
         CouplerGS.solve()
         print(myPhysics.result_)
-        print("valeur propre :", myPhysics.getValue("valeur_propre"))
+        print("valeur propre :", myPhysics.getOutputDoubleValue("valeur_propre"))
         resu = np.dot(myPhysics.A_, myPhysics.result_) + myPhysics.b_
         print(resu / np.linalg.norm(resu))
-        vpGS = myPhysics.getValue("valeur_propre")
+        vpGS = myPhysics.getOutputDoubleValue("valeur_propre")
         CouplerGS.terminate()
 
         CouplerAnderson.init()
         CouplerAnderson.solve()
         print(myPhysics.result_)
-        print("valeur propre :", myPhysics.getValue("valeur_propre"))
+        print("valeur propre :", myPhysics.getOutputDoubleValue("valeur_propre"))
         resu = np.dot(myPhysics.A_, myPhysics.result_) + myPhysics.b_
         print(resu / np.linalg.norm(resu))
-        vpAnderson = myPhysics.getValue("valeur_propre")
+        vpAnderson = myPhysics.getOutputDoubleValue("valeur_propre")
         CouplerAnderson.terminate()
 
         CouplerJFNK.init()
         CouplerJFNK.solve()
         print(myPhysics.result_)
-        print("valeur propre :", myPhysics.getValue("valeur_propre"))
+        print("valeur propre :", myPhysics.getOutputDoubleValue("valeur_propre"))
         resu = np.dot(myPhysics.A_, myPhysics.result_) + myPhysics.b_
         print(resu / np.linalg.norm(resu))
-        vpJFNK = myPhysics.getValue("valeur_propre")
+        vpJFNK = myPhysics.getOutputDoubleValue("valeur_propre")
         CouplerJFNK.terminate()
 
         refVal = 15.2654890812

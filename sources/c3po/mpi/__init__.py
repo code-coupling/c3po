@@ -17,8 +17,6 @@ from .MPICollaborativeDataManager import MPICollaborativeDataManager
 from .MPIExchanger import MPIExchanger
 from .MPICoupler import MPICoupler
 from .MPIMasterPhysicsDriver import MPIMasterPhysicsDriver
-from .MPIMasterCollectivePhysicsDriver import MPIMasterCollectivePhysicsDriver
 from .MPIMasterDataManager import MPIMasterDataManager
-from .MPIMasterCollectiveDataManager import MPIMasterCollectiveDataManager
 from .MPIMasterExchanger import MPIMasterExchanger
 from .MPIWorker import MPIWorker

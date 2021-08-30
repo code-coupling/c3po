@@ -11,6 +11,7 @@
 """ Contain the class MPIMasterDataManager. """
 from __future__ import print_function, division
 import math
+from mpi4py import MPI
 
 from c3po.mpi.MPITag import MPITag
 

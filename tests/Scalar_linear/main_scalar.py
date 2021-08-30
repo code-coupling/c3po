@@ -40,9 +40,9 @@ class Scalar_linear_test(unittest.TestCase):
 
         mycoupler.init()
         mycoupler.solve()
-        print(myPhysics.getValue("y"), myPhysics2.getValue("y"))
-        self.assertAlmostEqual(myPhysics.getValue("y"), 5. / 3., 4)
-        self.assertAlmostEqual(myPhysics2.getValue("y"), 4. / 3., 4)
+        print(myPhysics.getOutputDoubleValue("y"), myPhysics2.getOutputDoubleValue("y"))
+        self.assertAlmostEqual(myPhysics.getOutputDoubleValue("y"), 5. / 3., 4)
+        self.assertAlmostEqual(myPhysics2.getOutputDoubleValue("y"), 4. / 3., 4)
         mycoupler.terminate()
 
 

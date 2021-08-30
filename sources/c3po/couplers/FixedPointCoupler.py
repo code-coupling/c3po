@@ -94,7 +94,6 @@ class FixedPointCoupler(Coupler):
 
         data = CollaborativeDataManager(self._dataManagers)
         normData = self.readNormData()
-        print("normData", normData)
         self.normalizeData(normData)
 
         previousData = data.clone()

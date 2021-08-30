@@ -24,6 +24,8 @@ myThermoDriver = ThermoDriver()
 MasterProcess = c3po.mpi.MPIRemoteProcess(comm, 0)
 DataCoupler = c3po.LocalDataManager()
 
+myThermoDriver.setInputDoubleValue("Vv_Vl", 10.)
+
 basicTransformer = c3po.Remapper()
 Thermo2DataTransformer = c3po.DirectMatching()
 Data2NeutroTransformer = Thermo2Neutro(basicTransformer)
@@ -32,8 +34,9 @@ Neutro2ThermoTransformer = Neutro2Thermo(basicTransformer)
 ExchangerNeutro2Thermo = c3po.mpi.MPIExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")])
 ExchangerThermo2Data = c3po.mpi.MPIExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(DataCoupler, "Densities")])
 ExchangerData2Neutro = c3po.mpi.MPIExchanger(Data2NeutroTransformer, [(DataCoupler, "Densities")], [(myNeutroDriver, "Densities")])
+ExchangerReturnResu = c3po.mpi.MPIExchanger(c3po.DirectMatching(), [(myThermoDriver, "Densities")], [(MasterProcess, "Densities")])
 
-exchangers = [ExchangerNeutro2Thermo, ExchangerThermo2Data, ExchangerData2Neutro]
+exchangers = [ExchangerNeutro2Thermo, ExchangerThermo2Data, ExchangerData2Neutro, ExchangerReturnResu]
 
 Worker = c3po.mpi.MPIWorker([myNeutroDriver, myThermoDriver], exchangers, [DataCoupler], MasterProcess)
 

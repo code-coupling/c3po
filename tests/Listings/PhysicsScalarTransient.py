@@ -14,12 +14,12 @@ class PhysicsScalarTransient(PhysicsDriver):
         self.x_ = 0.
         self.t_ = 0.
         self.dt_ = 0.
+        self._stationaryMode = False
 
     def setOption(self, a, b):
         self.a_ = a
         self.b_ = b
 
-    # Initialize the object.
     def initialize(self):
         self.result_ = 0.
         self.a_ = 0.
@@ -42,27 +42,32 @@ class PhysicsScalarTransient(PhysicsDriver):
         self.dt_ = dt
         return True
 
-    # Solve next time-step problem. Solves a steady state if dt < 0.
     def solveTimeStep(self):
         self.result_ = self.a_ * (1 + self.t_) + self.b_ * self.x_
         print("result =", self.a_, "*", (1 + self.t_), "+", self.b_, "*", self.x_)
         return True
 
+    def setStationaryMode(self, stationaryMode):
+        self._stationaryMode = stationaryMode
+
+    def getStationaryMode(self):
+        return self._stationaryMode
+
     def validateTimeStep(self):
         self.t_ += self.dt_
 
-    # Abort previous time-step solving.
     def abortTimeStep(self):
         self.dt_ = 0.
 
-    # Return an output scalar
-    def getValue(self, name):
+    def resetTime(self, time_):
+        self.t_ = time_
+
+    def getOutputDoubleValue(self, name):
         if name == "y":
             return self.result_
         else:
-            raise Exception("physicsScalar.getValue Only y output available.")
+            raise Exception("physicsScalar.getOutputDoubleValue Only y output available.")
 
-    # Import an input scalar. No return.
-    def setValue(self, name, value):
+    def setInputDoubleValue(self, name, value):
         if name == "x":
             self.x_ = value
