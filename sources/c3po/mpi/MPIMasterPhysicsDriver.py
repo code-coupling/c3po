@@ -10,6 +10,7 @@
 
 """ Contain the class MPIMasterPhysicsDriver. """
 from __future__ import print_function, division
+from mpi4py import MPI
 
 from c3po.PhysicsDriver import PhysicsDriver
 from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
@@ -22,25 +23,24 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
     It can, in addition, be in charge of a local one (can be usefull for codes using an internal collaborative MPI parallelization).
 
     Inherits from c3po.PhysicsDriver.PhysicsDriver. All the methods of c3po.PhysicsDriver.PhysicsDriver are implemented and consist
-    in commanding the worker to execute them. Methods inherited from c3po.DataAccessor.DataAccessor are NOT implemented. Use an
-    c3po.mpi.MPIMasterExchanger.MPIMasterExchanger to exchange data with the worker.
+    in commanding the worker to execute them. Methods inherited from c3po.DataAccessor.DataAccessor are NOT implemented (apart from
+    the setInput(Double/Int/String)Value methods, for convenience). Use an c3po.mpi.MPIMasterExchanger.MPIMasterExchanger to exchange
+    data with the worker.
     """
 
-    def __init__(self, workerProcess, masterRank=0, localPhysicsDriver=None):
+    def __init__(self, workerProcess, localPhysicsDriver=None):
         """! Build a MPIMasterPhysicsDriver object.
 
         @param workerProcess a c3po.mpi.MPIRemoteProcess.MPIRemoteProcess or a c3po.mpi.MPICollectiveProcess.MPICollectiveProcess
         identifying the worker process(es). Each worker process can be in charge of only one c3po.PhysicsDriver.PhysicsDriver.
         In case of a c3po.mpi.MPICollectiveProcess.MPICollectiveProcess, the MPIComm must include all the workers + the master,
         and only them.
-        @param masterRank the rank of the master process in the MPIComm used. This data is used only in the
-        c3po.mpi.MPICollectiveProcess.MPICollectiveProcess case.
         @param localPhysicsDriver a c3po.PhysicsDriver.PhysicsDriver the MPIMasterPhysicsDriver object will run in the same
         time than the workers. It enables the master to contribute to a collaborative calculations.
         """
         PhysicsDriver.__init__(self)
         self.mpiComm = workerProcess.mpiComm
-        self._masterRank = masterRank
+        self._masterRank = self.mpiComm.Get_rank()
         self._workerRank = None
         self._isCollective = False
         if isinstance(workerProcess, MPICollectiveProcess):
@@ -233,3 +233,21 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         self.sendData(MPITag.forget, (label, method))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.forget(label, method)
+
+    def setInputDoubleValue(self, name, value):
+        """! See PhysicsDriver.setValue(). """
+        self.sendData(MPITag.setInputDoubleValue, (name, value))
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.setInputDoubleValue(name, value)
+
+    def setInputIntValue(self, name, value):
+        """! See PhysicsDriver.setValue(). """
+        self.sendData(MPITag.setInputIntValue, (name, value))
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.setInputIntValue(name, value)
+
+    def setInputStringValue(self, name, value):
+        """! See PhysicsDriver.setValue(). """
+        self.sendData(MPITag.setInputStringValue, (name, value))
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.setInputStringValue(name, value)

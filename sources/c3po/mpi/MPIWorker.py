@@ -14,13 +14,13 @@ from mpi4py import MPI
 
 from c3po.mpi.MPITag import MPITag
 from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
-from c3po.mpi.MPIMasterCollectivePhysicsDriver import MPIMasterCollectivePhysicsDriver
+from c3po.mpi.MPIMasterPhysicsDriver import MPIMasterPhysicsDriver
 
 
 class MPIWorker(object):
     """! MPIWorker defines the behavior of workers in a master/workers MPI paradimg. """
 
-    def __init__(self, physicsDrivers, exchangers, dataManagers, masterProcess):
+    def __init__(self, physicsDrivers, exchangers, dataManagers, masterProcess, isCollective=False):
         """! Build a MPIWorker object.
 
         @param physicsDrivers List of c3po.PhysicsDriver.PhysicsDriver. Only one should not be a MPIRemoteProcess: it is the one the
@@ -29,8 +29,9 @@ class MPIWorker(object):
         for the master.
         @param dataManagers List of c3po.DataManager.DataManager. The indices in this list are the numbers identifying the
         c3po.DataManager.DataManager for the master.
-        @param masterProcess Either a MPIRemoteProcess or a MPIMasterCollectivePhysicsDriver identifying the master process. In the
-        first case point-to-point communications are used, in the second case collective communications are used.
+        @param masterProcess A MPIRemoteProcess identifying the master process.
+        @param isCollective Put True if the master process use collective MPI methods (if it has been initialized with a
+        c3po.mpi.MPICollectiveProcess.MPICollectiveProcess object as worker).
         """
         found = False
         for phy in physicsDrivers:
@@ -42,15 +43,8 @@ class MPIWorker(object):
         if not found:
             raise Exception("MPIWorker.__init__ : we did not found any local PhysicsDriver : there must be one (and only one).")
         self.mpiComm = masterProcess.mpiComm
-        self._masterRank = 0
-        self._isCollective = False
-        if isinstance(masterProcess, MPIRemoteProcess):
-            self._masterRank = masterProcess.rank
-        elif isinstance(masterProcess, MPIMasterCollectivePhysicsDriver):
-            self._masterRank = masterProcess._masterRank
-            self._isCollective = True
-        else:
-            raise Exception("MPIWorker.__init__ : masterProcess type unknown.")
+        self._isCollective = isCollective
+        self._masterRank = masterProcess.rank
         self._exchangers = exchangers
         self._dataManagers = {}  # Used a little bit as a list but the [] operator of a dict is more convenent here.
         for idata in range(len(dataManagers)):
@@ -135,8 +129,14 @@ class MPIWorker(object):
                     self._physicsDriver.restore(*data)
                 elif tag == MPITag.forget:
                     self._physicsDriver.forget(*data)
+                elif tag == MPITag.setInputDoubleValue:
+                    self._physicsDriver.setInputDoubleValue(*data)
+                elif tag == MPITag.setInputIntValue:
+                    self._physicsDriver.setInputIntValue(*data)
+                elif tag == MPITag.setInputStringValue:
+                    self._physicsDriver.setInputStringValue(*data)
             else:
-                elif tag == MPITag.deleteDataManager:
+                if tag == MPITag.deleteDataManager:
                     self.checkDataID(data)
                     self._idDataFree += data
                 elif tag == MPITag.cloneEmptyData:

@@ -39,6 +39,9 @@ class MPITag(object):
     save                                = 18
     restore                             = 19
     forget                              = 20
+    setInputDoubleValue                 = 21
+    setInputIntValue                    = 22
+    setInputStringValue                 = 23
 
     tagBARRIER                          = 100
 
