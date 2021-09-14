@@ -83,14 +83,15 @@ class TimeAccumulator(PhysicsDriver):
     def initTimeStep(self, dt):
         """! See PhysicsDriver.initTimeStep(). """
         self._dt = dt
+        if self._dt <= 0:
+            self._physics.initTimeStep(dt)
         return True
 
     def solveTimeStep(self):
         """! Make the PhysicsDriver to reach the end of the macro time step asked to TimeAccumulator
         using its own time advance procedure.
         """
-        if self._dt == 0.:
-            self._physics.initTimeStep(self._dt)
+        if self._dt <= 0.:
             self._physics.solve()
         else:
             self._physics.solveTransient(self.presentTime() + self._dt, finishAtTmax=True)
@@ -98,9 +99,12 @@ class TimeAccumulator(PhysicsDriver):
 
     def validateTimeStep(self):
         """! See PhysicsDriver.validateTimeStep(). """
+        if self._dt > 0:
+            if self._saveParameters is not None and self._macrodt is not None:
+                self._physics.save(*self._saveParameters)
+        else:
+            self._physics.validateTimeStep()
         self._dt = None
-        if self._saveParameters is not None and self._macrodt is not None:
-            self._physics.save(*self._saveParameters)
 
     def setStationaryMode(self, stationaryMode):
         """! See PhysicsDriver.setStationaryMode(). """
@@ -112,12 +116,15 @@ class TimeAccumulator(PhysicsDriver):
 
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
+        if self._dt > 0:
+            if self._macrodt is not None:
+                if self._saveParameters is not None:
+                    self._physics.restore(*self._saveParameters)
+                else:
+                    raise Exception("TimeAccumulator.abortTimeStep : not available without saveParameters.")
+        else:
+            self._physics.abortTimeStep()
         self._dt = None
-        if self._macrodt is not None:
-            if self._saveParameters is not None:
-                self._physics.restore(*self._saveParameters)
-            else:
-                raise Exception("TimeAccumulator.abortTimeStep : not available without saveParameters.")
 
     def isStationary(self):
         """! See PhysicsDriver.isStationary(). """
