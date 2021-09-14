@@ -96,13 +96,20 @@ class TracerMeta(type):
                         self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
 
                 if self.static_pythonFile is not None:
-                    stringArgs = getArgsString(*args, **kwargs)
                     if method.__name__ == "__init__":
+                        stringArgs = getArgsString(*args, **kwargs)
                         self.static_pythonFile.write(self.tracerObjectName + " = " + name + stringArgs + "\n")
                     elif method.__name__.startswith("setInputMED"):
                         (nameField, _) = getNameFieldInput(*args, **kwargs)
                         self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n")
+                    elif method.__name__.startswith("getOutputMED"):
+                        nameField = getNameInput(*args, **kwargs)
+                        self.static_pythonFile.write(nameField + "_" + self.tracerObjectName + " = " + self.tracerObjectName + "." + method.__name__ + "('" + nameField + "')" + "\n")
+                    elif method.__name__.startswith("updateOutputMED"):
+                        (nameField, _) = getNameFieldInput(*args, **kwargs)
+                        self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ +  "('" + nameField + "', " + nameField + "_" + self.tracerObjectName + ")" + "\n")
                     else:
+                        stringArgs = getArgsString(*args, **kwargs)
                         self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ + stringArgs + "\n")
                     self.static_pythonFile.flush()
 
