@@ -99,7 +99,7 @@ class ListingWriter(object):
                 if i == j:
                     ph1[1] += u"{:^23}│"
                 else:
-                    ph1[1] += u"                      │"
+                    ph1[1] += u"                       │"
             for exc in self._exchangersData:
                 exc[1] += u"{1:-^23}│"
             self._boxFormat[ListingWriter.enumTop] += u"━━━━━━━━━━━━━━━━━━━━━━━┯"

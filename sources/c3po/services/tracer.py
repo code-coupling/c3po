@@ -96,22 +96,22 @@ class TracerMeta(type):
                         self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
 
                 if self.static_pythonFile is not None:
+                    toWritePython = ""
                     if method.__name__ == "__init__":
                         stringArgs = getArgsString(*args, **kwargs)
-                        self.static_pythonFile.write(self.tracerObjectName + " = " + name + stringArgs + "\n")
+                        toWritePython = self.tracerObjectName + " = " + name + stringArgs + "\n"
                     elif method.__name__.startswith("setInputMED"):
                         (nameField, _) = getNameFieldInput(*args, **kwargs)
-                        self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n")
+                        toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n"
                     elif method.__name__.startswith("getOutputMED"):
                         nameField = getNameInput(*args, **kwargs)
-                        self.static_pythonFile.write(nameField + "_" + self.tracerObjectName + " = " + self.tracerObjectName + "." + method.__name__ + "('" + nameField + "')" + "\n")
+                        toWritePython = nameField + "_" + self.tracerObjectName + " = " + self.tracerObjectName + "." + method.__name__ + "('" + nameField + "')" + "\n"
                     elif method.__name__.startswith("updateOutputMED"):
                         (nameField, _) = getNameFieldInput(*args, **kwargs)
-                        self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ +  "('" + nameField + "', " + nameField + "_" + self.tracerObjectName + ")" + "\n")
+                        toWritePython = self.tracerObjectName + "." + method.__name__ +  "('" + nameField + "', " + nameField + "_" + self.tracerObjectName + ")" + "\n"
                     else:
                         stringArgs = getArgsString(*args, **kwargs)
-                        self.static_pythonFile.write(self.tracerObjectName + "." + method.__name__ + stringArgs + "\n")
-                    self.static_pythonFile.flush()
+                        toWritePython = self.tracerObjectName + "." + method.__name__ + stringArgs + "\n"
 
                 prevIdstdout = 0
                 prevIdstderr = 0
@@ -128,20 +128,28 @@ class TracerMeta(type):
 
                 start = time.time()
 
-                result = method(self, *args, **kwargs)
+                try:
+                    result = method(self, *args, **kwargs)
+                except:
+                    if self.static_pythonFile is not None:
+                        toWritePython = "try: " + toWritePython + "except: pass" + "\n"
+                    raise
+                else:
+                    end = time.time()
+                finally:
+                    if self.static_pythonFile is not None:
+                        self.static_pythonFile.write(toWritePython)
+                        self.static_pythonFile.flush()
+                    self.tracerRecurrenceDepth -= 1
 
-                end = time.time()
-
-                self.tracerRecurrenceDepth -= 1
-
-                if self.static_stdout is not None:
-                    sys.stdout.flush()
-                    os.dup2(prevIdstdout, sys.stdout.fileno())
-                    os.close(prevIdstdout)
-                if self.static_stderr is not None:
-                    sys.stderr.flush()
-                    os.dup2(prevIdstderr, sys.stderr.fileno())
-                    os.close(prevIdstderr)
+                    if self.static_stdout is not None:
+                        sys.stdout.flush()
+                        os.dup2(prevIdstdout, sys.stdout.fileno())
+                        os.close(prevIdstdout)
+                    if self.static_stderr is not None:
+                        sys.stderr.flush()
+                        os.dup2(prevIdstderr, sys.stderr.fileno())
+                        os.close(prevIdstderr)
 
                 if self.static_saveOutputMED and method.__name__.startswith("getOutputMED"):
                     nameField = getNameInput(*args, **kwargs)
