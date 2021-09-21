@@ -210,7 +210,7 @@ class ListingWriter(object):
                 toWrite += "time = " + "{:.4f}".format(objectPresentTime)
                 self._timeValidatedPhysics[self._physics.index(sourceObject)] = objectPresentTime
             elif methodName == "setStationaryMode":
-                toWrite += "Mode = " + "Stationary" if inputVar else "Transient"
+                toWrite += "mode = " + ("stationary" if inputVar else "transient")
             elif methodName == "resetTime":
                 toWrite += "time = "
                 if inputVar > 1e2 or inputVar < 0.1:

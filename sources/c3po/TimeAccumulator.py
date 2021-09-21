@@ -91,10 +91,10 @@ class TimeAccumulator(PhysicsDriver):
         """! Make the PhysicsDriver to reach the end of the macro time step asked to TimeAccumulator
         using its own time advance procedure.
         """
-        if self._dt <= 0.:
-            self._physics.solve()
-        else:
+        if self._dt > 0.:
             self._physics.solveTransient(self.presentTime() + self._dt, finishAtTmax=True)
+        else:
+            self._physics.solve()
         return self._physics.getSolveStatus()
 
     def validateTimeStep(self):
