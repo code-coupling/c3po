@@ -222,6 +222,7 @@ class ListingWriter(object):
                                                                      calculationTimeToWrite).encode('utf-8'))
 
         if sourceObject in self._exchangers:
+            self._sumCalculationTime += calculationTime
             ind = self._exchangers.index(sourceObject)
             self._listingFile.write(self._exchangersData[ind][1].format(self._exchangersData[ind][0], methodName, presentTimeToWrite,
                                                                         calculationTimeToWrite).encode('utf-8'))
@@ -308,6 +309,7 @@ class MergedListingWriter(ListingWriter):
         if sourceObject in self._exchangers:
             presentTimeToWrite = getFormattedTime(presentTime - self._timeInit)
             calculationTimeToWrite = getFormattedTime(calculationTime)
+            self._sumCalculationTime += calculationTime
 
             columnList = [":" if running else "" for running in runningPhysics]
             for ind in involvedPhysics:
