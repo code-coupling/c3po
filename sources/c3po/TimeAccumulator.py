@@ -56,8 +56,6 @@ class TimeAccumulator(PhysicsDriver):
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
         self._physics.init()
-        if self._saveParameters is not None:
-            self._physics.save(*self._saveParameters)
         return self._physics.getInitStatus()
 
     def terminate(self):
@@ -84,7 +82,9 @@ class TimeAccumulator(PhysicsDriver):
         """! See PhysicsDriver.initTimeStep(). """
         self._dt = dt
         if self._dt <= 0:
-            self._physics.initTimeStep(dt)
+            return self._physics.initTimeStep(dt)
+        if self._saveParameters is not None and self._macrodt is not None:
+            self._physics.save(*self._saveParameters)
         return True
 
     def solveTimeStep(self):
@@ -99,10 +99,7 @@ class TimeAccumulator(PhysicsDriver):
 
     def validateTimeStep(self):
         """! See PhysicsDriver.validateTimeStep(). """
-        if self._dt > 0:
-            if self._saveParameters is not None and self._macrodt is not None:
-                self._physics.save(*self._saveParameters)
-        else:
+        if self._dt <= 0:
             self._physics.validateTimeStep()
         self._dt = None
 
