@@ -43,6 +43,11 @@ def getTimeInput(time_):
     return time_
 
 
+def getSaveInput(label, method):
+    """! INTERNAL """
+    return label, method
+
+
 def getArgsString(*args, **kwargs):
     """! INTERNAL """
     stringArgs = "("
@@ -56,6 +61,8 @@ def getArgsString(*args, **kwargs):
         if isinstance(arg, str):
             strArg = "'" + arg + "'"
         stringArgs += nameattr + " = " + strArg + ","
+    if len(stringArgs) > 1:
+        stringArgs = stringArgs[:-1]
     stringArgs += ")"
     return stringArgs
 
@@ -162,7 +169,8 @@ class TracerMeta(type):
 
                 if self.static_lWriter is not None:
                     if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
-                                           "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate", "exchange"]:
+                                           "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate", "exchange",
+                                           "save", "restore"]:
                         inputVar = 0.
                         if method.__name__ == "initTimeStep":
                             inputVar = getDtInput(*args, **kwargs)
@@ -170,6 +178,8 @@ class TracerMeta(type):
                             inputVar = getStationaryModeInput(*args, **kwargs)
                         elif method.__name__ == "resetTime":
                             inputVar = getTimeInput(*args, **kwargs)
+                        elif method.__name__ in ["save", "restore"]:
+                            inputVar = getArgsString(*getSaveInput(*args, **kwargs))
 
                         self.static_lWriter.writeAfter(self, inputVar, result, method.__name__, start, end - start)
 

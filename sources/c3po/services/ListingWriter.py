@@ -217,6 +217,8 @@ class ListingWriter(object):
                     toWrite += "{:.4e}".format(inputVar)
                 else:
                     toWrite += "{:.4f}".format(inputVar)
+            elif methodName in ["save", "restore"]:
+                toWrite += inputVar
 
             self._listingFile.write(self._physicsData[ind][1].format(toWrite, methodName, presentTimeToWrite,
                                                                      calculationTimeToWrite).encode('utf-8'))
