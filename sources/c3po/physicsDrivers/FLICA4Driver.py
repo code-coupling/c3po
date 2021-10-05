@@ -96,8 +96,8 @@ class FLICA4Driver(PhysicsDriver):
 
     def getInputMEDDoubleFieldTemplate(self, name):
         if name == "FuelPower":
-            return self.getOutputMEDField("FuelDopplerTemperature")
-        return self.getOutputMEDField("LiquidTemperature")
+            return self.getOutputMEDDoubleField("FuelDopplerTemperature")
+        return self.getOutputMEDDoubleField("LiquidTemperature")
 
     def setInputMEDDoubleField(self, name, field):
         self._flica4.setInputMEDField(name, field)
