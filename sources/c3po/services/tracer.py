@@ -213,9 +213,10 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
     @param pythonFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script
         is written there. It has to be closed (file.close()) by caller. The script can be run only if saveInputMED is set to True:
         otherwise, input MED fields are not stored.
-    @param saveInputMED if set to True, every time setInputMEDField is called, the input MED field is stored in a .med file.
-        If pythonFile is activated, a MEDLoader reading instruction is also written in the Python file.
-    @param saveOutputMED if set to True, every time getOutputMEDField is called, the output MED field is stored in a .med file.
+    @param saveInputMED if set to True, every time setInputMED(Double/Int/String)Field is called, the input MED field is stored in
+        a .med file. If pythonFile is activated, a MEDLoader reading instruction is also written in the Python file.
+    @param saveOutputMED if set to True, every time getOutputMED(Double/Int/String)Field is called, the output MED field is stored
+        in a .med file.
     @param stdoutFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output
         is redirected there. It has to be closed (file.close()) by caller.
     @param stderrFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is
