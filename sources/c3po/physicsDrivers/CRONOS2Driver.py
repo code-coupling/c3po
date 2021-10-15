@@ -88,7 +88,7 @@ class CRONOS2Driver(PhysicsDriver):
             if bool(self._dataFile):
                 self._access.evalFile(self._dataFile)
             # initialize T_C3PO table
-            self._access.eval("T_C3PO = TABLE: ; T_C3PO.'ITH' = 0 ; T_C3PO.'MED' = TABLE: ;")
+            self._access.eval("T_C3PO = TABLE: ;")
             self._access.eval("T_C3PO.'paramDict' = TABLE: ; T_C3PO.'value' = TABLE: ;")
             self._access.eval("T_C3PO.'paramDict'.'TECO' = 'TECO' ; ")
             self._access.eval("T_C3PO.'paramDict'.'DMOD' = 'DMOD' ; ")
@@ -235,16 +235,17 @@ class CRONOS2Driver(PhysicsDriver):
 
         - takes as input the name of the MED field in the string T_C3PO.'name' ;
 
-        - takes as input the MED field in the variable T_C3PO.'MED'.ITH of type MEDFIELD ;
+        - takes as input the name of the gibiane variable holding the MED field in the string T_C3PO.'FSaph' ;
 
         - sorts away the MED field in the appropriate PARAM structures of CRONOS2.
         """
 
         if name in ParamKey.inputKeys:
             field.setName(self._paramDict[name])
-            self._access.eval("T_C3PO.'ITH' = T_C3PO.'ITH' + 1 ; ITH = T_C3PO.'ITH' ;")
             intField = MEDtsetpt.SaphGetIdFromPtr(field)
-            self._access.eval("T_C3PO.'MED'.ITH = MED_FIELD_SAPH: " + str(intField) + " ;")
+            FSaph = self._access.setName()
+            self._access.eval(str(FSaph) + " = MED_FIELD_SAPH: " + str(intField) + " ;")
+            self._access.eval("T_C3PO.'FSaph' = '" + str(FSaph) + "' ;")
             self._access.eval("T_C3PO.'name' = '" + self._paramDict[name] + "' ;")
             self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_INPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
         else:
