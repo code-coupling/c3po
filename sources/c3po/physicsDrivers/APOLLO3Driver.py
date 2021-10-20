@@ -17,17 +17,16 @@ from c3po.PhysicsDriver import PhysicsDriver
 class APOLLO3Driver(PhysicsDriver):
     """! This is the implementation of PhysicsDriver for APOLLO3. """
 
-    def __init__(self, ICOCOclass):
+    def __init__(self, apollo3ICoCo):
         """! Build a APOLLO3Driver object.
 
-        @param ICOCOclass implementation of the ICOCO interface for APOLLO3.
+        @param apollo3ICoCo implementation of the ICOCO interface for APOLLO3.
         """
         PhysicsDriver.__init__(self)
-        self._apollo3 = ICOCOclass
+        if apollo3ICoCo.GetICoCoMajorVersion() != self.GetICoCoMajorVersion():
+            raise AssertionError("The ICoCo major version of the provided object ({}) is not the expected one ({})".format(apollo3ICoCo.GetICoCoMajorVersion(), self.GetICoCoMajorVersion()))
+        self._apollo3 = apollo3ICoCo
         self._isInit = False
-
-    def getICOCOVersion(self):
-        return self._apollo3.getICOCOVersion()
 
     def getMEDCouplingMajorVersion(self):
         return self._apollo3.getMEDCouplingMajorVersion()

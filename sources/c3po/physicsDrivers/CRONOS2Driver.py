@@ -64,9 +64,6 @@ class CRONOS2Driver(PhysicsDriver):
         """
         self._paramDict = paramDict
 
-    def getICOCOVersion(self):
-        return '2.0'
-
     def getMEDCouplingMajorVersion(self):
         return mc.MEDCouplingVersionMajMinRel()[0]
 

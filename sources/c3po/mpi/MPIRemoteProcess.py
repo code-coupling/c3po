@@ -34,10 +34,6 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         self._dt = 1.e30
         self._stationaryMode = False
 
-    def getICOCOVersion(self):
-        """! return '2.0' """
-        return '2.0'
-
     def setMPIComm(self, mpicomm):
         """! pass """
         pass

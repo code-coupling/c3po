@@ -50,12 +50,13 @@ class PhysicsDriver(DataAccessor):
         self._solveStatus = True
         self._iterateStatus = (True, True)
 
-    def getICOCOVersion(self):
-        """! (Mandatory) Return ICoCo interface version number in a string.
+    @staticmethod
+    def GetICoCoMajorVersion():
+        """! (Mandatory) Return ICoCo interface major version number.
 
-        @return (string) Should return '2.0'.
+        @return (int) ICoCo interface major version number (2 at present)
         """
-        raise NotImplementedError
+        return 2
 
     def getMEDCouplingMajorVersion(self):
         """! (Optional) Get MEDCoupling major version, if the code was built with MEDCoupling support.

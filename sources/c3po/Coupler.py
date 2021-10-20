@@ -50,10 +50,6 @@ class Coupler(PhysicsDriver):
         self._norm = NormChoice.normMax
         self._dt = 1.e30
 
-    def getICOCOVersion(self):
-        """! See PhysicsDriver.getICOCOVersion(). """
-        return '2.0'
-
     def getMEDCouplingMajorVersion(self):
         """! See PhysicsDriver.getMEDCouplingMajorVersion(). """
         version = 0

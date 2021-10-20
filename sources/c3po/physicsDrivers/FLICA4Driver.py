@@ -31,9 +31,6 @@ class FLICA4Driver(PhysicsDriver):
         self._timeShift = 0.
         self._stationaryMode = False
 
-    def getICOCOVersion(self):
-        return '2.0'
-
     def getMEDCouplingMajorVersion(self):
         return mc.MEDCouplingVersionMajMinRel()[0]
 
@@ -137,9 +134,6 @@ class FLICA4AutoSwitchDriver(PhysicsDriver):
         self._stationaryMode = False
         self._isInit = False
         self._timeShift = 0.
-
-    def getICOCOVersion(self):
-        return self._flica4Current.getICOCOVersion()
 
     def getMEDCouplingMajorVersion(self):
         return self._flica4Current.getMEDCouplingMajorVersion()

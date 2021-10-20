@@ -70,10 +70,6 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         """! INTERNAL """
         self._dataManagersToFree.append(idDataManager)
 
-    def getICOCOVersion(self):
-        """! See PhysicsDriver.getICOCOVersion(). """
-        return '2.0'
-
     def init(self):
         """! See PhysicsDriver.init(). """
         self.sendData(MPITag.init)

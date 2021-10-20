@@ -38,9 +38,6 @@ class ALCYONE2Driver(PhysicsDriver):
         self._timeShift = 0.
         self._stationaryMode = False
 
-    def getICOCOVersion(self):
-        return '2.0'
-
     def getMEDCouplingMajorVersion(self):
         return mc.MEDCouplingVersionMajMinRel()[0]
 

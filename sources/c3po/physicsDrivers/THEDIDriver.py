@@ -15,22 +15,18 @@ from c3po.PhysicsDriver import PhysicsDriver
 
 
 class THEDIDriver(PhysicsDriver):
-    """! This is the implementation of PhysicsDriver for THEDI.
+    """! This is the implementation of PhysicsDriver for THEDI. """
 
-    A THEDIInit method must be available. It has to take four inputs:
-    - A THEDI.COEUR object to initialize.
-    - A THEDI.MED_INTERFACE to initialize. It will give access to THEDI MED functionalities.
-    - An (empty) list of THEDI channel objects to build.
-    - An (empty) list of THEDI materials to build.
-    """
+    def __init__(self, thediICoCo):
+        """! Build a THEDIDriver object.
 
-    def __init__(self, ICOCOclass):
+        @param thediICoCo implementation of the ICOCO interface for THEDI.
+        """
         PhysicsDriver.__init__(self)
-        self._thedi = ICOCOclass
+        if thediICoCo.GetICoCoMajorVersion() != self.GetICoCoMajorVersion():
+            raise AssertionError("The ICoCo major version of the provided object ({}) is not the expected one ({})".format(thediICoCo.GetICoCoMajorVersion(), self.GetICoCoMajorVersion()))
+        self._thedi = thediICoCo
         self._isInit = False
-
-    def getICOCOVersion(self):
-        return self._thedi.getICOCOVersion()
 
     def getMEDCouplingMajorVersion(self):
         return self._thedi.getMEDCouplingMajorVersion()

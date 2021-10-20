@@ -66,7 +66,7 @@ class MPICoupler(Coupler):
         """! See Coupler.getMEDCouplingMajorVersion(). """
         version = 0
         try:
-            version = Coupler.getICOCOVersion(self)
+            version = Coupler.getMEDCouplingMajorVersion(self)
         except NotImplementedError:
             version = 0
         if self._isMPI:

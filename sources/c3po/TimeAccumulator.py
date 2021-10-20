@@ -33,10 +33,6 @@ class TimeAccumulator(PhysicsDriver):
         self._macrodt = None
         self._saveParameters = saveParameters
 
-    def getICOCOVersion(self):
-        """! See PhysicsDriver.getICOCOVersion(). """
-        return self._physics.getICOCOVersion()
-
     def getMEDCouplingMajorVersion(self):
         """! See PhysicsDriver.getMEDCouplingMajorVersion(). """
         return self._physics.getMEDCouplingMajorVersion()
