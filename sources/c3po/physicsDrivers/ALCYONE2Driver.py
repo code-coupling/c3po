@@ -52,7 +52,7 @@ class ALCYONE2Driver(PhysicsDriver):
             self._isInit = True
             Alcyone2Init(self._alcyone2)
             self._alcyone2.initialize()
-            pleiades.setVerboseLevel(0)
+            pleiades.setVerboseLevel(3)
         return True
 
     def terminate(self):
