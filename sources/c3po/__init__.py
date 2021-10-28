@@ -10,6 +10,10 @@
 
 """ Import user non-MPI C3PO objects. """
 
+import os
+with open(os.path.join(os.path.dirname(__file__), "VERSION")) as file:
+    __version__ = file.read().strip()
+
 from .DataAccessor import DataAccessor
 from .PhysicsDriver import PhysicsDriver
 from .Exchanger import Exchanger
