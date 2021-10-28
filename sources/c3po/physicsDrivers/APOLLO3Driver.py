@@ -34,6 +34,9 @@ class APOLLO3Driver(PhysicsDriver):
     def isMEDCoupling64Bits(self):
         return self._apollo3.isMEDCoupling64Bits()
 
+    def setDataFile(self, datafile):
+        self._apollo3.setDataFile(datafile)
+
     def initialize(self):
         if not self._isInit:
             self._isInit = True
