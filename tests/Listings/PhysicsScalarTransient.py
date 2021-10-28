@@ -66,7 +66,7 @@ class PhysicsScalarTransient(PhysicsDriver):
         if name == "y":
             return self.result_
         else:
-            raise Exception("physicsScalar.getOutputDoubleValue Only y output available.")
+            raise Exception("physicsScalar.getOutputDoubleValue Only y output available (found {}).".format(name))
 
     def setInputDoubleValue(self, name, value):
         if name == "x":

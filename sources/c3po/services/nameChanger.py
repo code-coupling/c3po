@@ -21,21 +21,30 @@ class NameChangerMeta(type):
 
     def __new__(cls, clsname, superclasses, attributedict):
 
+        def _getChangedName(self, name):
+            """! INTERNAL """
+            if name in self.static_nameMapping:
+                return self.static_nameMapping[name]
+            if self.static_wildcard:
+                wildcardLen = len(self.static_wildcard)
+                for key, value in self.static_nameMapping.items():
+                    if key.endswith(self.static_wildcard) and value.endswith(self.static_wildcard) and name.startswith(key[:-wildcardLen]):
+                        return name.replace(key[:-wildcardLen], value[:-wildcardLen], 1)
+            return None
+
         def methodWrapper(method):
             def methodWrapped(self, *args, **kwargs):
                 name = None
                 if "name" in kwargs.keys():
-                    name = kwargs["name"]
-                    if name in self.static_nameMapping.keys():
-                        name = self.static_nameMapping[name]
-                        kwargs["name"] = name
+                    name = self._getChangedName(kwargs["name"])  # pylint: disable=protected-access
+                    if name:
+                        kwargs["name"] = name if name else kwargs["name"]
                 else:
                     i = 0
                     for arg in args:
                         if isinstance(arg, str):
-                            name = arg
-                            if name in self.static_nameMapping.keys():
-                                name = self.static_nameMapping[name]
+                            name = self._getChangedName(arg) # pylint: disable=protected-access
+                            if name:
                                 args = args[:i] + (name,) + args[i + 1:]
                         i += 1
                 return method(self, *args, **kwargs)
@@ -46,6 +55,7 @@ class NameChangerMeta(type):
             return methodWrapped
 
         newDct = {}
+        newDct["_getChangedName"] = _getChangedName
         for nameattr, method in attributedict.items():
             if isinstance(method, FunctionType):
                 newDct[nameattr] = methodWrapper(method)
@@ -56,30 +66,32 @@ class NameChangerMeta(type):
         return type.__new__(cls, clsname, superclasses, newDct)
 
 
-def nameChanger(nameMapping):
+def nameChanger(nameMapping, wildcard=None):
     """! nameChanger is a class wrapper that allows to change the names of the variables used by the base class (usually a PhysicsDriver).
 
     This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
 
     When a method of the base class is called there is two possibilities :
-    1. The call uses a named argument "name" (for example myObject.setValue(name="myName", value=0.)). In this case, the value passed to the argument "name" is modified (if this is a key of nameMapping).
-    2. Their is no named argument "name" (for example myObject.setValue("myName", 0.)). In this case, the value of all arguments of type "str" is modified (if the value used is a key of nameMapping).
+    1. The call uses a named argument "name" (for example myObject.setInputDoubleValue(name="myName", value=0.)). In this case, the value passed to the argument "name" is modified (if this is a key of nameMapping).
+    2. There is no named argument "name" (for example myObject.setInputDoubleValue("myName", 0.)). In this case, the value of all arguments of type "str" is modified (if the value used is a key of nameMapping).
 
     In both cases, nothing is done (no error) if the initial value is not in the keys of nameMapping.
 
     @param nameMapping a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code).
+    @param wildcard a Python string. If both new and old names terminate by this wildcard (a wildcard in the middle of the names is not taken into account), nameChanger will substitute only the preceding part. For example : c3po.nameChanger({"newName*" : "oldName*"}, "*") will substitute newNameA05 in oldNameA05 and newNameB9 in oldNameB9.
 
-    The parameter of nameChanger is added to the class ("static" attributes) with the names static_nameMapping.
+    The parameters of nameChanger are added to the class ("static" attributes) with the names static_nameMapping and static_wildcard.
+    A new method is also added for internal use: _getChangedName(self, name).
 
     nameChanger can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere. For example:
 
-        @c3po.nameChanger({"newName" : "oldName"})
+        @c3po.nameChanger({"newName" : "oldName", "newName2*" : "oldName2*"}, "*")
         class MyClass(...):
             ...
 
     or it can be used in order to redefined only locally the class like that:
 
-        MyNewClass = c3po.nameChanger({"newName" : "oldName"})(MyClass)
+        MyNewClass = c3po.nameChanger({"newName" : "oldName", "newName2*" : "oldName2*"}, "*")(MyClass)
 
     afterward "newName" can be used in place of "oldName" everywhere with MyNewClass. "oldName" is still working.
 
@@ -98,10 +110,12 @@ def nameChanger(nameMapping):
 
     def classWrapper(baseclass):
         if hasattr(baseclass, "static_nameMapping"):
-            raise Exception("nameChanger: the class " + baseclass.__name__ + " has already been modified by nameChanger. It is not allowed.")
+            raise Exception("nameChanger: the class " + baseclass.__name__ + " has already been modified by nameChanger. This is not allowed.")
         baseclass.static_nameMapping = nameMapping
+        baseclass.static_wildcard = wildcard
         newclass = NameChangerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         delattr(baseclass, "static_nameMapping")
+        delattr(baseclass, "static_wildcard")
         return newclass
     return classWrapper
