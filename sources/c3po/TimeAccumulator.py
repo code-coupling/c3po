@@ -15,26 +15,28 @@ from c3po.PhysicsDriver import PhysicsDriver
 
 
 class TimeAccumulator(PhysicsDriver):
-    """! TimeAccumulator wraps a PhysicsDriver into a macro time step procedure.
+    """! TimeAccumulator wraps a PhysicsDriver into a macro time step procedure (for transients or stationaries (through stabilized transients)).
 
-    The TimeAccumulator object is driven like an usual PhysicsDriver, but it will use macro time steps (chosen with
+    In transient calculations, the TimeAccumulator object is driven like any PhysicsDriver, but it will use macro time steps (chosen with
     setValue("macrodt", dt)) whereas the wraped PhysicsDriver may use smaller internal time steps (given by computeTimeStep()).
+
+    In stationary calculations, if the stabilizedTransient mode is activated, when a steady state is asked to the TimeAccumulator object
+    (initTimeStep(0) in stationaryMode), a time loop over the wraped PhysicsDriver object is run until steady state is reached (isStationary() return True).
+    If the stabilizedTransient mode is not activated, steady state calculations (initTimeStep(0) in stationaryMode) are directly asked to the wraped PhysicsDriver.
     """
 
     def __init__(self, physics, saveParameters=None, stabilizedTransient=(False, 100.)):
         """! Build a TimeAccumulator object.
 
         @param physics the PhysicsDriver to wrap.
-        @param saveParameters the tuple (label, method) that can be used to save / restore results in order to provide abortTimeStep capabilities in transient with macro time steps.
-        @param stabilizedTransient a tuple (activated, tMax). If activated is set to True, it computes steady states (dt = 0) as stabilized transients (until physics.isStationary() returns True or the current time reaches tInit + tMax) and then uses resetTime(tInit) in order to keep time consistency (tInit is the returned value of physics.presentTime() before solving).
+        @param saveParameters the tuple (label, method) that can be used to save / restore results in order to provide abortTimeStep capabilities in transient with macro time steps. It also used (but not required) in steady states (dt = 0) if the stabilizedTransient mode is activated.
+        @param stabilizedTransient a tuple (activated, tMax). If activated is set to True, it computes steady states (dt = 0) as stabilized transients (until physics.isStationary() returns True or the current time reaches tInit + tMax) and then uses resetTime(tInit) in order to keep time consistency (tInit is the returned value of physics.presentTime() before solving). If activated is set to False (default value), steady states (dt = 0) are directly asked to physics.
         """
         PhysicsDriver.__init__(self)
         self._physics = physics
         self._dt = None
         self._macrodt = None
         self._saveParameters = saveParameters
-        if not (isinstance(stabilizedTransient, tuple) and len(stabilizedTransient) == 2):
-            raise AssertionError("TimeAccumulator.__init__ : the parameter stabilizedTransient must be a tuple with two elements.")
         self._stabilizedTransient = stabilizedTransient
 
     def getMEDCouplingMajorVersion(self):
