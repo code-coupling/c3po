@@ -229,12 +229,12 @@ class ListingWriter(object):
             self._listingFile.write(self._exchangersData[ind][1].format(self._exchangersData[ind][0], methodName, presentTimeToWrite,
                                                                         calculationTimeToWrite).encode('utf-8'))
 
-        if self._autoFormat:
+        if self._autoFormat and len(self._timeValidatedPhysics) > 0:
             minTValid = min(self._timeValidatedPhysics)
             if minTValid > 0.:
                 if (max(self._timeValidatedPhysics) - minTValid) < 1.E-8:
                     self.writeValidate(presentTime + calculationTime)
-        if self._autoFormat and min(self._terminatedPhysics):
+        if self._autoFormat and len(self._terminatedPhysics) > 0 and min(self._terminatedPhysics):
             self.writeTerminate()
 
         self._listingFile.flush()
