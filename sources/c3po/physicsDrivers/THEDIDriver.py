@@ -34,6 +34,9 @@ class THEDIDriver(PhysicsDriver):
     def isMEDCoupling64Bits(self):
         return self._thedi.isMEDCoupling64Bits()
 
+    def setDataFile(self, datafile):
+        self._thedi.setDataFile(datafile)
+
     def initialize(self):
         if not self._isInit:
             self._isInit = True
