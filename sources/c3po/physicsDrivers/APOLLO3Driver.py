@@ -23,8 +23,8 @@ class APOLLO3Driver(PhysicsDriver):
         @param apollo3ICoCo implementation of the ICOCO interface for APOLLO3.
         """
         PhysicsDriver.__init__(self)
-        if apollo3ICoCo.GetICoCoMajorVersion() != self.GetICoCoMajorVersion():
-            raise AssertionError("The ICoCo major version of the provided object ({}) is not the expected one ({})".format(apollo3ICoCo.GetICoCoMajorVersion(), self.GetICoCoMajorVersion()))
+        if apollo3ICoCo.getICoCoMajorVersion() != self.getICoCoMajorVersion():
+            raise AssertionError("The ICoCo major version of the provided object ({}) is not the expected one ({})".format(apollo3ICoCo.getICoCoMajorVersion(), self.getICoCoMajorVersion()))
         self._apollo3 = apollo3ICoCo
 
     def getMEDCouplingMajorVersion(self):
