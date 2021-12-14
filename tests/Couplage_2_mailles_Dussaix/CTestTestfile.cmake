@@ -7,11 +7,11 @@
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 add_test(Dussaix_seq
-         python main_sequential.py)
+         python3 main_sequential.py)
 add_test(Dussaix_master_worker
-         mpirun -np 1 python main_master.py : -np 1 python main_workerThermo.py : -np 1 python main_workerNeutro.py)
+         mpirun -np 1 python3 main_master.py : -np 1 python3 main_workerThermo.py : -np 1 python3 main_workerNeutro.py)
 add_test(Dussaix_collaborative
-         mpirun -np 2 python main_collaborative.py)
+         mpirun -np 2 python3 main_collaborative.py)
 
 set(_names
     Dussaix_seq

@@ -5,12 +5,5 @@ export C3POSOURCES=${C3PODIR}/sources
 export PYTHONPATH=${PYTHONPATH}:${C3POSOURCES}
 
 #MED / MEDCOUPLING
-export A3_PRODUCT=/home/apollo3/product
-export SALOME_DIR=${A3_PRODUCT}/SALOME-7.8.0/TestCen7/SALOME-7.8.0-CO7.2
-export NUMPY_ROOT_DIR=${SALOME_DIR}/PREREQUISITES/INSTALL/numpy-1.9.2/FROM_Cython-0.23.2_Python-2.7.10_lapack-3.5.0
-export HDF_ROOT_DIR=${SALOME_DIR}/PREREQUISITES/INSTALL/hdf5-1.8.14/FROM_nothing
-export MED_ROOT_DIR=${SALOME_DIR}/PREREQUISITES/INSTALL/med-3.2.0/FROM_hdf5-1.8.14
-export MEDCOUPLING_ROOT_DIR=${SALOME_DIR}/INSTALL/MEDCOUPLING
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MEDCOUPLING_ROOT_DIR}/lib/:${NUMPY_ROOT_DIR}/lib:${MEDCOUPLING_ROOT_DIR}/lib/python2.7/site-packages:${MED_ROOT_DIR}/lib/:${HDF_ROOT_DIR}/lib/
-export PYTHONPATH=${PYTHONPATH}:${MEDCOUPLING_ROOT_DIR}/lib/python2.7/site-packages:${NUMPY_ROOT_DIR}/lib/python2.7/site-packages
- 
+export LD_LIBRARY_PATH=/home/apollo3/product/hdf5-1.10.3/lin-x86-64-cen7/lib/:/home/apollo3/product/SALOME-9.4.0/med-4.0.0/lin-x86-64-cen7/lib/:/home/apollo3/product/SALOME-9.4.0/MEDCOUPLING/lin-x86-64-cen7/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=/home/apollo3/product/SALOME-9.4.0/MEDCOUPLING/lin-x86-64-cen7/lib/python3.6/site-packages:$PYTHONPATH
