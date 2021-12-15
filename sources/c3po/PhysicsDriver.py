@@ -51,7 +51,7 @@ class PhysicsDriver(DataAccessor):
         self._iterateStatus = (True, True)
 
     @staticmethod
-    def GetICoCoMajorVersion():
+    def GetICoCoMajorVersion():  # pylint: disable=invalid-name
         """! (Mandatory) Return ICoCo interface major version number.
 
         @return (int) ICoCo interface major version number (2 at present)

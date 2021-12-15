@@ -240,9 +240,9 @@ class CRONOS2Driver(PhysicsDriver):
         if name in ParamKey.inputKeys:
             field.setName(self._paramDict[name])
             intField = MEDtsetpt.SaphGetIdFromPtr(field)
-            FSaph = self._access.setName()
-            self._access.eval(str(FSaph) + " = MED_FIELD_SAPH: " + str(intField) + " ;")
-            self._access.eval("T_C3PO.'FSaph' = '" + str(FSaph) + "' ;")
+            fSaph = self._access.setName()
+            self._access.eval(str(fSaph) + " = MED_FIELD_SAPH: " + str(intField) + " ;")
+            self._access.eval("T_C3PO.'FSaph' = '" + str(fSaph) + "' ;")
             self._access.eval("T_C3PO.'name' = '" + self._paramDict[name] + "' ;")
             self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_SET_INPUT_MEDFIELD T_IMP T_STR T_OPT T_RES T_C3PO ;")
         else:
