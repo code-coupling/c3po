@@ -115,7 +115,7 @@ class TracerMeta(type):
                         toWritePython = nameField + "_" + self.tracerObjectName + " = " + self.tracerObjectName + "." + method.__name__ + "('" + nameField + "')" + "\n"
                     elif method.__name__.startswith("updateOutputMED"):
                         (nameField, _) = getNameFieldInput(*args, **kwargs)
-                        toWritePython = self.tracerObjectName + "." + method.__name__ +  "('" + nameField + "', " + nameField + "_" + self.tracerObjectName + ")" + "\n"
+                        toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', " + nameField + "_" + self.tracerObjectName + ")" + "\n"
                     else:
                         stringArgs = getArgsString(*args, **kwargs)
                         toWritePython = self.tracerObjectName + "." + method.__name__ + stringArgs + "\n"

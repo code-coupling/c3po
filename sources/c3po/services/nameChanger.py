@@ -43,7 +43,7 @@ class NameChangerMeta(type):
                     i = 0
                     for arg in args:
                         if isinstance(arg, str):
-                            name = self._getChangedName(arg) # pylint: disable=protected-access
+                            name = self._getChangedName(arg)  # pylint: disable=protected-access
                             if name:
                                 args = args[:i] + (name,) + args[i + 1:]
                         i += 1

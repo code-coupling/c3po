@@ -13,6 +13,7 @@
 import os
 from setuptools import find_packages, setup
 
+
 def get_version():
     """Extract the package's version number from the ``VERSION`` file."""
 #    filename = os.path.join(os.path.dirname(__file__), "sources", "c3po", "VERSION")
@@ -57,6 +58,7 @@ def check_dependencies(requirements):
             available_requirements.append(requirement)
     return available_requirements
 
+
 setup(
     name="c3po",
     version=get_version(),
@@ -72,11 +74,11 @@ setup(
             "VERSION",
         ],
     },
-#    package_dir={"": "sources"},
+    #    package_dir={"": "sources"},
     install_requires=check_dependencies([
         "numpy>=1.9",
         "mpi4py>=1.3",
     ]),
     python_requires=">=2.7, !=3.0.*, !=3.1.*",
     licence="3-Clause BSD"
-    )
+)

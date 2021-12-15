@@ -152,7 +152,7 @@ class CRONOS2Driver(PhysicsDriver):
         self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_COMPUTE_TIME_STEP T_IMP T_STR T_OPT T_RES T_C3PO ;")
         self._access.eval("TIME_STEP = T_C3PO.'DT' ; STOP_FLAG = T_C3PO.'STOP' ;")
         dt = self._access.getFloat("TIME_STEP")
-        dt = round(dt,5) # avoid precision problems due to float, e.g 0.01 != 0.009999999748
+        dt = round(dt, 5)  # avoid precision problems due to float, e.g 0.01 != 0.009999999748
         stop = bool(self._access.getBool("STOP_FLAG"))
         return (dt, stop)
 
