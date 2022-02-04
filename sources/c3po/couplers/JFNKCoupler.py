@@ -80,6 +80,7 @@ class JFNKCoupler(Coupler):
         self._krylovMaxIter = 100
         self._epsilon = 1.E-4
         self._isConverged = False
+        self._printLevel = 2
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
             raise Exception("JFNKCoupler.__init__ physics, exchangers and dataManagers must be lists!")
@@ -113,6 +114,15 @@ class JFNKCoupler(Coupler):
         """
         self._epsilon = epsilon
 
+    def setPrintLevel(self, level):
+        """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
+
+        @param level integer in range [0;2]. Default: 2.
+        """
+        if not level in [0, 1, 2]:
+            raise Exception("JFNKCoupler.setPrintLevel level should be one of [0, 1, 2]!")
+        self._printLevel = level
+
     def solveTimeStep(self):
         """! Solve a time step using Jacobian-Free Newton Krylov algorithm.
 
@@ -127,7 +137,9 @@ class JFNKCoupler(Coupler):
         previousData = 0
         matrixQ = []
 
-        print("Initialisation ")
+        if self._printLevel:
+            printEndOfLine = "\r" if self._printLevel == 1 else "\n"
+
         # On calcul ici l'etat "0"
         physics.solve()
         physics2Data.exchange()
@@ -139,8 +151,6 @@ class JFNKCoupler(Coupler):
         errorNewton = self._newtonTolerance + 1
 
         while errorNewton > self._newtonTolerance and iterNewton < self._newtonMaxIter:
-            print("Newton iteration ", iterNewton)
-
             if iterNewton == 0:
                 residual = data.clone()
                 previousData = data.clone()
@@ -160,6 +170,10 @@ class JFNKCoupler(Coupler):
             norm2Residual = residual.norm2()
 
             errorNewton = self.getNorm(residual) / self.getNorm(data)
+
+            if self._printLevel:
+                print("JFNK Newton iteration {} initial error : {:.5e}".format(iterNewton, errorNewton), end=printEndOfLine)
+
             if errorNewton > self._newtonTolerance:
 
                 if len(matrixQ) < 1:
@@ -179,7 +193,6 @@ class JFNKCoupler(Coupler):
                 iterKrylov = 0
 
                 while errorKrylov > self._krylovTolerance and iterKrylov < self._krylovMaxIter:
-                    print("    Krylov iteration ", iterKrylov)
                     iterKrylov += 1
 
                     data.copy(previousData)
@@ -241,7 +254,8 @@ class JFNKCoupler(Coupler):
 
                     errorKrylov = abs(krylovResidual[-1]) / norm2Residual
 
-                    print("    error Krylov : ", errorKrylov)
+                    if self._printLevel:
+                        print("    JFNK Krylov iteration {} error : {:.5e}".format(iterKrylov - 1, errorKrylov), end=printEndOfLine)
 
                 squareR = matrixR[0:iterKrylov, 0:iterKrylov]
                 reduceKrylovResidual = krylovResidual[0:iterKrylov]
@@ -252,7 +266,9 @@ class JFNKCoupler(Coupler):
                     data.imuladd(krylovResu[i], matrixQ[i])
 
             iterNewton += 1
-            print("error Newton : ", errorNewton)
+
+        if self._printLevel == 1:
+            print("JFNK Newton iteration {} initial error : {:.5e}".format(iterNewton - 1, errorNewton))
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and errorNewton <= self._newtonTolerance

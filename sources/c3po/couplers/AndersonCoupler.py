@@ -86,6 +86,7 @@ class AndersonCoupler(Coupler):
         self._order = 2
         self._andersonDampingFactor = 1.
         self._isConverged = False
+        self._printLevel = 2
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
             raise Exception("AndersonCoupler.__init__ physics, exchangers and dataManagers must be lists!")
@@ -121,6 +122,15 @@ class AndersonCoupler(Coupler):
             raise Exception("AndersonCoupler.setOrder Set an order > 0 !")
         self._order = order
 
+    def setPrintLevel(self, level):
+        """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
+
+        @param level integer in range [0;2]. Default: 2.
+        """
+        if not level in [0, 1, 2]:
+            raise Exception("AndersonCoupler.setPrintLevel level should be one of [0, 1, 2]!")
+        self._printLevel = level
+
     def solveTimeStep(self):
         """! Solve a time step using the fixed point algorithm with Anderson acceleration.
 
@@ -143,9 +153,10 @@ class AndersonCoupler(Coupler):
         # Tolérance sur le conditionnement de matrixR ; valeur par défaut proposée par Ansar, reprise telle quelle
         dropErr = 1.e10
 
-        print("Initialisation ")
         # Init On calcul ici l'etat "0"
-        print("iteration ", iiter)
+        if self._printLevel:
+            printEndOfLine = "\r" if self._printLevel == 1 else "\n"
+            print("Anderson iteration {} ".format(iiter), end=printEndOfLine)
         physics.solve()
         physics2Data.exchange()
 
@@ -157,7 +168,6 @@ class AndersonCoupler(Coupler):
         iiter += 1
 
         # Premiere iteration non acceleree
-        print("iteration ", iiter)
         self.abortTimeStep()
         self.initTimeStep(self._dt)
         self.denormalizeData(normData)
@@ -172,15 +182,12 @@ class AndersonCoupler(Coupler):
         delta = previousData * -1.
 
         error = self.getNorm(diffData) / self.getNorm(data)
-        print("error : ", error)
 
         iiter += 1
+        if self._printLevel:
+            print("Anderson iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
 
         while error > self._tolerance and iiter < self._maxiter:
-            if iiter == 2:
-                print(" -- Anderson Acceleration starts ! ")
-            print("iteration ", iiter)
-
             self.abortTimeStep()
             self.initTimeStep(self._dt)
             self.denormalizeData(normData)
@@ -252,7 +259,7 @@ class AndersonCoupler(Coupler):
                 if dropErr > 0.:
                     condDF = np.linalg.cond(matrixR)
                     while condDF > dropErr and mAA > 1:
-                        print("cond(D) = %1.8e, reducing mAA to %d" % (condDF, mAA - 1))
+                        #print("cond(D) = %1.8e, reducing mAA to %d" % (condDF, mAA - 1))
                         if datatmp == 0.:
                             datatmp = data.clone()
                         matrixQ, matrixR = deleteQRColumn(matrixQ, matrixR, datatmp)
@@ -279,7 +286,11 @@ class AndersonCoupler(Coupler):
                 previousData.copy(data)
 
             iiter += 1
-            print("error : ", error)
+            if self._printLevel:
+                print("Anderson iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
+
+        if self._printLevel == 1:
+            print("Anderson iteration {} error : {:.5e} ".format(iiter - 1, error))
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and error <= self._tolerance

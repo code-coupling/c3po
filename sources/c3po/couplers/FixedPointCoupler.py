@@ -61,15 +61,6 @@ class FixedPointCoupler(Coupler):
         if len(exchangers) != 2:
             raise Exception("FixedPointCoupler.__init__ There must be exactly two Exchanger")
 
-    def setPrintLevel(self, level):
-        """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
-
-        @param level integer in range [0;2].
-        """
-        if not level in [0, 1, 2]:
-            raise Exception("FixedPointCoupler.setPrintLevel level should be one of [0, 1, 2]!")
-        self._printLevel = level
-
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations).
 
@@ -86,6 +77,15 @@ class FixedPointCoupler(Coupler):
         """
         self._dampingFactor = dampingFactor
 
+    def setPrintLevel(self, level):
+        """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
+
+        @param level integer in range [0;2]. Default: 2.
+        """
+        if not level in [0, 1, 2]:
+            raise Exception("FixedPointCoupler.setPrintLevel level should be one of [0, 1, 2]!")
+        self._printLevel = level
+
     def solveTimeStep(self):
         """! Solve a time step using the damped fixed-point algorithm.
 
@@ -100,7 +100,7 @@ class FixedPointCoupler(Coupler):
         # Init
         if self._printLevel:
             printEndOfLine = "\r" if self._printLevel == 1 else "\n"
-            print("iteration {} ".format(iiter), end=printEndOfLine)
+            print("fixed-point iteration {} ".format(iiter), end=printEndOfLine)
 
         physics.solve()
         physics2Data.exchange()
@@ -113,9 +113,6 @@ class FixedPointCoupler(Coupler):
         iiter += 1
 
         while error > self._tolerance and iiter < self._maxiter:
-            if self._printLevel:
-                print("iteration {} ".format(iiter), end="")
-
             self.abortTimeStep()
             self.initTimeStep(self._dt)
             self.denormalizeData(normData)
@@ -141,10 +138,10 @@ class FixedPointCoupler(Coupler):
 
             iiter += 1
             if self._printLevel:
-                print("error : {:.3e} ".format(error), end=printEndOfLine)
-            
+                print("fixed-point iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
+
         if self._printLevel == 1:
-            print("iteration {} error : {:.3e} ".format(iiter, error))
+            print("fixed-point iteration {} error : {:.5e} ".format(iiter - 1, error))
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and error <= self._tolerance
