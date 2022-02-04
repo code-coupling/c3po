@@ -52,6 +52,7 @@ class FixedPointCoupler(Coupler):
         self._maxiter = 100
         self._dampingFactor = 1.
         self._isConverged = False
+        self._printLevel = 2
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
             raise Exception("FixedPointCoupler.__init__ physics, exchangers and dataManagers must be lists!")
@@ -59,6 +60,15 @@ class FixedPointCoupler(Coupler):
             raise Exception("FixedPointCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:
             raise Exception("FixedPointCoupler.__init__ There must be exactly two Exchanger")
+
+    def setPrintLevel(self, level):
+        """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
+
+        @param level integer in range [0;2].
+        """
+        if not level in [0, 1, 2]:
+            raise Exception("FixedPointCoupler.setPrintLevel level should be one of [0, 1, 2]!")
+        self._printLevel = level
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations).
@@ -88,7 +98,10 @@ class FixedPointCoupler(Coupler):
         data2physics = self._exchangers[1]
 
         # Init
-        print("iteration ", iiter)
+        if self._printLevel:
+            printEndOfLine = "\r" if self._printLevel == 1 else "\n"
+            print("iteration {} ".format(iiter), end=printEndOfLine)
+
         physics.solve()
         physics2Data.exchange()
 
@@ -100,7 +113,8 @@ class FixedPointCoupler(Coupler):
         iiter += 1
 
         while error > self._tolerance and iiter < self._maxiter:
-            print("iteration ", iiter)
+            if self._printLevel:
+                print("iteration {} ".format(iiter), end="")
 
             self.abortTimeStep()
             self.initTimeStep(self._dt)
@@ -126,7 +140,11 @@ class FixedPointCoupler(Coupler):
             previousData.copy(data)
 
             iiter += 1
-            print("error : ", error)
+            if self._printLevel:
+                print("error : {:.3e} ".format(error), end=printEndOfLine)
+            
+        if self._printLevel == 1:
+            print("iteration {} error : {:.3e} ".format(iiter, error))
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and error <= self._tolerance
