@@ -64,7 +64,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         """! INTERNAL """
         if self._isCollective:
             return self.mpiComm.reduce(data, op=collectiveOperator, root=self._masterRank)
-        return self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer)
+        return collectiveOperator(data, self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer))
 
     def setDataManagerToFree(self, idDataManager):
         """! INTERNAL """
@@ -107,11 +107,11 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         """! See PhysicsDriver.computeTimeStep(). """
         self.sendData(MPITag.computeTimeStep)
         dt = 1.E30
-        stop = True
+        stop = False
         if self._localPhysicsDriver is not None:
             (dt, stop) = self._localPhysicsDriver.computeTimeStep()
         dt = self.recvData(dt)
-        stop = self.recvData(stop)
+        stop = self.recvData(stop, collectiveOperator=MPI.MAX)
         return (dt, stop)
 
     def initTimeStep(self, dt):

@@ -52,7 +52,7 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
 
     def computeTimeStep(self):
         """! return (1.e30, True) """
-        return (1.e30, True)
+        return (1.e30, False)
 
     def initTimeStep(self, dt):
         """! self._dt = dt and return True """

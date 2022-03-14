@@ -96,7 +96,7 @@ class MPIWorker(object):
                 elif tag == MPITag.computeTimeStep:
                     (dt, stop) = self._physicsDriver.computeTimeStep()
                     self.answer(dt)
-                    self.answer(stop)
+                    self.answer(stop, collectiveOperator=MPI.MAX)
                 elif tag == MPITag.initTimeStep:
                     self.answer(self._physicsDriver.initTimeStep(data))
                 elif tag == MPITag.solve:
@@ -119,7 +119,7 @@ class MPIWorker(object):
                 elif tag == MPITag.iterate:
                     self._physicsDriver.iterate()
                 elif tag == MPITag.getIterateStatus:
-                    (succeed, converged) = self._physicsDriver.computeTimeStep()
+                    (succeed, converged) = self._physicsDriver.getIterateStatus()
                     self.answer(succeed)
                     self.answer(converged)
                 elif tag == MPITag.save:

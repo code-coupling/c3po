@@ -108,12 +108,12 @@ class Coupler(PhysicsDriver):
 
     def computeTimeStep(self):
         """! See PhysicsDriver.computeTimeStep(). """
-        (dt, stop) = (1.e30, True)
+        (dt, stop) = (1.e30, False)
         for physics in self._physicsDriversList:
             (dtPhysics, stopPhysics) = physics.computeTimeStep()
             if dtPhysics < dt:
                 dt = dtPhysics
-            stop = (stop and stopPhysics)
+            stop = (stop or stopPhysics)
         return (dt, stop)
 
     def initTimeStep(self, dt):

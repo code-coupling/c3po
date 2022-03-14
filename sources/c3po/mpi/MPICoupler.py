@@ -114,7 +114,7 @@ class MPICoupler(Coupler):
         (dt, stop) = Coupler.computeTimeStep(self)
         if self._isMPI:
             dt = self.mpiComm.allreduce(dt, op=MPI.MIN)
-            stop = self.mpiComm.allreduce(stop, op=MPI.MIN)
+            stop = self.mpiComm.allreduce(stop, op=MPI.MAX)
         return (dt, stop)
 
     def initTimeStep(self, dt):

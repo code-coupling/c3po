@@ -63,7 +63,7 @@ class ALCYONE2Driver(PhysicsDriver):
 
     def computeTimeStep(self):
         dt = self._alcyone2.computeTimeStep()
-        return (self._dtFactor * dt, True)
+        return (self._dtFactor * dt, False)
 
     def initTimeStep(self, dt):
         if dt == 0:
