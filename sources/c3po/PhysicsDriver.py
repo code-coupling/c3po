@@ -415,13 +415,11 @@ class PhysicsDriver(DataAccessor):
         @param stopIfStationary (bool) if set to True, the method stops also if isStationary() returns True.
         """
         (dt, stop) = self.computeTimeStep()
-        lastTimeStep = False
-        while (self.presentTime() < tmax and not stop):
+        while (self.presentTime() < tmax - 1.E-8 * min(tmax, dt) and not stop):
             if finishAtTmax:
                 if self.presentTime() + 1.5 * dt >= tmax:
                     if self.presentTime() + dt >= tmax - dt * 1.E-4:
                         dt = tmax - self.presentTime()
-                        lastTimeStep = True
                     else:
                         dt = 0.5 * (tmax - self.presentTime())
             self.initTimeStep(dt)
@@ -430,7 +428,6 @@ class PhysicsDriver(DataAccessor):
             if ok:
                 self.validateTimeStep()
                 (dt, stop) = self.computeTimeStep()
-                stop = stop or lastTimeStep
                 if stopIfStationary:
                     stop = stop or self.isStationary()
             else:
