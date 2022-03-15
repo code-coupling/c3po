@@ -572,6 +572,7 @@ def getTotalTimePhysicsDriver(listingName, physicsDriverName,
             if len(resuColumn) > 0 and resuColumn[0] in methodNames:
                 sumTime += float(words[-1].strip())
 
+    listing.close()
     return sumTime
 
 
@@ -635,4 +636,5 @@ def getTimesExchanger(listingName, exchangerName, physicsDriverNames):
                     isStarted[i] = False
                     sumTimes[i][1] += currentTime - intermediateTime[i]
                     intermediateTime[i] = currentTime
+    listing.close()
     return sumTimes
