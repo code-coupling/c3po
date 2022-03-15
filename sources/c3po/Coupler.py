@@ -98,7 +98,7 @@ class Coupler(PhysicsDriver):
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
         for physics in self._physicsDriversList:
-            physics.terminate()
+            physics.term()
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """

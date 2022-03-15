@@ -24,6 +24,7 @@ myThermoDriver = ThermoDriver()
 MasterProcess = c3po.mpi.MPIRemoteProcess(comm, 0)
 DataCoupler = c3po.LocalDataManager()
 
+myThermoDriver.init()
 myThermoDriver.setInputDoubleValue("Vv_Vl", 10.)
 
 basicTransformer = c3po.Remapper()
@@ -41,3 +42,4 @@ exchangers = [ExchangerNeutro2Thermo, ExchangerThermo2Data, ExchangerData2Neutro
 Worker = c3po.mpi.MPIWorker([myNeutroDriver, myThermoDriver], exchangers, [DataCoupler], MasterProcess)
 
 Worker.listen()
+myThermoDriver.term()

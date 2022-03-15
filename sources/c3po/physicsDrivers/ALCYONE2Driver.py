@@ -34,7 +34,6 @@ class ALCYONE2Driver(PhysicsDriver):
         self._alcyone2 = pleiades.createComponent("AlcyoneComponent")
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpi.COMM_SELF)
         self._dtFactor = 1.
-        self._isInit = False
         self._timeShift = 0.
         self._stationaryMode = False
 
@@ -48,12 +47,9 @@ class ALCYONE2Driver(PhysicsDriver):
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpicomm)
 
     def initialize(self):
-        if not self._isInit:
-            self._isInit = True
-            Alcyone2Init(self._alcyone2)
-            self._alcyone2.initialize()
-            pleiades.setVerboseLevel(3)
-        return True
+        Alcyone2Init(self._alcyone2)
+        self._alcyone2.initialize()
+        pleiades.setVerboseLevel(3)
 
     def terminate(self):
         self._alcyone2.terminate()

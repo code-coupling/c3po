@@ -86,7 +86,7 @@ class ListingsCollab_test(unittest.TestCase):
         mycoupler.resetTime(0.)
         mycoupler.solveTransient(1.)
 
-        mycoupler.terminate()
+        mycoupler.term()
 
         file1.close()
         file2.close()

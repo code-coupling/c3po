@@ -11,6 +11,7 @@ class Matrix_test(unittest.TestCase):
         from PhysicsMatrix import PhysicsMatrix
 
         myPhysics = PhysicsMatrix()
+        myPhysics.init()
         taille = myPhysics.getOutputDoubleValue("taille")
 
         Transformer = c3po.DirectMatching()
@@ -34,7 +35,7 @@ class Matrix_test(unittest.TestCase):
         resu = np.dot(myPhysics.A_, myPhysics.result_) + myPhysics.b_
         print(resu / np.linalg.norm(resu))
         vpGS = myPhysics.getOutputDoubleValue("valeur_propre")
-        CouplerGS.terminate()
+        CouplerGS.term()
 
         CouplerAnderson.init()
         CouplerAnderson.solve()
@@ -43,7 +44,7 @@ class Matrix_test(unittest.TestCase):
         resu = np.dot(myPhysics.A_, myPhysics.result_) + myPhysics.b_
         print(resu / np.linalg.norm(resu))
         vpAnderson = myPhysics.getOutputDoubleValue("valeur_propre")
-        CouplerAnderson.terminate()
+        CouplerAnderson.term()
 
         CouplerJFNK.init()
         CouplerJFNK.solve()
@@ -52,7 +53,9 @@ class Matrix_test(unittest.TestCase):
         resu = np.dot(myPhysics.A_, myPhysics.result_) + myPhysics.b_
         print(resu / np.linalg.norm(resu))
         vpJFNK = myPhysics.getOutputDoubleValue("valeur_propre")
-        CouplerJFNK.terminate()
+        CouplerJFNK.term()
+
+        myPhysics.term()
 
         refVal = 15.2654890812
         self.assertAlmostEqual(vpGS, refVal, 3)

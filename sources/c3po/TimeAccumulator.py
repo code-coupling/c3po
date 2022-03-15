@@ -64,7 +64,7 @@ class TimeAccumulator(PhysicsDriver):
         """! See PhysicsDriver.terminate(). """
         if self._saveParameters is not None:
             self._physics.forget(*self._saveParameters)
-        self._physics.terminate()
+        self._physics.term()
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """

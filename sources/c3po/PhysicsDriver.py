@@ -49,6 +49,7 @@ class PhysicsDriver(DataAccessor):
         self._initStatus = True
         self._solveStatus = True
         self._iterateStatus = (True, True)
+        self._initNb = 0
 
     @staticmethod
     def GetICoCoMajorVersion():  # pylint: disable=invalid-name
@@ -101,13 +102,21 @@ class PhysicsDriver(DataAccessor):
         raise NotImplementedError
 
     def init(self):
-        """! Call initialize() but store its return value instead of returning it. The output is accessible with getInitStatus().
+        """! This is a recommanded wrapper for initialize().
+
+        It works with term() in order to guarantee that initialize() and terminate() are called only once:
+            - initialize() is called at the first call of init().
+            - terminate() is called when the number of calls to term() is equal to the number of calls to init().
+
+        init() also stores the return value of initialize() instead of returning it. The output is accessible with getInitStatus().
 
         @warning This method, in association with getInitStatus(), should always be used inside C3PO instead of initialize()
         which is not adapted to MPI Master-Workers paradigm.
         @warning This method should never be redefined: define initialize() instead!
         """
-        self._initStatus = self.initialize()
+        if self._initNb == 0:
+            self._initStatus = self.initialize()
+        self._initNb += 1
 
     def getInitStatus(self):
         """! Return the output status of the last call to initialize() made through init().
@@ -136,6 +145,20 @@ class PhysicsDriver(DataAccessor):
         be used in C3PO instead.
         """
         raise NotImplementedError
+
+    def term(self):
+        """! This is a recommanded wrapper for terminate().
+
+        It works with init() in order to guarantee that initialize() and terminate() are called only once:
+            - initialize() is called at the first call of init().
+            - terminate() is called when the number of calls to term() is equal to the number of calls to init().
+
+        @warning This method should be used inside C3PO instead of terminate().
+        @warning This method should never be redefined: define terminate() instead!
+        """
+        self._initNb -= 1
+        if self._initNb <= 0:
+            self.terminate()
 
     def terminate(self):
         """! (Mandatory) Terminate the current problem instance and release all allocated resources.

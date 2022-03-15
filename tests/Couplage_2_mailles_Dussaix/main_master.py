@@ -49,6 +49,7 @@ class DussaixSeq_master_worker(unittest.TestCase):
         OneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [ExchangerNeutro2Thermo])
 
         mycoupler = c3po.FixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
+        mycoupler.init()
         mycoupler.setDampingFactor(0.125)
         mycoupler.setConvergenceParameters(1E-5, 100)
 
@@ -69,7 +70,9 @@ class DussaixSeq_master_worker(unittest.TestCase):
         self.assertAlmostEqual(ArrayRho.getIJ(0, 0), 822.372079129, 3)
         self.assertAlmostEqual(ArrayRho.getIJ(1, 0), 700.711939405, 3)
 
-        mycoupler.terminate()
+        mycoupler.term()
+        myNeutroDriver.term()
+        myThermoDriver.term()
 
 
 if __name__ == "__main__":

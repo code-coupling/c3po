@@ -72,9 +72,11 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
 
     def init(self):
         """! See PhysicsDriver.init(). """
-        self.sendData(MPITag.init)
-        if self._localPhysicsDriver is not None:
-            self._localPhysicsDriver.init()
+        if self._initNb == 0:
+            self.sendData(MPITag.init)
+            if self._localPhysicsDriver is not None:
+                self._localPhysicsDriver.init()
+        self._initNb += 1
 
     def getInitStatus(self):
         """! See PhysicsDriver.getInitStatus(). """
@@ -86,7 +88,9 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
 
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
-        self.init()
+        self.sendData(MPITag.init)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.init()
         return self.getInitStatus()
 
     def terminate(self):

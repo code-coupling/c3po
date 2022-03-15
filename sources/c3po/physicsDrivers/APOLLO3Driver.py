@@ -26,7 +26,6 @@ class APOLLO3Driver(PhysicsDriver):
         if apollo3ICoCo.GetICoCoMajorVersion() != self.GetICoCoMajorVersion():
             raise AssertionError("The ICoCo major version of the provided object ({}) is not the expected one ({})".format(apollo3ICoCo.GetICoCoMajorVersion(), self.GetICoCoMajorVersion()))
         self._apollo3 = apollo3ICoCo
-        self._isInit = False
 
     def getMEDCouplingMajorVersion(self):
         return self._apollo3.getMEDCouplingMajorVersion()
@@ -38,13 +37,9 @@ class APOLLO3Driver(PhysicsDriver):
         self._apollo3.setDataFile(datafile)
 
     def initialize(self):
-        if not self._isInit:
-            self._isInit = True
-            return self._apollo3.initialize()
-        return True
+        return self._apollo3.initialize()
 
     def terminate(self):
-        self._isInit = False
         self._apollo3.terminate()
 
     def presentTime(self):

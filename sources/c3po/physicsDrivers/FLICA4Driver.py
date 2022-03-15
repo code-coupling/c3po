@@ -24,7 +24,6 @@ class FLICA4Driver(PhysicsDriver):
     def __init__(self):
         """! Build a FLICA4Driver object. """
         PhysicsDriver.__init__(self)
-        self._isInit = False
         self._permSteps = 1000
         self._flica4, self._handle = FlicaICoCo.openLib(str(os.path.join(os.getenv("FLICA_SHARED_LIB"), "libflica4.so")))
        # self._flica4.setDataFile(os.path.join(os.getenv("DATADIR"), "flica4_static.dat"))
@@ -44,13 +43,9 @@ class FLICA4Driver(PhysicsDriver):
         self._flica4.setDataFile(datafile)
 
     def initialize(self):
-        if not self._isInit:
-            self._isInit = True
-            return self._flica4.initialize()
-        return True
+        return self._flica4.initialize()
 
     def terminate(self):
-        self._isInit = False
         self._flica4.terminate()
 
     def presentTime(self):
@@ -143,8 +138,6 @@ class FLICA4AutoSwitchDriver(PhysicsDriver):
 
     def initialize(self):
         if self._isStationnary:
-            if self._isInit:
-                return True
             self._isInit = True
             self._flica4Steady.setDataFile(FLICA4AutoSwitchDriver.dataFileStationnary)
             return self._flica4Steady.initialize()

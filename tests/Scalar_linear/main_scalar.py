@@ -21,8 +21,10 @@ class ScalarPhysicsCoupler(c3po.Coupler):
 class Scalar_linear_test(unittest.TestCase):
     def test_main(self):
         myPhysics = PhysicsScalar()
+        myPhysics.init()
         myPhysics.setOption(1., 0.5)
         myPhysics2 = PhysicsScalar()
+        myPhysics2.init()
         myPhysics2.setOption(3., -1.)
 
         Transformer = c3po.DirectMatching()
@@ -43,7 +45,10 @@ class Scalar_linear_test(unittest.TestCase):
         print(myPhysics.getOutputDoubleValue("y"), myPhysics2.getOutputDoubleValue("y"))
         self.assertAlmostEqual(myPhysics.getOutputDoubleValue("y"), 5. / 3., 4)
         self.assertAlmostEqual(myPhysics2.getOutputDoubleValue("y"), 4. / 3., 4)
-        mycoupler.terminate()
+        mycoupler.term()
+
+        myPhysics.term()
+        myPhysics2.term()
 
 
 if __name__ == "__main__":

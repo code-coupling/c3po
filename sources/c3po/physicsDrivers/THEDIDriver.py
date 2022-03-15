@@ -26,7 +26,6 @@ class THEDIDriver(PhysicsDriver):
         if thediICoCo.GetICoCoMajorVersion() != self.GetICoCoMajorVersion():
             raise AssertionError("The ICoCo major version of the provided object ({}) is not the expected one ({})".format(thediICoCo.GetICoCoMajorVersion(), self.GetICoCoMajorVersion()))
         self._thedi = thediICoCo
-        self._isInit = False
 
     def getMEDCouplingMajorVersion(self):
         return self._thedi.getMEDCouplingMajorVersion()
@@ -38,13 +37,9 @@ class THEDIDriver(PhysicsDriver):
         self._thedi.setDataFile(datafile)
 
     def initialize(self):
-        if not self._isInit:
-            self._isInit = True
-            return self._thedi.initialize()
-        return True
+        return self._thedi.initialize()
 
     def terminate(self):
-        self._isInit = False
         self._thedi.terminate()
 
     def presentTime(self):

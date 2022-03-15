@@ -183,4 +183,4 @@ class MPIWorker(object):
 
                 elif tag == MPITag.exchange:
                     self._exchangers[data].exchange()
-        self._physicsDriver.terminate()
+        self._physicsDriver.term()

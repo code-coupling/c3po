@@ -35,6 +35,8 @@ class Listings_test(unittest.TestCase):
 
         myPhysics = Physics1()
         myPhysics2 = Physics2()
+        myPhysics.init()
+        myPhysics2.init()
 
         Transformer = c3po.DirectMatching()
 
@@ -68,7 +70,9 @@ class Listings_test(unittest.TestCase):
         mycoupler.resetTime(0.)
         mycoupler.solveTransient(1.)
 
-        mycoupler.terminate()
+        mycoupler.term()
+        myPhysics.term()
+        myPhysics2.term()
 
         file1.close()
         file2.close()

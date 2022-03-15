@@ -35,7 +35,6 @@ class CRONOS2Driver(PhysicsDriver):
     def __init__(self):
         """! Build a CRONOS2Driver object. """
         PhysicsDriver.__init__(self)
-        self._isInit = False
 
         # CRONOS2 input file
         self._dataFile = ""
@@ -76,44 +75,42 @@ class CRONOS2Driver(PhysicsDriver):
 
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
-        if not self._isInit:
-            # start a session of python Access for CRONOS2
-            self._access = Access.Access()
-            self._access.begin(10000, 0)
-            self._isInit = True
-            # run a CRONOS2 input file if defined
-            if bool(self._dataFile):
-                self._access.evalFile(self._dataFile)
-            # initialize T_C3PO table
-            self._access.eval("T_C3PO = TABLE: ;")
-            self._access.eval("T_C3PO.'paramDict' = TABLE: ; T_C3PO.'value' = TABLE: ;")
-            self._access.eval("T_C3PO.'paramDict'.'TECO' = 'TECO' ; ")
-            self._access.eval("T_C3PO.'paramDict'.'DMOD' = 'DMOD' ; ")
-            self._access.eval("T_C3PO.'paramDict'.'TMOD' = 'TMOD' ; ")
-            self._access.eval("T_C3PO.'paramDict'.'PUIS' = 'PUISSANCE_W' ; ")
-            # check for existence of basic CRONOS tables
-            self._access.eval("WARNING_T_STR = FAUX ; WARNING_T_OPT = FAUX ; WARNING_T_RES = FAUX ; WARNING_T_IMP = FAUX; ")
-            self._access.eval("NONSI (EXISTE T_STR) ; WARNING_T_STR = VRAI ; T_STR = TABLE: ; FINSI ;")
-            self._access.eval("NONSI (EXISTE T_OPT) ; WARNING_T_OPT = VRAI ; T_OPT = TABLE: ; FINSI ;")
-            self._access.eval("NONSI (EXISTE T_RES) ; WARNING_T_RES = VRAI ; T_RES = TABLE: ; FINSI ;")
-            self._access.eval("NONSI (EXISTE T_IMP) ; WARNING_T_IMP = VRAI ; T_IMP = TABLE: ; FINSI ;")
-            if bool(self._access.getBool("WARNING_T_STR")):
-                self._access.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_STR DOES NOT EXIST, TABLE T_STR IS CREATED' ; ")
-            if bool(self._access.getBool("WARNING_T_OPT")):
-                self._access.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_OPT DOES NOT EXIST, TABLE T_OPT IS CREATED' ; ")
-            if bool(self._access.getBool("WARNING_T_RES")):
-                self._access.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_RES DOES NOT EXIST, TABLE T_RES IS CREATED' ; ")
-            if bool(self._access.getBool("WARNING_T_IMP")):
-                self._access.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_IMP DOES NOT EXIST, TABLE T_IMP IS CREATED' ; ")
-            # if need be, modify/add relevant T_C3PO variables inside ICOCO_INITIALIZE
-            self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INITIALIZE T_IMP T_STR T_OPT T_RES T_C3PO ;")
-            # initialize dictionary values
-            tc3poPtr = self._access.getTabPtr('T_C3PO')
-            paramPtr = self._access.getTableTabPtr(tc3poPtr, 'paramDict')
-            self._paramDict[ParamKey.TECO] = self._access.getTableString(paramPtr, 'TECO')
-            self._paramDict[ParamKey.DMOD] = self._access.getTableString(paramPtr, 'DMOD')
-            self._paramDict[ParamKey.TMOD] = self._access.getTableString(paramPtr, 'TMOD')
-            self._paramDict[ParamKey.PUIS] = self._access.getTableString(paramPtr, 'PUIS')
+        # start a session of python Access for CRONOS2
+        self._access = Access.Access()
+        self._access.begin(10000, 0)
+        # run a CRONOS2 input file if defined
+        if bool(self._dataFile):
+            self._access.evalFile(self._dataFile)
+        # initialize T_C3PO table
+        self._access.eval("T_C3PO = TABLE: ;")
+        self._access.eval("T_C3PO.'paramDict' = TABLE: ; T_C3PO.'value' = TABLE: ;")
+        self._access.eval("T_C3PO.'paramDict'.'TECO' = 'TECO' ; ")
+        self._access.eval("T_C3PO.'paramDict'.'DMOD' = 'DMOD' ; ")
+        self._access.eval("T_C3PO.'paramDict'.'TMOD' = 'TMOD' ; ")
+        self._access.eval("T_C3PO.'paramDict'.'PUIS' = 'PUISSANCE_W' ; ")
+        # check for existence of basic CRONOS tables
+        self._access.eval("WARNING_T_STR = FAUX ; WARNING_T_OPT = FAUX ; WARNING_T_RES = FAUX ; WARNING_T_IMP = FAUX; ")
+        self._access.eval("NONSI (EXISTE T_STR) ; WARNING_T_STR = VRAI ; T_STR = TABLE: ; FINSI ;")
+        self._access.eval("NONSI (EXISTE T_OPT) ; WARNING_T_OPT = VRAI ; T_OPT = TABLE: ; FINSI ;")
+        self._access.eval("NONSI (EXISTE T_RES) ; WARNING_T_RES = VRAI ; T_RES = TABLE: ; FINSI ;")
+        self._access.eval("NONSI (EXISTE T_IMP) ; WARNING_T_IMP = VRAI ; T_IMP = TABLE: ; FINSI ;")
+        if bool(self._access.getBool("WARNING_T_STR")):
+            self._access.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_STR DOES NOT EXIST, TABLE T_STR IS CREATED' ; ")
+        if bool(self._access.getBool("WARNING_T_OPT")):
+            self._access.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_OPT DOES NOT EXIST, TABLE T_OPT IS CREATED' ; ")
+        if bool(self._access.getBool("WARNING_T_RES")):
+            self._access.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_RES DOES NOT EXIST, TABLE T_RES IS CREATED' ; ")
+        if bool(self._access.getBool("WARNING_T_IMP")):
+            self._access.eval("WRITE: 'LISCONS' 'WARNING: VARIABLE T_IMP DOES NOT EXIST, TABLE T_IMP IS CREATED' ; ")
+        # if need be, modify/add relevant T_C3PO variables inside ICOCO_INITIALIZE
+        self._access.eval("T_C3PO T_RES T_STR T_OPT = ICOCO_INITIALIZE T_IMP T_STR T_OPT T_RES T_C3PO ;")
+        # initialize dictionary values
+        tc3poPtr = self._access.getTabPtr('T_C3PO')
+        paramPtr = self._access.getTableTabPtr(tc3poPtr, 'paramDict')
+        self._paramDict[ParamKey.TECO] = self._access.getTableString(paramPtr, 'TECO')
+        self._paramDict[ParamKey.DMOD] = self._access.getTableString(paramPtr, 'DMOD')
+        self._paramDict[ParamKey.TMOD] = self._access.getTableString(paramPtr, 'TMOD')
+        self._paramDict[ParamKey.PUIS] = self._access.getTableString(paramPtr, 'PUIS')
         return True
 
     def terminate(self):
@@ -121,7 +118,6 @@ class CRONOS2Driver(PhysicsDriver):
         self._access.eval("ICOCO_TERMINATE T_IMP T_STR T_OPT T_RES T_C3PO ;")
         self._access.eval("EDTIME: 'TOUT' ; MEMOIRE: -1 ; ARRET: ;")
         self._access.end()
-        self._isInit = False
         self._dataFile = ""
         self._time = 0
         self._dt = 0
