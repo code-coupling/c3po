@@ -35,8 +35,6 @@ class Listings_test(unittest.TestCase):
 
         myPhysics = Physics1()
         myPhysics2 = Physics2()
-        myPhysics.init()
-        myPhysics2.init()
 
         Transformer = c3po.DirectMatching()
 
@@ -53,6 +51,8 @@ class Listings_test(unittest.TestCase):
 
         listingW.initialize([(myPhysics, "Physics1"), (myPhysics2, "Physics2")], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
 
+        myPhysics.init()
+        myPhysics2.init()
         mycoupler.init()
 
         mycoupler.setStationaryMode(False)

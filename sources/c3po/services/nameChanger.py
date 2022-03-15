@@ -63,6 +63,19 @@ class NameChangerMeta(type):
                 newDct[nameattr] = method.copy()
             else:
                 newDct[nameattr] = method
+
+        icocoDataMethods = ["save", "restore", "forget", "getFieldType", "getFieldUnit", "getInputMEDDoubleFieldTemplate", "setInputMEDDoubleField",
+                            "getOutputMEDDoubleField", "updateOutputMEDDoubleField", "getInputMEDIntFieldTemplate", "setInputMEDIntField", "getOutputMEDIntField",
+                            "updateOutputMEDIntField", "getInputMEDStringFieldTemplate", "setInputMEDStringField", "getOutputMEDStringField",
+                            "updateOutputMEDStringField", "getValueType", "getValueUnit", "setInputDoubleValue", "getOutputDoubleValue", "setInputIntValue",
+                            "getOutputIntValue", "setInputStringValue", "getOutputStringValue"]
+        for method in icocoDataMethods:
+            if method not in newDct:
+                for base in superclasses:
+                    if hasattr(base, method):
+                        newDct[method] = methodWrapper(getattr(base, method))
+                        break
+
         return type.__new__(cls, clsname, superclasses, newDct)
 
 

@@ -196,6 +196,20 @@ class TracerMeta(type):
                 newDct[nameattr] = _wrapper(method)
             else:
                 newDct[nameattr] = method
+
+        icocoMethods = ["setDataFile", "setMPIComm", "initialize", "terminate", "presentTime", "computeTimeStep", "initTimeStep", "solveTimeStep", "validateTimeStep", "setStationaryMode",
+                        "getStationaryMode", "isStationary", "abortTimeStep", "resetTime", "iterateTimeStep", "save", "restore", "forget", "getInputFieldsNames", "getOutputFieldsNames",
+                        "getFieldType", "getMeshUnit", "getFieldUnit", "getInputMEDDoubleFieldTemplate", "setInputMEDDoubleField", "getOutputMEDDoubleField", "updateOutputMEDDoubleField",
+                        "getInputMEDIntFieldTemplate", "setInputMEDIntField", "getOutputMEDIntField", "updateOutputMEDIntField", "getInputMEDStringFieldTemplate", "setInputMEDStringField",
+                        "getOutputMEDStringField", "updateOutputMEDStringField", "getInputValuesNames", "getOutputValuesNames", "getValueType", "getValueUnit", "setInputDoubleValue",
+                        "getOutputDoubleValue", "setInputIntValue", "getOutputIntValue", "setInputStringValue", "getOutputStringValue"]
+        for method in icocoMethods:
+            if method not in newDct:
+                for base in bases:
+                    if hasattr(base, method):
+                        newDct[method] = _wrapper(getattr(base, method))
+                        break
+
         return type.__new__(cls, name, bases, newDct)
 
 

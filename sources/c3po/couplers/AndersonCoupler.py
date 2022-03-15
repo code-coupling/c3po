@@ -294,36 +294,3 @@ class AndersonCoupler(Coupler):
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and error <= self._tolerance
-
-    # On definit les methodes suivantes pour qu'elles soient vues par tracer.
-    def initialize(self):
-        """! See Coupler.initialize(). """
-        return Coupler.initialize(self)
-
-    def terminate(self):
-        """! See Coupler.terminate(). """
-        Coupler.terminate(self)
-
-    def computeTimeStep(self):
-        """! See Coupler.computeTimeStep(). """
-        return Coupler.computeTimeStep(self)
-
-    def initTimeStep(self, dt):
-        """! See Coupler.initTimeStep(). """
-        return Coupler.initTimeStep(self, dt)
-
-    def validateTimeStep(self):
-        """! See Coupler.validateTimeStep(). """
-        Coupler.validateTimeStep(self)
-
-    def setStationaryMode(self, stationaryMode):
-        """! See Coupler.setStationaryMode(). """
-        Coupler.setStationaryMode(self, stationaryMode)
-
-    def abortTimeStep(self):
-        """! See Coupler.abortTimeStep(). """
-        Coupler.abortTimeStep(self)
-
-    def resetTime(self, time_):
-        """! See Coupler.resetTime(). """
-        Coupler.resetTime(self, time_)
