@@ -258,16 +258,16 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
     @note In case a method calls another method of self, tracer modifies only to the first method call.
 
     @warning tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger.
-             It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or
-             outputs).
-    @warning tracer only modifies the base class, not its parents. As a consequence, inherited methods are invisible to tracer.
-             Redefine them in the daughter class if needed.
+            It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or
+            outputs).
+    @warning tracer looks for ICoCo methods (the methods to implement in order to define a PhysicsDriver) in base classes and redefine
+            them. Other inherited methods are invisible to tracer.
     @warning A class that inherits from a class wrapped by tracer will be wrapped as well, with the same parameters.
-             It may be a workaround for the previous warning.
-             The definition of the daughter class ("class Daughter(Mother): ...") must be done after the application of tracer on Mother.
-             Otherwise it will result in TypeError when the daughter class will try to call mother methods (since its mother class does
-             not exist anymore!). As a consequence, if tracer is to be applied to C3PO classes, it is recommended to change their name
-             "(MyNewClass = c3po.tracer(...)(MyClass)").
+            It may be a workaround for the previous warning.
+            The definition of the daughter class ("class Daughter(Mother): ...") must be done after the application of tracer on Mother.
+            Otherwise it will result in TypeError when the daughter class will try to call mother methods (since its mother class does
+            not exist anymore!). As a consequence, if tracer is to be applied to C3PO classes, it is recommended to change their name
+            "(MyNewClass = c3po.tracer(...)(MyClass)").
 
     @throw Exception if applied to a class already modified by tracer, because it could result in an unexpected behavior.
     """

@@ -110,13 +110,14 @@ def nameChanger(nameMapping, wildcard=None):
 
     @note nameMapping is copied.
 
-    @warning nameChanger only modifies the base class, not its parents. As a consequence, inherited methods are invisible to nameChanger. Redefine them in the daughter class if needed.
+    @warning nameChanger looks for ICoCo methods (the methods to implement in order to define a PhysicsDriver) in base classes and redefine
+            them. Other inherited methods are invisible to nameChanger.
     @warning A class that inherits from a class wrapped by nameChanger will be wrapped as well, with the same parameters.
-             It may be a workaround for the previous warning.
-             The definition of the daughter class ("class Daughter(Mother): ...") must be done after the application of nameChanger on Mother.
-             Otherwise it will result in TypeError when the daughter class will try to call mother methods (since its mother class does
-             not exist anymore!). As a consequence, if nameChanger is to be applied to C3PO classes, it is recommended to change their name
-             "(MyNewClass = c3po.nameChanger(...)(MyClass)").
+            It may be a workaround for the previous warning.
+            The definition of the daughter class ("class Daughter(Mother): ...") must be done after the application of nameChanger on Mother.
+            Otherwise it will result in TypeError when the daughter class will try to call mother methods (since its mother class does
+            not exist anymore!). As a consequence, if nameChanger is to be applied to C3PO classes, it is recommended to change their name
+            "(MyNewClass = c3po.nameChanger(...)(MyClass)").
 
     @throw Exception if applied to a class already modified by nameChanger, because it could result in an unexpected behavior.
     """
