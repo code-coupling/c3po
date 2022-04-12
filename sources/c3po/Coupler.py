@@ -35,14 +35,12 @@ class Coupler(PhysicsDriver):
     @note Coupler inherits from PhysicsDriver, it is therefore possible to couple of Coupler objects!
     """
 
-    def __init__(self, physics, exchangers, dataManagers=[], callInitTimeStep=True):
+    def __init__(self, physics, exchangers, dataManagers=[]):
         """! Build an Coupler object.
 
         @param physics a list (or dictionary) of PhysicsDriver objects to be coupled.
         @param exchangers a list (or dictionary) of Exchanger for the coupling.
         @param dataManagers a list (or dictionary) of DataManager used in the coupling.
-        @param callInitTimeStep (bool) put True to call initTimeStep() on PhysicsDriver objects when initTimeStep() is called on self.
-            Using False may be useful when the time step length cannot be defined a priori.
         """
         PhysicsDriver.__init__(self)
         self._physicsDrivers = physics
@@ -51,7 +49,6 @@ class Coupler(PhysicsDriver):
         self._dataManagers = dataManagers
         self._norm = NormChoice.normMax
         self._dt = 1.e30
-        self._callInitTimeStep = callInitTimeStep
 
     def getMEDCouplingMajorVersion(self):
         """! See PhysicsDriver.getMEDCouplingMajorVersion(). """
@@ -123,9 +120,8 @@ class Coupler(PhysicsDriver):
         """! See PhysicsDriver.initTimeStep(). """
         self._dt = dt
         resu = True
-        if self._callInitTimeStep:
-            for physics in self._physicsDriversList:
-                resu = (physics.initTimeStep(dt) and resu)
+        for physics in self._physicsDriversList:
+            resu = (physics.initTimeStep(dt) and resu)
         return resu
 
     def getSolveStatus(self):

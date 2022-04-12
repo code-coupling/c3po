@@ -25,7 +25,7 @@ class MPICoupler(Coupler):
     Can replace, without impact, a c3po.Coupler.Coupler for a calculation on a single process, if the MPI environment is available.
     """
 
-    def __init__(self, physics, exchangers, dataManagers=[], callInitTimeStep=True, mpiComm=None):
+    def __init__(self, physics, exchangers, dataManagers=[], mpiComm=None):
         """! Build a MPICoupler object.
 
         Has the same form than Coupler.__init__() but can also contain MPIRemoteProcess (and MPICollectiveProcess) objects.
@@ -37,14 +37,12 @@ class MPICoupler(Coupler):
         @param physics list (or dictionary) of c3po.PhysicsDriver.PhysicsDriver objects to be coupled.
         @param exchangers list (or dictionary) of c3po.Exchanger.Exchanger for the coupling.
         @param dataManagers list (or dictionary) of c3po.DataManager.DataManager used in the coupling.
-        @param callInitTimeStep (bool) put True to call initTimeStep() on PhysicsDriver objects when initTimeStep() is called on self.
-            Using False may be useful when the time step length cannot be defined a priori.
         @param mpiComm The optional mpiComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess
         or MPICollectiveProcess are found.
         It has to be given to the constructor of the object on all involved processes.
         If at least one MPIRemoteProcess or MPICollectiveProcess is present, this mpiComm parameter must be the same than theirs.
         """
-        Coupler.__init__(self, physics, exchangers, dataManagers, callInitTimeStep)
+        Coupler.__init__(self, physics, exchangers, dataManagers)
         self.mpiComm = None
         self._isMPI = False
         for phy in self._physicsDriversList:
