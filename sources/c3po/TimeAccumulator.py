@@ -35,6 +35,7 @@ class TimeAccumulator(PhysicsDriver):
         PhysicsDriver.__init__(self)
         self._physics = physics
         self._dt = None
+        self._timeDifference = 0.
         self._macrodt = None
         self._saveParameters = saveParameters
         self._stabilizedTransient = stabilizedTransient
@@ -58,6 +59,8 @@ class TimeAccumulator(PhysicsDriver):
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
         self._physics.init()
+        self._timeDifference = 0.
+        self._macrodt = None
         return self._physics.getInitStatus()
 
     def terminate(self):
@@ -68,7 +71,7 @@ class TimeAccumulator(PhysicsDriver):
 
     def presentTime(self):
         """! See PhysicsDriver.presentTime(). """
-        return self._physics.presentTime()
+        return self._physics.presentTime() - self._timeDifference
 
     def computeTimeStep(self):
         """! See PhysicsDriver.computeTimeStep().
@@ -87,7 +90,7 @@ class TimeAccumulator(PhysicsDriver):
             return self._physics.initTimeStep(dt)
         if self._dt == 0 and self._stabilizedTransient[0] and not self._physics.getStationaryMode():
             raise AssertionError("TimeAccumulator.initTimeStep : Stationary mode must be activated (setStationaryMode(True)) in order to use a stabilized transient to reach a steady state solution.")
-        if self._saveParameters is not None and ((self._dt > 0 and self._macrodt is not None) or (self._dt == 0 and self._stabilizedTransient[0])):
+        if self._saveParameters is not None and (self._dt > 0 or self._stabilizedTransient[0]):
             self._physics.save(*self._saveParameters)
         return True
 
@@ -95,10 +98,11 @@ class TimeAccumulator(PhysicsDriver):
         """! Make the PhysicsDriver to reach the end of the macro time step asked to TimeAccumulator
         using its own time advance procedure.
         """
+        timeInit = self._physics.presentTime()
         if self._dt > 0.:
-            self._physics.solveTransient(self.presentTime() + self._dt, finishAtTmax=True)
+            self._physics.solveTransient(timeInit + self._dt, finishAtTmax=True)
+            self._timeDifference += self._physics.presentTime() - timeInit
         elif self._stabilizedTransient[0]:
-            timeInit = self.presentTime()
             self._physics.solveTransient(timeInit + self._stabilizedTransient[1], stopIfStationary=True)
             self._physics.resetTime(timeInit)
             return self._physics.isStationary()
@@ -111,6 +115,7 @@ class TimeAccumulator(PhysicsDriver):
         if self._dt <= 0 and not self._stabilizedTransient[0]:
             self._physics.validateTimeStep()
         self._dt = None
+        self._timeDifference = 0.
 
     def setStationaryMode(self, stationaryMode):
         """! See PhysicsDriver.setStationaryMode(). """
@@ -122,14 +127,15 @@ class TimeAccumulator(PhysicsDriver):
 
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
-        if (self._dt > 0 and self._macrodt is not None) or (self._dt == 0 and self._stabilizedTransient[0]):
+        if self._dt > 0 or self._stabilizedTransient[0]:
             if self._saveParameters is not None:
                 self._physics.restore(*self._saveParameters)
             elif self._dt > 0:
                 raise Exception("TimeAccumulator.abortTimeStep : not available without saveParameters.")
-        elif self._dt == 0:
+        else:
             self._physics.abortTimeStep()
         self._dt = None
+        self._timeDifference = 0.
 
     def isStationary(self):
         """! See PhysicsDriver.isStationary(). """
