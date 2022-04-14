@@ -158,7 +158,7 @@ class TracerMeta(type):
                         os.dup2(prevIdstderr, sys.stderr.fileno())
                         os.close(prevIdstderr)
 
-                if self.static_saveOutputMED and method.__name__.startswith("getOutputMED"):
+                if self.static_saveOutputMED and (method.__name__.startswith("getOutputMED") or method.__name__.startswith("updateOutputMED")):
                     nameField = getNameInput(*args, **kwargs)
                     nameMEDFile = name + "_output_" + nameField + "_"
                     num = 0
