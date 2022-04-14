@@ -28,13 +28,13 @@ class Listings_test(unittest.TestCase):
         file5 = open("listingGeneral.log", "wb+")
         listingW = c3po.ListingWriter(file5)
 
-        Physics1 = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
-        Physics1 = c3po.nameChanger({"toto": "x", "tat@*": "*"}, '*')(Physics1)
-        Physics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
-        c3po.LocalExchanger = c3po.tracer(listingWriter=listingW)(c3po.LocalExchanger)
+        myPhysics = PhysicsScalarTransient()
+        myPhysics2 = PhysicsScalarTransient()
 
-        myPhysics = Physics1()
-        myPhysics2 = Physics2()
+        myPhysics = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(myPhysics)
+        myPhysics = c3po.nameChanger({"toto": "x", "tat@*": "*"}, '*')(myPhysics)
+        myPhysics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(myPhysics2)
+        c3po.LocalExchanger = c3po.tracer(listingWriter=listingW)(c3po.LocalExchanger)
 
         Transformer = c3po.DirectMatching()
 

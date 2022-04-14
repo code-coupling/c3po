@@ -33,8 +33,6 @@ class ListingsCollab_test(unittest.TestCase):
         file5 = open("listingGeneral" + str(rank) + ".log", "wb+")
         listingW = c3po.ListingWriter(file5)
 
-        Physics1 = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
-        Physics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
         c3po.mpi.MPIExchanger = c3po.tracer(listingWriter=listingW)(c3po.mpi.MPIExchanger)
 
         myPhysics = c3po.mpi.MPIRemoteProcess(comm, 0)
@@ -43,10 +41,12 @@ class ListingsCollab_test(unittest.TestCase):
         localPhysics = 0
 
         if rank == 0:
-            myPhysics = Physics1()
+            myPhysics = PhysicsScalarTransient()
+            myPhysics = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(myPhysics)
             localPhysics = myPhysics
         elif rank == 1:
-            myPhysics2 = Physics2()
+            myPhysics2 = PhysicsScalarTransient()
+            myPhysics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(myPhysics2)
             localPhysics = myPhysics2
 
         Transformer = c3po.DirectMatching()

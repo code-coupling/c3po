@@ -11,6 +11,7 @@
 """ Contain the class wrapper nameChanger. """
 from __future__ import print_function, division
 from types import FunctionType
+import copy
 
 
 class NameChangerMeta(type):
@@ -80,9 +81,15 @@ class NameChangerMeta(type):
 
 
 def nameChanger(nameMapping, wildcard=None):
-    """! nameChanger is a class wrapper that allows to change the names of the variables used by the base class (usually a PhysicsDriver).
+    """! nameChanger is a wrapper that allows to change the names of the variables used by the provided class / object (usually a PhysicsDriver).
 
     This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
+
+    @note nameChanger can be called either on a class, or an object.
+        - If called on a class, nameChanger acts as a class wrapper and return a new class.
+        - If called on an object, a new class is dynamically defined by the application of the previous class wrapper to the base
+          class of the provided object, and an instance of this new class (in which all the attributes of the provided object are
+          copied) is created and returned.
 
     When a method of the base class is called there is two possibilities :
     1. The call uses a named argument "name" (for example myObject.setInputDoubleValue(name="myName", value=0.)). In this case, the value passed to the argument "name" is modified (if this is a key of nameMapping).
@@ -102,11 +109,15 @@ def nameChanger(nameMapping, wildcard=None):
         class MyClass(...):
             ...
 
-    or it can be used in order to redefined only locally the class like that:
+    or it can be used in order to redefined only locally the class / object like that:
 
         MyNewClass = c3po.nameChanger({"newName" : "oldName", "newName2*" : "oldName2*"}, "*")(MyClass)
 
-    afterward "newName" can be used in place of "oldName" everywhere with MyNewClass. "oldName" is still working.
+    or:
+
+        newObject = c3po.nameChanger({"newName" : "oldName", "newName2*" : "oldName2*"}, "*")(myObject)
+
+    afterward "newName" can be used in place of "oldName" everywhere with MyNewClass (or newObject). "oldName" is still working.
 
     @note nameMapping is copied.
 
@@ -122,14 +133,23 @@ def nameChanger(nameMapping, wildcard=None):
     @throw Exception if applied to a class already modified by nameChanger, because it could result in an unexpected behavior.
     """
 
-    def classWrapper(baseclass):
-        if hasattr(baseclass, "static_nameMapping"):
-            raise Exception("nameChanger: the class " + baseclass.__name__ + " has already been modified by nameChanger. This is not allowed.")
-        baseclass.static_nameMapping = nameMapping
-        baseclass.static_wildcard = wildcard
-        newclass = NameChangerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
-        newclass.__doc__ = baseclass.__doc__
-        delattr(baseclass, "static_nameMapping")
-        delattr(baseclass, "static_wildcard")
-        return newclass
-    return classWrapper
+    def wrapper(wrapped):
+        if isinstance(wrapped, type):
+            if hasattr(wrapped, "static_nameMapping"):
+                raise Exception("nameChanger: the class " + wrapped.__name__ + " has already been modified by nameChanger. This is not allowed.")
+            wrapped.static_nameMapping = nameMapping
+            wrapped.static_wildcard = wildcard
+            newclass = NameChangerMeta(wrapped.__name__, wrapped.__bases__, wrapped.__dict__)
+            newclass.__doc__ = wrapped.__doc__
+            delattr(wrapped, "static_nameMapping")
+            delattr(wrapped, "static_wildcard")
+            return newclass
+        else:
+            baseclass = type(wrapped)
+            def __init__(self, model):
+                self.__dict__.update(copy.copy(model.__dict__))
+            setattr(baseclass, "__init__", __init__)
+            newclass = nameChanger(nameMapping, wildcard)(baseclass)
+            newobject = newclass(wrapped)
+            return newobject
+    return wrapper

@@ -14,6 +14,7 @@ from types import FunctionType
 import time
 import sys
 import os
+import copy
 
 import c3po.medcouplingCompat as mc
 
@@ -214,14 +215,20 @@ class TracerMeta(type):
 
 
 def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=None, stderrFile=None, listingWriter=None):
-    """! tracer is a class wrapper allowing to trace the calls of the methods of the base class.
+    """! tracer is a wrapper that allows to trace the calls of the methods of the provided class / object.
 
-    It has different functions:
+    @note tracer can be called either on a class, or an object.
+        - If called on a class, tracer acts as a class wrapper and return a new class.
+        - If called on an object, a new class is dynamically defined by the application of the previous class wrapper to the base
+          class of the provided object, and an instance of this new class (in which all the attributes of the provided object are
+          copied) is created and returned.
 
-    1. It can write all calls of the methods of the base class in a text file in python format in order to allow to replay what
-        happened from the code point of view outside of the coupling.
+    tracer has different functions:
+
+    1. It can write all calls of the methods of the base class / object in a text file in python format in order to allow to replay
+        what happened from a code point of view outside of the coupling.
     2. It can save in .med files input or output MEDFields.
-    3. It can redirect code standard and error outputs in text files.
+    3. It can redirect standard and error outputs in text files.
     4. It can contribute (with ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
 
     @param pythonFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script
@@ -229,8 +236,8 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         otherwise, input MED fields are not stored.
     @param saveInputMED if set to True, every time setInputMED(Double/Int/String)Field is called, the input MED field is stored in
         a .med file. If pythonFile is activated, a MEDLoader reading instruction is also written in the Python file.
-    @param saveOutputMED if set to True, every time getOutputMED(Double/Int/String)Field is called, the output MED field is stored
-        in a .med file.
+    @param saveOutputMED if set to True, every time getOutputMED(Double/Int/String)Field (or updateOutputMED(Double/Int/String)Field)
+        is called, the output MED field is stored in a .med file.
     @param stdoutFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output
         is redirected there. It has to be closed (file.close()) by caller.
     @param stderrFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is
@@ -251,11 +258,15 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         class MyClass(...):
             ...
 
-    or it can be used in order to redefined only locally the class like that:
+    or it can be used in order to redefined only locally the class / object like that:
 
         MyNewClass = c3po.tracer(...)(MyClass)
 
-    @note In case a method calls another method of self, tracer modifies only to the first method call.
+    or:
+
+        newObject = c3po.tracer(...)(myObject)
+
+    @note In case a method calls another method of self, tracer applies only to the first method call.
 
     @warning tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger.
             It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or
@@ -272,28 +283,36 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
     @throw Exception if applied to a class already modified by tracer, because it could result in an unexpected behavior.
     """
 
-    def classWrapper(baseclass):
-        if pythonFile is not None:
-            pythonFile.write("# -*- coding: utf-8 -*-" + "\n")
-            pythonFile.write("from __future__ import print_function, division" + "\n")
-            pythonFile.write("import c3po.medcouplingCompat as mc" + "\n")
-            pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
-
-        if hasattr(baseclass, "static_pythonFile"):
-            raise Exception("tracer: the class " + baseclass.__name__ + " has already been modified by tracer. It is not allowed.")
-        baseclass.static_pythonFile = pythonFile
-        baseclass.static_saveInputMED = saveInputMED
-        baseclass.static_saveOutputMED = saveOutputMED
-        baseclass.static_stdout = stdoutFile
-        baseclass.static_stderr = stderrFile
-        baseclass.static_lWriter = listingWriter
-        newclass = TracerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
-        newclass.__doc__ = baseclass.__doc__
-        delattr(baseclass, "static_pythonFile")
-        delattr(baseclass, "static_saveInputMED")
-        delattr(baseclass, "static_saveOutputMED")
-        delattr(baseclass, "static_stdout")
-        delattr(baseclass, "static_stderr")
-        delattr(baseclass, "static_lWriter")
-        return newclass
-    return classWrapper
+    def wrapper(wrapped):
+        if isinstance(wrapped, type):
+            if hasattr(wrapped, "static_pythonFile"):
+                raise Exception("tracer: the class " + wrapped.__name__ + " has already been modified by tracer. It is not allowed.")
+            if pythonFile is not None:
+                pythonFile.write("# -*- coding: utf-8 -*-" + "\n")
+                pythonFile.write("from __future__ import print_function, division" + "\n")
+                pythonFile.write("import c3po.medcouplingCompat as mc" + "\n")
+                pythonFile.write("from " + wrapped.__module__ + " import " + wrapped.__name__ + "\n" + "\n")
+            wrapped.static_pythonFile = pythonFile
+            wrapped.static_saveInputMED = saveInputMED
+            wrapped.static_saveOutputMED = saveOutputMED
+            wrapped.static_stdout = stdoutFile
+            wrapped.static_stderr = stderrFile
+            wrapped.static_lWriter = listingWriter
+            newclass = TracerMeta(wrapped.__name__, wrapped.__bases__, wrapped.__dict__)
+            newclass.__doc__ = wrapped.__doc__
+            delattr(wrapped, "static_pythonFile")
+            delattr(wrapped, "static_saveInputMED")
+            delattr(wrapped, "static_saveOutputMED")
+            delattr(wrapped, "static_stdout")
+            delattr(wrapped, "static_stderr")
+            delattr(wrapped, "static_lWriter")
+            return newclass
+        else:
+            baseclass = type(wrapped)
+            def __init__(self, model):
+                self.__dict__.update(copy.copy(model.__dict__))
+            setattr(baseclass, "__init__", __init__)
+            newclass = tracer(pythonFile, saveInputMED, saveOutputMED, stdoutFile, stderrFile, listingWriter)(baseclass)
+            newobject = newclass(wrapped)
+            return newobject
+    return wrapper
