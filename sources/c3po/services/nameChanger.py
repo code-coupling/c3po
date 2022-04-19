@@ -145,11 +145,16 @@ def nameChanger(nameMapping, wildcard=None):
             delattr(wrapped, "static_wildcard")
             return newclass
         else:
-            baseclass = type(wrapped)
             def __init__(self, model):
                 self.__dict__.update(copy.copy(model.__dict__))
-            setattr(baseclass, "__init__", __init__)
-            newclass = nameChanger(nameMapping, wildcard)(baseclass)
+            baseClass = type(wrapped)
+            dictBaseClass = {}
+            for key in baseClass.__dict__:
+                dictBaseClass[key] = baseClass.__dict__[key]
+            dictBaseClass["__init__"] = __init__
+            baseClassCopy = type(baseClass.__name__, baseClass.__bases__, dictBaseClass)
+            baseClassCopy.__doc__ = baseClass.__doc__
+            newclass = wrapper(baseClassCopy)
             newobject = newclass(wrapped)
             return newobject
     return wrapper
