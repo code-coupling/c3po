@@ -156,7 +156,7 @@ class PhysicsDriver(DataAccessor):
         @warning This method should be used inside C3PO instead of terminate().
         @warning This method should never be redefined: define terminate() instead!
         """
-        self._initNb -= 1
+        self._initNb = self._initNb - 1 if self._initNb > 0 else 0
         if self._initNb <= 0:
             self.terminate()
 
@@ -171,6 +171,16 @@ class PhysicsDriver(DataAccessor):
         @throws AssertionError if called inside the TIME_STEP_DEFINED context (see PhysicsDriver documentation).
         """
         raise NotImplementedError
+
+    def getInitNb(self):
+        """! Return the number of times init() has been called but not term().
+
+        This method is made to work with the wrappers init() and term(). It indicates the number of term() that are
+        still needed to trigger terminate().
+
+        @return (int) The number of times init() has been called but not term().
+        """
+        return self._initNb
 
     def presentTime(self):
         """! (Mandatory) Return the current time of the simulation.
