@@ -29,21 +29,24 @@ class Listings_test(unittest.TestCase):
         listingW = c3po.ListingWriter(file5)
 
         Physics1 = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
-        Physics1 = c3po.nameChanger({"toto": "x", "tat@*": "*"}, '*')(Physics1)
         Physics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
         c3po.LocalExchanger = c3po.tracer(listingWriter=listingW)(c3po.LocalExchanger)
 
         myPhysics = Physics1()
+        myPhysics.setOption(1., 0.5)
+        myPhysics1 = c3po.NameChanger(myPhysics, nameMappingValue={"toto": "x", "tat@*": "*"}, wildcard="*")
+        
         myPhysics2 = Physics2()
-
+        myPhysics2.setOption(3., -1.)
+                
         Transformer = c3po.DirectMatching()
 
         DataCoupler = c3po.LocalDataManager()
-        First2Second = c3po.LocalExchanger(Transformer, [], [], [(myPhysics, "tat@y")], [(myPhysics2, "x")])
+        First2Second = c3po.LocalExchanger(Transformer, [], [], [(myPhysics1, "tat@y")], [(myPhysics2, "x")])
         Second2Data = c3po.LocalExchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
-        Data2First = c3po.LocalExchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "toto")])
+        Data2First = c3po.LocalExchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics1, "toto")])
 
-        OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
+        OneIterationCoupler = ScalarPhysicsCoupler([myPhysics1, myPhysics2], [First2Second])
 
         mycoupler = c3po.FixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
         mycoupler.setDampingFactor(0.5)
@@ -51,28 +54,28 @@ class Listings_test(unittest.TestCase):
 
         listingW.initialize([(myPhysics, "Physics1"), (myPhysics2, "Physics2")], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
 
-        myPhysics.init()
+        myPhysics1.init()
         myPhysics2.init()
         mycoupler.init()
 
         mycoupler.setStationaryMode(False)
-        print('Stationary mode :', mycoupler.getStationaryMode())
-
-        myPhysics.setOption(1., 0.5)
-        myPhysics2.setOption(3., -1.)
+        print('Stationary mode :', mycoupler.getStationaryMode())        
 
         mycoupler.solveTransient(2.)
-        print(myPhysics.getOutputDoubleValue("y"), myPhysics2.getOutputDoubleValue("y"))
+        print(myPhysics1.getOutputDoubleValue("y"), myPhysics2.getOutputDoubleValue("y"))
 
-        self.assertAlmostEqual(myPhysics.getOutputDoubleValue("y"), 3.166666, 4)
+        self.assertAlmostEqual(myPhysics1.getOutputDoubleValue("y"), 3.166666, 4)
         self.assertAlmostEqual(myPhysics2.getOutputDoubleValue("y"), 2.533333, 4)
 
         mycoupler.resetTime(0.)
         mycoupler.solveTransient(1.)
 
+        print(myPhysics1.getInputValuesNames())
+        print(myPhysics1.getOutputValuesNames())
+
         mycoupler.term()
-        myPhysics.term()
         myPhysics2.term()
+        myPhysics1.term()
 
         file1.close()
         file2.close()

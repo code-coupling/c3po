@@ -22,8 +22,6 @@ class PhysicsScalarTransient(PhysicsDriver):
 
     def initialize(self):
         self.result_ = 0.
-        self.a_ = 0.
-        self.b_ = 0.
         self.x_ = 0.
         self.t_ = 0.
         self.dt_ = 0.
@@ -71,3 +69,9 @@ class PhysicsScalarTransient(PhysicsDriver):
     def setInputDoubleValue(self, name, value):
         if name == "x":
             self.x_ = value
+
+    def getInputValuesNames(self):
+        return ["x"]
+
+    def getOutputValuesNames(self):
+        return ["y"]
