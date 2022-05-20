@@ -2,7 +2,7 @@
 from __future__ import print_function, division
 import mpi4py.MPI as mpi
 
-from NeutroDriver import NeutroDriver
+from tests.Couplage_2_mailles_Dussaix.NeutroDriver import NeutroDriver
 import c3po
 import c3po.mpi
 
@@ -17,29 +17,32 @@ class Neutro2Thermo(c3po.SharedRemapping):
         c3po.SharedRemapping.__init__(self, remapper, reverse=True)
 
 
-comm = mpi.COMM_WORLD
+def main_workerNeutro():
+    comm = mpi.COMM_WORLD
 
-myNeutroDriver = NeutroDriver()
-myThermoDriver = c3po.mpi.MPIRemoteProcess(comm, 1)
-MasterProcess = c3po.mpi.MPIRemoteProcess(comm, 0)
-DataCoupler = c3po.mpi.MPIRemoteProcess(comm, 1)
+    myNeutroDriver = NeutroDriver()
+    myThermoDriver = c3po.mpi.MPIRemoteProcess(comm, 1)
+    MasterProcess = c3po.mpi.MPIRemoteProcess(comm, 0)
+    DataCoupler = c3po.mpi.MPIRemoteProcess(comm, 1)
 
-myNeutroDriver.init()
-myNeutroDriver.setInputDoubleValue("meanT", 1000.)
+    myNeutroDriver.init()
+    myNeutroDriver.setInputDoubleValue("meanT", 1000.)
 
-basicTransformer = c3po.Remapper()
-Thermo2DataTransformer = c3po.DirectMatching()
-Data2NeutroTransformer = Thermo2Neutro(basicTransformer)
-Neutro2ThermoTransformer = Neutro2Thermo(basicTransformer)
+    basicTransformer = c3po.Remapper()
+    Thermo2DataTransformer = c3po.DirectMatching()
+    Data2NeutroTransformer = Thermo2Neutro(basicTransformer)
+    Neutro2ThermoTransformer = Neutro2Thermo(basicTransformer)
 
-ExchangerNeutro2Thermo = c3po.mpi.MPIExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")])
-ExchangerThermo2Data = c3po.mpi.MPIExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(DataCoupler, "Densities")])
-ExchangerData2Neutro = c3po.mpi.MPIExchanger(Data2NeutroTransformer, [(DataCoupler, "Densities")], [(myNeutroDriver, "Densities")])
-ExchangerReturnResu = c3po.mpi.MPIExchanger(c3po.DirectMatching(), [(myNeutroDriver, "Temperatures")], [(MasterProcess, "Temperatures")])
+    ExchangerNeutro2Thermo = c3po.mpi.MPIExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")])
+    ExchangerThermo2Data = c3po.mpi.MPIExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(DataCoupler, "Densities")])
+    ExchangerData2Neutro = c3po.mpi.MPIExchanger(Data2NeutroTransformer, [(DataCoupler, "Densities")], [(myNeutroDriver, "Densities")])
+    ExchangerReturnResu = c3po.mpi.MPIExchanger(c3po.DirectMatching(), [(myNeutroDriver, "Temperatures")], [(MasterProcess, "Temperatures")])
 
-exchangers = [ExchangerNeutro2Thermo, ExchangerThermo2Data, ExchangerData2Neutro, ExchangerReturnResu]
+    exchangers = [ExchangerNeutro2Thermo, ExchangerThermo2Data, ExchangerData2Neutro, ExchangerReturnResu]
 
-Worker = c3po.mpi.MPIWorker([myNeutroDriver, myThermoDriver], exchangers, [DataCoupler], MasterProcess)
+    Worker = c3po.mpi.MPIWorker([myNeutroDriver, myThermoDriver], exchangers, [DataCoupler], MasterProcess)
 
-Worker.listen()
-myNeutroDriver.term()
+    Worker.listen()
+    myNeutroDriver.term()
+
+main_workerNeutro()

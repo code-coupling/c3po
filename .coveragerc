@@ -1,0 +1,3 @@
+[run]
+omit = sources/c3po/physicsDrivers/*
+
