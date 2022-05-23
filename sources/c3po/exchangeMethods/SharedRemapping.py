@@ -15,7 +15,7 @@ from c3po.medcouplingCompat import MEDCouplingRemapper
 from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 
 
-class Remapper(MEDCouplingRemapper):
+class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
 
     def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):

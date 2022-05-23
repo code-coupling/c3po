@@ -51,25 +51,25 @@ class NameChanger(PhysicsDriver):
             else:
                 self._invertNameMappingField[val].append(key)
         self._wildcard = wildcard
-        self.VALUE = 0
-        self.FIELD = 1
+        self._value = 0
+        self._field = 1
 
     def _getNewName(self, name, variableType, inverse):
         """! Return the change name(s).
 
         @param name (string) previous name.
-        @param variableType put self.VALUE if name is the name of a value, self.FIELD if it is the name of a field.
+        @param variableType put 0 (self._value) if name is the name of a value, 1 (self._field) if it is the name of a field.
         @param inverse True to inverse research (old -> new), False to direct (new -> old).
 
         @return the list of new names if inverse, and the single new name otherwise.
         """
-        if variableType == self.VALUE and not inverse:
+        if variableType == self._value and not inverse:
             dictionary = self._nameMappingValue
-        elif variableType == self.VALUE and inverse:
+        elif variableType == self._value and inverse:
             dictionary = self._invertNameMappingValue
-        elif variableType == self.FIELD and not inverse:
+        elif variableType == self._field and not inverse:
             dictionary = self._nameMappingField
-        elif variableType == self.FIELD and inverse:
+        elif variableType == self._field and inverse:
             dictionary = self._invertNameMappingField
         else:
             raise ValueError("Bad call.")
@@ -163,7 +163,7 @@ class NameChanger(PhysicsDriver):
         names = self._physics.getInputFieldsNames()
         newNames = []
         for name in names:
-            newNames += self._getNewName(name, variableType=self.FIELD, inverse=True)
+            newNames += self._getNewName(name, variableType=self._field, inverse=True)
         for name in names:
             if name not in newNames:
                 newNames.append(name)
@@ -174,7 +174,7 @@ class NameChanger(PhysicsDriver):
         names = self._physics.getOutputFieldsNames()
         newNames = []
         for name in names:
-            newNames += self._getNewName(name, variableType=self.FIELD, inverse=True)
+            newNames += self._getNewName(name, variableType=self._field, inverse=True)
         for name in names:
             if name not in newNames:
                 newNames.append(name)
@@ -182,7 +182,7 @@ class NameChanger(PhysicsDriver):
 
     def getFieldType(self, name):
         """! See c3po.DataAccessor.DataAccessor.getFieldType(). """
-        return self._physics.getFieldType(self._getNewName(name, variableType=self.FIELD, inverse=False))
+        return self._physics.getFieldType(self._getNewName(name, variableType=self._field, inverse=False))
 
     def getMeshUnit(self):
         """! See c3po.DataAccessor.DataAccessor.getMeshUnit(). """
@@ -190,46 +190,46 @@ class NameChanger(PhysicsDriver):
 
     def getFieldUnit(self, name):
         """! See c3po.DataAccessor.DataAccessor.getFieldUnit(). """
-        return self._physics.getFieldUnit(self._getNewName(name, variableType=self.FIELD, inverse=False))
+        return self._physics.getFieldUnit(self._getNewName(name, variableType=self._field, inverse=False))
 
     def getInputMEDDoubleFieldTemplate(self, name):
         """! See c3po.DataAccessor.DataAccessor.getInputMEDDoubleFieldTemplate(). """
-        return self._physics.getInputMEDDoubleFieldTemplate(self._getNewName(name, variableType=self.FIELD, inverse=False))
+        return self._physics.getInputMEDDoubleFieldTemplate(self._getNewName(name, variableType=self._field, inverse=False))
 
     def setInputMEDDoubleField(self, name, field):
         """! See c3po.DataAccessor.DataAccessor.setInputMEDDoubleField(). """
-        self._physics.setInputMEDDoubleField(self._getNewName(name, variableType=self.FIELD, inverse=False), field)
+        self._physics.setInputMEDDoubleField(self._getNewName(name, variableType=self._field, inverse=False), field)
 
     def getOutputMEDDoubleField(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputMEDDoubleField(). """
-        return self._physics.getOutputMEDDoubleField(self._getNewName(name, variableType=self.FIELD, inverse=False))
+        return self._physics.getOutputMEDDoubleField(self._getNewName(name, variableType=self._field, inverse=False))
 
     def updateOutputMEDDoubleField(self, name, field):
         """! See c3po.DataAccessor.DataAccessor.updateOutputMEDDoubleField(). """
-        return self._physics.updateOutputMEDDoubleField(self._getNewName(name, variableType=self.FIELD, inverse=False), field)
+        return self._physics.updateOutputMEDDoubleField(self._getNewName(name, variableType=self._field, inverse=False), field)
 
     def getInputMEDIntFieldTemplate(self, name):
         """! See c3po.DataAccessor.DataAccessor.getInputMEDIntFieldTemplate(). """
-        return self._physics.getInputMEDIntFieldTemplate(self._getNewName(name, variableType=self.FIELD, inverse=False))
+        return self._physics.getInputMEDIntFieldTemplate(self._getNewName(name, variableType=self._field, inverse=False))
 
     def setInputMEDIntField(self, name, field):
         """! See c3po.DataAccessor.DataAccessor.setInputMEDIntField(). """
-        self._physics.setInputMEDIntField(self._getNewName(name, variableType=self.FIELD, inverse=False), field)
+        self._physics.setInputMEDIntField(self._getNewName(name, variableType=self._field, inverse=False), field)
 
     def getOutputMEDIntField(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputMEDIntField(). """
-        return self._physics.getOutputMEDIntField(self._getNewName(name, variableType=self.FIELD, inverse=False))
+        return self._physics.getOutputMEDIntField(self._getNewName(name, variableType=self._field, inverse=False))
 
     def updateOutputMEDIntField(self, name, field):
         """! See c3po.DataAccessor.DataAccessor.updateOutputMEDIntField(). """
-        return self._physics.updateOutputMEDIntField(self._getNewName(name, variableType=self.FIELD, inverse=False), field)
+        return self._physics.updateOutputMEDIntField(self._getNewName(name, variableType=self._field, inverse=False), field)
 
     def getInputValuesNames(self):
         """! See c3po.DataAccessor.DataAccessor.getInputValuesNames(). """
         names = self._physics.getInputValuesNames()
         newNames = []
         for name in names:
-            newNames += self._getNewName(name, variableType=self.VALUE, inverse=True)
+            newNames += self._getNewName(name, variableType=self._value, inverse=True)
         for name in names:
             if name not in newNames:
                 newNames.append(name)
@@ -240,7 +240,7 @@ class NameChanger(PhysicsDriver):
         names = self._physics.getOutputValuesNames()
         newNames = []
         for name in names:
-            newNames += self._getNewName(name, variableType=self.VALUE, inverse=True)
+            newNames += self._getNewName(name, variableType=self._value, inverse=True)
         for name in names:
             if name not in newNames:
                 newNames.append(name)
@@ -248,35 +248,35 @@ class NameChanger(PhysicsDriver):
 
     def getValueType(self, name):
         """! See c3po.DataAccessor.DataAccessor.getValueType(). """
-        return self._physics.getValueType(self._getNewName(name, variableType=self.VALUE, inverse=False))
+        return self._physics.getValueType(self._getNewName(name, variableType=self._value, inverse=False))
 
     def getValueUnit(self, name):
         """! See c3po.DataAccessor.DataAccessor.getValueUnit(). """
-        return self._physics.getValueUnit(self._getNewName(name, variableType=self.VALUE, inverse=False))
+        return self._physics.getValueUnit(self._getNewName(name, variableType=self._value, inverse=False))
 
     def setInputDoubleValue(self, name, value):
         """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue(). """
-        self._physics.setInputDoubleValue(self._getNewName(name, variableType=self.VALUE, inverse=False), value)
+        self._physics.setInputDoubleValue(self._getNewName(name, variableType=self._value, inverse=False), value)
 
     def getOutputDoubleValue(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputDoubleValue(). """
-        return self._physics.getOutputDoubleValue(self._getNewName(name, variableType=self.VALUE, inverse=False))
+        return self._physics.getOutputDoubleValue(self._getNewName(name, variableType=self._value, inverse=False))
 
     def setInputIntValue(self, name, value):
         """! See c3po.DataAccessor.DataAccessor.setInputIntValue(). """
-        self._physics.setInputIntValue(self._getNewName(name, variableType=self.VALUE, inverse=False), value)
+        self._physics.setInputIntValue(self._getNewName(name, variableType=self._value, inverse=False), value)
 
     def getOutputIntValue(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputIntValue(). """
-        return self._physics.getOutputIntValue(self._getNewName(name, variableType=self.VALUE, inverse=False))
+        return self._physics.getOutputIntValue(self._getNewName(name, variableType=self._value, inverse=False))
 
     def setInputStringValue(self, name, value):
         """! See c3po.DataAccessor.DataAccessor.setInputStringValue(). """
-        self._physics.setInputStringValue(self._getNewName(name, variableType=self.VALUE, inverse=False), value)
+        self._physics.setInputStringValue(self._getNewName(name, variableType=self._value, inverse=False), value)
 
     def getOutputStringValue(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputStringValue(). """
-        return self._physics.getOutputStringValue(self._getNewName(name, variableType=self.VALUE, inverse=False))
+        return self._physics.getOutputStringValue(self._getNewName(name, variableType=self._value, inverse=False))
 
 
 class NameChangerMeta(type):
