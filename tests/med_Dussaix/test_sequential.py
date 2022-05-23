@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
-from mpi4py import MPI
 import pytest
 
 import c3po.medcouplingCompat as mc
 
 import c3po
-import c3po.mpi
 
 
-class OneIterationCoupler(c3po.mpi.MPICoupler):
+class OneIterationCoupler(c3po.Coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
-        c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
+        c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
 
     def solveTimeStep(self):
         self._physicsDrivers[0].solve()
@@ -37,10 +35,10 @@ def test_sequential():
     Data2NeutroTransformer = c3po.SharedRemapping(basicTransformer, reverse=False)
     Neutro2ThermoTransformer = c3po.SharedRemapping(basicTransformer, reverse=True)
 
-    DataCoupler = c3po.mpi.MPICollectiveDataManager(MPI.COMM_WORLD)
-    ExchangerNeutro2Thermo = c3po.mpi.MPIExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")])
-    ExchangerThermo2Data = c3po.mpi.MPIExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(DataCoupler, "Densities")])
-    ExchangerData2Neutro = c3po.mpi.MPIExchanger(Data2NeutroTransformer, [(DataCoupler, "Densities")], [(myNeutroDriver, "Densities")])
+    DataCoupler = c3po.LocalDataManager()
+    ExchangerNeutro2Thermo = c3po.LocalExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")])
+    ExchangerThermo2Data = c3po.LocalExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(DataCoupler, "Densities")])
+    ExchangerData2Neutro = c3po.LocalExchanger(Data2NeutroTransformer, [(DataCoupler, "Densities")], [(myNeutroDriver, "Densities")])
 
     OneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [ExchangerNeutro2Thermo])
 
