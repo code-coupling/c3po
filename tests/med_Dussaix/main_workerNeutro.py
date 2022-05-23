@@ -2,7 +2,7 @@
 from __future__ import print_function, division
 import mpi4py.MPI as mpi
 
-from tests.Couplage_2_mailles_Dussaix.NeutroDriver import NeutroDriver
+from tests.med_Dussaix.NeutroDriver import NeutroDriver
 import c3po
 import c3po.mpi
 

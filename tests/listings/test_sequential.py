@@ -19,7 +19,7 @@ class ScalarPhysicsCoupler(c3po.Coupler):
 
 
 def main_sequential():
-    from tests.Listings.PhysicsScalarTransient import PhysicsScalarTransient
+    from tests.listings.PhysicsScalarTransient import PhysicsScalarTransient
 
     file1 = open("first.log", "w")
     file2 = open("second.log", "w")

@@ -8,13 +8,13 @@ def main_masterWorkers():
     rank = comm.Get_rank()
 
     if rank == 0:
-        from tests.Couplage_2_mailles_Dussaix.main_master import main_master
+        from tests.med_Dussaix.main_master import main_master
         main_master()
     elif rank == 1:
-        from tests.Couplage_2_mailles_Dussaix.main_workerThermo import main_workerThermo
+        from tests.med_Dussaix.main_workerThermo import main_workerThermo
         main_workerThermo()
     elif rank == 2:
-        from tests.Couplage_2_mailles_Dussaix.main_workerNeutro import main_workerNeutro
+        from tests.med_Dussaix.main_workerNeutro import main_workerNeutro
         main_workerNeutro()
 
 @mpi_parallel(3)

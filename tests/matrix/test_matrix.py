@@ -6,7 +6,7 @@ import pytest
 import c3po
 
 def test_matrix():
-    from tests.Matrix.PhysicsMatrix import PhysicsMatrix
+    from tests.matrix.PhysicsMatrix import PhysicsMatrix
 
     myPhysics = PhysicsMatrix()
     myPhysics.init()

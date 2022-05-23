@@ -22,7 +22,7 @@ class ScalarPhysicsCoupler(c3po.mpi.MPICoupler):
 
 
 def main_collaborative():
-    from tests.Listings.PhysicsScalarTransient import PhysicsScalarTransient
+    from tests.listings.PhysicsScalarTransient import PhysicsScalarTransient
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()

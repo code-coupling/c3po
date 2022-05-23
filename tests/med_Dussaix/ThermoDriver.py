@@ -6,7 +6,7 @@ import numpy
 
 import c3po.medcouplingCompat as mc
 
-import tests.Couplage_2_mailles_Dussaix.MEDBuilder as MEDBuilder
+import tests.med_Dussaix.MEDBuilder as MEDBuilder
 from c3po.PhysicsDriver import PhysicsDriver
 
 Tsat = 1173.

@@ -4,7 +4,7 @@ import sys
 import pytest
 
 import c3po
-from tests.Scalar_linear.PhysicsScalar import PhysicsScalar
+from tests.scalar_linear.PhysicsScalar import PhysicsScalar
 
 
 class ScalarPhysicsCoupler(c3po.Coupler):
