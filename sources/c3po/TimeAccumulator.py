@@ -29,7 +29,7 @@ class TimeAccumulator(PhysicsDriver):
         """! Build a TimeAccumulator object.
 
         @param physics the PhysicsDriver to wrap.
-        @param saveParameters the tuple (label, method) that can be used to save / restore results in order to provide abortTimeStep capabilities in transient with macro time steps. It also used (but not required) in steady states (dt = 0) if the stabilizedTransient mode is activated.
+        @param saveParameters the tuple (label, method) that can be used to save / restore results in order to provide abortTimeStep capabilities in transient with macro time steps.
         @param stabilizedTransient a tuple (activated, tMax). If activated is set to True, it computes steady states (dt = 0) as stabilized transients (until physics.isStationary() returns True or the current time reaches tInit + tMax) and then uses resetTime(tInit) in order to keep time consistency (tInit is the returned value of physics.presentTime() before solving). If activated is set to False (default value), steady states (dt = 0) are directly asked to physics.
         """
         PhysicsDriver.__init__(self)
@@ -90,7 +90,7 @@ class TimeAccumulator(PhysicsDriver):
             return self._physics.initTimeStep(dt)
         if self._dt == 0 and self._stabilizedTransient[0] and not self._physics.getStationaryMode():
             raise AssertionError("TimeAccumulator.initTimeStep : Stationary mode must be activated (setStationaryMode(True)) in order to use a stabilized transient to reach a steady state solution.")
-        if self._saveParameters is not None and (self._dt > 0 or self._stabilizedTransient[0]):
+        if self._saveParameters is not None and self._dt > 0:
             self._physics.save(*self._saveParameters)
         return True
 
@@ -127,10 +127,10 @@ class TimeAccumulator(PhysicsDriver):
 
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
-        if self._dt > 0 or self._stabilizedTransient[0]:
+        if self._dt > 0:
             if self._saveParameters is not None:
                 self._physics.restore(*self._saveParameters)
-            elif self._dt > 0:
+            else:
                 raise Exception("TimeAccumulator.abortTimeStep : not available without saveParameters.")
         else:
             self._physics.abortTimeStep()
