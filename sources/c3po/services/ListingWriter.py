@@ -217,6 +217,7 @@ class ListingWriter(object):
                     toWrite += "{:.4e}".format(inputVar)
                 else:
                     toWrite += "{:.4f}".format(inputVar)
+                self._timeValidatedPhysics[self._physics.index(sourceObject)] = -1.
             elif methodName in ["save", "restore"]:
                 toWrite += inputVar
 
@@ -461,7 +462,7 @@ def mergeListing(listingsName, newListingName):
                 lineNature[i] = natureOneLineCalculation
 
     minTime = 0.
-    timeStepValidated = [False for p in mydumbPhysics]
+    timeValidatedPhysics = [-1. for p in mydumbPhysics]
     lastStarted = ["" for phy in mydumbPhysics]
     for i in range(len(listings)):
         readOneListingLine(i)
@@ -498,11 +499,16 @@ def mergeListing(listingsName, newListingName):
                                          runningPhysics, currentTime[imin])
                     runningPhysics[physicsInd[imin][0]] = False
                     if lastStarted[physicsInd[imin][0]] == "validateTimeStep":
-                        timeStepValidated[physicsInd[imin][0]] = True
-                    if min(timeStepValidated):
-                        writer.writeValidate(currentTime[imin])
-                        for ivalid in range(len(timeStepValidated)):
-                            timeStepValidated[ivalid] = False
+                        timeValidatedPhysics[physicsInd[imin][0]] = float(lineWords[imin][0].split()[-1])
+                    if lastStarted[physicsInd[imin][0]] == "resetTime":
+                        timeValidatedPhysics[physicsInd[imin][0]] = -1.
+                    minTValid = min(timeValidatedPhysics)
+                    if minTValid > 0.:
+                        if (max(timeValidatedPhysics) - minTValid) < 1.E-8:
+                            #if min(timeStepValidated):
+                            writer.writeValidate(currentTime[imin])
+                            for ivalid in range(len(timeValidatedPhysics)):
+                                timeValidatedPhysics[ivalid] = -1
                 elif lineNature[imin] == natureEndExchange:
                     writer.writeAfterExchange(myExchanger, lineWords[imin][0], "exchange", physicsInd[imin], runningPhysics, currentTime[imin])
                     for ilast in physicsInd[imin]:
