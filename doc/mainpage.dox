@@ -85,7 +85,7 @@ This directory contains the definition of the following elements:
     1. mergeListing() that allows to merge listing files produced by c3po.services.ListingWriter.ListingWriter (or by previous call to mergeListing()). It is designed to produce a comprehensive view of a MPI calculation.
     2. getTotalTimePhysicsDriver() that reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns the total time spent by one c3po.PhysicsDriver.PhysicsDriver in indicated methods.
     3. getTimesExchanger() that reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns time information about a chosen exchanger.
-  - c3po.services.nameChanger.nameChanger is a class wrapper that allows to change the names of the variables used by a c3po.DataAccessor.DataAccessor object. The idea is to improve the genericity of coupling scripts by using generic variable names without having to modify the names "by hand".
+  - c3po.services.NameChanger.NameChanger wraps a c3po.PhysicsDriver.PhysicsDriver object and changes the names of the values and fields quantities that can be get/set through ICoCo methods. The idea is to improve the genericity of coupling scripts by using generic variable names without having to modify the names "by hand".
 
 \subsection C3POMPIsources_sec II.4. c3po/mpi directory
 

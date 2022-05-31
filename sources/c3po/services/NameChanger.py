@@ -16,7 +16,7 @@ from c3po.PhysicsDriver import PhysicsDriver
 
 
 class NameChanger(PhysicsDriver):
-    """! NameChanger wraps a PhysicsDriver object and change the names of the values and fields quantities that can be get/set through ICoCo methods.
+    """! NameChanger wraps a PhysicsDriver object and changes the names of the values and fields quantities that can be get/set through ICoCo methods.
 
     This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
     """
@@ -24,12 +24,13 @@ class NameChanger(PhysicsDriver):
     def __init__(self, physics, nameMappingValue={}, nameMappingField={}, wildcard=None):
         """! Build a NameChanger object.
 
-        @param nameMappingValue a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code) for values. \
+        @param physics the PhysicsDriver to wrap.
+        @param nameMappingValue a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code) for values.
             Names that are not in this mapping dictionary can, of course, still be used!
-        @param nameMappingField a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code) for fields. \
+        @param nameMappingField a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code) for fields.
             Names that are not in this mapping dictionary can, of course, still be used!
-        @param wildcard a Python string. If both new and old names terminate by this wildcard (a wildcard in the middle of the names is not taken into account), \
-            nameChanger will substitute only the preceding part. For example : c3po.NameChanger(nameMappingValue={"newName*" : "oldName*"}, wildcard="*") will substitute \
+        @param wildcard a Python string. If both new and old names terminate by this wildcard (a wildcard in the middle of the names is not taken into account),
+            nameChanger will substitute only the preceding part. For example : c3po.NameChanger(nameMappingValue={"newName*" : "oldName*"}, wildcard="*") will substitute
             newNameA05 in oldNameA05 and newNameB9 in oldNameB9.
 
         @note nameMappingValue and nameMappingField are copied.
