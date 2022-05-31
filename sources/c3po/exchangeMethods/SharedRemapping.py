@@ -10,6 +10,8 @@
 
 """ Contain the class SharedRemapping. """
 from __future__ import print_function, division
+import os
+import pickle
 
 from c3po.medcouplingCompat import MEDCouplingRemapper
 from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
@@ -18,7 +20,7 @@ from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
 
-    def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):
+    def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False, file=None):
         """! Build a Remapper object.
 
         @param meshAlignment If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding
@@ -35,6 +37,7 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
             out (defaultValue is assigned to them). It can be useful to screen out cells that are in contact with the other mesh, but that should
             not be intersected by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of the other
             mesh ! Be careful with this option.
+        @param file If defined, this option allows to save remapper in file. If file already exists, remapper is reloaded from the file.
         """
         MEDCouplingRemapper.__init__(self)
         self.isInit = False
@@ -47,6 +50,8 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
         self._outsideCellsScreening = outsideCellsScreening
         self._cellsToScreenOutSource = []
         self._cellsToScreenOutTarget = []
+
+        self._file = file
 
     def initialize(self, sourceMesh, targetMesh):
         """! INTERNAL """
@@ -61,10 +66,27 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
             sourceMesh.scale([0., 0., 0.], 1. / self._rescaling)
         if self._rotation != 0.:
             sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
-        self.prepare(sourceMesh, targetMesh, "P0P0")
+
+        if self._file:
+            if os.path.isfile(self._file):
+                with open(self._file, 'rb') as matrix_file:
+                    matrix = pickle.load(matrix_file)
+                self.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", matrix)
+            else:
+                self.prepare(sourceMesh, targetMesh, "P0P0")
+        else:
+            self.prepare(sourceMesh, targetMesh, "P0P0")
+
         if self._outsideCellsScreening:
             self._cellsToScreenOutTarget = self.computeCellsToScreenOut(targetMesh, sourceMesh)
             self._cellsToScreenOutSource = self.computeCellsToScreenOut(sourceMesh, targetMesh)
+
+        if self._file:
+            if not os.path.isfile(self._file):
+                with open(self._file, 'wb') as matrix_file:
+                    matrix = self.getCrudeMatrix()
+                    pickle.dump(matrix, matrix_file)
+
         self.isInit = True
 
     def computeCellsToScreenOut(self, mesh1, mesh2):
