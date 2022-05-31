@@ -29,13 +29,14 @@ C3PO's Doxygen documentation can be generated from **doc** directory using:
 
 ## Tests ##
 
-Tests are based on ctest.
-C3PO's tests can be run from **tests** directory using:
+Tests are based on pytest.
+C3PO's tests can be run using:
 ```sh
-ctest
+./run_tests.sh
 ```
 
 The environment (with C3PO, MEDCoupling and mpi4py) must be set before launching the tests.
+See the documentation of the script (./run_test.sh --help) for available options.
 
 ## Python style conventions ##
 
