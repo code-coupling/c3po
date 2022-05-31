@@ -23,7 +23,7 @@ from .DataManager import DataManager
 from .LocalDataManager import LocalDataManager
 from .CollaborativeDataManager import CollaborativeDataManager
 from .Coupler import Coupler, NormChoice
-from .TimeAccumulator import TimeAccumulator
+from .TimeAccumulator import TimeAccumulator, SaveAtInitTimeStep
 from .services.tracer import tracer
 from .services.NameChanger import nameChanger, NameChanger
 from .services.ListingWriter import ListingWriter, mergeListing, getTotalTimePhysicsDriver, getTimesExchanger

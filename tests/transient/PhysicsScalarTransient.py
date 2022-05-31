@@ -47,7 +47,10 @@ class PhysicsScalarTransient(PhysicsDriver):
         return True
 
     def solveTimeStep(self):
-        self._result = ((self._x + self._b) + self._resultOld * self._tau / self._dt) / (self._tau / self._dt + self._a)
+        if self._dt > 0:
+            self._result = ((self._x + self._b) + self._resultOld * self._tau / self._dt) / (self._tau / self._dt + self._a)
+        else:
+            self._result = ((self._x + self._b) / self._a)
         return True
 
     def setStationaryMode(self, stationaryMode):

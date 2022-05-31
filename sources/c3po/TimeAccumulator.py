@@ -14,23 +14,48 @@ from __future__ import print_function, division
 from c3po.PhysicsDriver import PhysicsDriver
 
 
+class SaveAtInitTimeStep(object):
+    """! Enum defining TimeAccumulator saving mode.
+
+    Values:
+        - never:
+            TimeAccumulator never call the save() / restore() methods. abortTimeStep() is not available if not in StationaryMode.
+        - always:
+            TimeAccumulator saves at every initTimeStep() call and restores at every abortTimeStep(), even in StationaryMode.
+        - transient:
+            TimeAccumulator saves at every initTimeStep() call and restores at every abortTimeStep(), if not in StationaryMode.
+        - transientExceptAfterAbort:
+            If not in StationaryMode:
+                - TimeAccumulator saves at every initTimeStep() call that does not follow an abortTimeStep() (the first attempt to compute a time-step).
+                - It restores at every abortTimeStep(), if not in StationaryMode.
+    """
+    never = 0
+    always = 1
+    transient = 2
+    transientExceptAfterAbort = 3
+
+
 class TimeAccumulator(PhysicsDriver):
     """! TimeAccumulator wraps a PhysicsDriver into a macro time step procedure (for transients or stationaries (through stabilized transients)).
 
     In transient calculations, the TimeAccumulator object is driven like any PhysicsDriver, but it will use macro time steps (chosen with
-    setValue("macrodt", dt)) whereas the wraped PhysicsDriver may use smaller internal time steps (given by computeTimeStep()).
+    initTimeStep()) whereas the wraped PhysicsDriver may use smaller internal time steps (given by its own computeTimeStep() method).
 
-    In stationary calculations, if the stabilizedTransient mode is activated, when a steady state is asked to the TimeAccumulator object
-    (initTimeStep(0) in stationaryMode), a time loop over the wraped PhysicsDriver object is run until steady state is reached (isStationary() return True).
-    If the stabilizedTransient mode is not activated, steady state calculations (initTimeStep(0) in stationaryMode) are directly asked to the wraped PhysicsDriver.
+    In stationary calculations, if the stabilizedTransient mode is activated, when a steady-state is asked to the TimeAccumulator object
+    (initTimeStep(0) in stationaryMode), a time loop over the wraped PhysicsDriver object is run until steady-state is reached (isStationary() return True).
+    If the stabilizedTransient mode is not activated, steady-state calculations (initTimeStep(0) in stationaryMode) are directly asked to the wraped PhysicsDriver.
     """
 
     def __init__(self, physics, saveParameters=None, stabilizedTransient=(False, 100.)):
         """! Build a TimeAccumulator object.
 
         @param physics the PhysicsDriver to wrap.
-        @param saveParameters the tuple (label, method) that can be used to save / restore results in order to provide abortTimeStep capabilities in transient with macro time steps.
-        @param stabilizedTransient a tuple (activated, tMax). If activated is set to True, it computes steady states (dt = 0) as stabilized transients (until physics.isStationary() returns True or the current time reaches tInit + tMax) and then uses resetTime(tInit) in order to keep time consistency (tInit is the returned value of physics.presentTime() before solving). If activated is set to False (default value), steady states (dt = 0) are directly asked to physics.
+        @param saveParameters the tuple (label, method) that can be used to save / restore results in order to provide abortTimeStep() capabilities in transient.
+            The method setSavingMode() allows to choose when saving is done.
+        @param stabilizedTransient a tuple (activated, tMax). If activated is set to True, it computes steady states (dt = 0) as stabilized transients (until physics.isStationary()
+            returns True or the current time reaches tInit + tMax) and then uses resetTime(tInit) in order to keep time consistency (tInit is the returned value of
+            physics.presentTime() before solving). If activated is set to False (default value), steady-states (dt = 0) are directly asked to physics.
+            The method setStabilizedTransient() allows to modify these data.
         """
         PhysicsDriver.__init__(self)
         self._physics = physics
@@ -38,6 +63,22 @@ class TimeAccumulator(PhysicsDriver):
         self._timeDifference = 0.
         self._macrodt = None
         self._saveParameters = saveParameters
+        self._savingMode = SaveAtInitTimeStep.transient
+        self._stabilizedTransient = stabilizedTransient
+        self._afterAbort = False
+
+    def setSavingMode(self, savingMode):
+        """! Set a saving mode.
+
+        @param savingMode see SaveAtInitTimeStep documentation for available options. Default value is SaveAtInitTimeStep.transient.
+        """
+        self._savingMode = savingMode
+
+    def setStabilizedTransient(self, stabilizedTransient):
+        """! Set stabilized transient data.
+
+        @param stabilizedTransient see parameter stabilizedTransient of the <tt>__init__()</tt> method.
+        """
         self._stabilizedTransient = stabilizedTransient
 
     def getMEDCouplingMajorVersion(self):
@@ -66,7 +107,10 @@ class TimeAccumulator(PhysicsDriver):
     def terminate(self):
         """! See PhysicsDriver.terminate(). """
         if self._saveParameters is not None:
-            self._physics.forget(*self._saveParameters)
+            try:
+                self._physics.forget(*self._saveParameters)
+            except:
+                pass
         self._physics.term()
 
     def presentTime(self):
@@ -88,9 +132,11 @@ class TimeAccumulator(PhysicsDriver):
         self._dt = dt
         if self._dt <= 0 and not self._stabilizedTransient[0]:
             return self._physics.initTimeStep(dt)
-        if self._dt == 0 and self._stabilizedTransient[0] and not self._physics.getStationaryMode():
+        if self._dt == 0 and self._stabilizedTransient[0] and not self.getStationaryMode():
             raise AssertionError("TimeAccumulator.initTimeStep : Stationary mode must be activated (setStationaryMode(True)) in order to use a stabilized transient to reach a steady state solution.")
-        if self._saveParameters is not None and self._dt > 0:
+        if self._saveParameters is not None and \
+            (self._savingMode == SaveAtInitTimeStep.always or (not self.getStationaryMode() and \
+                (self._savingMode == SaveAtInitTimeStep.transient or (not self._afterAbort and self._savingMode == SaveAtInitTimeStep.transientExceptAfterAbort) ) ) ):
             self._physics.save(*self._saveParameters)
         return True
 
@@ -104,8 +150,8 @@ class TimeAccumulator(PhysicsDriver):
             self._timeDifference += self._physics.presentTime() - timeInit
         elif self._stabilizedTransient[0]:
             self._physics.solveTransient(timeInit + self._stabilizedTransient[1], stopIfStationary=True)
-            self._physics.resetTime(timeInit)
-            return self._physics.isStationary()
+            self.resetTime(timeInit)
+            return self.isStationary()
         else:
             self._physics.solve()
         return self._physics.getSolveStatus()
@@ -116,6 +162,7 @@ class TimeAccumulator(PhysicsDriver):
             self._physics.validateTimeStep()
         self._dt = None
         self._timeDifference = 0.
+        self._afterAbort = False
 
     def setStationaryMode(self, stationaryMode):
         """! See PhysicsDriver.setStationaryMode(). """
@@ -127,15 +174,18 @@ class TimeAccumulator(PhysicsDriver):
 
     def abortTimeStep(self):
         """! See PhysicsDriver.abortTimeStep(). """
-        if self._dt > 0:
-            if self._saveParameters is not None:
+        if not self.getStationaryMode():
+            if self._saveParameters is not None and self._savingMode != SaveAtInitTimeStep.never:
                 self._physics.restore(*self._saveParameters)
             else:
-                raise Exception("TimeAccumulator.abortTimeStep : not available without saveParameters.")
+                raise Exception("TimeAccumulator.abortTimeStep : not available in transient mode without saveParameters.")
+        elif self._saveParameters is not None and self._savingMode == SaveAtInitTimeStep.always:
+            self._physics.restore(*self._saveParameters)
         else:
             self._physics.abortTimeStep()
         self._dt = None
         self._timeDifference = 0.
+        self._afterAbort = True
 
     def isStationary(self):
         """! See PhysicsDriver.isStationary(). """
@@ -207,16 +257,20 @@ class TimeAccumulator(PhysicsDriver):
 
     def getValueType(self, name):
         """! See c3po.DataAccessor.DataAccessor.getValueType(). """
+        if name == "macrodt":
+            return "Double"
         return self._physics.getValueType(name)
 
     def getValueUnit(self, name):
         """! See c3po.DataAccessor.DataAccessor.getValueUnit(). """
+        if name == "macrodt":
+            return "s"
         return self._physics.getValueUnit(name)
 
     def setInputDoubleValue(self, name, value):
         """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue().
 
-        The macro time step used by the object can be modified here, using name="macrodt".
+        The value associated with the name "macrodt" can be used to set the time-step size returned by computeTimeStep().
         """
         if name == "macrodt":
             self._macrodt = value
