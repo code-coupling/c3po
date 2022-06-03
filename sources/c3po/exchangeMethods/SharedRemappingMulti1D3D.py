@@ -36,7 +36,7 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
         @param offset see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
         @param rescaling see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
         @param rotation see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
-        @param outsideCellsScreening see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
+        @param outsideCellsScreening see Remapper.
         """
         Remapper.__init__(self, meshAlignment, offset, rescaling, rotation, outsideCellsScreening)
         self._indexTable = [[] for k in range(max(indexTable) + 1)]
@@ -55,7 +55,7 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
         self._arrayZ = 0
         self._numberOf1DPositions = (self._arrayX.getNumberOfTuples() - 1) * (self._arrayY.getNumberOfTuples() - 1)
         self._numberOfCellsIn1D = 0
-        self._innerMesh = mc.MEDCouplingCMesh("3DMeshFromMulti1D")
+        self._innerMesh = None
         self._innerField = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
         self._innerField.setName("3DFieldFromMulti1D")
         self.isInnerFieldBuilt = False
@@ -63,7 +63,9 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
     def buildInnerField(self, mesh1D):
         """! INTERNAL """
         self._arrayZ = mesh1D.getCoordsAt(0)
-        self._innerMesh.setCoords(self._arrayX, self._arrayY, self._arrayZ)
+        cMesh = mc.MEDCouplingCMesh("3DMeshFromMulti1D")
+        cMesh.setCoords(self._arrayX, self._arrayY, self._arrayZ)
+        self._innerMesh = cMesh.buildUnstructured()
         self._numberOfCellsIn1D = mesh1D.getNumberOfCells()
         self._innerField.setMesh(self._innerMesh)
         array = mc.DataArrayDouble()

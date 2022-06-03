@@ -31,10 +31,10 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
         @param rotation Value of the rotation between the source and the target meshes. The rotation is centered on [0., 0., 0.] and is about
             the vertical axis. >0 means that the source mesh is rotated of the given angle compared to the target one. The inverse rotation is
             applied to the source mesh, after mesh alignment or translation, if any. pi means half turn.
-        @param outsideCellsScreening If set to True, target cells whose barycentre is outside of source mesh are screen out (defaultValue is
-               assigned to them). It can be useful to screen out cells that are in contact with the source mesh, but that should not be intersected
-               by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of source mesh !
-               Be careful with this option.
+        @param outsideCellsScreening If set to True, target (and source) cells whose barycentre is outside of source (or target) mesh are screen
+            out (defaultValue is assigned to them). It can be useful to screen out cells that are in contact with the other mesh, but that should
+            not be intersected by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of the other
+            mesh ! Be careful with this option.
         """
         MEDCouplingRemapper.__init__(self)
         self.isInit = False
