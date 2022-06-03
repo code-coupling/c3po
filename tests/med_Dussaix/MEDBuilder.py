@@ -89,10 +89,7 @@ def makeFieldHexa():
     array.setValues(v, len(v), 1)
     f.setArray(array)
     f.setName("Rho")
-    try:
-        f.setNature(mc.IntensiveMaximum)
-    except:
-        f.setNature(mc.IntensiveMaximum)
+    f.setNature(mc.IntensiveMaximum)
     return f
 
 
@@ -134,8 +131,5 @@ def makeFieldCarre():
     array.setValues(v, len(v), 1)
     f.setArray(array)
     f.setName("T")
-    try:
-        f.setNature(mc.ExtensiveMaximum)
-    except:
-        f.setNature(mc.ExtensiveMaximum)
+    f.setNature(mc.ExtensiveMaximum)
     return f
