@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
 import mpi4py.MPI as mpi
-import os, math
+import os, math, glob, shutil
 from pytest_easyMPI import mpi_parallel
 import pytest
 
@@ -149,8 +149,12 @@ def main_mpi_hybrid():
             for i in range(len(refP)):
                 assert pytest.approx(resuP[i], abs=1.E-3) == refP[i]
 
-            os.system("rm *.med")
-            os.system("rm -rf Execution_*")
+            medFiles = glob.glob("*.med")
+            for medFile in medFiles:
+                os.remove(medFile)
+            ExcFolders = glob.glob("Execution_*")
+            for ExcFolder in ExcFolders:
+                shutil.rmtree(ExcFolder)
 
 @mpi_parallel(5)
 def test_mpi_hybrid():

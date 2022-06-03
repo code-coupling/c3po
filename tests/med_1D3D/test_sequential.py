@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
-import os, math
+import os, math, glob
 import pytest
 
 import c3po.medcouplingCompat as mc
@@ -108,7 +108,9 @@ def test_sequential():
     for i in range(len(refP)):
         assert pytest.approx(resuP[i], abs=1.E-3) == refP[i]
 
-    os.system("rm *.med")
+    medFiles = glob.glob("*.med")
+    for medFile in medFiles:
+        os.remove(medFile)
 
 if __name__ == "__main__":
     test_sequential()
