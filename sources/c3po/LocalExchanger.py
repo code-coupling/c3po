@@ -28,6 +28,7 @@ class ShortcutToField(object):
         self._updateMethod = None
         self._update = True
         self._fieldToUpdate = None
+        self._fieldTemplate = None
 
     def initialize(self):
         """! INTERNAL."""
@@ -72,7 +73,9 @@ class ShortcutToField(object):
         """! INTERNAL."""
         if self._getTemplateMethod is None:
             self.initialize()
-        return self._getTemplateMethod(self._name)
+        if self._fieldTemplate is None:
+            self._fieldTemplate = self._getTemplateMethod(self._name)
+        return self._fieldTemplate
 
     def set(self, field):
         """! INTERNAL."""
