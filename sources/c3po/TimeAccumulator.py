@@ -134,10 +134,10 @@ class TimeAccumulator(PhysicsDriver):
             return self._physics.initTimeStep(dt)
         if self._dt == 0 and self._stabilizedTransient[0] and not self.getStationaryMode():
             raise AssertionError("TimeAccumulator.initTimeStep : Stationary mode must be activated (setStationaryMode(True)) in order to use a stabilized transient to reach a steady state solution.")
-        if self._saveParameters is not None and \
-            (self._savingMode == SaveAtInitTimeStep.always or (not self.getStationaryMode() and \
-                (self._savingMode == SaveAtInitTimeStep.transient or (not self._afterAbort and self._savingMode == SaveAtInitTimeStep.transientExceptAfterAbort) ) ) ):
-            self._physics.save(*self._saveParameters)
+        if self._saveParameters is not None:
+            if self._savingMode == SaveAtInitTimeStep.always or (not self.getStationaryMode() and \
+                (self._savingMode == SaveAtInitTimeStep.transient or (not self._afterAbort and self._savingMode == SaveAtInitTimeStep.transientExceptAfterAbort) ) ):
+                self._physics.save(*self._saveParameters)
         return True
 
     def solveTimeStep(self):
