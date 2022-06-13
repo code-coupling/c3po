@@ -66,7 +66,12 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
             sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
 
         if self._loadedMatrix is not None:
-            self.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", self._loadedMatrix)
+            try:
+                self.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", self._loadedMatrix)
+            except:
+                print("Remapper.initialize: Failure to load the matrix.")
+                self.prepare(sourceMesh, targetMesh, "P0P0")
+            self._loadedMatrix = None
         else:
             self.prepare(sourceMesh, targetMesh, "P0P0")
 
