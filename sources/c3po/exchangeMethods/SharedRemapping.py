@@ -20,7 +20,7 @@ from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
 
-    def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False, file=None):
+    def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):
         """! Build a Remapper object.
 
         @param meshAlignment If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding
@@ -37,7 +37,6 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
             out (defaultValue is assigned to them). It can be useful to screen out cells that are in contact with the other mesh, but that should
             not be intersected by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of the other
             mesh ! Be careful with this option.
-        @param file If defined, this option allows to save remapper in file. If file already exists, remapper is reloaded from the file.
         """
         MEDCouplingRemapper.__init__(self)
         self.isInit = False
