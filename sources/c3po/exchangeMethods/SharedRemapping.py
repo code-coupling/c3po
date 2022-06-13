@@ -44,14 +44,13 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
         self._meshAlignment = meshAlignment
         self._offset = offset
         if rescaling <= 0.:
-            raise Exception("Remapper: rescaling must be > 0!")
+            raise ValueError("Remapper: rescaling must be > 0!")
         self._rescaling = rescaling
         self._rotation = rotation
         self._outsideCellsScreening = outsideCellsScreening
         self._cellsToScreenOutSource = []
         self._cellsToScreenOutTarget = []
-
-        self._file = file
+        self._loadedMatrix = None
 
     def initialize(self, sourceMesh, targetMesh):
         """! INTERNAL """
@@ -67,25 +66,14 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
         if self._rotation != 0.:
             sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
 
-        if self._file:
-            if os.path.isfile(self._file):
-                with open(self._file, 'rb') as matrix_file:
-                    matrix = pickle.load(matrix_file)
-                self.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", matrix)
-            else:
-                self.prepare(sourceMesh, targetMesh, "P0P0")
+        if self._loadedMatrix is not None:
+            self.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", self._loadedMatrix)
         else:
             self.prepare(sourceMesh, targetMesh, "P0P0")
 
         if self._outsideCellsScreening:
             self._cellsToScreenOutTarget = self.computeCellsToScreenOut(targetMesh, sourceMesh)
             self._cellsToScreenOutSource = self.computeCellsToScreenOut(sourceMesh, targetMesh)
-
-        if self._file:
-            if not os.path.isfile(self._file):
-                with open(self._file, 'wb') as matrix_file:
-                    matrix = self.getCrudeMatrix()
-                    pickle.dump(matrix, matrix_file)
 
         self.isInit = True
 
@@ -115,6 +103,18 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
         outputField.getArray()[self._cellsToScreenOutSource] = defaultValue
         return outputField
 
+    def exportMatrix(self, file):
+        if not self.isInit:
+            raise AssertionError("Remapper.export: the object is not initialized! Remapper is usually initialized by the SharedRemapping object using it at the first call.")
+        with open(file, 'wb') as matrix_file:
+            matrix = self.getCrudeMatrix()
+            pickle.dump(matrix, matrix_file)
+
+    def loadMatrix(self, file):
+        if self.isInit:
+            raise AssertionError("Remapper.export: the object is already initialized! You can load matrix only before initialization.")
+        with open(file, 'rb') as matrix_file:
+            self._loadedMatrix = pickle.load(matrix_file)
 
 class SharedRemapping(ExchangeMethod):
     """! SharedRemapping is an ExchangeMethod which projects the input fields one by one before returning them as outputs,
@@ -160,7 +160,7 @@ class SharedRemapping(ExchangeMethod):
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Project the input fields one by one before returning them as outputs, in the same order. """
         if len(fieldsToSet) != len(fieldsToGet):
-            raise Exception("sharedRemapping : there must be the same number of input and output MED fields")
+            raise Exception("SharedRemapping : there must be the same number of input and output MED fields")
 
         self.initialize(fieldsToGet, fieldsToSet)
         transformedMED = []
