@@ -10,7 +10,6 @@
 
 """ Contain the class SharedRemapping. """
 from __future__ import print_function, division
-import os
 import pickle
 
 from c3po.medcouplingCompat import MEDCouplingRemapper
@@ -107,18 +106,30 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
         outputField.getArray()[self._cellsToScreenOutSource] = defaultValue
         return outputField
 
-    def exportMatrix(self, file):
+    def exportMatrix(self, fileName):
+        """! Export remapping matrix on file.
+
+        This file can be loaded using loadMatrix() method in order to save initialization time.
+
+        @param fileName name of the file to write in.
+        """
         if not self.isInit:
             raise AssertionError("Remapper.export: the object is not initialized! Remapper is usually initialized by the SharedRemapping object using it at the first call.")
-        with open(file, 'wb') as matrix_file:
+        with open(fileName, 'wb') as matrixFile:
             matrix = self.getCrudeMatrix()
-            pickle.dump(matrix, matrix_file)
+            pickle.dump(matrix, matrixFile)
 
-    def loadMatrix(self, file):
+    def loadMatrix(self, fileName):
+        """! Load remapping matrix from file.
+
+        This file is usually written by exportMatrix() method.
+
+        @param fileName name of the file to read from.
+        """
         if self.isInit:
             raise AssertionError("Remapper.export: the object is already initialized! You can load matrix only before initialization.")
-        with open(file, 'rb') as matrix_file:
-            self._loadedMatrix = pickle.load(matrix_file)
+        with open(fileName, 'rb') as matrixFile:
+            self._loadedMatrix = pickle.load(matrixFile)
 
 class SharedRemapping(ExchangeMethod):
     """! SharedRemapping is an ExchangeMethod which projects the input fields one by one before returning them as outputs,
