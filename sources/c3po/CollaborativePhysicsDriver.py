@@ -8,30 +8,33 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Import user non-MPI C3PO objects. """
+""" Contain the class CollaborativePhysicsDriver. """
+from __future__ import print_function, division
 
-import os
-with open(os.path.join(os.path.dirname(__file__), "VERSION")) as file:
-    __version__ = file.read().strip()
+from c3po.Coupler import Coupler
 
-from .DataAccessor import DataAccessor
-from .PhysicsDriver import PhysicsDriver
-from .Exchanger import Exchanger
-from .LocalExchanger import LocalExchanger
-from .CollaborativeExchanger import CollaborativeExchanger
-from .DataManager import DataManager
-from .LocalDataManager import LocalDataManager
-from .CollaborativeDataManager import CollaborativeDataManager
-from .Coupler import Coupler, NormChoice
-from .CollaborativePhysicsDriver import CollaborativePhysicsDriver
-from .TimeAccumulator import TimeAccumulator, SaveAtInitTimeStep
-from .services.tracer import tracer
-from .services.NameChanger import nameChanger, NameChanger
-from .services.ListingWriter import ListingWriter, mergeListing, getTotalTimePhysicsDriver, getTimesExchanger
-from .couplers.FixedPointCoupler import FixedPointCoupler
-from .couplers.AndersonCoupler import AndersonCoupler
-from .couplers.JFNKCoupler import JFNKCoupler
-from .exchangeMethods.ExchangeMethod import ExchangeMethod
-from .exchangeMethods.DirectMatching import DirectMatching
-from .exchangeMethods.SharedRemapping import SharedRemapping, Remapper
-from .exchangeMethods.SharedRemappingMulti1D3D import SharedRemappingMulti1D3D, Multi1D3DRemapper
+
+class CollaborativePhysicsDriver(Coupler):
+    """! CollaborativePhysicsDriver is a PhysicsDriver (a Coupler in fact) that handles a set of PhysicsDriver as a single one.
+
+    The solving methods of the CollaborativePhysicsDriver call the ones of the held PhysicsDriver in a row.
+    """
+
+    def __init__(self, physics):
+        """! Build an CollaborativePhysicsDriver object.
+
+        @param physics a list (or dictionary) of PhysicsDriver objects.
+        """
+        Coupler.__init__(self, physics=physics, exchangers=[])
+
+    def solveTimeStep(self):
+        """! See PhysicsDriver.solveTimeStep(). """
+        for physics in self._physicsDriversList:
+            physics.solve()
+        return self.getSolveStatus()
+
+    def iterateTimeStep(self):
+        """! See PhysicsDriver.iterateTimeStep(). """
+        for physics in self._physicsDriversList:
+            physics.iterate()
+        return self.getIterateStatus()
