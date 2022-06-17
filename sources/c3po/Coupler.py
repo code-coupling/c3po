@@ -168,6 +168,16 @@ class Coupler(PhysicsDriver):
         for physics in self._physicsDriversList:
             physics.resetTime(time_)
 
+    def getIterateStatus(self):
+        """! See PhysicsDriver.getSolveStatus(). """
+        succeed = True
+        converged = True
+        for physics in self._physicsDriversList:
+            (physicsSucceed, physicsConverged) = physics.getIterateStatus()
+            succeed = succeed and physicsSucceed
+            converged = converged and physicsConverged
+        return (succeed, converged)
+
     def setNormChoice(self, choice):
         """! Choose a norm for future use.
 
