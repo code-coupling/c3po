@@ -78,10 +78,6 @@ def test_sequential():
     for i in range(4):
         dataCouplers.append(c3po.LocalDataManager())
     dataCoupler = c3po.CollaborativeDataManager(dataCouplers)
-    #exchangerNeutro2Thermo = c3po.LocalExchanger(neutroToThermo, [(myNeutroDriver, "Power")], [(thermo, "Power") for thermo in myThermoDrivers])
-    #exchangerThermo2Data = c3po.LocalExchanger(c3po.DirectMatching(), [(thermo, "Temperature") for thermo in myThermoDrivers], [(data, "Temperature") for data in dataCouplers])
-    #exchangerData2Neutro = c3po.LocalExchanger(thermoToNeutro, [(data, "Temperature") for data in dataCouplers], [(myNeutroDriver, "Temperature")])
-
     exchangerNeutro2Thermo = c3po.LocalExchanger(neutroToThermo, [(myNeutroDriver, "Power")], [(myThermoDriver, "Power")])
     exchangerThermo2Data = c3po.LocalExchanger(c3po.DirectMatching(), [(myThermoDriver, "Temperature")], [(dataCoupler, "Temperature")])
     exchangerData2Neutro = c3po.LocalExchanger(thermoToNeutro, [(dataCoupler, "Temperature")], [(myNeutroDriver, "Temperature")])
@@ -100,23 +96,26 @@ def test_sequential():
 
     mycoupler.term()
 
-    fieldT = mc.ReadField(mc.ON_CELLS, "NeutroDriver_input_Temperature_2.med", "3DMesh", 0, "3DFieldFromMulti1D", -1, -1)
-    resuT = fieldT.getArray().toNumPyArray().tolist()
+    try:
+        fieldT = mc.ReadField(mc.ON_CELLS, "NeutroDriver_input_Temperature_2.med", "3DMesh", 0, "3DFieldFromMulti1D", -1, -1)
+        resuT = fieldT.getArray().toNumPyArray().tolist()
 
-    assert len(refT) == len(resuT)
-    for i in range(len(refT)):
-        assert pytest.approx(resuT[i], abs=1.E-3) == refT[i]
+        assert len(refT) == len(resuT)
+        for i in range(len(refT)):
+            assert pytest.approx(resuT[i], abs=1.E-3) == refT[i]
 
-    fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_3.med", "3DMesh", 0, "P", -1, -1)
-    resuP = fieldP.getArray().toNumPyArray().tolist()
+        fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_3.med", "3DMesh", 0, "P", -1, -1)
+        resuP = fieldP.getArray().toNumPyArray().tolist()
 
-    assert len(refP) == len(resuP)
-    for i in range(len(refP)):
-        assert pytest.approx(resuP[i], abs=1.E-3) == refP[i]
-
-    medFiles = glob.glob("*.med")
-    for medFile in medFiles:
-        os.remove(medFile)
+        assert len(refP) == len(resuP)
+        for i in range(len(refP)):
+            assert pytest.approx(resuP[i], abs=1.E-3) == refP[i]
+    except:
+        raise
+    finally:
+        medFiles = glob.glob("*.med")
+        for medFile in medFiles:
+            os.remove(medFile)
 
     myRemapper.exportMatrix("matrix_remapper.med")
 
@@ -160,14 +159,18 @@ def test_load_matrix():
 
     mycoupler2.solve()
 
-    fieldP = myNeutroDriver2.getOutputMEDDoubleField("Power")
-    resuP = fieldP.getArray().toNumPyArray().tolist()
-    assert len(refP) == len(resuP)
-    for i in range(len(refP)):
-        assert pytest.approx(resuP[i], abs=1.E-3) == refP[i]
+    try:
+        fieldP = myNeutroDriver2.getOutputMEDDoubleField("Power")
+        resuP = fieldP.getArray().toNumPyArray().tolist()
+        assert len(refP) == len(resuP)
+        for i in range(len(refP)):
+            assert pytest.approx(resuP[i], abs=1.E-3) == refP[i]
+    except:
+        raise
+    finally:
+        os.remove("matrix_remapper.med")
 
     mycoupler2.term()
-    os.remove("matrix_remapper.med")
 
 if __name__ == "__main__":
     test_sequential()
