@@ -13,9 +13,10 @@ from __future__ import print_function, division
 import math
 
 from c3po.DataManager import DataManager
+from c3po.CollaborativeObject import CollaborativeObject
 
 
-class CollaborativeDataManager(DataManager):
+class CollaborativeDataManager(DataManager, CollaborativeObject):
     """! CollaborativeDataManager is a DataManager that handles a set of DataManager as a single one. """
 
     def __init__(self, dataManagers):
@@ -24,6 +25,7 @@ class CollaborativeDataManager(DataManager):
         @param dataManagers a list of DataManager.
         """
         self.dataManagers = dataManagers
+        CollaborativeObject.__init__(self, self.dataManagers)
 
     def clone(self):
         """! Return a clone of self.

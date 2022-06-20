@@ -78,9 +78,13 @@ def test_sequential():
     for i in range(4):
         dataCouplers.append(c3po.LocalDataManager())
     dataCoupler = c3po.CollaborativeDataManager(dataCouplers)
-    exchangerNeutro2Thermo = c3po.LocalExchanger(neutroToThermo, [(myNeutroDriver, "Power")], [(thermo, "Power") for thermo in myThermoDrivers])
-    exchangerThermo2Data = c3po.LocalExchanger(c3po.DirectMatching(), [(thermo, "Temperature") for thermo in myThermoDrivers], [(data, "Temperature") for data in dataCouplers])
-    exchangerData2Neutro = c3po.LocalExchanger(thermoToNeutro, [(data, "Temperature") for data in dataCouplers], [(myNeutroDriver, "Temperature")])
+    #exchangerNeutro2Thermo = c3po.LocalExchanger(neutroToThermo, [(myNeutroDriver, "Power")], [(thermo, "Power") for thermo in myThermoDrivers])
+    #exchangerThermo2Data = c3po.LocalExchanger(c3po.DirectMatching(), [(thermo, "Temperature") for thermo in myThermoDrivers], [(data, "Temperature") for data in dataCouplers])
+    #exchangerData2Neutro = c3po.LocalExchanger(thermoToNeutro, [(data, "Temperature") for data in dataCouplers], [(myNeutroDriver, "Temperature")])
+
+    exchangerNeutro2Thermo = c3po.LocalExchanger(neutroToThermo, [(myNeutroDriver, "Power")], [(myThermoDriver, "Power")])
+    exchangerThermo2Data = c3po.LocalExchanger(c3po.DirectMatching(), [(myThermoDriver, "Temperature")], [(dataCoupler, "Temperature")])
+    exchangerData2Neutro = c3po.LocalExchanger(thermoToNeutro, [(dataCoupler, "Temperature")], [(myNeutroDriver, "Temperature")])
 
     oneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [exchangerNeutro2Thermo])
 

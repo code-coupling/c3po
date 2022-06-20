@@ -12,9 +12,10 @@
 from __future__ import print_function, division
 
 from c3po.Coupler import Coupler
+from c3po.CollaborativeObject import CollaborativeObject
 
 
-class CollaborativePhysicsDriver(Coupler):
+class CollaborativePhysicsDriver(Coupler, CollaborativeObject):
     """! CollaborativePhysicsDriver is a PhysicsDriver (a Coupler in fact) that handles a set of PhysicsDriver as a single one.
 
     The solving methods of the CollaborativePhysicsDriver call the ones of the held PhysicsDriver in a row.
@@ -26,6 +27,7 @@ class CollaborativePhysicsDriver(Coupler):
         @param physics a list (or dictionary) of PhysicsDriver objects.
         """
         Coupler.__init__(self, physics=physics, exchangers=[])
+        CollaborativeObject.__init__(self, self._physicsDriversList)
 
     def solveTimeStep(self):
         """! See PhysicsDriver.solveTimeStep(). """

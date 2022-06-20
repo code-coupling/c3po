@@ -12,6 +12,7 @@
 from __future__ import print_function, division
 
 from c3po.Exchanger import Exchanger
+from c3po.CollaborativeObject import CollaborativeObject
 
 
 class ShortcutToField(object):
@@ -155,10 +156,10 @@ class LocalExchanger(Exchanger):
         @param valuesToGet idem fieldsToGet but for scalars.
         @param valuesToSet idem fieldsToSet but for scalars.
         """
-        self._fieldsToSet = [ShortcutToField(*tupleData) for tupleData in fieldsToSet]
-        self._fieldsToGet = [ShortcutToField(*tupleData) for tupleData in fieldsToGet]
-        self._valuesToSet = [ShortcutToValue(*tupleData) for tupleData in valuesToSet]
-        self._valuesToGet = [ShortcutToValue(*tupleData) for tupleData in valuesToGet]
+        self._fieldsToSet = [ShortcutToField(*tupleData) for tupleData in self._expandInputList(fieldsToSet)]
+        self._fieldsToGet = [ShortcutToField(*tupleData) for tupleData in self._expandInputList(fieldsToGet)]
+        self._valuesToSet = [ShortcutToValue(*tupleData) for tupleData in self._expandInputList(valuesToSet)]
+        self._valuesToGet = [ShortcutToValue(*tupleData) for tupleData in self._expandInputList(valuesToGet)]
         self._method = method
 
     def exchange(self):
@@ -173,3 +174,15 @@ class LocalExchanger(Exchanger):
             self._fieldsToSet[i].set(field)
         for i, value in enumerate(valuesToSet):
             self._valuesToSet[i].set(value)
+
+    @staticmethod
+    def _expandInputList(inputList):
+        """! INTERNAL. """
+        newList = []
+        for tupleData in inputList:
+            if isinstance(tupleData[0], CollaborativeObject):
+                tupleType = None if len(tupleData) < 3 else tupleData[2]
+                newList += [(elem, tupleData[1], tupleType) for elem in tupleData[0].getElementsRecursively()]
+            else:
+                newList.append(tupleData)
+        return newList

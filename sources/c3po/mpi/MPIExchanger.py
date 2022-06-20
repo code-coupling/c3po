@@ -89,6 +89,10 @@ class MPIExchanger(LocalExchanger):
         Only basic data (such as the file path) are exchanged via MPI.
         """
         LocalExchanger.__init__(self, method, fieldsToGet, fieldsToSet, valuesToGet, valuesToSet)
+        fieldsToGet = self._expandInputList(fieldsToGet)
+        fieldsToSet = self._expandInputList(fieldsToSet)
+        valuesToGet = self._expandInputList(valuesToGet)
+        valuesToSet = self._expandInputList(valuesToSet)
 
         self._dataNeeded = False
         self._isCollective = False

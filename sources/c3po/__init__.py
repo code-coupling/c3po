@@ -18,6 +18,7 @@ from .DataAccessor import DataAccessor
 from .PhysicsDriver import PhysicsDriver
 from .Exchanger import Exchanger
 from .LocalExchanger import LocalExchanger
+from .CollaborativeObject import CollaborativeObject
 from .CollaborativeExchanger import CollaborativeExchanger
 from .DataManager import DataManager
 from .LocalDataManager import LocalDataManager
