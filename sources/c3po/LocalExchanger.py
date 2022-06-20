@@ -140,16 +140,18 @@ class LocalExchanger(Exchanger):
         @param method a user-defined function (or class with the special method __call__).
 
         * method must have three input lists:
-            * The MED fields obtained by getOutputMED(Double/Int/String)Field() on the fieldsToGet objects, in the same order.
-            * The MED fields obtained by getInputMED(Double/Int/String)FieldTemplate() on the fieldsToSet objects, in the same order.
-            * The scalars obtained by getOutput(Double/Int/String)Value() on the valuesToGet objects, in the same order.
+            * The MED fields obtained by (get/update)OutputMED(Double/Int/String)Field() from the fieldsToGet objects, in the same order.
+            * The MED fields obtained by getInputMED(Double/Int/String)FieldTemplate() from the fieldsToSet objects, in the same order.
+            * The scalars obtained by (get/update)Output(Double/Int/String)Value() from the valuesToGet objects, in the same order.
 
         * It must have two ouput lists:
-            * The MED fields to impose by setInputMED(Double/Int/String)Field() on the fieldsToSet objects, in the same order.
-            * The scalars to impose by setIntput(Double/Int/String)Value() on the valuesToSet objects, in the same order.
+            * The MED fields to impose by setInputMED(Double/Int/String)Field() to the fieldsToSet objects, in the same order.
+            * The scalars to impose by setIntput(Double/Int/String)Value() to the valuesToSet objects, in the same order.
 
-        @param fieldsToGet a list of tuples (object, name, type). object must be a DataAccessor (PhysicsDriver or a LocalDataManager),
-            name is the name of the field to get from object and type is either 'Double', 'Int' or 'String' (see c3po.DataAccessor.DataAccessor.ValueType).
+        @param fieldsToGet a list of tuples (object, name, type).
+            * object must be either a DataAccessor (PhysicsDriver or a LocalDataManager), or a CollaborativeObject with DataAccessor objects.
+            * name is the name of the field to get from object.
+            * type is either 'Double', 'Int' or 'String' (see c3po.DataAccessor.DataAccessor.ValueType).
             type can be omitted: in this case, LocalExchanger uses getFieldType() to get the type. If getFieldType() is not
             implemented, 'Double' is tried.
         @param fieldsToSet a list of tuples in the same format as fieldsToGet. name is the name of the field to set in object.
