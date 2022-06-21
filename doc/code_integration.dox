@@ -10,7 +10,7 @@ This wrapping has four main consequences listed below.
 
 \section Python_sec 1. Use of Python as high-level language.
 
-Every code has to be wrapped into a Python class, which allows to coordinate them in a homogeneous way regardless of their native programming language. The required API being very macroscopic (e.g. asking a code to solve its problem), this wrapping should not alter significantly codes performance.  
+Every code has to be wrapped into a Python class, which allows to coordinate them in a homogeneous way regardless of their native programming language. The required API being very macroscopic (e.g. asking a code to solve its problem), this wrapping should not alter significantly codes performance.
 
 SWIG [2] is, for example, a well-known and easy to use tool to wrap a C, C++ or a FORTRAN code into a Python interface. Other examples are F2PY [3] for FORTRAN and pybind11 [4] for C++.
 
@@ -41,22 +41,25 @@ These methods are always required:
   - presentTime;
   - computeTimeStep;
   - initTimeStep;
-  - solveTimeStep.
+  - solveTimeStep;
+  - validateTimeStep;
+  - setStationaryMode;
+  - getStationaryMode
 
 In order to exchange space-dependent data, codes must provide at least:
 
-  - getInputMEDFieldTemplate;
-  - setInputMEDField;
-  - getOutputMEDField.
+  - getInputMED(Double/Int/String)FieldTemplate;
+  - setInputMED(Double/Int/String)Field;
+  - getOutputMED(Double/Int/String)Field.
+
+In order to speed-up space-dependant data exchanges, codes can provide:
+
+  - updateOutputMED(Double/Int/String)Field.
 
 In order to exchange scalars, codes must provide at least:
 
-  - setValue;
-  - getValue.
-
-For time-dependent calculations, codes must provide at least:
-
-  - validateTimeStep.
+  - setInput(Double/Int/String)Value;
+  - getOutput(Double/Int/String)Value.
 
 If a code uses MPI parallelization (for its own needs), it must provide:
 
@@ -68,13 +71,16 @@ These methods have to be provided for some coupling algorithms:
 
   - abortTimeStep (for non-explicit coupling time-scheme);
   - isStationary (for coupled asymptotic calculations);
-  - iterateTimeStep (for some advanced coupling algorithms between not fully converged solvers).
+  - resetTime (to modify current time seen by the code);
+  - iterateTimeStep (for some advanced coupling algorithms between not fully converged solvers);
 
 Finally, these methods are for specific uses:
 
   - setDataFile (a way to provide initialization data to a code);
-  - save, restore, forget  (for save and restore capabilities);
-  - getInputFieldsNames, getOutputFieldsNames, getInputValuesNames, getOutputValuesNames (for code introspection).
+  - save, restore, forget (for save and restore capabilities);
+  - getMEDCouplingMajorVersion, isMEDCoupling64Bits (for code compatibility checks);
+  - getInputFieldsNames, getOutputFieldsNames, getFieldType, getMeshUnit, getFieldUnit (for code introspection about fields);
+  - getInputValuesNames, getOutputValuesNames, getValueType, getValueUnit (for code introspection about values).
 
 \section ref_integration_sec References
 

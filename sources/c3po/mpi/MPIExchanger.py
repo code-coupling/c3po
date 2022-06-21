@@ -68,10 +68,10 @@ class MPIExchanger(LocalExchanger):
         When there is an MPICollectiveProcess on the get side, all the processes of the communicator of this object must be
         involved in the exchanges.
 
-        @param exchangeWithFiles when set to True, exchanged MEDField are written on files and read by the recipient process(es).
-        Only basic data (such as the file path) are exchanged via MPI.
+        See LocalExchanger.__init__() for the documentation of other parameters than exchangeWithFiles.
 
-        See LocalExchanger.__init__() for the documentation of the other parameters.
+        when exchangeWithFiles is set to True, exchanged MEDField are written on files and read by the recipient process(es).
+        Only basic data (such as the file path) are exchanged via MPI.
         """
         fieldsToGet = self._expandInputList(fieldsToGet)
         fieldsToSet = self._expandInputList(fieldsToSet)

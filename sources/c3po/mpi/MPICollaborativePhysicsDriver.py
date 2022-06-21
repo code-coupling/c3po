@@ -22,6 +22,7 @@ class MPICollaborativePhysicsDriver(CollaborativePhysicsDriver, MPICoupler):
         """! Build an CollaborativePhysicsDriver object.
 
         @param physics a list (or dictionary) of PhysicsDriver objects.
+        @param mpiComm MPI communicator to provide to MPICoupler. See MPICoupler.__init__().
         """
         MPICoupler.__init__(self, physics=physics, exchangers=[], mpiComm=mpiComm)
         CollaborativePhysicsDriver.__init__(self, self._physicsDriversList)
