@@ -12,8 +12,8 @@ import c3po.mpi
 
 
 class OneIterationCoupler(c3po.mpi.MPICoupler):
-    def __init__(self, physics, exchangers, dataManagers=[]):
-        c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
+    def __init__(self, physics, exchangers, dataManagers=[], mpiComm=None):
+        c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers, mpiComm)
 
     def solveTimeStep(self):
         self._physicsDrivers[0].solve()
@@ -56,10 +56,8 @@ def main_mpi_hybrid():
             myThermoDrivers[0].setT0(273.15 + 0*0.1)
         myThermoDriver = c3po.CollaborativePhysicsDriver(myThermoDrivers)
         myNeutroDriver = c3po.mpi.MPIRemoteProcess(world, 0)
-        myNeutroDriverForMasters = c3po.mpi.MPIRemoteProcess(commMasters, 0)
         if rankWorld == 0:
             myNeutroDriver = tracedNeutro()
-            myNeutroDriverForMasters = myNeutroDriver
 
         cote_ass = 0.5
         cote = [-cote_ass, 0, cote_ass]
@@ -74,16 +72,12 @@ def main_mpi_hybrid():
             dataThermos.append(c3po.mpi.MPIRemoteProcess(world, i+1))
         if rankWorld == 1:
             dataThermos[0] = c3po.LocalDataManager()
-        dataThermo = c3po.CollaborativeDataManager(dataThermos)
-        dataNeutro = c3po.mpi.MPIRemoteProcess(world, 0)
-        if rankWorld == 0:
-            dataNeutro = c3po.LocalDataManager()
-        dataCoupler = c3po.mpi.MPICollaborativeDataManager(dataThermos + [dataNeutro])
+        dataCoupler = c3po.mpi.MPICollaborativeDataManager(dataThermos, mpiComm=world)
 
         exchangerNeutro2Thermo = c3po.mpi.MPIExchanger(neutroToThermo, [(myNeutroDriver, "Power")], [(myThermoDriver, "Power")])
-        exchangerThermo2Data = c3po.mpi.MPIExchanger(c3po.DirectMatching(), [(myThermoDriver, "Temperature")], [(dataThermo, "Temperature")])
+        exchangerThermo2Data = c3po.mpi.MPIExchanger(c3po.DirectMatching(), [(myThermoDriver, "Temperature")], [(dataCoupler, "Temperature")])
         assert len(exchangerThermo2Data._subExchangers.getElements()) == 4
-        exchangerData2Neutro = c3po.mpi.MPIExchanger(thermoToNeutro, [(dataThermo, "Temperature")], [(myNeutroDriver, "Temperature")])
+        exchangerData2Neutro = c3po.mpi.MPIExchanger(thermoToNeutro, [(dataCoupler, "Temperature")], [(myNeutroDriver, "Temperature")])
 
         thermoMaster = c3po.mpi.MPIRemoteProcess(commMasters, 1)
         if rankWorld == 1:
@@ -93,7 +87,7 @@ def main_mpi_hybrid():
             exchangerThermo2Data = c3po.mpi.MPIMasterExchanger([c3po.mpi.MPICollectiveProcess(commThermo)], 1, localExchanger=exchangerThermo2Data)
             exchangerData2Neutro = c3po.mpi.MPIMasterExchanger([c3po.mpi.MPICollectiveProcess(commThermo)], 2, localExchanger=exchangerData2Neutro)
 
-        oneIteration = OneIterationCoupler([myNeutroDriverForMasters, thermoMaster], [exchangerNeutro2Thermo])
+        oneIteration = OneIterationCoupler([myNeutroDriver, thermoMaster], [exchangerNeutro2Thermo], mpiComm=commMasters)
 
         mycoupler = c3po.FixedPointCoupler([oneIteration], [exchangerThermo2Data, exchangerData2Neutro], [dataCoupler])
         mycoupler.init()

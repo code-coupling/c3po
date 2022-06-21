@@ -14,7 +14,6 @@ from mpi4py import MPI
 
 from c3po.Coupler import Coupler
 from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
-from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 
 
 class MPICoupler(Coupler):
@@ -30,37 +29,29 @@ class MPICoupler(Coupler):
 
         Has the same form than Coupler.__init__() but can also contain MPIRemoteProcess (and MPICollectiveProcess) objects.
 
-        When at least one MPIRemoteProcess or MPICollectiveProcess is present, MPICoupler uses collective MPI communications:
-        the object must be built and used in the same way for all the involved processes. They must all share the same communicator,
-        and all the processes of this communicator must be involved.
+        When at least one MPIRemoteProcess is present, MPICoupler uses collective MPI communications: the object must be
+        built and used in the same way for all the involved processes. They must all share the same communicator,and all
+        the processes of this communicator must be involved.
 
         @param physics list (or dictionary) of c3po.PhysicsDriver.PhysicsDriver objects to be coupled.
         @param exchangers list (or dictionary) of c3po.Exchanger.Exchanger for the coupling.
         @param dataManagers list (or dictionary) of c3po.DataManager.DataManager used in the coupling.
-        @param mpiComm The optional mpiComm parameter enables to force MPICoupler to make MPI communications even if no MPIRemoteProcess
-        or MPICollectiveProcess are found.
-        It has to be given to the constructor of the object on all involved processes.
-        If at least one MPIRemoteProcess or MPICollectiveProcess is present, this mpiComm parameter must be the same than theirs.
+        @param mpiComm If not None, forces MPICoupler to make MPI communications and to use this communicator.
         """
         Coupler.__init__(self, physics, exchangers, dataManagers)
-        self.mpiComm = None
-        self._isMPI = False
+        self.mpiComm = mpiComm
+        self._isMPI = self.mpiComm is not None
+
         for phy in self._physicsDriversList:
-            if isinstance(phy, (MPIRemoteProcess, MPICollectiveProcess)):
+            if mpiComm is None and isinstance(phy, MPIRemoteProcess):
                 if not self._isMPI:
                     if phy.mpiComm == MPI.COMM_NULL:
-                        raise Exception("MPICoupler.__init__ All distant process must be part of the communicator (MPI.COMM_NULL found).")
+                        raise Exception("MPICoupler.__init__ All distant processes must be part of the communicator (MPI.COMM_NULL found).")
                     self._isMPI = True
                     self.mpiComm = phy.mpiComm
                 else:
                     if self.mpiComm != phy.mpiComm:
-                        raise Exception("MPIcoupler.__init__ All distant process must used the same MPI communicator")
-        if mpiComm is not None:
-            if self.mpiComm is not None:
-                if mpiComm != self.mpiComm:
-                    raise Exception("MPIcoupler.__init__ The given mpiComm parameter is not the same than the one used by the MPI process found.")
-            self.mpiComm = mpiComm
-            self._isMPI = self.mpiComm.allreduce(self._isMPI, op=MPI.MAX)
+                        raise Exception("MPIcoupler.__init__ All distant processes must used the same MPI communicator")
 
     def getMEDCouplingMajorVersion(self):
         """! See Coupler.getMEDCouplingMajorVersion(). """
