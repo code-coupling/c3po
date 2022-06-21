@@ -52,17 +52,17 @@ def test_patterns():
         newLists = c3po.LocalExchanger._divideInputsAccordingToPatterns(impossiblePattern, ["fieldToGet1", "fieldToGet2", "fieldToGet3"], ["fieldToSet1", "fieldToSet2"],
             ["valueToGet1", "valueToGet2", "valueToGet3"], ["valueToSet1"])
     print(excinfo.value)
-    
+
     noPatter = ToTestPatterns()
     noPatter.setPattern(-1, -1, -1, -1)
-    
+
     newLists = c3po.LocalExchanger._divideInputsAccordingToPatterns(noPatter, ["fieldToGet1", "fieldToGet2"], ["fieldToSet1", "fieldToSet2"],
         ["valueToGet1", "valueToGet2"], ["valueToSet1"])
     assert newLists == [[["fieldToGet1", "fieldToGet2"], ["fieldToSet1", "fieldToSet2"], ["valueToGet1", "valueToGet2"], ["valueToSet1"]]]
-    
+
     def justAFunction(fieldsToGet, fieldsToSet, valuesToGet):
         return fieldsToGet, valuesToGet
-    
+
     newLists = c3po.LocalExchanger._divideInputsAccordingToPatterns(justAFunction, ["fieldToGet1", "fieldToGet2"], ["fieldToSet1", "fieldToSet2"],
         ["valueToGet1", "valueToGet2"], ["valueToSet1"])
     assert newLists == [[["fieldToGet1", "fieldToGet2"], ["fieldToSet1", "fieldToSet2"], ["valueToGet1", "valueToGet2"], ["valueToSet1"]]]

@@ -24,7 +24,7 @@ def main_workerThermo():
         myThermoDrivers.append(c3po.mpi.MPIRemoteProcess(world, i+1))
     myThermoDrivers[rankThermo] = tracedThermo()
     myThermoDrivers[rankThermo].setT0(273.15 + rankThermo*0.1)
-    myThermoDriver = c3po.CollaborativePhysicsDriver(myThermoDrivers)
+    myThermoDriver = c3po.mpi.MPICollaborativePhysicsDriver(myThermoDrivers)
 
     cote_ass = 0.5
     cote = [-cote_ass, 0, cote_ass]

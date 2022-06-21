@@ -54,7 +54,7 @@ def main_mpi_hybrid():
         if rankWorld == 1:
             myThermoDrivers[0] = tracedThermo()
             myThermoDrivers[0].setT0(273.15 + 0*0.1)
-        myThermoDriver = c3po.CollaborativePhysicsDriver(myThermoDrivers)
+        myThermoDriver = c3po.mpi.MPICollaborativePhysicsDriver(myThermoDrivers)
         myNeutroDriver = c3po.mpi.MPIRemoteProcess(world, 0)
         if rankWorld == 0:
             myNeutroDriver = tracedNeutro()
