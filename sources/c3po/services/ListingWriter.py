@@ -537,7 +537,8 @@ def mergeListing(listingsName, newListingName):
 
 def getTotalTimePhysicsDriver(listingName, physicsDriverName,
                               methodNames=["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
-                                           "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate"]):
+                                           "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate",
+                                           "save", "restore"]):
     """! getTotalTimePhysicsDriver() reads a listing file produced by ListingWriter or mergeListing and returns the total time
     spent by one PhysicsDriver in indicated methods.
 
@@ -545,7 +546,7 @@ def getTotalTimePhysicsDriver(listingName, physicsDriverName,
     @param physicsDriverName name (given in the listing file) of the PhysicsDriver for which the total time is requested.
     @param methodNames list of the names of the methods to take into account. By defaut: everything but "exchange": ["initialize",
     "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep", "validateTimeStep",  "setStationaryMode", "abortTimeStep",
-    "resetTime", "terminate"].
+    "resetTime", "terminate", "save", "restore"].
 
     @return The total time spent by the PhysicsDriver in the indicated methods.
     """
