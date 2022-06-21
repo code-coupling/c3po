@@ -24,6 +24,7 @@ def main_workerThermo():
         myThermoDrivers.append(c3po.mpi.MPIRemoteProcess(world, i+1))
     myThermoDrivers[rankThermo] = tracedThermo()
     myThermoDrivers[rankThermo].setT0(273.15 + rankThermo*0.1)
+    myThermoDriver = c3po.CollaborativePhysicsDriver(myThermoDrivers)
 
     cote_ass = 0.5
     cote = [-cote_ass, 0, cote_ass]
@@ -33,17 +34,17 @@ def main_workerThermo():
     neutroToThermo = c3po.SharedRemappingMulti1D3D(myRemapper, reverse=True)
     thermoToNeutro = c3po.SharedRemappingMulti1D3D(myRemapper, reverse=False, defaultValue=273.15, linearTransform=(1., -273.15))
 
-    dataThermo = []
+    dataThermos = []
     for i in range(4):
-        dataThermo.append(c3po.mpi.MPIRemoteProcess(world, i+1))
-    dataThermo[rankThermo] = c3po.LocalDataManager()
+        dataThermos.append(c3po.mpi.MPIRemoteProcess(world, i+1))
+    dataThermos[rankThermo] = c3po.LocalDataManager()
+    dataThermo = c3po.CollaborativeDataManager(dataThermos)
     dataNeutro = c3po.mpi.MPIRemoteProcess(world, 0)
-    dataCoupler = c3po.mpi.MPICollaborativeDataManager(dataThermo + [dataNeutro])
+    dataCoupler = c3po.mpi.MPICollaborativeDataManager(dataThermos + [dataNeutro])
 
-    exchangerNeutro2Thermo = c3po.mpi.MPIExchanger(neutroToThermo, [(myNeutroDriver, "Power")], [(myThermoDriver, "Power") for myThermoDriver in myThermoDrivers])
-    exchangerThermo2Datas = [c3po.mpi.MPIExchanger(c3po.DirectMatching(), [(myThermoDrivers[i], "Temperature")], [(dataThermo[i], "Temperature")]) for i in range(4)]
-    exchangerThermo2Data = c3po.CollaborativeExchanger(exchangerThermo2Datas)
-    exchangerData2Neutro = c3po.mpi.MPIExchanger(thermoToNeutro, [(data, "Temperature") for data in dataThermo], [(myNeutroDriver, "Temperature")])
+    exchangerNeutro2Thermo = c3po.mpi.MPIExchanger(neutroToThermo, [(myNeutroDriver, "Power")], [(myThermoDriver, "Power")])
+    exchangerThermo2Data = c3po.mpi.MPIExchanger(c3po.DirectMatching(), [(myThermoDriver, "Temperature")], [(dataThermo, "Temperature")])
+    exchangerData2Neutro = c3po.mpi.MPIExchanger(thermoToNeutro, [(dataThermo, "Temperature")], [(myNeutroDriver, "Temperature")])
 
     Worker = c3po.mpi.MPIWorker([myThermoDrivers[rankThermo]], [exchangerNeutro2Thermo, exchangerThermo2Data, exchangerData2Neutro], [dataCoupler], masterProcess, isCollective=True)
 

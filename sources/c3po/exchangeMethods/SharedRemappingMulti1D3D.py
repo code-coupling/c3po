@@ -118,6 +118,10 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
             fields1D[-1].setArray(array1D)
         return fields1D
 
+    def getNumberOf1DFields(self):
+        """! INTERNAL """
+        return len(self._indexTable)
+
 
 class SharedRemappingMulti1D3D(SharedRemapping):
     """! SharedRemappingMulti1D3D is an ExchangeMethod which projects the input fields one by one before returning them as
@@ -147,10 +151,10 @@ class SharedRemappingMulti1D3D(SharedRemapping):
         @param linearTransform see SharedRemapping.
         """
         SharedRemapping.__init__(self, remapper, reverse, defaultValue, linearTransform)
+        self._numberOf1DFields = self._remapper.getNumberOf1DFields()
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Project the input fields one by one before returning them as outputs, in the same order. """
-        #self.initialize(fieldsToGet, fieldsToSet, valuesToGet)
         if not self._remapper.isInnerFieldBuilt:
             self._remapper.buildInnerField(fieldsToSet[0].getMesh() if self._isReverse else fieldsToGet[0].getMesh())
         if self._isReverse:
@@ -161,8 +165,14 @@ class SharedRemappingMulti1D3D(SharedRemapping):
             return resu, outputValues
         indexFirst = 0
         intermediate3DField = []
-        while indexFirst + len(self._remapper._indexTable) <= len(fieldsToGet):
-            fields1D = [fieldsToGet[indexFirst + k] for k in range(len(self._remapper._indexTable))]
+        while indexFirst + self._numberOf1DFields <= len(fieldsToGet):
+            fields1D = [fieldsToGet[indexFirst + k] for k in range(self._numberOf1DFields)]
             intermediate3DField.append(self._remapper.build3DField(fields1D))
-            indexFirst += len(self._remapper._indexTable)
+            indexFirst += self._numberOf1DFields
         return SharedRemapping.__call__(self, intermediate3DField, fieldsToSet, valuesToGet)
+
+    def getPatterns(self):
+        """! See ExchangeMethod.getPatterns. """
+        if self._isReverse:
+            return [(1, self._numberOf1DFields, 0, 0), (0 ,0, 1, 1)]
+        return [(self._numberOf1DFields, 1, 0, 0), (0, 0, 1, 1)]

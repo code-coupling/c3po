@@ -188,3 +188,7 @@ class SharedRemapping(ExchangeMethod):
             for med in transformedMED:
                 med.applyLin(*(self._linearTransform))
         return transformedMED, valuesToGet
+
+    def getPatterns(self):
+        """! See ExchangeMethod.getPatterns. """
+        return [(1, 1, 0, 0), (0, 0, 1, 1)]

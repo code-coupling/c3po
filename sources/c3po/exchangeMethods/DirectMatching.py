@@ -25,3 +25,7 @@ class DirectMatching(ExchangeMethod):
         if len(fieldsToSet) != len(fieldsToGet):
             raise Exception("DirectMatching.__call__ there must be the same number of input and output MED fields")
         return fieldsToGet, valuesToGet
+
+    def getPatterns(self):
+        """! See ExchangeMethod.getPatterns. """
+        return [(1, 1, 0, 0), (0, 0, 1, 1)]

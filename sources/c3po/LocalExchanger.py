@@ -158,10 +158,18 @@ class LocalExchanger(Exchanger):
         @param valuesToGet idem fieldsToGet but for scalars.
         @param valuesToSet idem fieldsToSet but for scalars.
         """
-        self._fieldsToSet = [ShortcutToField(*tupleData) for tupleData in self._expandInputList(fieldsToSet)]
-        self._fieldsToGet = [ShortcutToField(*tupleData) for tupleData in self._expandInputList(fieldsToGet)]
-        self._valuesToSet = [ShortcutToValue(*tupleData) for tupleData in self._expandInputList(valuesToSet)]
-        self._valuesToGet = [ShortcutToValue(*tupleData) for tupleData in self._expandInputList(valuesToGet)]
+        fieldsToGet = self._expandInputList(fieldsToGet)
+        fieldsToSet = self._expandInputList(fieldsToSet)
+        valuesToGet = self._expandInputList(valuesToGet)
+        valuesToSet = self._expandInputList(valuesToSet)
+
+        self._divideInputsAccordingToPatterns(method, fieldsToGet, fieldsToSet, valuesToGet, valuesToSet)
+
+        self._fieldsToSet = [ShortcutToField(*tupleData) for tupleData in fieldsToSet]
+        self._fieldsToGet = [ShortcutToField(*tupleData) for tupleData in fieldsToGet]
+        self._valuesToSet = [ShortcutToValue(*tupleData) for tupleData in valuesToSet]
+        self._valuesToGet = [ShortcutToValue(*tupleData) for tupleData in valuesToGet]
+
         self._method = method
 
     def exchange(self):
@@ -188,3 +196,54 @@ class LocalExchanger(Exchanger):
             else:
                 newList.append(tupleData)
         return newList
+
+    @staticmethod
+    def _divideInputsAccordingToPatterns(method, fieldsToGet, fieldsToSet, valuesToGet, valuesToSet):
+        """! INTERNAL. """
+        elements = [fieldsToGet, fieldsToSet, valuesToGet, valuesToSet]
+        index = [0, 0, 0, 0]
+
+        try:
+            patterns = method.getPatterns()
+        except:
+            return [elements]
+
+        divisions = [0]*4
+        resu = []
+
+        for pattern in patterns:
+            for position in range(4):
+                divisions[position] = len(elements[position]) - index[position] // pattern[position] if pattern[position] > 0 else -1
+            minDivision = -1
+            for position in range(4):
+                if divisions[position] >= 0 and (divisions[position] < minDivision or minDivision < 0):
+                    minDivision = divisions[position]
+            subLists = [[], [], [], []]
+            if minDivision <= 0:
+                for position in range(4):
+                    if pattern[position] < 0:
+                        subLists[position] = elements[position][index[position]:]
+                        index[position] = len(elements[position])
+                if subLists != [[], [], [], []]:
+                    resu.append(subLists)
+            else:
+                for _ in range(minDivision):
+                    for position in range(4):
+                        if pattern[position] < 0:
+                            subLists[position] = elements[position][index[position]:]
+                        else:
+                            for _ in range(pattern[position]):
+                                subLists[position].append(elements[position][index[position]])
+                                index[position] += 1
+                    resu.append(subLists)
+                    subLists = [[], [], [], []]
+                for position in range(4):
+                    if pattern[position] < 0:
+                        index[position] = len(elements[position])
+
+        if index != [len(elem) for elem in elements]:
+            msg = "LocalExchanger._divideInputsAccordingToPatterns the method pattern does not fit the number of provided elements."
+            msg += " The method pattern is {} but we found {} elements.".format(patterns, [len(elem) for elem in elements])
+            raise Exception(msg)
+
+        return resu
