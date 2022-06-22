@@ -216,6 +216,8 @@ class TracerMeta(type):
 def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=None, stderrFile=None, listingWriter=None):
     """! tracer is a class wrapper allowing to trace the calls of the methods of the base class.
 
+    tracer is to be applied on a class (not an object) and return a new class that inherits from the provided one.
+
     It has different functions:
 
     1. It can write all calls of the methods of the base class in a text file in python format in order to allow to replay what
