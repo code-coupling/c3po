@@ -143,9 +143,9 @@ def test_load_matrix():
     for i in range(4):
         dataCouplers2.append(c3po.LocalDataManager())
     dataCoupler2 = c3po.CollaborativeDataManager(dataCouplers2)
-    exchangerNeutro2Thermo2 = c3po.LocalExchanger(neutroToThermo2, [(myNeutroDriver2, "Power")], [(thermo, "Power") for thermo in myThermoDrivers2])
-    exchangerThermo2Data2 = c3po.LocalExchanger(c3po.DirectMatching(), [(thermo, "Temperature") for thermo in myThermoDrivers2], [(data, "Temperature") for data in dataCouplers2])
-    exchangerData2Neutro2 = c3po.LocalExchanger(thermoToNeutro2, [(data, "Temperature") for data in dataCouplers2], [(myNeutroDriver2, "Temperature")])
+    exchangerNeutro2Thermo2 = c3po.LocalExchanger(neutroToThermo2, [(myNeutroDriver2, "Power")], [(myThermoDriver2, "Power")])
+    exchangerThermo2Data2 = c3po.LocalExchanger(c3po.DirectMatching(), [(myThermoDriver2, "Temperature")], [(dataCoupler2, "Temperature")])
+    exchangerData2Neutro2 = c3po.LocalExchanger(thermoToNeutro2, [(dataCoupler2, "Temperature")], [(myNeutroDriver2, "Temperature")])
 
     oneIteration2 = OneIterationCoupler([myNeutroDriver2, myThermoDriver2], [exchangerNeutro2Thermo2])
 
