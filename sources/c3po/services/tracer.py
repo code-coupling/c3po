@@ -287,7 +287,7 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         baseclass.static_stdout = stdoutFile
         baseclass.static_stderr = stderrFile
         baseclass.static_lWriter = listingWriter
-        newclass = TracerMeta(baseclass.__name__, baseclass.__bases__, baseclass.__dict__)
+        newclass = TracerMeta(baseclass.__name__, (baseclass,), baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         delattr(baseclass, "static_pythonFile")
         delattr(baseclass, "static_saveInputMED")
