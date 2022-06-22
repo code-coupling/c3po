@@ -13,7 +13,11 @@ from __future__ import print_function, division
 
 
 class CollaborativeObject(object):
-    """! CollaborativeObject defines the concept of a collaborative object. """
+    """! CollaborativeObject defines the concept of a collaborative object.
+
+    A collaborative object of a certain type is built from a collection of objects of that same type.
+    Collaborative actions are obtained by the realization of these same actions by the objects held.
+    """
 
     def __init__(self, elements):
         """! Build an CollaborativeObject object.
@@ -30,7 +34,7 @@ class CollaborativeObject(object):
         return self._elements
 
     def getElementsRecursively(self):
-        """! Similar to getElements() but is applied recursively on elements that are CollaborativeObject in order to return the full list of elements.
+        """! Similar to getElements() but is applied recursively in order to return the full list of elements.
 
         @return the full list of elements.
         """
