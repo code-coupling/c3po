@@ -177,16 +177,19 @@ class SharedRemapping(ExchangeMethod):
         if len(fieldsToSet) != len(fieldsToGet):
             raise Exception("SharedRemapping : there must be the same number of input and output MED fields")
 
-        self.initialize(fieldsToGet, fieldsToSet)
         transformedMED = []
-        for i in range(len(fieldsToSet)):
-            if self._isReverse:
-                transformedMED.append(self._remapper.reverseRemap(fieldsToGet[i], self._defaultValue))
-            else:
-                transformedMED.append(self._remapper.directRemap(fieldsToGet[i], self._defaultValue))
-        if self._linearTransform != (1., 0.):
-            for med in transformedMED:
-                med.applyLin(*(self._linearTransform))
+
+        if len(fieldsToSet) > 0:
+            self.initialize(fieldsToGet, fieldsToSet)
+            for i in range(len(fieldsToSet)):
+                if self._isReverse:
+                    transformedMED.append(self._remapper.reverseRemap(fieldsToGet[i], self._defaultValue))
+                else:
+                    transformedMED.append(self._remapper.directRemap(fieldsToGet[i], self._defaultValue))
+            if self._linearTransform != (1., 0.):
+                for med in transformedMED:
+                    med.applyLin(*(self._linearTransform))
+
         return transformedMED, valuesToGet
 
     def getPatterns(self):

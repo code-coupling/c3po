@@ -155,6 +155,15 @@ class SharedRemappingMulti1D3D(SharedRemapping):
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Project the input fields one by one before returning them as outputs, in the same order. """
+        numberOf3DFields = len(fieldsToGet) if self._isReverse else len(fieldsToSet)
+        numberOf1DFields = len(fieldsToSet) if self._isReverse else len(fieldsToGet)
+        if numberOf3DFields * self._numberOf1DFields != numberOf1DFields:
+            msg = "The number of provided fields ({} 3D fields and {} 1D fields) is wrong.\n".format(numberOf3DFields, numberOf1DFields)
+            msg += "According to the provided remapper object, there must be {} 1D fields for each 3D fields.".format(self._numberOf1DFields)
+            raise Exception(msg)
+        if numberOf3DFields == 0:
+            return [], valuesToGet
+
         if not self._remapper.isInnerFieldBuilt:
             self._remapper.buildInnerField(fieldsToSet[0].getMesh() if self._isReverse else fieldsToGet[0].getMesh())
         if self._isReverse:
