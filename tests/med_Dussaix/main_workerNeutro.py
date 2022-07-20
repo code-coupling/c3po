@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
-import mpi4py.MPI as mpi
-
-from tests.med_Dussaix.NeutroDriver import NeutroDriver
-import c3po
-import c3po.mpi
-
-
-class Thermo2Neutro(c3po.SharedRemapping):
-    def __init__(self, remapper):
-        c3po.SharedRemapping.__init__(self, remapper, reverse=False)
-
-
-class Neutro2Thermo(c3po.SharedRemapping):
-    def __init__(self, remapper):
-        c3po.SharedRemapping.__init__(self, remapper, reverse=True)
-
 
 def main_workerNeutro():
+    import mpi4py.MPI as mpi
+
+    import c3po
+    import c3po.mpi
+
+    from tests.med_Dussaix.NeutroDriver import NeutroDriver
+
+
+    class Thermo2Neutro(c3po.SharedRemapping):
+        def __init__(self, remapper):
+            c3po.SharedRemapping.__init__(self, remapper, reverse=False)
+
+
+    class Neutro2Thermo(c3po.SharedRemapping):
+        def __init__(self, remapper):
+            c3po.SharedRemapping.__init__(self, remapper, reverse=True)
+
+
     comm = mpi.COMM_WORLD
 
     myNeutroDriver = NeutroDriver()

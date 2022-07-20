@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
-import mpi4py.MPI as mpi
+
 from pytest_easyMPI import mpi_parallel
 
 def main_masterWorkers():
+    import mpi4py.MPI as mpi
+
     comm = mpi.COMM_WORLD
     rank = comm.Get_rank()
 

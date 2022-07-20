@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
-import mpi4py.MPI as mpi
-import os, math, glob, shutil
+
 from pytest_easyMPI import mpi_parallel
 import pytest
 
-import c3po.medcouplingCompat as mc
-
-import c3po
-import c3po.mpi
-
-
-class OneIterationCoupler(c3po.mpi.MPICoupler):
-    def __init__(self, physics, exchangers, dataManagers=[], mpiComm=None):
-        c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers, mpiComm)
-
-    def solveTimeStep(self):
-        self._physicsDrivers[0].solve()
-        self._exchangers[0].exchange()
-        self._physicsDrivers[1].solve()
-        return self.getSolveStatus()
-
-
 def main_mpi_hybrid():
+    import mpi4py.MPI as mpi
+    import os, math, glob, shutil
+
+    import c3po
+    import c3po.medcouplingCompat as mc
+    import c3po.mpi
+
+
+    class OneIterationCoupler(c3po.mpi.MPICoupler):
+        def __init__(self, physics, exchangers, dataManagers=[], mpiComm=None):
+            c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers, mpiComm)
+
+        def solveTimeStep(self):
+            self._physicsDrivers[0].solve()
+            self._exchangers[0].exchange()
+            self._physicsDrivers[1].solve()
+            return self.getSolveStatus()
+
+
     world = mpi.COMM_WORLD
     rankWorld = world.Get_rank()
 

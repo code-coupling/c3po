@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
-import mpi4py.MPI as mpi
+
 import pytest
 
-import c3po.medcouplingCompat as mc
-
-import c3po
-import c3po.mpi
-
-
-class OneIterationCoupler(c3po.Coupler):
-    def __init__(self, physics, exchangers, dataManagers=[]):
-        c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
-
-    def solveTimeStep(self):
-        self._physicsDrivers[0].solve()
-        self._exchangers[0].exchange()
-        self._physicsDrivers[1].solve()
-        return self.getSolveStatus()
-
-
 def main_master():
+    import mpi4py.MPI as mpi
+
+    import c3po
+    import c3po.mpi
+
+
+    class OneIterationCoupler(c3po.Coupler):
+        def __init__(self, physics, exchangers, dataManagers=[]):
+            c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
+
+        def solveTimeStep(self):
+            self._physicsDrivers[0].solve()
+            self._exchangers[0].exchange()
+            self._physicsDrivers[1].solve()
+            return self.getSolveStatus()
+
+
     comm = mpi.COMM_WORLD
 
     ThermoProcess = c3po.mpi.MPIRemoteProcess(comm, 1)

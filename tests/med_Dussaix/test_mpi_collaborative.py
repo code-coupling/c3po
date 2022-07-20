@@ -1,28 +1,28 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
-from mpi4py import MPI
 from pytest_easyMPI import mpi_parallel
 import pytest
 
-import c3po.medcouplingCompat as mc
-import c3po
-import c3po.mpi
-
-
-class OneIterationCoupler(c3po.mpi.MPICoupler):
-    def __init__(self, physics, exchangers, dataManagers=[]):
-        c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
-
-    def solveTimeStep(self):
-        self._physicsDrivers["neutro"].solve()
-        self._exchangers[0].exchange()
-        self._physicsDrivers["thermo"].solve()
-        return self.getSolveStatus()
-
-
 def main_collaborative():
+    from mpi4py import MPI
+
+    import c3po
+    import c3po.mpi
+
     from tests.med_Dussaix.NeutroDriver import NeutroDriver
     from tests.med_Dussaix.ThermoDriver import ThermoDriver
+
+
+    class OneIterationCoupler(c3po.mpi.MPICoupler):
+        def __init__(self, physics, exchangers, dataManagers=[]):
+            c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
+
+        def solveTimeStep(self):
+            self._physicsDrivers["neutro"].solve()
+            self._exchangers[0].exchange()
+            self._physicsDrivers["thermo"].solve()
+            return self.getSolveStatus()
+
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()

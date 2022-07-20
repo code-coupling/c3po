@@ -1,28 +1,30 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import sys
-import os
-from mpi4py import MPI
+
 from pytest_easyMPI import mpi_parallel
 import pytest
 
-import c3po
-import c3po.mpi
-
-
-class ScalarPhysicsCoupler(c3po.mpi.MPICoupler):
-    def __init__(self, physics, exchangers, dataManagers=[]):
-        c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
-
-    def solveTimeStep(self):
-        self._physicsDrivers[0].solve()
-        self._exchangers[0].exchange()
-        self._physicsDrivers[1].solve()
-        return self.getSolveStatus()
-
-
 def main_collaborative():
+    import sys
+    import os
+    from mpi4py import MPI
+
+    import c3po
+    import c3po.mpi
+
     from tests.listings.PhysicsScalarTransient import PhysicsScalarTransient
+
+
+    class ScalarPhysicsCoupler(c3po.mpi.MPICoupler):
+        def __init__(self, physics, exchangers, dataManagers=[]):
+            c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
+
+        def solveTimeStep(self):
+            self._physicsDrivers[0].solve()
+            self._exchangers[0].exchange()
+            self._physicsDrivers[1].solve()
+            return self.getSolveStatus()
+
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -131,10 +133,10 @@ def main_collaborative():
         print(Nlines)
         assert Nlines == [430, 428, 78, 78, 502, 502]
 
-
 @mpi_parallel(2)
 def test_collaborative():
     main_collaborative()
+    from mpi4py import MPI
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     if rank == 0:
