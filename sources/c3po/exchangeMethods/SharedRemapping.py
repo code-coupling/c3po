@@ -181,11 +181,11 @@ class SharedRemapping(ExchangeMethod):
 
         if len(fieldsToSet) > 0:
             self.initialize(fieldsToGet, fieldsToSet)
-            for i in range(len(fieldsToSet)):
+            for field in fieldsToGet:
                 if self._isReverse:
-                    transformedMED.append(self._remapper.reverseRemap(fieldsToGet[i], self._defaultValue))
+                    transformedMED.append(self._remapper.reverseRemap(field, self._defaultValue))
                 else:
-                    transformedMED.append(self._remapper.directRemap(fieldsToGet[i], self._defaultValue))
+                    transformedMED.append(self._remapper.directRemap(field, self._defaultValue))
             if self._linearTransform != (1., 0.):
                 for med in transformedMED:
                     med.applyLin(*(self._linearTransform))
