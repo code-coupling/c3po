@@ -208,7 +208,7 @@ class LocalExchanger(Exchanger):
         except:
             return [elements]
 
-        divisions = [0]*4
+        divisions = [0] * 4
         resu = []
 
         for pattern in patterns:

@@ -131,6 +131,7 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
         with open(fileName, 'rb') as matrixFile:
             self._loadedMatrix = pickle.load(matrixFile)
 
+
 class SharedRemapping(ExchangeMethod):
     """! SharedRemapping is an ExchangeMethod which projects the input fields one by one before returning them as outputs,
     in the same order.

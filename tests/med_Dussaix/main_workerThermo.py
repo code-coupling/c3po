@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
 
+
 def main_workerThermo():
     import mpi4py.MPI as mpi
 
@@ -9,16 +10,13 @@ def main_workerThermo():
 
     from tests.med_Dussaix.ThermoDriver import ThermoDriver
 
-
     class Thermo2Neutro(c3po.SharedRemapping):
         def __init__(self, remapper):
             c3po.SharedRemapping.__init__(self, remapper, reverse=False)
 
-
     class Neutro2Thermo(c3po.SharedRemapping):
         def __init__(self, remapper):
             c3po.SharedRemapping.__init__(self, remapper, reverse=True)
-
 
     comm = mpi.COMM_WORLD
 
@@ -46,5 +44,6 @@ def main_workerThermo():
 
     Worker.listen()
     myThermoDriver.term()
+
 
 main_workerThermo()

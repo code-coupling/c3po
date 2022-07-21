@@ -3,6 +3,7 @@ from __future__ import print_function, division
 from pytest_easyMPI import mpi_parallel
 import pytest
 
+
 def main_collaborative():
     from mpi4py import MPI
 
@@ -11,7 +12,6 @@ def main_collaborative():
 
     from tests.med_Dussaix.NeutroDriver import NeutroDriver
     from tests.med_Dussaix.ThermoDriver import ThermoDriver
-
 
     class OneIterationCoupler(c3po.mpi.MPICoupler):
         def __init__(self, physics, exchangers, dataManagers=[]):
@@ -22,7 +22,6 @@ def main_collaborative():
             self._exchangers[0].exchange()
             self._physicsDrivers["thermo"].solve()
             return self.getSolveStatus()
-
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -80,9 +79,11 @@ def main_collaborative():
     myNeutroDriver.term()
     myThermoDriver.term()
 
+
 @mpi_parallel(2)
 def test_collaborative():
     main_collaborative()
+
 
 if __name__ == "__main__":
     main_collaborative()

@@ -50,5 +50,6 @@ def test_scalar():
     myPhysics.term()
     myPhysics2.term()
 
+
 if __name__ == "__main__":
     test_scalar()

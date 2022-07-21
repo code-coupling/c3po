@@ -36,7 +36,7 @@ class ThermoDriver(PhysicsDriver):
         return True
 
     def solveTimeStep(self):
-        listP = [0.]*(self._nMesh)
+        listP = [0.] * (self._nMesh)
         arrayT = self._medT.getArray()
         if self._medP is not None:
             arrayP = self._medP.getArray()

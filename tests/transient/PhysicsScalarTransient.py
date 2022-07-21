@@ -79,19 +79,19 @@ class PhysicsScalarTransient(PhysicsDriver):
     def save(self, label, method):
         if method != "INTERNAL":
             raise ValueError("Unknown saving method")
-        self._savedState[label] = [self._result, self._resultOld, self._a, self._b ,self._tau, self._x, self._time, self._stationaryMode]
+        self._savedState[label] = [self._result, self._resultOld, self._a, self._b, self._tau, self._x, self._time, self._stationaryMode]
 
     def restore(self, label, method):
         if method != "INTERNAL":
             raise ValueError("Unknown saving method")
-        self._result            = self._savedState[label][0]
-        self._resultOld         = self._savedState[label][1]
-        self._a                 = self._savedState[label][2]
-        self._b                 = self._savedState[label][3]
-        self._tau               = self._savedState[label][4]
-        self._x                 = self._savedState[label][5]
-        self._time              = self._savedState[label][6]
-        self._stationaryMode    = self._savedState[label][7]
+        self._result = self._savedState[label][0]
+        self._resultOld = self._savedState[label][1]
+        self._a = self._savedState[label][2]
+        self._b = self._savedState[label][3]
+        self._tau = self._savedState[label][4]
+        self._x = self._savedState[label][5]
+        self._time = self._savedState[label][6]
+        self._stationaryMode = self._savedState[label][7]
 
     def forget(self, label, method):
         if method != "INTERNAL":

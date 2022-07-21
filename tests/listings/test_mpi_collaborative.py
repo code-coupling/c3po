@@ -4,6 +4,7 @@ from __future__ import print_function
 from pytest_easyMPI import mpi_parallel
 import pytest
 
+
 def main_collaborative():
     import sys
     import os
@@ -14,7 +15,6 @@ def main_collaborative():
 
     from tests.listings.PhysicsScalarTransient import PhysicsScalarTransient
 
-
     class ScalarPhysicsCoupler(c3po.mpi.MPICoupler):
         def __init__(self, physics, exchangers, dataManagers=[]):
             c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
@@ -24,7 +24,6 @@ def main_collaborative():
             self._exchangers[0].exchange()
             self._physicsDrivers[1].solve()
             return self.getSolveStatus()
-
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -133,6 +132,7 @@ def main_collaborative():
         print(Nlines)
         assert Nlines == [430, 428, 78, 78, 502, 502]
 
+
 @mpi_parallel(2)
 def test_collaborative():
     main_collaborative()
@@ -140,20 +140,35 @@ def test_collaborative():
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     if rank == 0:
-        try: os.remove("first.log")
-        except: pass
-        try: os.remove("second.log")
-        except: pass
-        try: os.remove("listingFirst.log")
-        except: pass
-        try: os.remove("listingSecond.log")
-        except: pass
-        try: os.remove("listingGeneral0.log")
-        except: pass
-        try: os.remove("listingGeneral1.log")
-        except: pass
-        try: os.remove("listingGeneralMerged.log")
-        except: pass
+        try:
+            os.remove("first.log")
+        except:
+            pass
+        try:
+            os.remove("second.log")
+        except:
+            pass
+        try:
+            os.remove("listingFirst.log")
+        except:
+            pass
+        try:
+            os.remove("listingSecond.log")
+        except:
+            pass
+        try:
+            os.remove("listingGeneral0.log")
+        except:
+            pass
+        try:
+            os.remove("listingGeneral1.log")
+        except:
+            pass
+        try:
+            os.remove("listingGeneralMerged.log")
+        except:
+            pass
+
 
 if __name__ == "__main__":
     main_collaborative()

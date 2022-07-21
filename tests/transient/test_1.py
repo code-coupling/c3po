@@ -155,14 +155,22 @@ def main_1():
     print(Nlines)
     assert Nlines == [633, 134, 817]
 
+
 def test_sequential():
     main_1()
-    try: os.remove("listingBox1.log")
-    except: pass
-    try: os.remove("listingBox2.log")
-    except: pass
-    try: os.remove("listingBox.log")
-    except: pass
+    try:
+        os.remove("listingBox1.log")
+    except:
+        pass
+    try:
+        os.remove("listingBox2.log")
+    except:
+        pass
+    try:
+        os.remove("listingBox.log")
+    except:
+        pass
+
 
 if __name__ == "__main__":
     main_1()

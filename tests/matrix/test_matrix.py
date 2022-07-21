@@ -5,6 +5,7 @@ import pytest
 
 import c3po
 
+
 def test_matrix():
     from tests.matrix.PhysicsMatrix import PhysicsMatrix
 
@@ -58,6 +59,7 @@ def test_matrix():
     assert pytest.approx(vpGS, abs=1.E-3) == refVal
     assert pytest.approx(vpGS, abs=1.E-3) == refVal
     assert pytest.approx(vpGS, abs=1.E-3) == refVal
+
 
 if __name__ == "__main__":
     test_matrix()

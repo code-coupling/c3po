@@ -390,7 +390,8 @@ def nameChanger(nameMapping, wildcard=None):
     """
 
     print("The class wrapper nameChanger is deprecated and will soon by deleted.\n"
-        + "Please use the class NameChanger (acting on a PhysicsDriver object rather than a class).")
+          + "Please use the class NameChanger (acting on a PhysicsDriver object rather than a class).")
+
     def classWrapper(baseclass):
         if hasattr(baseclass, "static_nameMapping"):
             raise Exception("nameChanger: the class " + baseclass.__name__ + " has already been modified by nameChanger. This is not allowed.")

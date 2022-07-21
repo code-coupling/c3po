@@ -37,7 +37,7 @@ class NeutroDriver(PhysicsDriver):
 
     def solveTimeStep(self):
         arrayP = self._medP.getArray()
-        listT = [1.]*(self._nbMeshX*self._nbMeshY*self._nbMeshZ)
+        listT = [1.] * (self._nbMeshX * self._nbMeshY * self._nbMeshZ)
         if self._medT is not None:
             arrayT = self._medT.getArray()
         else:
@@ -52,10 +52,10 @@ class NeutroDriver(PhysicsDriver):
                     x = (ix + 0.5) * dx
                     y = (iy + 0.5) * dy
                     z = (iz + 0.5) * dz
-                    arrayP.setIJ(imesh, 0,  math.cos( (x / (self._sizeX / 2.) - 1. ) * math.pi / 2.) * \
-                                            math.cos( (y / (self._sizeY / 2.) - 1. ) * math.pi / 2.) * \
-                                            math.cos( (z / (self._sizeZ / 2.) - 1. ) * math.pi / 2.) * \
-                                            (1. - (arrayT.getIJ(imesh, 0) - 1.) * 0.2 ) )
+                    arrayP.setIJ(imesh, 0, math.cos((x / (self._sizeX / 2.) - 1.) * math.pi / 2.) *
+                                 math.cos((y / (self._sizeY / 2.) - 1.) * math.pi / 2.) *
+                                 math.cos((z / (self._sizeZ / 2.) - 1.) * math.pi / 2.) *
+                                 (1. - (arrayT.getIJ(imesh, 0) - 1.) * 0.2))
                     imesh += 1
         return True
 

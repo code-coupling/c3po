@@ -505,7 +505,7 @@ def mergeListing(listingsName, newListingName):
                     minTValid = min(timeValidatedPhysics)
                     if minTValid > 0.:
                         if (max(timeValidatedPhysics) - minTValid) < 1.E-8:
-                            #if min(timeStepValidated):
+                            # if min(timeStepValidated):
                             writer.writeValidate(currentTime[imin])
                             for ivalid in range(len(timeValidatedPhysics)):
                                 timeValidatedPhysics[ivalid] = -1

@@ -101,18 +101,30 @@ def main_sequential():
     print(Nlines)
     assert Nlines == [435, 429, 78, 78, 750]
 
+
 def test_sequential():
     main_sequential()
-    try: os.remove("first.log")
-    except: pass
-    try: os.remove("second.log")
-    except: pass
-    try: os.remove("listingFirst.log")
-    except: pass
-    try: os.remove("listingSecond.log")
-    except: pass
-    try: os.remove("listingGeneral.log")
-    except: pass
+    try:
+        os.remove("first.log")
+    except:
+        pass
+    try:
+        os.remove("second.log")
+    except:
+        pass
+    try:
+        os.remove("listingFirst.log")
+    except:
+        pass
+    try:
+        os.remove("listingSecond.log")
+    except:
+        pass
+    try:
+        os.remove("listingGeneral.log")
+    except:
+        pass
+
 
 if __name__ == "__main__":
     main_sequential()

@@ -9,19 +9,19 @@ import c3po.medcouplingCompat as mc
 def makeMeshCarre(sizeX, sizeY, sizeZ, nMeshX, nMeshY, nMeshZ):
     coord = 0.
     coordsX = []
-    for i in range(nMeshX+1):
+    for i in range(nMeshX + 1):
         coordsX.append(coord)
-        coord += sizeX/nMeshX
+        coord += sizeX / nMeshX
     coord = 0.
     coordsY = []
-    for i in range(nMeshY+1):
+    for i in range(nMeshY + 1):
         coordsY.append(coord)
-        coord += sizeY/nMeshY
+        coord += sizeY / nMeshY
     coord = 0.
     coordsZ = []
-    for i in range(nMeshZ+1):
+    for i in range(nMeshZ + 1):
         coordsZ.append(coord)
-        coord += sizeZ/nMeshZ
+        coord += sizeZ / nMeshZ
     arrayX = mc.DataArrayDouble(coordsX)
     arrayX.setInfoOnComponent(0, "X [m]")
     arrayY = mc.DataArrayDouble(coordsY)
@@ -49,9 +49,9 @@ def makeMesh1D(length, nMesh):
     coordzbas = 0.
     coord = coordzbas
     coords = []
-    for i in range(nMesh+1):
+    for i in range(nMesh + 1):
         coords.append(coord)
-        coord += length/nMesh
+        coord += length / nMesh
     array = mc.DataArrayDouble(coords)
     array.setInfoOnComponent(0, "X [m]")
     mesh = mc.MEDCouplingCMesh("1DMesh")

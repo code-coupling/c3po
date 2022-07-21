@@ -85,7 +85,7 @@ class MPIWorker(object):
             else:
                 data = self.mpiComm.recv(source=self._masterRank, tag=MPI.ANY_TAG, status=status)
                 tag = status.Get_tag()
-            #print "rank ", self.mpiComm.Get_rank(), ", tag = ", tag, "*****************************************************************"
+            # print "rank ", self.mpiComm.Get_rank(), ", tag = ", tag, "*****************************************************************"
             if tag < MPITag.tagBARRIER:
                 if tag == MPITag.init:
                     self._physicsDriver.init()

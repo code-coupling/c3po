@@ -3,12 +3,12 @@ from __future__ import print_function, division
 
 import pytest
 
+
 def main_master():
     import mpi4py.MPI as mpi
 
     import c3po
     import c3po.mpi
-
 
     class OneIterationCoupler(c3po.Coupler):
         def __init__(self, physics, exchangers, dataManagers=[]):
@@ -19,7 +19,6 @@ def main_master():
             self._exchangers[0].exchange()
             self._physicsDrivers[1].solve()
             return self.getSolveStatus()
-
 
     comm = mpi.COMM_WORLD
 
@@ -72,5 +71,6 @@ def main_master():
     mycoupler.term()
     myNeutroDriver.term()
     myThermoDriver.term()
+
 
 main_master()

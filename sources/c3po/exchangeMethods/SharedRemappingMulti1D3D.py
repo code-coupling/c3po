@@ -183,5 +183,5 @@ class SharedRemappingMulti1D3D(SharedRemapping):
     def getPatterns(self):
         """! See ExchangeMethod.getPatterns. """
         if self._isReverse:
-            return [(1, self._numberOf1DFields, 0, 0), (0 ,0, 1, 1)]
+            return [(1, self._numberOf1DFields, 0, 0), (0, 0, 1, 1)]
         return [(self._numberOf1DFields, 1, 0, 0), (0, 0, 1, 1)]
