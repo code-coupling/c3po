@@ -373,7 +373,7 @@ def mergeListing(listingsName, newListingName):
     @param listingsName list of the name of the listing files to merge.
     @param newListingName name of the file to write.
     """
-    listings = [open(lname, "r") for lname in listingsName]
+    listings = [open(lname, "r", encoding="utf-8") for lname in listingsName]
     newListing = open(newListingName, "wb+")
     writer = MergedListingWriter(newListing)
     lineNumbers = [sum(1 for _ in lis) for lis in listings]
@@ -550,7 +550,7 @@ def getTotalTimePhysicsDriver(listingName, physicsDriverName,
 
     @return The total time spent by the PhysicsDriver in the indicated methods.
     """
-    listing = open(listingName, "r")
+    listing = open(listingName, "r", encoding="utf-8")
     lineNumber = sum(1 for _ in listing)
     listing.seek(0)
     lineCurrentNumber = 0
@@ -600,7 +600,7 @@ def getTimesExchanger(listingName, exchangerName, physicsDriverNames):
     @return A list of len(physicsDriverNames) elements, in the same order than physicsDriverNames. Each element is a list of two
     values: first the total exchange time spent by this PhysicsDriver in the Exchanger, then its total waiting time in the Exchanger.
     """
-    listing = open(listingName, "r")
+    listing = open(listingName, "r", encoding="utf-8")
     lineNumber = sum(1 for _ in listing)
     listing.seek(0)
     lineCurrentNumber = 0

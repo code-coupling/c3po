@@ -63,7 +63,7 @@ class LocalDataManager(DataManager, DataAccessor):
         self.checkBeforeOperator(other)
         for name in self.valuesDouble:
             self.valuesDouble[name] = other.valuesDouble[name]
-        for name in self.fieldsDouble:
+        for name in self.fieldsDouble:  # pylint: disable=consider-using-dict-items
             otherArray = other.fieldsDouble[name].getArray()
             self.fieldsDouble[name].getArray().setPartOfValues1(other.fieldsDouble[name].getArray(), 0, otherArray.getNumberOfTuples(), 1, 0, otherArray.getNumberOfComponents(), 1)
 
@@ -123,9 +123,9 @@ class LocalDataManager(DataManager, DataAccessor):
         """
         self.checkBeforeOperator(other)
         newData = self.cloneEmpty()
-        for name in self.valuesDouble:
+        for name in self.valuesDouble:  # pylint: disable=consider-using-dict-items
             newData.valuesDouble[name] = self.valuesDouble[name] + other.valuesDouble[name]
-        for name in self.fieldsDouble:
+        for name in self.fieldsDouble:  # pylint: disable=consider-using-dict-items
             newData.fieldsDouble[name] = 1. * self.fieldsDouble[name]
             newData.fieldsDouble[name].getArray().addEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return newData
@@ -144,7 +144,7 @@ class LocalDataManager(DataManager, DataAccessor):
         self.checkBeforeOperator(other)
         for name in self.valuesDouble:
             self.valuesDouble[name] += other.valuesDouble[name]
-        for name in self.fieldsDouble:
+        for name in self.fieldsDouble:  # pylint: disable=consider-using-dict-items
             self.fieldsDouble[name].getArray().addEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return self
 
@@ -161,9 +161,9 @@ class LocalDataManager(DataManager, DataAccessor):
         """
         self.checkBeforeOperator(other)
         newData = self.cloneEmpty()
-        for name in self.valuesDouble:
+        for name in self.valuesDouble:  # pylint: disable=consider-using-dict-items
             newData.valuesDouble[name] = self.valuesDouble[name] - other.valuesDouble[name]
-        for name in self.fieldsDouble:
+        for name in self.fieldsDouble:  # pylint: disable=consider-using-dict-items
             newData.fieldsDouble[name] = 1. * self.fieldsDouble[name]
             newData.fieldsDouble[name].getArray().substractEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return newData
@@ -182,7 +182,7 @@ class LocalDataManager(DataManager, DataAccessor):
         self.checkBeforeOperator(other)
         for name in self.valuesDouble:
             self.valuesDouble[name] -= other.valuesDouble[name]
-        for name in self.fieldsDouble:
+        for name in self.fieldsDouble:  # pylint: disable=consider-using-dict-items
             self.fieldsDouble[name].getArray().substractEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return self
 
@@ -196,9 +196,9 @@ class LocalDataManager(DataManager, DataAccessor):
         @return a new (consistent with self) LocalDataManager where the data are multiplied by scalar.
         """
         newData = self.cloneEmpty()
-        for name in self.valuesDouble:
+        for name in self.valuesDouble:  # pylint: disable=consider-using-dict-items
             newData.valuesDouble[name] = scalar * self.valuesDouble[name]
-        for name in self.fieldsDouble:
+        for name in self.fieldsDouble:  # pylint: disable=consider-using-dict-items
             newData.fieldsDouble[name] = scalar * self.fieldsDouble[name]
         return newData
 
@@ -250,9 +250,9 @@ class LocalDataManager(DataManager, DataAccessor):
         """
         self.checkBeforeOperator(other)
         result = 0.
-        for name in self.valuesDouble:
+        for name in self.valuesDouble:  # pylint: disable=consider-using-dict-items
             result += self.valuesDouble[name] * other.valuesDouble[name]
-        for name in self.fieldsDouble:
+        for name in self.fieldsDouble:  # pylint: disable=consider-using-dict-items
             nparr1 = self.fieldsDouble[name].getArray().toNumPyArray()
             nparr2 = other.fieldsDouble[name].getArray().toNumPyArray()
             dim = 1

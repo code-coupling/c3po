@@ -160,7 +160,8 @@ disable=print-statement,
         duplicate-code,
         no-member,
         undefined-variable,
-        abstract-method
+        abstract-method,
+        consider-using-f-string
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -281,7 +282,8 @@ good-names=i,
            _,
            dt,
            ok,
-           time_
+           time_,
+           type_
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted

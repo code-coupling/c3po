@@ -11,7 +11,7 @@
 """ Import user non-MPI C3PO objects. """
 
 import os
-with open(os.path.join(os.path.dirname(__file__), "VERSION")) as file:
+with open(os.path.join(os.path.dirname(__file__), "VERSION"), encoding="utf-8") as file:
     __version__ = file.read().strip()
 
 from .DataAccessor import DataAccessor
