@@ -137,6 +137,7 @@ def main_collaborative():
 def test_collaborative():
     main_collaborative()
     from mpi4py import MPI
+    import os
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     if rank == 0:
