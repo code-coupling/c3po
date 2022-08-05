@@ -16,7 +16,7 @@ from c3po.CollaborativeDataManager import CollaborativeDataManager
 
 
 class CrossedSecantCoupler(Coupler):
-    """! CrossedSecantCoupler inherits from Coupler and proposes a damped fixed point algorithm.
+    """! CrossedSecantCoupler inherits from Coupler and proposes a fixed point algorithm with crossed secant acceleration.
 
     The class proposes an algorithm for the resolution of F(X) = X. Thus CrossedSecantCoupler is a Coupler working with :
 
@@ -87,10 +87,10 @@ class CrossedSecantCoupler(Coupler):
         physics2Data = self._exchangers[0]
         data2physics = self._exchangers[1]
 
-        # Initialisation : iteration 0 
+        # Initialisation : iteration 0
         if self._printLevel:
             printEndOfLine = "\r" if self._printLevel == 1 else "\n"
-            print("crossed secant iteration {} ".format(iiter), end=printEndOfLine)      
+            print("crossed secant iteration {} ".format(iiter), end=printEndOfLine)
 
         physics.solve()
         physics2Data.exchange()
@@ -98,7 +98,7 @@ class CrossedSecantCoupler(Coupler):
         data = CollaborativeDataManager(self._dataManagers)
         normData = self.readNormData()
         self.normalizeData(normData)
-        previousData = data.clone()
+        diffData = data.clone()
         iiter += 1
 
         # First iteration without acceleration
@@ -110,17 +110,15 @@ class CrossedSecantCoupler(Coupler):
         physics.solve()
         physics2Data.exchange() # data = G(X0) , previousData = X0
         self.normalizeData(normData)
-        intermediaireDataOld = data.clone() # intermediaireDataOld = G(x0)
-        diffData = data.clone()
-        diffData -= previousData  # G(x0) - x0
+        diffData -= data
         diffDataOld = diffData.clone() # G(x0) - x0
 
         error = self.getNorm(diffData) / self.getNorm(data)
         iiter += 1
         if self._printLevel:
             print("crossed secant iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
-        previousData.copy(data) # previousData = X1 = G(x0)
-        dataOld = intermediaireDataOld.clone() # dataOld = X1 = G(x0)
+        dataOld = data.clone() # dataOld = X1 = G(x0)
+        diffData.copy(data)
 
         while error > self._tolerance and iiter < self._maxiter:
             self.abortTimeStep()
@@ -131,24 +129,24 @@ class CrossedSecantCoupler(Coupler):
             physics.solve()
             physics2Data.exchange()
             self.normalizeData(normData)
-            
-            intermediaireDataOld.copy(data)
-            diffData = data.clone()
-            diffData -= previousData
+
+            diffData -= data
 
             error = self.getNorm(diffData) / self.getNorm(data)
             iiter += 1
             if self._printLevel:
                 print("crossed secant iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
-            
-            if error > self._tolerance : 
-                if self._printLevel:
-                    print("damping factor crossed secant : {:.5e}".format(1-(data-dataOld).dot(diffData-diffDataOld)/self.getNorm(diffData-diffDataOld)**2), end=printEndOfLine)
-                data -= diffData.__mul__((data-dataOld).dot(diffData-diffDataOld)/self.getNorm(diffData-diffDataOld)**2)
-                previousData.copy(data)
-                dataOld.copy(intermediaireDataOld)
-                diffDataOld.copy(diffData)
 
+            if error > self._tolerance :
+                dataOld -= data
+                diffDataOld -= diffData
+                normDenominator = diffDataOld.norm2()
+                factor = - dataOld.dot(diffDataOld)/(normDenominator * normDenominator)
+                dataOld.copy(data)
+                diffDataOld.copy(diffData)
+                diffData *= factor
+                data += diffData
+                diffData.copy(data)
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and error <= self._tolerance
