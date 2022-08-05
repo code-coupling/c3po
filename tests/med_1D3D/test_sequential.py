@@ -54,7 +54,7 @@ class OneIterationCoupler(c3po.Coupler):
         self._physicsDrivers[1].solve()
         return self.getSolveStatus()
 
-coupler_type = "CrossedSecantCoupler" # FixedPointCoupler CrossedSecantCoupler 
+coupler_type = "CrossedSecantCoupler" # FixedPointCoupler CrossedSecantCoupler
 
 def test_sequential():
     from tests.med_1D3D.NeutroDriver import NeutroDriver
@@ -87,10 +87,10 @@ def test_sequential():
 
     oneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [exchangerNeutro2Thermo])
 
-    if coupler_type == "CrossedSecantCoupler" : 
+    if coupler_type == "CrossedSecantCoupler" :
         mycoupler = c3po.CrossedSecantCoupler([oneIteration], [exchangerThermo2Data, exchangerData2Neutro], [dataCoupler])
         mycoupler.setNormChoice(c3po.NormChoice.norm2)
-    else : 
+    else :
         mycoupler = c3po.FixedPointCoupler([oneIteration], [exchangerThermo2Data, exchangerData2Neutro], [dataCoupler])
         mycoupler.setDampingFactor(0.75)
     mycoupler.init()
@@ -103,19 +103,25 @@ def test_sequential():
 
     mycoupler.term()
     try:
-        fieldT = mc.ReadField(mc.ON_CELLS, "NeutroDriver_input_Temperature_2.med", "3DMesh", 0, "3DFieldFromMulti1D", -1, -1)
+        num = 0
+        while os.path.exists("NeutroDriver_input_Temperature_" + str(num) + ".med"):
+            num += 1
+        fieldT = mc.ReadField(mc.ON_CELLS, "NeutroDriver_input_Temperature_" + str(num - 1) + ".med", "3DMesh", 0, "3DFieldFromMulti1D", -1, -1)
         resuT = fieldT.getArray().toNumPyArray().tolist()
 
         assert len(refT) == len(resuT)
         for i in range(len(refT)):
-            assert pytest.approx(resuT[i], abs=1.E-2) == refT[i]
+            assert pytest.approx(resuT[i], abs=1.E-3) == refT[i]
 
-        fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_3.med", "3DMesh", 0, "P", -1, -1)
+        num = 0
+        while os.path.exists("NeutroDriver_output_Power_" + str(num) + ".med"):
+            num += 1
+        fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_" + str(num - 1) + ".med", "3DMesh", 0, "P", -1, -1)
         resuP = fieldP.getArray().toNumPyArray().tolist()
 
         assert len(refP) == len(resuP)
         for i in range(len(refP)):
-            assert pytest.approx(resuP[i], abs=1.E-2) == refP[i]
+            assert pytest.approx(resuP[i], abs=1.E-3) == refP[i]
     except:
         raise
     finally:
@@ -156,10 +162,10 @@ def test_load_matrix():
 
     oneIteration2 = OneIterationCoupler([myNeutroDriver2, myThermoDriver2], [exchangerNeutro2Thermo2])
 
-    if coupler_type == "CrossedSecantCoupler" : 
+    if coupler_type == "CrossedSecantCoupler" :
         mycoupler2 = c3po.CrossedSecantCoupler([oneIteration2], [exchangerThermo2Data2, exchangerData2Neutro2], [dataCoupler2])
         mycoupler2.setNormChoice(c3po.NormChoice.norm2)
-    else : 
+    else :
         mycoupler2 = c3po.FixedPointCoupler([oneIteration2], [exchangerThermo2Data2, exchangerData2Neutro2], [dataCoupler2])
         mycoupler2.setDampingFactor(0.75)
     mycoupler2.init()
