@@ -32,6 +32,7 @@ from .services.ListingWriter import ListingWriter, mergeListing, getTotalTimePhy
 from .couplers.FixedPointCoupler import FixedPointCoupler
 from .couplers.AndersonCoupler import AndersonCoupler
 from .couplers.JFNKCoupler import JFNKCoupler
+from .couplers.CrossedSecantCoupler import CrossedSecantCoupler
 from .exchangeMethods.ExchangeMethod import ExchangeMethod
 from .exchangeMethods.DirectMatching import DirectMatching
 from .exchangeMethods.SharedRemapping import SharedRemapping, Remapper
