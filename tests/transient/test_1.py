@@ -151,9 +151,9 @@ def main_1():
                 n += 1
         return n
 
-    Nlines = [nLines(nameListing1), nLines(nameListing2), nLines(nameListingMerged)]
+    Nlines = [nLines(nameListing1), nLines(nameListing2)]
     print(Nlines)
-    assert Nlines == [633, 134, 817]
+    assert Nlines == [633, 134]
 
 
 def test_sequential():
