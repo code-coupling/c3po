@@ -54,7 +54,6 @@ class OneIterationCoupler(c3po.Coupler):
         self._physicsDrivers[1].solve()
         return self.getSolveStatus()
 
-coupler_type = "CrossedSecantCoupler" # FixedPointCoupler CrossedSecantCoupler
 
 def test_sequential():
     from tests.med_1D3D.NeutroDriver import NeutroDriver
@@ -87,14 +86,10 @@ def test_sequential():
 
     oneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [exchangerNeutro2Thermo])
 
-    if coupler_type == "CrossedSecantCoupler" :
-        mycoupler = c3po.CrossedSecantCoupler([oneIteration], [exchangerThermo2Data, exchangerData2Neutro], [dataCoupler])
-        mycoupler.setNormChoice(c3po.NormChoice.norm2)
-    else :
-        mycoupler = c3po.FixedPointCoupler([oneIteration], [exchangerThermo2Data, exchangerData2Neutro], [dataCoupler])
-        mycoupler.setDampingFactor(0.75)
+    mycoupler = c3po.FixedPointCoupler([oneIteration], [exchangerThermo2Data, exchangerData2Neutro], [dataCoupler])
     mycoupler.init()
-    mycoupler.setConvergenceParameters(1E-16, 100)
+    mycoupler.setDampingFactor(0.75)
+    mycoupler.setConvergenceParameters(1E-5, 100)
 
     for i in range(4):
         myThermoDrivers[i].setT0(273.15 + i * 0.1)
@@ -102,6 +97,7 @@ def test_sequential():
     mycoupler.solve()
 
     mycoupler.term()
+
     try:
         num = 0
         while os.path.exists("NeutroDriver_input_Temperature_" + str(num) + ".med"):
@@ -162,14 +158,10 @@ def test_load_matrix():
 
     oneIteration2 = OneIterationCoupler([myNeutroDriver2, myThermoDriver2], [exchangerNeutro2Thermo2])
 
-    if coupler_type == "CrossedSecantCoupler" :
-        mycoupler2 = c3po.CrossedSecantCoupler([oneIteration2], [exchangerThermo2Data2, exchangerData2Neutro2], [dataCoupler2])
-        mycoupler2.setNormChoice(c3po.NormChoice.norm2)
-    else :
-        mycoupler2 = c3po.FixedPointCoupler([oneIteration2], [exchangerThermo2Data2, exchangerData2Neutro2], [dataCoupler2])
-        mycoupler2.setDampingFactor(0.75)
+    mycoupler2 = c3po.FixedPointCoupler([oneIteration2], [exchangerThermo2Data2, exchangerData2Neutro2], [dataCoupler2])
     mycoupler2.init()
-    mycoupler2.setConvergenceParameters(1E-16, 100)
+    mycoupler2.setDampingFactor(0.75)
+    mycoupler2.setConvergenceParameters(1E-5, 100)
 
     for i in range(4):
         myThermoDrivers2[i].setT0(273.15 + i * 0.1)
