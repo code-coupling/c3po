@@ -78,12 +78,13 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
         """! INTERNAL """
         return self._innerField
 
-    def build3DField(self, fields1D):
+    def build3DField(self, fields1D, defaultValue=0.):
         """! INTERNAL """
         resuField = self._innerField.clone(True)
         if len(fields1D) > 0:
             resuField.setNature(fields1D[0].getNature())
         array3D = resuField.getArray()
+        array3D.fillWithValue(defaultValue)
         nbOfElems3D = array3D.getNbOfElems()
         for i, field in enumerate(fields1D):
             array1D = field.getArray()
@@ -176,7 +177,7 @@ class SharedRemappingMulti1D3D(SharedRemapping):
         intermediate3DField = []
         while indexFirst + self._numberOf1DFields <= len(fieldsToGet):
             fields1D = [fieldsToGet[indexFirst + k] for k in range(self._numberOf1DFields)]
-            intermediate3DField.append(self._remapper.build3DField(fields1D))
+            intermediate3DField.append(self._remapper.build3DField(fields1D, self._defaultValue))
             indexFirst += self._numberOf1DFields
         return SharedRemapping.__call__(self, intermediate3DField, fieldsToSet, valuesToGet)
 
