@@ -26,6 +26,7 @@ def test_matrix():
     CouplerAnderson.setOrder(3)
     CouplerJFNK = c3po.JFNKCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
     CouplerJFNK.setKrylovConvergenceParameters(1E-4, 3)
+    CouplerCrossedSecant = c3po.CrossedSecantCoupler([myPhysics], [Physics2Data, Data2Physics], [DataCoupler])
 
     CouplerGS.init()
     print(myPhysics.A_)
@@ -55,11 +56,20 @@ def test_matrix():
     vpJFNK = myPhysics.getOutputDoubleValue("valeur_propre")
     CouplerJFNK.term()
 
+    CouplerCrossedSecant.init()
+    CouplerCrossedSecant.solve()
+    print(myPhysics.result_)
+    print("valeur propre :", myPhysics.getOutputDoubleValue("valeur_propre"))
+    resu = np.dot(myPhysics.A_, myPhysics.result_) + myPhysics.b_
+    print(resu / np.linalg.norm(resu))
+    vpCS = myPhysics.getOutputDoubleValue("valeur_propre")
+    CouplerCrossedSecant.term()
+
     refVal = 15.2654890812
     assert pytest.approx(vpGS, abs=1.E-3) == refVal
-    assert pytest.approx(vpGS, abs=1.E-3) == refVal
-    assert pytest.approx(vpGS, abs=1.E-3) == refVal
-
+    assert pytest.approx(vpAnderson, abs=1.E-3) == refVal
+    assert pytest.approx(vpJFNK, abs=1.E-3) == refVal
+    assert pytest.approx(vpCS, abs=1.E-3) == refVal
 
 if __name__ == "__main__":
     test_matrix()
