@@ -1,5 +1,5 @@
 source env.sh
 
-python3 test_sequential.py
+python test_sequential.py
 
-mpiexec -n 5 python3 test_mpi_hybrid.py
+mpiexec -n 5 python main_mpi_hybrid.py
