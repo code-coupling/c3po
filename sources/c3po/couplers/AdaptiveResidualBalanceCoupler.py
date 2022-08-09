@@ -12,7 +12,7 @@
 from __future__ import print_function, division
 
 from c3po.Coupler import Coupler
-from c3po.couplers.FixedPointCoupler import FixedPointCoupler
+from c3po.couplers.FixedPointCoupler_forResidualBalance import FixedPointCoupler_forResidualBalance as FixedPointCoupler
 from c3po.CollaborativeDataManager import CollaborativeDataManager
 
 class AdaptiveResidualBalanceCoupler(Coupler):
@@ -69,8 +69,8 @@ class AdaptiveResidualBalanceCoupler(Coupler):
         self.convRateSolver2Initial_ = 0.1
         self.accuracySolver2_ = 0.
         
-        self.residualTotal_ = 0.        #nom correct ? En anglais ?
-        self.residualDemiTotal_ = 0.    #nom correct ? En anglais ?
+        self.residualTotal_ = 0.        
+        self.residualDemiTotal_ = 0.    
         
         self.firstIteration_ = True
 

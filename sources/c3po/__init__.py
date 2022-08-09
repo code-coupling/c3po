@@ -30,9 +30,12 @@ from .services.tracer import tracer
 from .services.NameChanger import nameChanger, NameChanger
 from .services.ListingWriter import ListingWriter, mergeListing, getTotalTimePhysicsDriver, getTimesExchanger
 from .couplers.FixedPointCoupler import FixedPointCoupler
+from .couplers.FixedPointCoupler_forResidualBalance import FixedPointCoupler_forResidualBalance
 from .couplers.AndersonCoupler import AndersonCoupler
 from .couplers.JFNKCoupler import JFNKCoupler
 from .couplers.CrossedSecantCoupler import CrossedSecantCoupler
+from .couplers.AdaptiveResidualBalanceCoupler import AdaptiveResidualBalanceCoupler
+from .couplers.DynamicResidualBalanceCoupler import DynamicResidualBalanceCoupler
 from .exchangeMethods.ExchangeMethod import ExchangeMethod
 from .exchangeMethods.DirectMatching import DirectMatching
 from .exchangeMethods.SharedRemapping import SharedRemapping, Remapper

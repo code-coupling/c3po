@@ -8,17 +8,17 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class CrossedSecantCoupler. """
+""" Contain the class FixedPointCoupler. """
 from __future__ import print_function, division
 
 from c3po.Coupler import Coupler
 from c3po.CollaborativeDataManager import CollaborativeDataManager
 
 
-class CrossedSecantCoupler(Coupler):
-    """! CrossedSecantCoupler inherits from Coupler and proposes a fixed point algorithm with crossed secant acceleration.
+class FixedPointCoupler_forResidualBalance(Coupler):
+    """! FixedPointCoupler inherits from Coupler and proposes a damped fixed point algorithm.
 
-    The class proposes an algorithm for the resolution of F(X) = X. Thus CrossedSecantCoupler is a Coupler working with :
+    The class proposes an algorithm for the resolution of F(X) = X. Thus FixedPointCoupler is a Coupler working with :
 
     - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
     - A list of DataManager allowing to manipulate the data in the coupling (the X).
@@ -27,19 +27,21 @@ class CrossedSecantCoupler(Coupler):
     Each DataManager is normalized with its own norm got after the first iteration.
     They are then used as a single DataManager using CollaborativeDataManager.
 
-    At each iteration we do (with n the iteration number):
+    At each iteration we do (with n the iteration number and alpha the damping factor):
 
-        X^{n+1} = F(X^{n}) - ( F(X^{n}) - X^{n} ) * [ ( F(X^{n}) - F(X^{n-1}) ) .dot. ( F(X^{n}) - X^{n} - ( F(X^{n-1}) - X^{n-1} ) )  ] / (|| F(X^{n}) - X^{n} - ( F(X^{n-1}) - X^{n-1} ) ||**2)
+        X^{n+1} = alpha * F(X^{n}) + (1 - alpha) * X^{n}
 
-    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < tolerance. The default norm used is the infinite norm. setNormChoice() allows to choose another one.
+    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance. The default norm used is the infinite norm. setNormChoice() allows to choose another one.
 
     The default value of tolerance is 1.E-6. Call setConvergenceParameters() to change it.
 
     The default maximum number of iterations is 100. Call setConvergenceParameters() to change it.
+
+    The default damping factor is 1 (no damping). Call setDampingFactor() to change it.
     """
 
     def __init__(self, physics, exchangers, dataManagers):
-        """! Build a CrossedSecantCoupler object.
+        """! Build a FixedPointCoupler object.
 
         @param physics list of only one PhysicsDriver (possibly a Coupler).
         @param exchangers list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
@@ -48,15 +50,16 @@ class CrossedSecantCoupler(Coupler):
         Coupler.__init__(self, physics, exchangers, dataManagers)
         self._tolerance = 1.E-6
         self._maxiter = 100
+        self._dampingFactor = 1.
         self._isConverged = False
         self._printLevel = 2
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
-            raise Exception("CrossedSecantCoupler.__init__ physics, exchangers and dataManagers must be lists!")
+            raise Exception("FixedPointCoupler.__init__ physics, exchangers and dataManagers must be lists!")
         if len(physics) != 1:
-            raise Exception("CrossedSecantCoupler.__init__ There must be only one PhysicsDriver")
+            raise Exception("FixedPointCoupler.__init__ There must be only one PhysicsDriver")
         if len(exchangers) != 2:
-            raise Exception("CrossedSecantCoupler.__init__ There must be exactly two Exchanger")
+            raise Exception("FixedPointCoupler.__init__ There must be exactly two Exchanger")
 
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations).
@@ -66,6 +69,13 @@ class CrossedSecantCoupler(Coupler):
         """
         self._tolerance = tolerance
         self._maxiter = maxiter
+
+    def setDampingFactor(self, dampingFactor):
+        """! Set the damping factor of the method.
+
+        @param dampingFactor the damping factor alpha in the formula X^{n+1} = alpha * F(X^{n}) + (1 - alpha) * X^{n}.
+        """
+        self._dampingFactor = dampingFactor
 
     def setPrintLevel(self, level):
         """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
@@ -87,10 +97,10 @@ class CrossedSecantCoupler(Coupler):
         physics2Data = self._exchangers[0]
         data2physics = self._exchangers[1]
 
-        # Initialisation : iteration 0
+        # Init
         if self._printLevel:
             printEndOfLine = "\r" if self._printLevel == 1 else "\n"
-            print("crossed secant iteration {} ".format(iiter), end=printEndOfLine)
+            print("fixed-point iteration {} ".format(iiter), end=printEndOfLine)
 
         physics.solve()
         physics2Data.exchange()
@@ -98,29 +108,11 @@ class CrossedSecantCoupler(Coupler):
         data = CollaborativeDataManager(self._dataManagers)
         normData = self.readNormData()
         self.normalizeData(normData)
-        diffData = data.clone()
+
+        previousData = data.clone()
         iiter += 1
 
-        # First iteration without acceleration
-        self.abortTimeStep()
-        self.initTimeStep(self._dt)
-        self.denormalizeData(normData)
-        data2physics.exchange()
-
-        physics.solve()
-        physics2Data.exchange() # data = G(X0) , previousData = X0
-        self.normalizeData(normData)
-        diffData -= data
-        diffDataOld = diffData.clone() # G(x0) - x0
-
-        error = self.getNorm(diffData) / self.getNorm(data)
-        iiter += 1
-        if self._printLevel:
-            print("crossed secant iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
-        dataOld = data.clone() # dataOld = X1 = G(x0)
-        diffData.copy(data)
-
-        while error > self._tolerance and iiter < self._maxiter:
+        while ((error > self._tolerance) or (not physics.getSolveStatus())) and (iiter < self._maxiter) : # La convergence implique le fait d'effectuer un calcul finement convergé pour chaque physique
             self.abortTimeStep()
             self.initTimeStep(self._dt)
             self.denormalizeData(normData)
@@ -130,23 +122,25 @@ class CrossedSecantCoupler(Coupler):
             physics2Data.exchange()
             self.normalizeData(normData)
 
-            diffData -= data
+            if self._dampingFactor != 1.:
+                data *= self._dampingFactor
+                data.imuladd(1. - self._dampingFactor, previousData)
 
+            if iiter == 1:
+                diffData = data.clone()
+            else:
+                diffData.copy(data)
+            diffData -= previousData
             error = self.getNorm(diffData) / self.getNorm(data)
+            error /= self._dampingFactor
+
+            previousData.copy(data)
+
             iiter += 1
             if self._printLevel:
-                print("crossed secant iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
-
-            if error > self._tolerance :
-                dataOld -= data
-                diffDataOld -= diffData
-                normDenominator = diffDataOld.norm2()
-                factor = - dataOld.dot(diffDataOld)/(normDenominator * normDenominator)
-                dataOld.copy(data)
-                diffDataOld.copy(diffData)
-                diffData *= factor
-                data += diffData
-                diffData.copy(data)
+                print("fixed-point iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
+        if self._printLevel == 1:
+            print("fixed-point iteration {} error : {:.5e} ".format(iiter - 1, error))
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and error <= self._tolerance
