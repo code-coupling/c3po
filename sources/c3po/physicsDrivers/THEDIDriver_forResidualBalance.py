@@ -95,84 +95,6 @@ class THEDIDriver_forResidualBalance(THEDIDriver):
         elif name == "videFacteurEchelle" : 
             return self._videFacteurEchelle
         elif name == 'PRECISION_INITIALE':
-
-            if not self._debit : 
-                debits = [94.55663944774949,
-                    94.55663944774946,
-                    94.55663944774945,
-                    94.55663944774949,
-                    94.55663944774948,
-                    94.55663944774946,
-                    94.55663944774949,
-                    94.5566394477495,
-                    94.55663944774949,
-                    94.55663944774946,
-                    94.55663944774943,
-                    94.55663944774948,
-                    94.55663944774949,
-                    94.55663944774949,
-                    94.55663944774949,
-                    94.55663944774948,
-                    94.55663944774946,
-                    94.55663944774949,
-                    94.55663944774949,
-                    94.55663944774949,
-                    94.55663944774943,
-                    94.55663944774949,
-                    94.55663944774946,
-                    94.55663944774948,
-                94.55663944774946]
-                i = 0
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-                i+=1
-                self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-
             if self._pasDeTemps > 0 : 
                 vitesseOld = self.getOutputMEDDoubleField('VITESSE_MASSIQUE')
                 pressionOld= self.getOutputMEDDoubleField('PRESSION')
@@ -232,92 +154,6 @@ class THEDIDriver_forResidualBalance(THEDIDriver):
 
     def solveTimeStep(self):
         if self._pasDeTemps > 0 : 
-            # if not self._debit : 
-                
-            #     debits = [94.55663944774949,
-            #         94.55663944774946,
-            #         94.55663944774945,
-            #         94.55663944774949,
-            #         94.55663944774948,
-            #         94.55663944774946,
-            #         94.55663944774949,
-            #         94.5566394477495,
-            #         94.55663944774949,
-            #         94.55663944774946,
-            #         94.55663944774943,
-            #         94.55663944774948,
-            #         94.55663944774949,
-            #         94.55663944774949,
-            #         94.55663944774949,
-            #         94.55663944774948,
-            #         94.55663944774946,
-            #         94.55663944774949,
-            #         94.55663944774949,
-            #         94.55663944774949,
-            #         94.55663944774943,
-            #         94.55663944774949,
-            #         94.55663944774946,
-            #         94.55663944774948,
-            #     94.55663944774946]
-            #     i = 0
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-            #     i+=1
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(debits[i])
-
-            # for i in range(25):
-            #     self._thedi._coeur.Get_canal(i).Set_Q_bas(2363.915986193738/25.)
-        
-            # if not self._debit : 
-            #     # for i in range(13):
-            #     self._thedi._coeur.Calcule_debit()
-            #     self._debit = True
-            # self._dt = self._thedi._coeur.Get_canal(0).Get_thermohydro().Get__dtCFLmoyenne(0.5)
             iiter_ = 0
             isConverged_ = False 
             tempsCalcul = 0.
@@ -338,7 +174,7 @@ class THEDIDriver_forResidualBalance(THEDIDriver):
             valideTimeStep = (self._thedi._coeur.Get_taille_dernier_pas_de_temps() == self._pasDeTemps)
             dtUsed = self._pasDeTemps
             while not valideTimeStep :
-                dtUsed = dtUsed/2. # self._thedi._coeur.Get_taille_dernier_pas_de_temps()
+                dtUsed = dtUsed/2. 
                 if dtUsed < 1e-6 : 
                     print('Le pas de temps devient inferieur a 10-6 : on abandonne ! ')
                     return False, False
@@ -389,9 +225,7 @@ class THEDIDriver_forResidualBalance(THEDIDriver):
             while (self._precisionAtteinte > self._precision) : 
                 print("iteration THEDI ", iiter_)
                 
-                dtUsed = self._pasDeTemps
-                # self._dt = self._thedi._coeur.Get_canal(0).Get_thermohydro().Get__dtCFLmoyenne(0.1)
-                
+                dtUsed = self._pasDeTemps             
                 try : 
                     self._thedi._coeur.Calcule_pas_de_temps_thermohydro(dtUsed,True)
                 except :                     
