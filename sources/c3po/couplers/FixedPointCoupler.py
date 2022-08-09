@@ -11,6 +11,7 @@
 """ Contain the class FixedPointCoupler. """
 from __future__ import print_function, division
 
+from c3po.PhysicsDriver import PhysicsDriver
 from c3po.Coupler import Coupler
 from c3po.CollaborativeDataManager import CollaborativeDataManager
 
@@ -31,7 +32,7 @@ class FixedPointCoupler(Coupler):
 
         X^{n+1} = alpha * F(X^{n}) + (1 - alpha) * X^{n}
 
-    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance. The default norm used is the infinite norm. setNormChoice() allows to choose another one.
+    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < tolerance. The default norm used is the infinite norm. setNormChoice() allows to choose another one.
 
     The default value of tolerance is 1.E-6. Call setConvergenceParameters() to change it.
 
@@ -51,8 +52,9 @@ class FixedPointCoupler(Coupler):
         self._tolerance = 1.E-6
         self._maxiter = 100
         self._dampingFactor = 1.
-        self._isConverged = False
         self._printLevel = 2
+        self._useIterate = False
+        self._iter = 0
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
             raise Exception("FixedPointCoupler.__init__ physics, exchangers and dataManagers must be lists!")
@@ -61,10 +63,14 @@ class FixedPointCoupler(Coupler):
         if len(exchangers) != 2:
             raise Exception("FixedPointCoupler.__init__ There must be exactly two Exchanger")
 
+        self._data = CollaborativeDataManager(self._dataManagers)
+        self._previousData = None
+        self._normData = 0.
+
     def setConvergenceParameters(self, tolerance, maxiter):
         """! Set the convergence parameters (tolerance and maximum number of iterations).
 
-        @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
+        @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < tolerance.
         @param maxiter the maximal number of iterations.
         """
         self._tolerance = tolerance
@@ -86,62 +92,87 @@ class FixedPointCoupler(Coupler):
             raise Exception("FixedPointCoupler.setPrintLevel level should be one of [0, 1, 2]!")
         self._printLevel = level
 
+    def setUseIterate(self, useIterate):
+        """ ! If True is given, the iterate() method on the given PhysicsDriver is called instead of the solve() method.
+
+        @param useIterate bool. Set True to use iterate(), False to use solve(). Default: False.
+        """
+        self._useIterate = useIterate
+
+    def iterateTimeStep(self):
+        """! Make on iteration of a damped fixed-point algorithm.
+
+        See also c3po.PhysicsDriver.PhysicsDriver.iterateTimeStep().
+        """
+        physics = self._physicsDrivers[0]
+        physics2Data = self._exchangers[0]
+        data2physics = self._exchangers[1]
+
+        if self._iter > 0:
+            if not self._useIterate:
+                physics.abortTimeStep()
+                physics.initTimeStep(self._dt)
+            data2physics.exchange()
+
+        physics.iterate() if self._useIterate else physics.solve()
+        physics2Data.exchange()
+
+        if self._iter == 0:
+            self._normData = self.readNormData()
+        self.normalizeData(self._normData)
+
+        if self._iter > 0:
+            normNewData = self.getNorm(self._data)
+            self._data -= self._previousData
+            error = self.getNorm(self._data) / normNewData
+
+            self._data *= self._dampingFactor
+            self._data += self._previousData
+
+            self._previousData.copy(self._data)
+        else:
+            error = self._tolerance + 1.
+            self._previousData = self._data.clone()
+
+        self.denormalizeData(self._normData)
+        if self._printLevel:
+            printEndOfLine = "\r" if self._printLevel == 1 else "\n"
+            if self._iter == 0:
+                print("fixed-point iteration {} ".format(self._iter), end=printEndOfLine)
+            else:
+                print("fixed-point iteration {} error : {:.5e}".format(self._iter, error), end=printEndOfLine)
+
+        self._iter += 1
+
+        succeed, converged = physics.getIterateStatus() if self._useIterate else (physics.getSolveStatus(), True)
+        converged = converged and error <= self._tolerance
+
+        return succeed, converged
+
     def solveTimeStep(self):
         """! Solve a time step using the damped fixed-point algorithm.
 
         See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
         """
-        iiter = 0
-        error = self._tolerance + 1.
-        physics = self._physicsDrivers[0]
-        physics2Data = self._exchangers[0]
-        data2physics = self._exchangers[1]
+        converged = False
+        succeed = True
 
-        # Init
-        if self._printLevel:
-            printEndOfLine = "\r" if self._printLevel == 1 else "\n"
-            print("fixed-point iteration {} ".format(iiter), end=printEndOfLine)
+        while succeed and (not converged) and self._iter < self._maxiter:
+            self.iterate()
+            succeed, converged = self.getIterateStatus()
 
-        physics.solve()
-        physics2Data.exchange()
+        return succeed and converged
 
-        data = CollaborativeDataManager(self._dataManagers)
-        normData = self.readNormData()
-        self.normalizeData(normData)
+    def getIterateStatus(self):
+        """! See PhysicsDriver.getSolveStatus(). """
+        return PhysicsDriver.getIterateStatus(self)
 
-        previousData = data.clone()
-        iiter += 1
+    def getSolveStatus(self):
+        """! See PhysicsDriver.getSolveStatus(). """
+        return PhysicsDriver.getSolveStatus(self)
 
-        while error > self._tolerance and iiter < self._maxiter:
-            self.abortTimeStep()
-            self.initTimeStep(self._dt)
-            self.denormalizeData(normData)
-            data2physics.exchange()
-
-            physics.solve()
-            physics2Data.exchange()
-            self.normalizeData(normData)
-
-            if self._dampingFactor != 1.:
-                data *= self._dampingFactor
-                data.imuladd(1. - self._dampingFactor, previousData)
-
-            if iiter == 1:
-                diffData = data.clone()
-            else:
-                diffData.copy(data)
-            diffData -= previousData
-            error = self.getNorm(diffData) / self.getNorm(data)
-            error /= self._dampingFactor
-
-            previousData.copy(data)
-
-            iiter += 1
-            if self._printLevel:
-                print("fixed-point iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
-
-        if self._printLevel == 1:
-            print("fixed-point iteration {} error : {:.5e} ".format(iiter - 1, error))
-
-        self.denormalizeData(normData)
-        return physics.getSolveStatus() and error <= self._tolerance
+    def initTimeStep(self, dt):
+        """ See c3po.PhysicsDriver.PhysicsDriver.initTimeStep().  """
+        self._iter = 0
+        self._previousData = 0
+        Coupler.initTimeStep(self, dt)
