@@ -10,6 +10,8 @@
 
 """ Contain the class MPIMasterPhysicsDriver. """
 from __future__ import print_function, division
+
+import sys
 from mpi4py import MPI
 
 from c3po.PhysicsDriver import PhysicsDriver
@@ -257,3 +259,59 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         self.sendData(MPITag.setInputStringValue, (name, value))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setInputStringValue(name, value)
+
+    def getInputValuesNames(self):
+        """! See c3po.DataAccessor.DataAccessor.getInputValuesNames(). """
+        self.sendData(MPITag.getInputValuesNames)
+        data = []
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.getInputValuesNames()
+        return self.recvData(data, collectiveOperator=MPI.MAX)
+
+    def getOutputValuesNames(self):
+        """! See c3po.DataAccessor.DataAccessor.getOutputValuesNames(). """
+        self.sendData(MPITag.getOutputValuesNames)
+        data = []
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.getOutputValuesNames()
+        return self.recvData(data, collectiveOperator=MPI.MAX)
+
+    def getValueType(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getValueType(). """
+        self.sendData(MPITag.getValueType, name)
+        data = ""
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.getValueType(name)
+        return self.recvData(data, collectiveOperator=MPI.MAX)
+
+    def getValueUnit(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getValueUnit(). """
+        self.sendData(MPITag.getValueUnit, name)
+        data = ""
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.getValueUnit(name)
+        return self.recvData(data, collectiveOperator=MPI.MAX)
+
+    def getOutputDoubleValue(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getOutputDoubleValue(). """
+        self.sendData(MPITag.getOutputDoubleValue, name)
+        data = -sys.float_info.max
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.getOutputDoubleValue(name)
+        return self.recvData(data, collectiveOperator=MPI.MAX)
+
+    def getOutputIntValue(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getOutputIntValue(). """
+        self.sendData(MPITag.getOutputIntValue, name)
+        data = -sys.float_info.max
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.getOutputIntValue(name)
+        return self.recvData(data, collectiveOperator=MPI.MAX)
+
+    def getOutputStringValue(self, name):
+        """! See c3po.DataAccessor.DataAccessor.getOutputStringValue(). """
+        self.sendData(MPITag.getOutputStringValue, name)
+        data = ""
+        if self._localPhysicsDriver is not None:
+            data = self._localPhysicsDriver.getOutputStringValue(name)
+        return self.recvData(data, collectiveOperator=MPI.MAX)

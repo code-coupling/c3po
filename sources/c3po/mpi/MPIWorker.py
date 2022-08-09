@@ -136,6 +136,20 @@ class MPIWorker(object):
                     self._physicsDriver.setInputIntValue(*data)
                 elif tag == MPITag.setInputStringValue:
                     self._physicsDriver.setInputStringValue(*data)
+                elif tag == MPITag.getInputValuesNames:
+                    self.answer(self._physicsDriver.getInputValuesNames(), collectiveOperator=MPI.MAX)
+                elif tag == MPITag.getOutputValuesNames:
+                    self.answer(self._physicsDriver.getOutputValuesNames(), collectiveOperator=MPI.MAX)
+                elif tag == MPITag.getValueType:
+                    self.answer(self._physicsDriver.getValueType(data), collectiveOperator=MPI.MAX)
+                elif tag == MPITag.getValueUnit:
+                    self.answer(self._physicsDriver.getValueUnit(data), collectiveOperator=MPI.MAX)
+                elif tag == MPITag.getOutputDoubleValue:
+                    self.answer(self._physicsDriver.getOutputDoubleValue(data), collectiveOperator=MPI.MAX)
+                elif tag == MPITag.getOutputIntValue:
+                    self.answer(self._physicsDriver.getOutputIntValue(data), collectiveOperator=MPI.MAX)
+                elif tag == MPITag.getOutputStringValue:
+                    self.answer(self._physicsDriver.getOutputStringValue(data), collectiveOperator=MPI.MAX)
             else:
                 if tag == MPITag.deleteDataManager:
                     self.checkDataID(data)
