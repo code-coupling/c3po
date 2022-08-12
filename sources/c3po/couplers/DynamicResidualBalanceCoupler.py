@@ -11,242 +11,291 @@
 """ Contains the class DynamicResidualBalanceCoupler. """
 from __future__ import print_function, division
 
+from c3po.PhysicsDriver import PhysicsDriver
 from c3po.Coupler import Coupler
-from c3po.couplers.FixedPointCoupler import FixedPointCoupler
-from c3po.CollaborativeDataManager import CollaborativeDataManager
+from c3po.LocalDataManager import LocalDataManager
 
 class DynamicResidualBalanceCoupler(Coupler):
-
     """! DynamicResidualBalanceCoupler inherits from Coupler and proposes a dynamic residual balance algorithm.
+    This is a variant of the adaptive residual balance implemented by c3po.AdaptiveResidualBalanceCoupler.AdaptiveResidualBalanceCoupler.
 
-    The class proposes an algorithm for the resolution of F(X) = X. Thus DynamicResidualBalanceCoupler is a Coupler working with :
+    This algorithm is designed to coupled two solvers using an iterative procedure.
+    It controls the accuracy required to each solver in order to limit over-solving and make them converge together.
 
-    - Two PhysicsDrivers defining the calculations to be made each time F is called.
-    - Two DataManager allowing to manipulate the data in the coupling (the X) and the precisions reached and to be reached.
-    - Seven Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+    See ref Robin.
 
-    Each DataManager is normalized with its own norm got after the first iteration.
-    They are then used as a single DataManager using CollaborativeDataManager.
+    DynamicResidualBalanceCoupler works with :
 
-    - Exch_CurrentResidual1 and Exch_CurrentResidual2 should imply the computation of one iteration/time step in order to have access to the initial residual of each solver
+    - Two PhysicsDriver, one for each solver. They must implement the iterateTimeStep() method, together with the possibilities to get residual and set target accuracy.
+    - Four Exchanger: two for exchanges between the PhysicsDriver, and two to get residuals.
+    - One LocalDataManager (not just a DataManager) which contains the residuals got with the last two exchangers.
 
-    The control of the convergence, maximal number of iterations and damping factor is done through self.fixedPoint_
+    @note Two Exchanger and a DataManager are used to access the residuals in order to support all possible MPI schemes.
+
+    The default target accuracies are 1e-4 and the default maximum number of iterations is 100. Use setConvergenceParameters() to change these values.
+
+    It may be interesting to use a FixedPointCoupler to add a damping factor and to control the coupling error.
+
+    In this case :
+
+    - The option setUseIterate(True) of FixedPointCoupler must be used.
+    - The maximal number of iterations provided to DynamicResidualBalanceCoupler.setConvergenceParameters() is ignored.
+    - The exchanger '2to1' is also probably redondant with the FixedPointCoupler exchangers and, in this case, can be set to do nothing.
     """
 
     def __init__(self, physics, exchangers, dataManagers):
+        """! Build a DynamicResidualBalanceCoupler object.
+
+        @param physics list (or dict with keys ['Solver1', 'Solver2']) of two PhysicsDriver. If a list is used, it has to be provided in the same order than the keys here.
+            The provided PhysicsDriver must implement the iterateTimeStep() method (together with solveTimeStep()) and accept new accuracy (for the solveTimeStep() method) through setInputDoubleValue('Accuracy', value).
+        @param exchangers list (or dict with keys ['1to2', '2to1', 'Residual1', 'Residual2']) of four Exchanger. If a list is used, it has to be provided in the same order than the keys here.
+        @param dataManagers list (or dict with keys ['Residuals']) of one LocalDataManager (not just a DataManager).
+            The residuals must be stored in this DataManager as double values under the names 'Residual1' and 'Residual2'.
+        """
         Coupler.__init__(self, physics, exchangers, dataManagers)
 
-        if not isinstance(physics, dict) or not isinstance(exchangers, dict) or not isinstance(dataManagers, dict):
-            raise Exception("FixedPointCoupler.__init__ physics, exchangers and dataManager must be dictionaries!")
+        if not (isinstance(physics, dict) or isinstance(physics, list)):
+            raise Exception("AdaptiveResidualBalanceCoupler.__init__ physics must be either a dictionary or a list.")
         if len(physics) != 2:
-            raise Exception("DynamicResidualBalanceCoupler.__init__ There must be exactly two PhysicsDriver")
-        if len(exchangers) != 7:
-            raise Exception("DynamicResidualBalanceCoupler.__init__ There must be exactly four Exchanger")
-        if len(dataManagers) != 2:
-            raise Exception("DynamicResidualBalanceCoupler.__init__ There must be exactly two DataManager")
-        for ph in physics.keys():
-            if ph not in ["Solver1", "Solver2"] :
-                raise Exception('DynamicResidualBalanceCoupler.__init__ PhysicsDriver dictionary keys must be : ["Solver1", "Solver2"]')
-        for ek in exchangers.keys():
-            if ek not in ["Exch_1to2", "Exch_2toData", "Exch_Datato1", "Exch_CurrentResidual1", "Exch_LastResidual1", "Exch_CurrentResidual2", "Exch_LastResidual2"] :
-                raise Exception('DynamicResidualBalanceCoupler.__init__ Exchangers dictionary keys must be : ["Exch_1to2", "Exch_2toData", "Exch_Datato1", "Exch_CurrentResidual1", "Exch_LastResidual1", "Exch_CurrentResidual2", "Exch_LastResidual2"]')
-        for dm in dataManagers.keys():
-            if dm not in ["DataCoupler", "DataResiduals"] :
-                raise Exception('DynamicResidualBalanceCoupler.__init__ DataManager dictionary keys must be : ["DataCoupler", "DataResiduals"]')
-        self.isStationaryMode_ = False
-        self.initDt_ = False
+            raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly two PhysicsDriver, not {}.".format(len(physics)))
+        if isinstance(physics, dict):
+            for key in physics.keys():
+                if key not in ["Solver1", "Solver2"] :
+                    raise Exception('AdaptiveResidualBalanceCoupler.__init__ if physics is provided as a dictionary, the keys must be : ["Solver1", "Solver2"]. We found : {}.'.format(list(physics.keys())))
+            self._solver1 = physics["Solver1"]
+            self._solver2 = physics["Solver2"]
+        else:
+            self._solver1 = physics[0]
+            self._solver2 = physics[1]
 
-        self.epsSolver1Ref_ = 1e-6
-        self.residualSolver1Initial_ = 0.
-        self.accuracySolver1_ = 0.
-        self.accuracySolver1Old_ = 0.
-        self.accuracySolver1Reached_ = False # Tell if a fully converged computation has been performed or not
-        self.convRateSolver1_ = 0.
+        if not (isinstance(exchangers, dict) or isinstance(exchangers, list)):
+            raise Exception("AdaptiveResidualBalanceCoupler.__init__ exchangers must be either a dictionary or a list.")
+        if len(exchangers) != 4:
+            raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly four Exchanger, not {}.".format(len(exchangers)))
+        if isinstance(exchangers, dict):
+            for key in exchangers.keys():
+                if key not in ["1to2", "2to1", "Residual1", "Residual2"] :
+                    raise Exception('AdaptiveResidualBalanceCoupler.__init__ if exchangers is provided as a dictionary, the keys must be : ["1to2", "2to1", "Residual1", "Residual2"]. We found : {}.'.format(list(exchangers.keys())))
+            self._exchanger1to2 = exchangers["1to2"]
+            self._exchanger2to1 = exchangers["2to1"]
+            self._exchangerResidual1 = exchangers["Residual1"]
+            self._exchangerResidual2 = exchangers["Residual2"]
+        else:
+            self._exchanger1to2 = exchangers[0]
+            self._exchanger2to1 = exchangers[1]
+            self._exchangerResidual1 = exchangers[2]
+            self._exchangerResidual2 = exchangers[3]
 
-        self.epsSolver2Ref_ = 1e-4
-        self.residualSolver2Initial_ = 0.
-        self.accuracySolver2_ = 0.
-        self.accuracySolver2Old_ = 0.
-        self.accuracySolver2Reached_ = False # Tell if a fully converged computation has been performed or not
-        self.convRateSolver2_ = 0.
+        if not (isinstance(dataManagers, dict) or isinstance(dataManagers, list)):
+            raise Exception("AdaptiveResidualBalanceCoupler.__init__ dataManagers must be either a dictionary or a list.")
+        if len(dataManagers) != 1:
+            raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly one DataManager, not {}.".format(len(dataManagers)))
+        if isinstance(dataManagers, dict):
+            for key in dataManagers.keys():
+                if key not in ["Residuals"] :
+                    raise Exception('AdaptiveResidualBalanceCoupler.__init__ if dataManagers is provided as a dictionary, the keys must be : ["Residuals"]. We found : {}.'.format(list(dataManagers.keys())))
+            self._data = dataManagers["Residuals"]
+        else:
+            self._data = dataManagers[0]
+        if not isinstance(self._data, LocalDataManager):
+            raise Exception("AdaptiveResidualBalanceCoupler.__init__ The provided Datamanager must be a LocalDataManager.")
 
-        self.residualTotal_ = 0.
-        self.residualDemiTotal_ = 0.
+        self._printLevel = 2
 
-        self.firstIteration_ = True
+        self._epsSolver1Ref = 1e-4
+        self._accuracySolver1Old = 0.
 
-        # Creation of a fixed point corresponding to the intial problem F(X) = X
-        self.fixedPoint_ = FixedPointCoupler([self], [self._exchangers["Exch_2toData"], self._exchangers["Exch_Datato1"]], [self._dataManagers["DataCoupler"]])
+        self._epsSolver2Ref = 1e-4
+        self._accuracySolver2 = 0.
+        self._accuracySolver2Old = 0.
+        self._convRateSolver2 = 0.
 
-        self.namePrecisionSolver1_ = "ACCURACY"
-        self.namePrecisionSolver2_ = "ACCURACY"
+        self._residualTotal = 0.
+        self._residualHalfTotal = 0.
 
-        self.precisionReached_ = False
+        self._iter = 0
+        self._maxiter = 100
 
+    def setConvergenceParameters(self, targetResidualSolver1, targetResidualSolver2, maxiter):
+        """! Set the convergence parameters (target residuals for each solver and maximum number of iterations).
 
-    def setTargetResiduals(self, targetSolver1, targetSolver2):
-        """ Set the target residuals for the two coupled solvers. """
-        self.epsSolver1Ref_ = targetSolver1
-        self.epsSolver2Ref_ = targetSolver2
-
-    def setNamePrecisionParameter(self, nameSolver1, namesolver2):
-        """ Set the name for the getOutputDoubleValue(parameter) for the two coupled solvers. """
-        self.namePrecisionSolver1_ = nameSolver1
-        self.namePrecisionSolver2_ = namesolver2
-
-    def setConvergenceParameters(self, tolerance, maxiter):
-        """ Set the convergence parameters (tolerance and maximum number of iterations) of the inner fixed point loop. """
-        self.fixedPoint_.setConvergenceParameters(tolerance, maxiter)
-
-    def setDampingFactor(self, dampingFactor):
-        """ Set a new damping factor for the inner fixed point loop. """
-        self.fixedPoint_.setDampingFactor(dampingFactor)
-
-    def solve(self, fixed_point = False):
-        """! Call solveTimeStep() but store its return value instead of returning it.
-        The output is accessible with getSolveStatus().
-
-        @warning This method, in association with getSolveStatus(), should always be used inside C3PO instead of
-        solveTimeStep(). They fit better with MPI use.
-        @warning This method should never be redefined: define solveTimeStep() instead!
+        @param targetResidualSolver1 target residual for solver 1. Default value: 1.E-4.
+        @param targetResidualSolver2 target residual for solver 2. Default value: 1.E-4.
+        @param maxiter the maximal number of iterations. Default value: 100.
         """
+        self._epsSolver1Ref = targetResidualSolver1
+        self._epsSolver2Ref = targetResidualSolver2
+        self._maxiter = maxiter
 
-        # First implementation proposed: at first, in C3PO, the fixed point should be called : it starts the coupling computation. Inside it, when physics.solve() is called, the Dynamic Residual Balance is called. Thus, a small redefinition of the solve() function is proposed here.
-        if fixed_point :
-            self.fixedPoint_.solve()
-        else :
-            self._solveStatus = self.solveTimeStep()
+    def setPrintLevel(self, level):
+        """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
 
-    def getSolveStatus(self):
-        return self._solveStatus
+        @param level integer in range [0;2]. Default: 2.
+        """
+        if not level in [0, 1, 2]:
+            raise Exception("AdaptiveResidualBalanceCoupler.setPrintLevel level should be one of [0, 1, 2]!")
+        self._printLevel = level
 
     def solveTimeStep(self):
+        """! See c3po.PhysicsDriver.PhysicsDriver.solveTimeStep(). """
+        converged = False
+        succeed = True
 
-        if self.firstIteration_ :
+        while succeed and (not converged) and self._iter < self._maxiter:
+            self.iterate()
+            succeed, converged = self.getIterateStatus()
 
+        return succeed and converged
+
+    def iterateTimeStep(self):
+        """! See c3po.PhysicsDriver.PhysicsDriver.iterateTimeStep(). """
+
+        converged = False
+        printEndOfLine = "\r" if self._printLevel == 1 else "\n"
+
+        if self._iter == 0 :
             # -- Computation of the initial residual for Solver1
-            self._exchangers["Exch_CurrentResidual1"].exchange()
-            # -- Initial residual for Solver2, obtained from a first iteration during the initialisation
-            self._exchangers["Exch_LastResidual2"].exchange()
-            self.residualSolver1Initial_ = self._dataManagers["DataResiduals"].getOutputDoubleValue("CurrentResidual1")
+            self._solver1.iterate()
+            self._exchangerResidual1.exchange()
+            residualSolver1Initial = self._data.getOutputDoubleValue("Residual1")
 
             # -- Computation of the initial value of the normalized total residual
-            self.residualTotal_ = self.residualSolver1Initial_ / self.epsSolver1Ref_
+            self._residualTotal = residualSolver1Initial / self._epsSolver1Ref
+
+            # -- Initial residual for Solver2, obtained from the last calculation made outside of the algorithm.
+            self._exchangerResidual2.exchange()
 
             # -- Convergence criteria for Solver1
-            self.accuracySolver1_ = self._dataManagers["DataResiduals"].getOutputDoubleValue('LastResidual2') / self.epsSolver2Ref_ * self.epsSolver1Ref_
-            self._physicsDrivers["Solver1"].setInputDoubleValue(self.namePrecisionSolver1_,self.accuracySolver1_)
-            print("accuracySolver1_ : ", self.accuracySolver1_)
+            accuracySolver1 = self._data.getOutputDoubleValue('Residual2') / self._epsSolver2Ref * self._epsSolver1Ref
+            self._solver1.setInputDoubleValue("Accuracy", accuracySolver1)
+            self._accuracySolver1Old = accuracySolver1
+            if self._printLevel:
+                print("Accuracy Solver1: ", accuracySolver1, end=printEndOfLine)
 
             # -- First iteration for Solver1
-            self._physicsDrivers["Solver1"].solve()
+            self._solver1.solve()
+
             # -- Get the precision reached by Solver1 after the first iteration
-            self._exchangers["Exch_LastResidual1"].exchange()
+            self._exchangerResidual1.exchange()
 
             # -- Exchange physical data between Solver1 and Solver2
-            self._exchangers["Exch_1to2"].exchange()
+            self._exchanger1to2.exchange()
 
             # -- Computation of the initial residual for Solver2
-            self._exchangers["Exch_CurrentResidual2"].exchange()
-            self.residualSolver2Initial_ = self._dataManagers["DataResiduals"].getOutputDoubleValue('CurrentResidual2')
+            self._solver2.iterate()
+            self._exchangerResidual2.exchange()
+            residualSolver2Initial = self._data.getOutputDoubleValue('Residual2')
 
             # -- Initial value of the total "demi residual"
-            self.residualDemiTotal_ = self.residualSolver2Initial_ / self.epsSolver2Ref_ + self._dataManagers["DataResiduals"].getOutputDoubleValue('LastResidual1') /self.epsSolver1Ref_
+            self._residualHalfTotal = residualSolver2Initial / self._epsSolver2Ref + self._data.getOutputDoubleValue('Residual1') /self._epsSolver1Ref
 
             # -- Convergence criteria for Solver2
-            self.accuracySolver2_ = self._dataManagers["DataResiduals"].getOutputDoubleValue('LastResidual1') / self.epsSolver1Ref_ * self.epsSolver2Ref_
-            self._physicsDrivers["Solver2"].setInputDoubleValue(self.namePrecisionSolver2_, self.accuracySolver2_)
-            print("accuracySolver2_ : ", self.accuracySolver2_)
+            self._accuracySolver2 = self._data.getOutputDoubleValue('Residual1') / self._epsSolver1Ref * self._epsSolver2Ref
+            self._solver2.setInputDoubleValue("Accuracy", self._accuracySolver2)
+            self._accuracySolver2Old = self._accuracySolver2
+            if self._printLevel:
+                print("Accuracy Solver2: ", self._accuracySolver2, end=printEndOfLine)
+
             # -- First iteration for Solver2
-            self._physicsDrivers["Solver2"].solve()
+            self._solver2.solve()
 
             # -- End of the first multiphysics iteration
-            self.firstIteration_ = False
 
         else :
             # -- Exchange precision reached by Solver2 and compute current partial residual and intermediate coeff
-            self._exchangers["Exch_LastResidual2"].exchange()
-            residualPartial = self._dataManagers["DataResiduals"].getOutputDoubleValue('LastResidual2') / self.epsSolver2Ref_
-            solver2ResidualScaled = self.residualSolver2Initial_ / self.epsSolver2Ref_ * self.epsSolver1Ref_ / 2.
-            lastResidual = self.residualTotal_
+            self._exchangerResidual2.exchange()
+            residualPartial = self._data.getOutputDoubleValue('Residual2') / self._epsSolver2Ref
+            lastResidual = self._residualTotal
 
             # -- Computation of the initial residual for Solver1
-            self._exchangers["Exch_CurrentResidual1"].exchange()
-            self.residualSolver1Initial_ = self._dataManagers["DataResiduals"].getOutputDoubleValue('CurrentResidual1')
+            self._solver1.iterate()
+            self._exchangerResidual1.exchange()
+            residualSolver1Initial = self._data.getOutputDoubleValue('Residual1')
 
             # -- Compute total residual and convergence rate
-            self.residualTotal_ = self.residualSolver1Initial_ / self.epsSolver1Ref_ + residualPartial
-            self.convRateSolver1_ = self.residualTotal_ / lastResidual
+            self._residualTotal = residualSolver1Initial / self._epsSolver1Ref + residualPartial
+            convRateSolver1 = self._residualTotal / lastResidual
 
             # -- Deal with the new precision computed: we don't want a new precision smaller than the targeted one! And if one solver reachs its targeted precision, the one for the second solver is also set to its targeted value
-            self.accuracySolver1Old_ = self._physicsDrivers["Solver1"].getOutputDoubleValue(self.namePrecisionSolver1_)
-            if self.accuracySolver1Old_ > self.epsSolver1Ref_ and not self.accuracySolver2Reached_:
+            if self._accuracySolver1Old > self._epsSolver1Ref and self._accuracySolver2Old > self._epsSolver2Ref:
                 # -- Average convergence rate
-                conv = (self.convRateSolver1_ + self.convRateSolver2_) / 2.
-                # -- New precision computed : should not be bellow self.epsSolver1Ref_
-                self.accuracySolver1_ = max(self._dataManagers["DataResiduals"].getOutputDoubleValue('LastResidual2') / self.epsSolver2Ref_ * self.epsSolver1Ref_, self.epsSolver1Ref_)
-                # -- New precision computed : should not be bigger than self.accuracySolver1Old_
-                self.accuracySolver1_ = min(self.accuracySolver1_, self.accuracySolver1Old_)
+                conv = (convRateSolver1 + self._convRateSolver2) / 2.
 
-                if self.accuracySolver1_ == self.epsSolver1Ref_ or self.accuracySolver2Reached_ :
-                    self._physicsDrivers["Solver2"].setInputDoubleValue(self.namePrecisionSolver2_, self.epsSolver1Ref_)
-                    self.accuracySolver1Reached_ = True # On va faire un calcule avec la precision cible
-                    self.accuracySolver2_ = self.epsSolver2Ref_
-                    self.accuracySolver1_ = self.epsSolver1Ref_
+                accuracySolver1 = self._data.getOutputDoubleValue('Residual2') / self._epsSolver2Ref * self._epsSolver1Ref
+                accuracySolver1 = min(accuracySolver1, self._accuracySolver1Old)
+
+                if accuracySolver1 <= self._epsSolver1Ref or self._accuracySolver2Old <= self._epsSolver2Ref :
+                    converged = True
+                    self._accuracySolver2 = self._epsSolver2Ref
+                    accuracySolver1 = self._epsSolver1Ref
             else :
-                self.accuracySolver1_ = self.epsSolver1Ref_
-                self.accuracySolver2_ = self.epsSolver2Ref_
-                self.accuracySolver1Reached_ = True
-            self._physicsDrivers["Solver1"].setInputDoubleValue(self.namePrecisionSolver1_,self.accuracySolver1_)
-            print("accuracySolver1_ : ", self.accuracySolver1_)
+                accuracySolver1 = self._epsSolver1Ref
+                self._accuracySolver2 = self._epsSolver2Ref
+                converged = True
+
+            self._accuracySolver1Old = accuracySolver1
+            self._solver1.setInputDoubleValue("Accuracy", accuracySolver1)
+            if self._printLevel:
+                print("Accuracy Solver1: ", accuracySolver1, end=printEndOfLine)
+
             # -- Computation of Solver1 with the new precision computed
-            self._physicsDrivers["Solver1"].solve()
+            self._solver1.solve()
 
             # -- Exchange physical data between Solver1 and Solver2
-            self._exchangers["Exch_1to2"].exchange()
-            # -- Exchange reached precision by Solver1
-            self._exchangers["Exch_LastResidual1"].exchange()
+            self._exchanger1to2.exchange()
 
+            # -- Exchange reached precision by Solver1
+            self._exchangerResidual1.exchange()
 
             # -- Deal with the new precision computed: we don't want a new precision smaller than the targeted one! And if one solver reachs its targeted precision, the one for the second solver is also set to its targeted value
-            self.accuracySolver2Old_ = self._physicsDrivers["Solver2"].getOutputDoubleValue(self.namePrecisionSolver2_)
-            if self.accuracySolver2_ > self.epsSolver2Ref_ and not self.accuracySolver1Reached_ :
+            if self._accuracySolver2 > self._epsSolver2Ref and not converged :
                 # -- Computation of the initial residual for Solver2
-                self._exchangers["Exch_CurrentResidual2"].exchange()
+                self._solver2.iterate()
+                self._exchangerResidual2.exchange()
+                residualSolver2Initial = self._data.getOutputDoubleValue('Residual2')
 
                 # -- Computation of total current total residual
-                self.residualSolver2Initial_ = self._dataManagers["DataResiduals"].getOutputDoubleValue('CurrentResidual2')
-                residualDemiTotalOld = self.residualDemiTotal_
-                self.residualDemiTotal_ = self.residualSolver2Initial_ / self.epsSolver2Ref_ + self._dataManagers["DataResiduals"].getOutputDoubleValue('LastResidual1') / self.epsSolver1Ref_
+                residualHalfTotalOld = self._residualHalfTotal
+                self._residualHalfTotal = residualSolver2Initial / self._epsSolver2Ref + self._data.getOutputDoubleValue('Residual1') / self._epsSolver1Ref
 
                  # -- Convergence rate for Solver2
-                self.convRateSolver2_ = self.residualDemiTotal_ / residualDemiTotalOld
+                self._convRateSolver2 = self._residualHalfTotal / residualHalfTotalOld
                 # -- Average convergence rate
-                conv = (self.convRateSolver1_ + self.convRateSolver2_) / 2.
+                conv = (convRateSolver1 + self._convRateSolver2) / 2.
 
                 # -- Computation of the new precision for Solver2
-                # -- New precision computed : should not be bellow self.epsSolver2Ref_
-                # -- New precision computed : should not be bigger than self.accuracySolver2Old_
-                self.accuracySolver2_ = conv * self._dataManagers["DataResiduals"].getOutputDoubleValue('LastResidual1') / self.epsSolver1Ref_ * self.epsSolver2Ref_
-                self.accuracySolver2_ = min(self.accuracySolver2_, self.accuracySolver2Old_)
-                self.accuracySolver2_ = max(self.accuracySolver2_, self.epsSolver2Ref_)
-
-                if self.accuracySolver2_ < self.epsSolver2Ref_ :
-                    self.accuracySolver2Reached_ = True # On va faire un calcule avec la precision cible
-                    self.accuracySolver2_ = self.epsSolver2Ref_
-                    self.accuracySolver1_ = self.epsSolver1Ref_
-                    self._physicsDrivers["Solver1"].setInputDoubleValue(self.namePrecisionSolver1_, self.epsSolver1Ref_)
+                # -- New precision computed : should not be bellow self._epsSolver2Ref
+                # -- New precision computed : should not be bigger than self._accuracySolver2Old
+                self._accuracySolver2 = conv * self._data.getOutputDoubleValue('Residual1') / self._epsSolver1Ref * self._epsSolver2Ref
+                self._accuracySolver2 = min(self._accuracySolver2, self._accuracySolver2Old)
+                self._accuracySolver2 = max(self._accuracySolver2, self._epsSolver2Ref)
             else :
-                self.accuracySolver2_ = self.epsSolver2Ref_
-                self.accuracySolver1_ = self.epsSolver1Ref_
-                self.accuracySolver2Reached_ = True
-            self._physicsDrivers["Solver2"].setInputDoubleValue(self.namePrecisionSolver2_, self.accuracySolver2_)
-            print("accuracySolver2_ : ", self.accuracySolver2_)
-            # -- Computation of Solver2 with the new precision computed
-            self._physicsDrivers["Solver2"].solve()
-            print("convRateSolver1_ : ", self.convRateSolver1_)
-            print("convRateSolver2_ : ", self.convRateSolver2_)
+                self._accuracySolver2 = self._epsSolver2Ref
 
-        succed = self._physicsDrivers["Solver1"].getSolveStatus() and self._physicsDrivers["Solver2"].getSolveStatus()
-        self.precisionReached_ = self.accuracySolver2Reached_ and self.accuracySolver1Reached_
-        return succed and self.precisionReached_
+            self._accuracySolver2Old = self._accuracySolver2
+            self._solver2.setInputDoubleValue("Accuracy", self._accuracySolver2)
+            if self._printLevel:
+                print("Accuracy Solver2: ", self._accuracySolver2, end=printEndOfLine)
+
+            # -- Computation of Solver2 with the new precision computed
+            self._solver2.solve()
+
+        self._exchanger2to1.exchange()
+
+        succeed = self._solver1.getSolveStatus() and self._solver2.getSolveStatus()
+        self._iter += 1
+
+        return succeed, converged
+
+    def getIterateStatus(self):
+        """! See c3po.PhysicsDriver.PhysicsDriver.getSolveStatus(). """
+        return PhysicsDriver.getIterateStatus(self)
+
+    def getSolveStatus(self):
+        """! See c3po.PhysicsDriver.PhysicsDriver.getSolveStatus(). """
+        return PhysicsDriver.getSolveStatus(self)
+
+    def initTimeStep(self, dt):
+        """! See c3po.PhysicsDriver.PhysicsDriver.initTimeStep().  """
+        self._iter = 0
+        return Coupler.initTimeStep(self, dt)
