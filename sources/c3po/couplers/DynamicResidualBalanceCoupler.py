@@ -17,7 +17,7 @@ from c3po.LocalDataManager import LocalDataManager
 
 class DynamicResidualBalanceCoupler(Coupler):
     """! DynamicResidualBalanceCoupler inherits from Coupler and proposes a dynamic residual balance algorithm.
-    This is a variant of the adaptive residual balance implemented by c3po.AdaptiveResidualBalanceCoupler.AdaptiveResidualBalanceCoupler.
+    This is a variant of the Dynamic residual balance implemented by c3po.DynamicResidualBalanceCoupler.DynamicResidualBalanceCoupler.
 
     This algorithm is designed to coupled two solvers using an iterative procedure.
     It controls the accuracy required to each solver in order to limit over-solving and make them converge together.
@@ -55,13 +55,13 @@ class DynamicResidualBalanceCoupler(Coupler):
         Coupler.__init__(self, physics, exchangers, dataManagers)
 
         if not (isinstance(physics, dict) or isinstance(physics, list)):
-            raise Exception("AdaptiveResidualBalanceCoupler.__init__ physics must be either a dictionary or a list.")
+            raise Exception("DynamicResidualBalanceCoupler.__init__ physics must be either a dictionary or a list.")
         if len(physics) != 2:
-            raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly two PhysicsDriver, not {}.".format(len(physics)))
+            raise Exception("DynamicResidualBalanceCoupler.__init__ There must be exactly two PhysicsDriver, not {}.".format(len(physics)))
         if isinstance(physics, dict):
             for key in physics.keys():
                 if key not in ["Solver1", "Solver2"] :
-                    raise Exception('AdaptiveResidualBalanceCoupler.__init__ if physics is provided as a dictionary, the keys must be : ["Solver1", "Solver2"]. We found : {}.'.format(list(physics.keys())))
+                    raise Exception('DynamicResidualBalanceCoupler.__init__ if physics is provided as a dictionary, the keys must be : ["Solver1", "Solver2"]. We found : {}.'.format(list(physics.keys())))
             self._solver1 = physics["Solver1"]
             self._solver2 = physics["Solver2"]
         else:
@@ -69,13 +69,13 @@ class DynamicResidualBalanceCoupler(Coupler):
             self._solver2 = physics[1]
 
         if not (isinstance(exchangers, dict) or isinstance(exchangers, list)):
-            raise Exception("AdaptiveResidualBalanceCoupler.__init__ exchangers must be either a dictionary or a list.")
+            raise Exception("DynamicResidualBalanceCoupler.__init__ exchangers must be either a dictionary or a list.")
         if len(exchangers) != 4:
-            raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly four Exchanger, not {}.".format(len(exchangers)))
+            raise Exception("DynamicResidualBalanceCoupler.__init__ There must be exactly four Exchanger, not {}.".format(len(exchangers)))
         if isinstance(exchangers, dict):
             for key in exchangers.keys():
                 if key not in ["1to2", "2to1", "Residual1", "Residual2"] :
-                    raise Exception('AdaptiveResidualBalanceCoupler.__init__ if exchangers is provided as a dictionary, the keys must be : ["1to2", "2to1", "Residual1", "Residual2"]. We found : {}.'.format(list(exchangers.keys())))
+                    raise Exception('DynamicResidualBalanceCoupler.__init__ if exchangers is provided as a dictionary, the keys must be : ["1to2", "2to1", "Residual1", "Residual2"]. We found : {}.'.format(list(exchangers.keys())))
             self._exchanger1to2 = exchangers["1to2"]
             self._exchanger2to1 = exchangers["2to1"]
             self._exchangerResidual1 = exchangers["Residual1"]
@@ -87,18 +87,18 @@ class DynamicResidualBalanceCoupler(Coupler):
             self._exchangerResidual2 = exchangers[3]
 
         if not (isinstance(dataManagers, dict) or isinstance(dataManagers, list)):
-            raise Exception("AdaptiveResidualBalanceCoupler.__init__ dataManagers must be either a dictionary or a list.")
+            raise Exception("DynamicResidualBalanceCoupler.__init__ dataManagers must be either a dictionary or a list.")
         if len(dataManagers) != 1:
-            raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly one DataManager, not {}.".format(len(dataManagers)))
+            raise Exception("DynamicResidualBalanceCoupler.__init__ There must be exactly one DataManager, not {}.".format(len(dataManagers)))
         if isinstance(dataManagers, dict):
             for key in dataManagers.keys():
                 if key not in ["Residuals"] :
-                    raise Exception('AdaptiveResidualBalanceCoupler.__init__ if dataManagers is provided as a dictionary, the keys must be : ["Residuals"]. We found : {}.'.format(list(dataManagers.keys())))
+                    raise Exception('DynamicResidualBalanceCoupler.__init__ if dataManagers is provided as a dictionary, the keys must be : ["Residuals"]. We found : {}.'.format(list(dataManagers.keys())))
             self._data = dataManagers["Residuals"]
         else:
             self._data = dataManagers[0]
         if not isinstance(self._data, LocalDataManager):
-            raise Exception("AdaptiveResidualBalanceCoupler.__init__ The provided Datamanager must be a LocalDataManager.")
+            raise Exception("DynamicResidualBalanceCoupler.__init__ The provided Datamanager must be a LocalDataManager.")
 
         self._printLevel = 2
 
@@ -133,7 +133,7 @@ class DynamicResidualBalanceCoupler(Coupler):
         @param level integer in range [0;2]. Default: 2.
         """
         if not level in [0, 1, 2]:
-            raise Exception("AdaptiveResidualBalanceCoupler.setPrintLevel level should be one of [0, 1, 2]!")
+            raise Exception("DynamicResidualBalanceCoupler.setPrintLevel level should be one of [0, 1, 2]!")
         self._printLevel = level
 
     def solveTimeStep(self):
