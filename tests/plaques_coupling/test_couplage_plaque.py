@@ -173,25 +173,11 @@ temperature_ref = np.array([[17.10868064, 12.66076104, 10.98374883, 10.32288016,
 class Mat1Mat2Coupler(c3po.Coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
         c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
-        self._plot = False 
-        self._it   = 0
+
     def solveTimeStep(self):
         self._physicsDrivers[0].solve()
         self._exchangers[0].exchange()
         self._physicsDrivers[1].solve()
-
-        if self._plot:
-            xx = np.linspace(0,taille,nbrNoeuds)
-            plotlabel= "Iteration multiphysique = " + str(self._it)
-            plt.xlabel('Longueur')
-            plt.ylabel('Temperature')
-            plt.plot(xx,self._physicsDrivers[0].temperature_[(nbrNoeuds-1) * nbrNoeuds : nbrNoeuds*nbrNoeuds , 0],label='Temperature interface domaine 1')
-            plt.plot(xx,self._physicsDrivers[1].temperature_[0 : nbrNoeuds , 0],label='Temperature interface domaine  2')
-            plt.legend()
-            plt.title(plotlabel)
-            plt.show()
-        self._it += 1 
-
         return self.getSolveStatus()
 
 def couplage_plaque(coupler_type = 'FixedPoint'):
