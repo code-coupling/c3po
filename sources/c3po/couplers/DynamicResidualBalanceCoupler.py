@@ -17,12 +17,12 @@ from c3po.LocalDataManager import LocalDataManager
 
 class DynamicResidualBalanceCoupler(Coupler):
     """! DynamicResidualBalanceCoupler inherits from Coupler and proposes a dynamic residual balance algorithm.
-    This is a variant of the Dynamic residual balance implemented by c3po.DynamicResidualBalanceCoupler.DynamicResidualBalanceCoupler.
+    This is a variant of the adaptive residual balance implemented by c3po.AdaptiveResidualBalanceCoupler.AdaptiveResidualBalanceCoupler.
 
-    This algorithm is designed to coupled two solvers using an iterative procedure.
+    This algorithm is designed to couple two solvers using an iterative procedure.
     It controls the accuracy required to each solver in order to limit over-solving and make them converge together.
 
-    See ref Robin.
+    See R. Delvaux, "Algorithmes de couplage entre neutronique, thermohydraulique et thermique", PhD Thesis, Institut Polytechnique de Paris, 2022.
 
     DynamicResidualBalanceCoupler works with :
 

@@ -57,11 +57,14 @@ The directory sources/c3po also contains six directories:
 
 \subsection couplers_sec II.1. c3po/couplers directory
 
-This directory contains the definition of the following classes (coupling algorithms):
+This directory contains the definition of the following classes (coupling algorithms, they all inherit from c3po.Coupler.Coupler):
 
-  - c3po.couplers.FixedPointCoupler.FixedPointCoupler inherits from c3po.Coupler.Coupler and proposes a damped fixed point algorithm.
-  - c3po.couplers.AndersonCoupler.AndersonCoupler inherits from c3po.Coupler.Coupler and proposes a fixed point algorithm with Anderson acceleration. A QR decomposition is used for the optimization problem.
-  - c3po.couplers.JFNKCoupler.JFNKCoupler inherits from c3po.Coupler.Coupler and proposes a Jacobian-Free Newton Krylov coupling algorithm.
+  - c3po.couplers.FixedPointCoupler.FixedPointCoupler proposes a damped fixed point algorithm.
+  - c3po.couplers.AndersonCoupler.AndersonCoupler proposes a fixed point algorithm with Anderson acceleration. A QR decomposition is used for the optimization problem.
+  - c3po.couplers.JFNKCoupler.JFNKCoupler proposes a Jacobian-Free Newton Krylov coupling algorithm.
+  - c3po.couplers.CrossedSecantCoupler.CrossedSecantCoupler proposes a fixed point algorithm with crossed secant acceleration.
+  - c3po.couplers.AdaptiveResidualBalanceCoupler.AdaptiveResidualBalanceCoupler proposes a adaptive residual balance algorithm (version proposed by Senecal).
+  - c3po.couplers.DynamicResidualBalanceCoupler.DynamicResidualBalanceCoupler proposes a dynamic residual balance algorithm (variant of the adaptive residual balance proposed by R. Delvaux).
 
 \subsection exchMeth_sec II.2. c3po/exchangeMethods directory
 
