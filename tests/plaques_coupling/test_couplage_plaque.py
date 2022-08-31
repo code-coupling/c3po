@@ -6,7 +6,7 @@ import pytest
 import c3po
 from tests.plaques_coupling.PlaquePhysicsDriver import PlaquePhysicsDriver
 
-taille = 1 
+taille = 1
 nbrNoeuds = 20
 # Température de référence pour nbrNoeuds = 20 et calculé avec un FixedPointCoupler et une précision de 1E-15
 temperature_ref = np.array([[17.10868064, 12.66076104, 10.98374883, 10.32288016, 10.07162101,
@@ -204,7 +204,7 @@ def couplage_plaque(coupler_type = 'FixedPoint'):
 
     Mat1Mat2Run = Mat1Mat2Coupler([myPhysics1,myPhysics2], [Ph1toPhy2])
 
-    if coupler_type == "FixedPoint" : 
+    if coupler_type == "FixedPoint" :
         CouplerGS = c3po.FixedPointCoupler([Mat1Mat2Run], [Ph2toData, DatatoPh1], [DataCoupler])
         CouplerGS.setDampingFactor(1)
         CouplerGS.setNormChoice(c3po.NormChoice.norm2)
@@ -225,7 +225,7 @@ def couplage_plaque(coupler_type = 'FixedPoint'):
         DatatoPh1.exchange()
         CouplerCS.solve()
         CouplerCS.term()
-    elif coupler_type == 'Anderson' : 
+    elif coupler_type == 'Anderson' :
         CouplerAnderson = c3po.AndersonCoupler([Mat1Mat2Run], [Ph2toData, DatatoPh1], [DataCoupler])
         CouplerAnderson.setOrder(3)
         CouplerAnderson.setConvergenceParameters(1E-12, 100)
@@ -235,7 +235,7 @@ def couplage_plaque(coupler_type = 'FixedPoint'):
         DatatoPh1.exchange()
         CouplerAnderson.solve()
         CouplerAnderson.term()
-    elif coupler_type == 'JFNK' : 
+    elif coupler_type == 'JFNK' :
         CouplerJFNK = c3po.JFNKCoupler([Mat1Mat2Run], [Ph2toData, DatatoPh1], [DataCoupler])
         CouplerJFNK.setKrylovConvergenceParameters(1E-4, 3)
         CouplerJFNK.setConvergenceParameters(1E-12, 100)
@@ -245,18 +245,18 @@ def couplage_plaque(coupler_type = 'FixedPoint'):
         DatatoPh1.exchange()
         CouplerJFNK.solve()
         CouplerJFNK.term()
-    elif coupler_type == 'AdaptiveResidualBalance' or coupler_type == 'DynamicResidualBalance' : 
-        # For Residual Balance 
+    elif coupler_type == 'AdaptiveResidualBalance' or coupler_type == 'DynamicResidualBalance' :
+        # For Residual Balance
         DataCouplerResiduals = c3po.LocalDataManager()
         datatoCouplerTransformer_1 = c3po.DirectMatching()
         datatoCouplerTransformer_2 = c3po.DirectMatching()
 
         exch_Residual1 = c3po.LocalExchanger( datatoCouplerTransformer_1, [], [], valuesToGet=[(myPhysics1, 'PRECISION_ATTEINTE')], valuesToSet=[(DataCouplerResiduals,'Residual1')] )
-        exch_Residual2 = c3po.LocalExchanger( datatoCouplerTransformer_2, [], [], valuesToGet=[(myPhysics2, 'PRECISION_ATTEINTE')], valuesToSet=[(DataCouplerResiduals,'Residual2')] )    
+        exch_Residual2 = c3po.LocalExchanger( datatoCouplerTransformer_2, [], [], valuesToGet=[(myPhysics2, 'PRECISION_ATTEINTE')], valuesToSet=[(DataCouplerResiduals,'Residual2')] )
 
         if coupler_type == 'AdaptiveResidualBalance':
             CouplerResidualBalance = c3po.AdaptiveResidualBalanceCoupler(
-                {"Solver1" : myPhysics1, "Solver2" : myPhysics2}, 
+                {"Solver1" : myPhysics1, "Solver2" : myPhysics2},
                 {"1to2" : Ph1toPhy2,
                 "2to1" : c3po.LocalExchanger(c3po.DirectMatching(),[],[]), #Cet echangeur est inutile si on passe par un FixedPointCoupler pour faire les iterations.
                     "Residual1" : exch_Residual1,
@@ -264,7 +264,7 @@ def couplage_plaque(coupler_type = 'FixedPoint'):
                 [DataCouplerResiduals])
         else :
             CouplerResidualBalance = c3po.DynamicResidualBalanceCoupler(
-                {"Solver1" : myPhysics1, "Solver2" : myPhysics2}, 
+                {"Solver1" : myPhysics1, "Solver2" : myPhysics2},
                 {"1to2" : Ph1toPhy2,
                 "2to1" : c3po.LocalExchanger(c3po.DirectMatching(),[],[]), #Cet echangeur est inutile si on passe par un FixedPointCoupler pour faire les iterations.
                     "Residual1" : exch_Residual1,
@@ -277,7 +277,7 @@ def couplage_plaque(coupler_type = 'FixedPoint'):
 
         # On utilise un FixedPointCoupler pour verifier les erreurs multi-physiques.
         myFixedPointCoupler = c3po.FixedPointCoupler([CouplerResidualBalance], [Ph2toData, DatatoPh1], [DataCoupler])
-        
+
         myFixedPointCoupler.init()
         myFixedPointCoupler.setUseIterate(True)
         myFixedPointCoupler.setConvergenceParameters(1E-12, 100)
@@ -288,18 +288,18 @@ def couplage_plaque(coupler_type = 'FixedPoint'):
         # Initialisation frontiere domaine
         Ph2toData.exchange()
         DatatoPh1.exchange()
-        
+
         # Calculs des etats initiaux perturbés
         myPhysics1.iterate() # Implique le calcul d'une itération/d'un pas de temps
         Ph1toPhy2.exchange()
         myPhysics2.iterate() # Implique le calcul d'une itération/d'un pas de temps
         Ph2toData.exchange()
-        DatatoPh1.exchange()        
-        
-        # Lancement du calcul : on lance le point fixe qui appelle le solve du Adaptive Residual Balance
-        myFixedPointCoupler.solve() 
+        DatatoPh1.exchange()
 
-    # Récupération de la nappe de température des deux plaques 
+        # Lancement du calcul : on lance le point fixe qui appelle le solve du Adaptive Residual Balance
+        myFixedPointCoupler.solve()
+
+    # Récupération de la nappe de température des deux plaques
     temperature = np.zeros((nbrNoeuds,nbrNoeuds+nbrNoeuds))
     for i in range(nbrNoeuds):
         for j in range(nbrNoeuds):
@@ -311,7 +311,7 @@ def couplage_plaque(coupler_type = 'FixedPoint'):
         for i in range(nbrNoeuds):
             for j in range(nbrNoeuds):
                 pytest.approx(temperature[i][j], abs=1.E-3) == temperature_ref[i][j]
-        
+
         print("Test for coupler {} passed".format(coupler_type))
     except:
         raise
