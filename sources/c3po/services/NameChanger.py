@@ -135,6 +135,10 @@ class NameChanger(PhysicsDriver):
         """! See PhysicsDriver.solveTimeStep(). """
         return self._physics.solveTimeStep()
 
+    def iterateTimeStep(self):
+        """! See PhysicsDriver.iterateTimeStep(). """
+        return self._physics.iterateTimeStep()
+
     def validateTimeStep(self):
         """! See PhysicsDriver.validateTimeStep(). """
         self._physics.validateTimeStep()
