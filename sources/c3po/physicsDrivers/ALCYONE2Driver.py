@@ -10,7 +10,6 @@
 
 """ Contain the class ALCYONE2Driver. """
 from __future__ import print_function, division
-from ctypes import cdll
 import mpi4py.MPI as mpi
 
 import pleiades
@@ -30,7 +29,7 @@ class ALCYONE2Driver(PhysicsDriver):
 
     def __init__(self):
         PhysicsDriver.__init__(self)
-        cdll.LoadLibrary("libALCYONE.so")
+        pleiades.loadLibrary("libALCYONE.so")
         self._alcyone2 = pleiades.createComponent("AlcyoneComponent")
         pleiadesMPI.PleiadesMPIExternalSetting.getInstance().setMPIComm(mpi.COMM_SELF)
         self._dtFactor = 1.
@@ -50,6 +49,7 @@ class ALCYONE2Driver(PhysicsDriver):
         Alcyone2Init(self._alcyone2)
         self._alcyone2.initialize()
         pleiades.setVerboseLevel(3)
+        return True
 
     def terminate(self):
         self._alcyone2.terminate()
