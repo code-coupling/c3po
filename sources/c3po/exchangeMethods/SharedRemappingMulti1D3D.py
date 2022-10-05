@@ -43,6 +43,7 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
         for position, indice1D in enumerate(indexTable):
             if indice1D >= 0:
                 self._indexTable[indice1D].append(position)
+        self._shiftedFieldPositions = list(range(len(self._indexTable)))
 
         if len(self._indexTable) != len(weights):
             raise Exception("Multi1D3DRemapper.__init__ we give " + str(len(weights)) + "weight values instead of " + str(len(self._indexTable))
@@ -122,6 +123,40 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
     def getNumberOf1DFields(self):
         """! INTERNAL """
         return len(self._indexTable)
+
+    def shift1DFields(self, shiftMap):
+        """! towrite """
+        newFieldPositions = [-1] * len(self._shiftedFieldPositions)
+        availableFields = []
+
+        if len(shiftMap) != len(self._shiftedFieldPositions):
+            raise Exception("Multi1D3DRemapper.shift1DFields the provided shiftMap must contain as many values ({} provided) than the number of 1D fields ({}).".format(len(shiftMap), len(self._shiftedFieldPositions)))
+        if max(shiftMap) > len(self._shiftedFieldPositions) - 1:
+            raise Exception("Multi1D3DRemapper.shift1DFields the provided shiftMap contains values ({}) greater than the number of 1D fields - 1 ({}).".format(max(shiftMap), len(self._shiftedFieldPositions) - 1))
+
+        for ipos, ifield in enumerate(self._shiftedFieldPositions):
+            if shiftMap[ipos] >= 0:
+                if newFieldPositions[shiftMap[ipos]] >= 0:
+                    raise Exception("Multi1D3DRemapper.shift1DFields the provided shiftMap contains twice the positive value ({}).".format(shiftMap[ipos]))
+                newFieldPositions[shiftMap[ipos]] = ifield
+            else:
+                availableFields.append(ifield)
+
+        count = 0
+        for ipos, ifield in enumerate(newFieldPositions):
+            if ifield < 0:
+                newFieldPositions[ipos] = availableFields[count]
+                count += 1
+
+        newIndexTable = [[] for k in range(len(self._indexTable))]
+
+        for ipos, ifield in enumerate(newFieldPositions):
+            newIndexTable[ifield] = self._indexTable[self._shiftedFieldPositions[ipos]]
+
+        self._indexTable = newIndexTable
+        self._shiftedFieldPositions = newFieldPositions
+
+        return availableFields
 
 
 class SharedRemappingMulti1D3D(SharedRemapping):
