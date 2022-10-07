@@ -445,6 +445,7 @@ class PhysicsDriver(DataAccessor):
 
         @param tmax (float) maximum time to be reached (compared with presentTime()).
         @param finishAtTmax (bool) if set to True, the method ends with time = tmax (instead of time >= tmax).
+        In case the PhysicsDriver asks to stop before tmax is reached, resetTime(tmax) is called.
         @param stopIfStationary (bool) if set to True, the method stops also if isStationary() returns True.
         """
         (dt, stop) = self.computeTimeStep()
@@ -469,3 +470,5 @@ class PhysicsDriver(DataAccessor):
                 if dt == dt2:
                     raise Exception("PhysicsDriver.solveTransient : we are about to repeat a failed time-step calculation !")
                 dt = dt2
+        if stop and finishAtTmax:
+            self.resetTime(tmax)
