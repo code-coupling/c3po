@@ -93,6 +93,15 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         """! return (True, True) """
         return (True, True)
 
+    def save(self, label, method):
+        pass
+
+    def restore(self, label, method):
+        pass
+
+    def forget(self, label, method):
+        pass
+
     def setInputMEDDoubleField(self, name, field):
         """! pass """
         pass

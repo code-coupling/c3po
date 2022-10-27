@@ -163,6 +163,18 @@ class NameChanger(PhysicsDriver):
         """! See PhysicsDriver.resetTime(). """
         self._physics.resetTime(time_)
 
+    def save(self, label, method):
+        """! See PhysicsDriver.save(). """
+        self._physics.save(label, method)
+
+    def restore(self, label, method):
+        """! See PhysicsDriver.restore(). """
+        self._physics.restore(label, method)
+
+    def forget(self, label, method):
+        """! See PhysicsDriver.forget(). """
+        self._physics.forget(label, method)
+
     def getInputFieldsNames(self):
         """! See c3po.DataAccessor.DataAccessor.getInputFieldsNames(). """
         names = self._physics.getInputFieldsNames()

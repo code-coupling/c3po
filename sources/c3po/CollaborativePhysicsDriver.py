@@ -40,3 +40,19 @@ class CollaborativePhysicsDriver(Coupler, CollaborativeObject):
         for physics in self._physicsDriversList:
             physics.iterate()
         return self.getIterateStatus()
+
+    def save(self, label, method):
+        """! See PhysicsDriver.save(). """
+        for physics in self._physicsDriversList:
+            physics.save(label, method)
+
+    def restore(self, label, method):
+        """! See PhysicsDriver.restore(). """
+        for physics in self._physicsDriversList:
+            physics.restore(label, method)
+
+    def forget(self, label, method):
+        """! See PhysicsDriver.forget(). """
+        for physics in self._physicsDriversList:
+            physics.forget(label, method)
+
