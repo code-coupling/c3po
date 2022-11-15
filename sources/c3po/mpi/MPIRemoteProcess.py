@@ -38,6 +38,10 @@ class MPIRemoteProcess(PhysicsDriver, DataManager):
         """! pass """
         pass
 
+    def setDataFile(self, datafile):
+        """! pass """
+        pass
+
     def initialize(self):
         """! return True """
         return True

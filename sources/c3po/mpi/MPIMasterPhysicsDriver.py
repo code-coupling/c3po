@@ -70,6 +70,12 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         """! INTERNAL """
         self._dataManagersToFree.append(idDataManager)
 
+    def setDataFile(self, datafile):
+        """! See PhysicsDriver.setDataFile(). """
+        self.sendData(MPITag.setDataFile, datafile)
+        if self._localPhysicsDriver is not None:
+            self._localPhysicsDriver.setDataFile(datafile)
+
     def init(self):
         """! See PhysicsDriver.init(). """
         if self._initNb == 0:

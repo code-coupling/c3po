@@ -87,7 +87,9 @@ class MPIWorker(object):
                 tag = status.Get_tag()
             # print "rank ", self.mpiComm.Get_rank(), ", tag = ", tag, "*****************************************************************"
             if tag < MPITag.tagBARRIER:
-                if tag == MPITag.init:
+                if tag == MPITag.setDataFile:
+                    self._physicsDriver.setDataFile(data)
+                elif tag == MPITag.init:
                     self._physicsDriver.init()
                 elif tag == MPITag.getInitStatus:
                     self.answer(self._physicsDriver.getInitStatus())
