@@ -70,13 +70,24 @@ class Remapper(object):
         offsetAlign = []
         if self._meshAlignment:
             for mesh in [sourceMesh, targetMesh]:
+<<<<<<< HEAD
                 [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
                 offsetAlign.append([-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin])
                 mesh.translate(offsetAlign[-1])
         if self._offset != [0., 0., 0.]:
+=======
+                if mesh.getMeshDimension() == 2:
+                    [(xmin, xmax), (ymin, ymax)] = mesh.getBoundingBox()
+                    offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)]
+                else:
+                    [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
+                    offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
+                mesh.translate(offsettmp)
+        if self._offset != [0.] * sourceMesh.getMeshDimension():
+>>>>>>> implement remapping 2D with _meshAlignment, _offset and _rescaling
             sourceMesh.translate([-x for x in self._offset])
         if self._rescaling != 1.:
-            sourceMesh.scale([0., 0., 0.], 1. / self._rescaling)
+            sourceMesh.scale([0.] * sourceMesh.getMeshDimension(), 1. / self._rescaling)
         if self._rotation != 0.:
             sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
 
