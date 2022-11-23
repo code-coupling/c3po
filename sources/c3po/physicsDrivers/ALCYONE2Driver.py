@@ -117,6 +117,9 @@ class ALCYONE2Driver(PhysicsDriver):
     def getInputMEDDoubleFieldTemplate(self, name):
         return self._alcyone2.getOutputMEDField("Temperature_SCE")
 
+    def getInputMEDIntFieldTemplate(self, name):
+        return self.getInputMEDDoubleFieldTemplate(name)
+
     def setInputMEDDoubleField(self, name, field):
         if name == "LinearPower":
             arrayZ = field.getMesh().getCoordsAt(0)
@@ -139,3 +142,11 @@ class ALCYONE2Driver(PhysicsDriver):
             field = self._alcyone2.getOutputMEDField(name)
         field.setNature(mc.IntensiveMaximum)
         return field
+
+    def setInputIntValue(self, name, value):
+        if name == "RampPhase":
+            field = self.getInputMEDIntFieldTemplate(name)
+            field.applyLin(0., value)
+            self._alcyone2.setInputField(name, field)
+        else:
+            raise NotImplementedError
