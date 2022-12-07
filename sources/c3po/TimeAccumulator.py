@@ -81,6 +81,13 @@ class TimeAccumulator(PhysicsDriver):
         """
         self._stabilizedTransient = stabilizedTransient
 
+    def getPhysicsDriver(self):
+        """! Return the wrapped PhysicsDriver.
+
+        @return the wrapped PhysicsDriver.
+        """
+        return self._physics
+
     def getMEDCouplingMajorVersion(self):
         """! See PhysicsDriver.getMEDCouplingMajorVersion(). """
         return self._physics.getMEDCouplingMajorVersion()
