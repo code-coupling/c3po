@@ -101,6 +101,7 @@ class DynamicResidualBalanceCoupler(Coupler):
             raise Exception("DynamicResidualBalanceCoupler.__init__ The provided Datamanager must be a LocalDataManager.")
 
         self._printLevel = 2
+        self._leaveIfFailed = False
 
         self._epsSolver1Ref = 1e-4
         self._accuracySolver1Old = 0.
@@ -136,12 +137,19 @@ class DynamicResidualBalanceCoupler(Coupler):
             raise Exception("DynamicResidualBalanceCoupler.setPrintLevel level should be one of [0, 1, 2]!")
         self._printLevel = level
 
+    def setFailureManagement(self, leaveIfSolvingFailed):
+        """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
+
+        @param leaveIfSolvingFailed set False to continue the iterations, True to stop. Default: False.
+        """
+        self._leaveIfFailed = leaveIfSolvingFailed
+
     def solveTimeStep(self):
         """! See c3po.PhysicsDriver.PhysicsDriver.solveTimeStep(). """
         converged = False
         succeed = True
 
-        while succeed and (not converged) and self._iter < self._maxiter:
+        while (succeed or not self._leaveIfFailed) and (not converged) and self._iter < self._maxiter:
             self.iterate()
             succeed, converged = self.getIterateStatus()
 

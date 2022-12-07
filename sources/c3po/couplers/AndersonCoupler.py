@@ -87,6 +87,7 @@ class AndersonCoupler(Coupler):
         self._andersonDampingFactor = 1.
         self._isConverged = False
         self._printLevel = 2
+        self._leaveIfFailed = False
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
             raise Exception("AndersonCoupler.__init__ physics, exchangers and dataManagers must be lists!")
@@ -131,6 +132,13 @@ class AndersonCoupler(Coupler):
             raise Exception("AndersonCoupler.setPrintLevel level should be one of [0, 1, 2]!")
         self._printLevel = level
 
+    def setFailureManagement(self, leaveIfSolvingFailed):
+        """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
+
+        @param leaveIfSolvingFailed set False to continue the iterations, True to stop. Default: False.
+        """
+        self._leaveIfFailed = leaveIfSolvingFailed
+
     def solveTimeStep(self):
         """! Solve a time step using the fixed point algorithm with Anderson acceleration.
 
@@ -158,6 +166,9 @@ class AndersonCoupler(Coupler):
             printEndOfLine = "\r" if self._printLevel == 1 else "\n"
             print("Anderson iteration {} ".format(iiter), end=printEndOfLine)
         physics.solve()
+        if self._leaveIfFailed and not physics.getSolveStatus():
+            return False
+
         physics2Data.exchange()
 
         data = CollaborativeDataManager(self._dataManagers)
@@ -173,6 +184,8 @@ class AndersonCoupler(Coupler):
         self.denormalizeData(normData)
         data2physics.exchange()
         physics.solve()
+        if self._leaveIfFailed and not physics.getSolveStatus():
+            return False
         physics2Data.exchange()
         self.normalizeData(normData)
         diffData = data - previousData
@@ -193,6 +206,8 @@ class AndersonCoupler(Coupler):
             self.denormalizeData(normData)
             data2physics.exchange()
             physics.solve()
+            if self._leaveIfFailed and not physics.getSolveStatus():
+                return False
             physics2Data.exchange()     # data contient g(u_k), previousData contient u_k
             self.normalizeData(normData)
 

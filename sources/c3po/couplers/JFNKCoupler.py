@@ -81,6 +81,7 @@ class JFNKCoupler(Coupler):
         self._epsilon = 1.E-4
         self._isConverged = False
         self._printLevel = 2
+        self._leaveIfFailed = False
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
             raise Exception("JFNKCoupler.__init__ physics, exchangers and dataManagers must be lists!")
@@ -123,6 +124,13 @@ class JFNKCoupler(Coupler):
             raise Exception("JFNKCoupler.setPrintLevel level should be one of [0, 1, 2]!")
         self._printLevel = level
 
+    def setFailureManagement(self, leaveIfSolvingFailed):
+        """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
+
+        @param leaveIfSolvingFailed set False to continue the iterations, True to stop. Default: False.
+        """
+        self._leaveIfFailed = leaveIfSolvingFailed
+
     def solveTimeStep(self):
         """! Solve a time step using Jacobian-Free Newton Krylov algorithm.
 
@@ -142,6 +150,8 @@ class JFNKCoupler(Coupler):
 
         # On calcul ici l'etat "0"
         physics.solve()
+        if self._leaveIfFailed and not physics.getSolveStatus():
+            return False
         physics2Data.exchange()
 
         data = CollaborativeDataManager(self._dataManagers)
@@ -163,6 +173,8 @@ class JFNKCoupler(Coupler):
             self.denormalizeData(normData)
             data2physics.exchange()
             physics.solve()
+            if self._leaveIfFailed and not physics.getSolveStatus():
+                return False
             physics2Data.exchange()
             self.normalizeData(normData)
 
@@ -203,6 +215,8 @@ class JFNKCoupler(Coupler):
                     self.denormalizeData(normData)
                     data2physics.exchange()
                     physics.solve()
+                    if self._leaveIfFailed and not physics.getSolveStatus():
+                        return False
                     physics2Data.exchange()
                     self.normalizeData(normData)
 

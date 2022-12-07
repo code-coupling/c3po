@@ -53,6 +53,7 @@ class FixedPointCoupler(Coupler):
         self._maxiter = 100
         self._dampingFactor = 1.
         self._printLevel = 2
+        self._leaveIfFailed = False
         self._useIterate = False
         self._iter = 0
 
@@ -91,6 +92,13 @@ class FixedPointCoupler(Coupler):
         if not level in [0, 1, 2]:
             raise Exception("FixedPointCoupler.setPrintLevel level should be one of [0, 1, 2]!")
         self._printLevel = level
+
+    def setFailureManagement(self, leaveIfSolvingFailed):
+        """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
+
+        @param leaveIfSolvingFailed set False to continue the iterations, True to stop. Default: False.
+        """
+        self._leaveIfFailed = leaveIfSolvingFailed
 
     def setUseIterate(self, useIterate):
         """ ! If True is given, the iterate() method on the given PhysicsDriver is called instead of the solve() method.
@@ -157,7 +165,7 @@ class FixedPointCoupler(Coupler):
         converged = False
         succeed = True
 
-        while succeed and (not converged) and self._iter < self._maxiter:
+        while (succeed or not self._leaveIfFailed) and (not converged) and self._iter < self._maxiter:
             self.iterate()
             succeed, converged = self.getIterateStatus()
 
