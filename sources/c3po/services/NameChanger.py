@@ -37,23 +37,40 @@ class NameChanger(PhysicsDriver):
         """
         PhysicsDriver.__init__(self)
         self._physics = physics
-        self._nameMappingValue = nameMappingValue.copy()
-        self._nameMappingField = nameMappingField.copy()
+        self._nameMappingValue = {}
+        self._nameMappingField = {}
+        self._invertNameMappingValue = {}
+        self._invertNameMappingField = {}
+        self.updateNameMappingValue(nameMappingValue)
+        self.updateNameMappingField(nameMappingField)
+        self._wildcard = wildcard
+        self._value = 0
+        self._field = 1
+
+    def updateNameMappingValue(self, nameMappingValue):
+        self._nameMappingValue.update(nameMappingValue)
         self._invertNameMappingValue = {}
         for key, val in self._nameMappingValue.items():
             if val not in self._invertNameMappingValue:
                 self._invertNameMappingValue[val] = [key]
             else:
                 self._invertNameMappingValue[val].append(key)
+
+    def updateNameMappingField(self, nameMappingField):
+        self._nameMappingField.update(nameMappingField)
         self._invertNameMappingField = {}
         for key, val in self._nameMappingField.items():
             if val not in self._invertNameMappingField:
                 self._invertNameMappingField[val] = [key]
             else:
                 self._invertNameMappingField[val].append(key)
-        self._wildcard = wildcard
-        self._value = 0
-        self._field = 1
+
+    def getPhysicsDriver(self):
+        """! Return the wrapped PhysicsDriver.
+
+        @return the wrapped PhysicsDriver.
+        """
+        return self._physics
 
     def _getNewName(self, name, variableType, inverse):
         """! Return the change name(s).
