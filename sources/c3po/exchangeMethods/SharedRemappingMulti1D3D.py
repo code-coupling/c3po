@@ -125,7 +125,16 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
         return len(self._indexTable)
 
     def shift1DFields(self, shiftMap):
-        """! towrite """
+        """! This method allows to shift the index of the 1D fields provided through the indexTable parameter of constructor.
+
+        @param shiftMap a list providing for each 1D fields the index (in indexTable) of its new position (-1 can be used to indicate that the field is no more used).
+
+        @return the list of the indexes no more used.
+
+        For example, shiftMap=[3, -1, 1, 2] indicates that at first call field_0 goes to position 3, field_1 is discharged, field_2 goes to 1 and field_3 goes to 2. It returns [1].
+        At the second call with the same input, field_0 (now at position 3) goes to 2, field_1 (at 0) goes to 3, field_2 (at 1) is discharged and field_3 (at 2) goes to 1. It returns [2].
+        The thrid call returns [3], the fourth call [0].
+        """
         newFieldPositions = [-1] * len(self._shiftedFieldPositions)
         availableFields = []
 

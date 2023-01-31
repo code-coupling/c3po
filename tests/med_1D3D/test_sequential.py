@@ -127,6 +127,13 @@ def test_sequential():
 
     myRemapper.exportMatrix("matrix_remapper.med")
 
+    shiftedFields = []
+    shiftedFields.append(myRemapper.shift1DFields([3, -1, 1, 2]))
+    shiftedFields.append(myRemapper.shift1DFields([3, -1, 1, 2]))
+    shiftedFields.append(myRemapper.shift1DFields([3, -1, 1, 2]))
+    shiftedFields.append(myRemapper.shift1DFields([3, -1, 1, 2]))
+
+    assert shiftedFields == [[1], [2], [3], [0]]
 
 def test_load_matrix():
     from tests.med_1D3D.NeutroDriver import NeutroDriver
