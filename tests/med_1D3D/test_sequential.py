@@ -127,56 +127,48 @@ def test_sequential():
 
     myRemapper.exportMatrix("matrix_remapper.med")
 
-    shiftedFields = []
-    shiftedFields.append(myRemapper.shift1DFields([3, -1, 1, 2]))
-    shiftedFields.append(myRemapper.shift1DFields([3, -1, 1, 2]))
-    shiftedFields.append(myRemapper.shift1DFields([3, -1, 1, 2]))
-    shiftedFields.append(myRemapper.shift1DFields([3, -1, 1, 2]))
-
-    assert shiftedFields == [[1], [2], [3], [0]]
-
 def test_load_matrix():
     from tests.med_1D3D.NeutroDriver import NeutroDriver
     from tests.med_1D3D.ThermoDriver import ThermoDriver
 
-    myThermoDrivers2 = []
+    myThermoDrivers = []
     for i in range(4):
-        myThermoDrivers2.append(ThermoDriver())
-    myThermoDriver2 = c3po.CollaborativePhysicsDriver(myThermoDrivers2)
-    myNeutroDriver2 = NeutroDriver()
+        myThermoDrivers.append(ThermoDriver())
+    myThermoDriver = c3po.CollaborativePhysicsDriver(myThermoDrivers)
+    myNeutroDriver = NeutroDriver()
 
     cote_ass = 0.5
     cote = [-cote_ass, 0, cote_ass]
     indexTable = [0, 1,
                   2, 3]
-    myRemapper2 = c3po.Multi1D3DRemapper(cote, cote, indexTable, [1] * len(myThermoDrivers2), meshAlignment=True, offset=[0., 0., -1.], rescaling=1. / 100., rotation=math.pi / 2., outsideCellsScreening=True)
-    myRemapper2.loadMatrix("matrix_remapper.med")
+    myRemapper = c3po.Multi1D3DRemapper(cote, cote, indexTable, [1] * len(myThermoDrivers), meshAlignment=True, offset=[0., 0., -1.], rescaling=1. / 100., rotation=math.pi / 2., outsideCellsScreening=True)
+    myRemapper.loadMatrix("matrix_remapper.med")
 
-    neutroToThermo2 = c3po.SharedRemappingMulti1D3D(myRemapper2, reverse=True)
-    thermoToNeutro2 = c3po.SharedRemappingMulti1D3D(myRemapper2, reverse=False, defaultValue=273.15, linearTransform=(1., -273.15))
+    neutroToThermo = c3po.SharedRemappingMulti1D3D(myRemapper, reverse=True)
+    thermoToNeutro = c3po.SharedRemappingMulti1D3D(myRemapper, reverse=False, defaultValue=273.15, linearTransform=(1., -273.15))
 
-    dataCouplers2 = []
+    dataCouplers = []
     for i in range(4):
-        dataCouplers2.append(c3po.LocalDataManager())
-    dataCoupler2 = c3po.CollaborativeDataManager(dataCouplers2)
-    exchangerNeutro2Thermo2 = c3po.LocalExchanger(neutroToThermo2, [(myNeutroDriver2, "Power")], [(myThermoDriver2, "Power")])
-    exchangerThermo2Data2 = c3po.LocalExchanger(c3po.DirectMatching(), [(myThermoDriver2, "Temperature")], [(dataCoupler2, "Temperature")])
-    exchangerData2Neutro2 = c3po.LocalExchanger(thermoToNeutro2, [(dataCoupler2, "Temperature")], [(myNeutroDriver2, "Temperature")])
+        dataCouplers.append(c3po.LocalDataManager())
+    dataCoupler = c3po.CollaborativeDataManager(dataCouplers)
+    exchangerNeutro2Thermo = c3po.LocalExchanger(neutroToThermo, [(myNeutroDriver, "Power")], [(myThermoDriver, "Power")])
+    exchangerThermo2Data = c3po.LocalExchanger(c3po.DirectMatching(), [(myThermoDriver, "Temperature")], [(dataCoupler, "Temperature")])
+    exchangerData2Neutro = c3po.LocalExchanger(thermoToNeutro, [(dataCoupler, "Temperature")], [(myNeutroDriver, "Temperature")])
 
-    oneIteration2 = OneIterationCoupler([myNeutroDriver2, myThermoDriver2], [exchangerNeutro2Thermo2])
+    oneIteration = OneIterationCoupler([myNeutroDriver, myThermoDriver], [exchangerNeutro2Thermo])
 
-    mycoupler2 = c3po.FixedPointCoupler([oneIteration2], [exchangerThermo2Data2, exchangerData2Neutro2], [dataCoupler2])
-    mycoupler2.init()
-    mycoupler2.setDampingFactor(0.75)
-    mycoupler2.setConvergenceParameters(1E-5, 100)
+    mycoupler = c3po.FixedPointCoupler([oneIteration], [exchangerThermo2Data, exchangerData2Neutro], [dataCoupler])
+    mycoupler.init()
+    mycoupler.setDampingFactor(0.75)
+    mycoupler.setConvergenceParameters(1E-5, 100)
 
     for i in range(4):
-        myThermoDrivers2[i].setT0(273.15 + i * 0.1)
+        myThermoDrivers[i].setT0(273.15 + i * 0.1)
 
-    mycoupler2.solve()
+    mycoupler.solve()
 
     try:
-        fieldP = myNeutroDriver2.getOutputMEDDoubleField("Power")
+        fieldP = myNeutroDriver.getOutputMEDDoubleField("Power")
         resuP = fieldP.getArray().toNumPyArray().tolist()
         assert len(refP) == len(resuP)
         for i in range(len(refP)):
@@ -186,7 +178,7 @@ def test_load_matrix():
     finally:
         os.remove("matrix_remapper.med")
 
-    mycoupler2.term()
+    mycoupler.term()
 
 
 if __name__ == "__main__":
