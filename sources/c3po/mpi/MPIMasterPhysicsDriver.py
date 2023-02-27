@@ -86,6 +86,13 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setDataFile(datafile)
 
+    def getMPIComm(self):
+        """! See PhysicsDriver.getMPIComm(). """
+        if self._isCollective and self._localPhysicsDriver is not None:
+            return self.mpiComm
+        else:
+            raise NotImplementedError
+
     def init(self):
         """! See PhysicsDriver.init(). """
         if self._initNb == 0:

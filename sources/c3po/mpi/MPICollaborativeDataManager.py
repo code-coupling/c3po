@@ -63,6 +63,13 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         CollaborativeDataManager.__init__(self, localData)
         CollaborativeObject.__init__(self, dataManagers)    # pylint: disable=non-parent-init-called
 
+    def getMPIComm(self):
+        """! (Optional) Return the MPI communicator used by the code for parallel computations.
+
+        @return (mpi4py.Comm) mpi4py communicator.
+        """
+        return self.mpiComm
+
     def cloneEmpty(self):
         """! Return a clone of self without copying the data.
 

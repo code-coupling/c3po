@@ -36,7 +36,7 @@ class MPICoupler(Coupler):
         @param physics list (or dictionary) of c3po.PhysicsDriver.PhysicsDriver objects to be coupled.
         @param exchangers list (or dictionary) of c3po.Exchanger.Exchanger for the coupling.
         @param dataManagers list (or dictionary) of c3po.DataManager.DataManager used in the coupling.
-        @param mpiComm If not None, forces MPICoupler to make MPI communications and to use this communicator.
+        @param mpiComm If not None, forces MPICoupler to make MPI communications and to use this communicator (can also be done with setMPIComm()).
         """
         Coupler.__init__(self, physics, exchangers, dataManagers)
         self.mpiComm = mpiComm
@@ -92,6 +92,12 @@ class MPICoupler(Coupler):
         if resu is None:
             raise NotImplementedError
         return resu
+
+    def setMPIComm(self, mpicomm):
+        self.mpiComm = mpicomm
+
+    def getMPIComm(self):
+        return self.mpiComm
 
     def initialize(self):
         """! See Coupler.initialize(). """

@@ -25,6 +25,13 @@ class DataAccessor(object):
         Int = "Int"
         String = "String"
 
+    def getMPIComm(self):
+        """! (Optional) Return the MPI communicator used by the code for parallel computations.
+
+        @return (mpi4py.Comm) mpi4py communicator.
+        """
+        raise NotImplementedError
+
     def getInputFieldsNames(self):
         """! (Optional) Get the list of input fields accepted by the code.
 

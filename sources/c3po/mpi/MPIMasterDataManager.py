@@ -44,6 +44,10 @@ class MPIMasterDataManager(DataManager):
         """! Destructor. """
         self.physicsDriver.setDataManagerToFree(self.idDataWorker)
 
+    def getMPIComm(self):
+        """! See PhysicsDriver.getMPIComm(). """
+        return self.physicsDriver.getMPIComm()
+
     def checkCompatibility(self, other):
         """! INTERNAL """
         if not isinstance(other, MPIMasterDataManager) or self.physicsDriver != other.physicsDriver or (self.localDataManager is not None) and (other.localDataManager is None):
