@@ -15,6 +15,8 @@ import sys
 from mpi4py import MPI
 
 from c3po.PhysicsDriver import PhysicsDriver
+from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
+from c3po.mpi.MPIRemoteProcesses import MPIRemoteProcesses
 from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 from c3po.mpi.MPITag import MPITag
 
@@ -33,22 +35,24 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
     def __init__(self, workerProcess, localPhysicsDriver=None):
         """! Build a MPIMasterPhysicsDriver object.
 
-        @param workerProcess a c3po.mpi.MPIRemoteProcess.MPIRemoteProcess or a c3po.mpi.MPICollectiveProcess.MPICollectiveProcess
-        identifying the worker process(es). Each worker process can be in charge of only one c3po.PhysicsDriver.PhysicsDriver.
-        In case of a c3po.mpi.MPICollectiveProcess.MPICollectiveProcess, the MPIComm must include all the workers + the master,
-        and only them.
+        @param workerProcess a c3po.mpi.MPIRemoteProcess.MPIRemoteProcess, a c3po.mpi.MPIRemoteProcesses.MPIRemoteProcesses or
+        a c3po.mpi.MPICollectiveProcess.MPICollectiveProcess identifying the worker process(es). Each worker process can be in
+        charge of only one c3po.PhysicsDriver.PhysicsDriver. In case of a c3po.mpi.MPICollectiveProcess.MPICollectiveProcess, the
+        MPIComm must include all the workers + the master, and only them.
         @param localPhysicsDriver a c3po.PhysicsDriver.PhysicsDriver the MPIMasterPhysicsDriver object will run in the same
         time than the workers. It enables the master to contribute to a collaborative calculations.
         """
         PhysicsDriver.__init__(self)
         self.mpiComm = workerProcess.mpiComm
         self._masterRank = self.mpiComm.Get_rank()
-        self._workerRank = None
+        self._workerRanks = None
         self._isCollective = False
         if isinstance(workerProcess, MPICollectiveProcess):
             self._isCollective = True
-        else:
-            self._workerRank = workerProcess.rank
+        elif isinstance(workerProcess, MPIRemoteProcess):
+            self._workerRanks = [workerProcess.rank]
+        elif isinstance(workerProcess, MPIRemoteProcesses):
+            self._workerRanks = workerProcess.ranks
         self._localPhysicsDriver = localPhysicsDriver
         self._dataManagersToFree = []
 
@@ -60,13 +64,17 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         else:
             if data is None:
                 data = 0
-            self.mpiComm.send(data, dest=self._workerRank, tag=tag)
+            for workerRank in self._workerRanks:
+                self.mpiComm.send(data, dest=workerRank, tag=tag)
 
     def recvData(self, data, collectiveOperator=MPI.MIN):
         """! INTERNAL """
         if self._isCollective:
             return self.mpiComm.reduce(data, op=collectiveOperator, root=self._masterRank)
-        return collectiveOperator(data, self.mpiComm.recv(source=self._workerRank, tag=MPITag.answer))
+        resu = data
+        for workerRank in self._workerRanks:
+            resu = collectiveOperator(resu, self.mpiComm.recv(source=workerRank, tag=MPITag.answer))
+        return resu
 
     def setDataManagerToFree(self, idDataManager):
         """! INTERNAL """

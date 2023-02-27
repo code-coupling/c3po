@@ -13,7 +13,7 @@ from __future__ import print_function, division
 from mpi4py import MPI
 
 from c3po.Coupler import Coupler
-from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
+from c3po.mpi.MPIRemote import MPIRemote
 
 
 class MPICoupler(Coupler):
@@ -27,9 +27,9 @@ class MPICoupler(Coupler):
     def __init__(self, physics, exchangers, dataManagers=[], mpiComm=None):
         """! Build a MPICoupler object.
 
-        Has the same form than Coupler.__init__() but can also contain MPIRemoteProcess (and MPICollectiveProcess) objects.
+        Has the same form than Coupler.__init__() but can also contain MPIRemote (and MPICollectiveProcess) objects.
 
-        When at least one MPIRemoteProcess is present, MPICoupler uses collective MPI communications: the object must be
+        When at least one MPIRemote is present, MPICoupler uses collective MPI communications: the object must be
         built and used in the same way for all the involved processes. They must all share the same communicator,and all
         the processes of this communicator must be involved.
 
@@ -43,7 +43,7 @@ class MPICoupler(Coupler):
         self._isMPI = self.mpiComm is not None
 
         for phy in self._physicsDriversList:
-            if mpiComm is None and isinstance(phy, MPIRemoteProcess):
+            if mpiComm is None and isinstance(phy, MPIRemote):
                 if not self._isMPI:
                     if phy.mpiComm == MPI.COMM_NULL:
                         raise Exception("MPICoupler.__init__ All distant processes must be part of the communicator (MPI.COMM_NULL found).")

@@ -15,7 +15,7 @@ from mpi4py import MPI
 
 from c3po.CollaborativeDataManager import CollaborativeDataManager
 from c3po.CollaborativeObject import CollaborativeObject
-from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
+from c3po.mpi.MPIRemote import MPIRemote
 
 
 class MPICollaborativeDataManager(CollaborativeDataManager):
@@ -25,7 +25,7 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
     It allows to handle a set of c3po.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class,
     data can be distributed on different MPI processes but still used in the same way.
 
-    When at least one MPIRemoteProcess is present, MPICollaborativeDataManager uses collective MPI communications: the object must
+    When at least one MPIRemote is present, MPICollaborativeDataManager uses collective MPI communications: the object must
     be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes
     of that communicator must be involved.
     """
@@ -33,9 +33,9 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
     def __init__(self, dataManagers, mpiComm=None):
         """! Build a MPICollaborativeDataManager object.
 
-        Has the same form than CollaborativeDataManager.__init__() but can also contain MPIRemoteProcess objects.
+        Has the same form than CollaborativeDataManager.__init__() but can also contain MPIRemote objects.
 
-        When at least one MPIRemoteProcess is present (or if mpiComm is not None), MPICollaborativeDataManager uses collective MPI
+        When at least one MPIRemote is present (or if mpiComm is not None), MPICollaborativeDataManager uses collective MPI
         communications: the object must be built and used in the same way for all the involved processes. They must all share the same
         communicator, and all the processes of that communicator must be involved.
 
@@ -48,7 +48,7 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         self.isMPI = mpiComm is not None
 
         for data in dataManagers:
-            if mpiComm is None and isinstance(data, MPIRemoteProcess):
+            if mpiComm is None and isinstance(data, MPIRemote):
                 if not self.isMPI:
                     if data.mpiComm == MPI.COMM_NULL:
                         raise Exception("MPICollaborativeDataManager.__init__ All distant processes must be part of the communicator (MPI.COMM_NULL found).")
@@ -57,7 +57,7 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
                 else:
                     if self.mpiComm != data.mpiComm:
                         raise Exception("MPICollaborativeDataManager.__init__ All distant processes must used the same MPI communicator")
-            if not isinstance(data, MPIRemoteProcess):
+            if not isinstance(data, MPIRemote):
                 localData.append(data)
 
         CollaborativeDataManager.__init__(self, localData)

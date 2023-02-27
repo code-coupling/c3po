@@ -14,6 +14,7 @@ from __future__ import print_function, division
 from c3po.Exchanger import Exchanger
 from c3po.mpi.MPITag import MPITag
 from c3po.mpi.MPIRemoteProcess import MPIRemoteProcess
+from c3po.mpi.MPIRemoteProcesses import MPIRemoteProcesses
 from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 
 
@@ -28,8 +29,8 @@ class MPIMasterExchanger(Exchanger):
     def __init__(self, workerProcesses, idExchangerWorker, localExchanger=None):
         """! Build a MPIMasterExchanger object.
 
-        @param workerProcesses The list of MPIRemoteProcess or MPICollectiveProcess identifying the remote processes involved in the
-        exchange. In the case of MPICollectiveProcess, the mpiComm must include all the workers + the master, and only them.
+        @param workerProcesses The list of MPIRemoteProcess, MPIRemoteProcesses or MPICollectiveProcess identifying the remote processes involved in
+        the exchange. In the case of MPICollectiveProcess, the mpiComm must include all the workers + the master, and only them.
         @param idExchangerWorker Number identifying the controlled c3po.Exchanger.Exchanger in the involved workers (see c3po.mpi.MPIWorker.MPIWorker).
         @param localExchanger a c3po.Exchanger.Exchanger the MPIMasterExchanger object will run in the same time than the workers. It
         enables the master to contribute to a collective computation.
@@ -43,6 +44,9 @@ class MPIMasterExchanger(Exchanger):
         for process in self._workerProcesses:
             if isinstance(process, MPIRemoteProcess):
                 process.mpiComm.send(self._idExchangerWorker, dest=process.rank, tag=MPITag.exchange)
+            elif isinstance(process, MPIRemoteProcesses):
+                for processRank in process.ranks:
+                    process.mpiComm.send(self._idExchangerWorker, dest=processRank, tag=MPITag.exchange)
             elif isinstance(process, MPICollectiveProcess):
                 process.mpiComm.bcast((MPITag.exchange, self._idExchangerWorker), root=process.mpiComm.Get_rank())
             else:
