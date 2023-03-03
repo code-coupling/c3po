@@ -16,7 +16,22 @@ from c3po.medcouplingCompat import MEDCouplingRemapper
 from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 
 
-class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
+def computeCellsToScreenOut(mesh1, mesh2):
+        """! INTERNAL """
+        bary = []
+        try:
+            bary = mesh1.computeCellCenterOfMass()  # MEDCoupling 9
+        except:
+            bary = mesh1.getBarycenterAndOwner()  # MEDCoupling 7
+        _, cellsId = mesh2.getCellsContainingPoints(bary, 1.0e-8)
+        dsi = cellsId.deltaShiftIndex()
+        try:
+            return dsi.findIdsEqual(0)  # MEDCoupling 9
+        except:
+            return dsi.getIdsEqual(0)  # MEDCoupling 7
+
+
+class Remapper(object):
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
 
     def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):
@@ -37,7 +52,6 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
             not be intersected by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of the other
             mesh ! Be careful with this option.
         """
-        MEDCouplingRemapper.__init__(self)
         self.isInit = False
         self._meshAlignment = meshAlignment
         self._offset = offset
@@ -49,6 +63,7 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
         self._cellsToScreenOutSource = []
         self._cellsToScreenOutTarget = []
         self._loadedMatrix = None
+        self._remapper = MEDCouplingRemapper()
 
     def initialize(self, sourceMesh, targetMesh):
         """! INTERNAL """
@@ -66,43 +81,29 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
 
         if self._loadedMatrix is not None:
             try:
-                self.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", self._loadedMatrix)
+                self._remapper.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", self._loadedMatrix)
             except:
                 print("Remapper.initialize: Failure to load the matrix.")
-                self.prepare(sourceMesh, targetMesh, "P0P0")
+                self._remapper.prepare(sourceMesh, targetMesh, "P0P0")
             self._loadedMatrix = None
         else:
-            self.prepare(sourceMesh, targetMesh, "P0P0")
+            self._remapper.prepare(sourceMesh, targetMesh, "P0P0")
 
         if self._outsideCellsScreening:
-            self._cellsToScreenOutTarget = self.computeCellsToScreenOut(targetMesh, sourceMesh)
-            self._cellsToScreenOutSource = self.computeCellsToScreenOut(sourceMesh, targetMesh)
+            self._cellsToScreenOutTarget = computeCellsToScreenOut(targetMesh, sourceMesh)
+            self._cellsToScreenOutSource = computeCellsToScreenOut(sourceMesh, targetMesh)
 
         self.isInit = True
 
-    def computeCellsToScreenOut(self, mesh1, mesh2):
-        """! INTERNAL """
-        bary = []
-        try:
-            bary = mesh1.computeCellCenterOfMass()  # MEDCoupling 9
-        except:
-            bary = mesh1.getBarycenterAndOwner()  # MEDCoupling 7
-        _, cellsId = mesh2.getCellsContainingPoints(bary, 1.0e-8)
-        dsi = cellsId.deltaShiftIndex()
-        try:
-            return dsi.findIdsEqual(0)  # MEDCoupling 9
-        except:
-            return dsi.getIdsEqual(0)  # MEDCoupling 7
-
     def directRemap(self, field, defaultValue):
         """! INTERNAL """
-        outputField = MEDCouplingRemapper.transferField(self, field, defaultValue)
+        outputField = self._remapper.transferField(field, defaultValue)
         outputField.getArray()[self._cellsToScreenOutTarget] = defaultValue
         return outputField
 
     def reverseRemap(self, field, defaultValue):
         """! INTERNAL """
-        outputField = MEDCouplingRemapper.reverseTransferField(self, field, defaultValue)
+        outputField = self._remapper.reverseTransferField(field, defaultValue)
         outputField.getArray()[self._cellsToScreenOutSource] = defaultValue
         return outputField
 
@@ -116,7 +117,7 @@ class Remapper(MEDCouplingRemapper):    # pylint: disable=too-many-ancestors
         if not self.isInit:
             raise AssertionError("Remapper.export: the object is not initialized! Remapper is usually initialized by the SharedRemapping object using it at the first call.")
         with open(fileName, 'wb') as matrixFile:
-            matrix = self.getCrudeMatrix()
+            matrix = self._remapper.getCrudeMatrix()
             pickle.dump(matrix, matrixFile)
 
     def loadMatrix(self, fileName):
