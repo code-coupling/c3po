@@ -15,7 +15,39 @@ import c3po.medcouplingCompat as mc
 from c3po.exchangeMethods.SharedRemapping import Remapper, SharedRemapping
 
 
-class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
+def shift1DFields(self, shiftMap, shiftedFieldPositions, indexTable):
+    """! INTERNAL """
+    newFieldPositions = [-1] * len(shiftedFieldPositions)
+    availableFields = []
+
+    if len(shiftMap) != len(shiftedFieldPositions):
+        raise Exception("shift1DFields: the provided shiftMap must contain as many values ({} provided) than the number of 1D fields ({}).".format(len(shiftMap), len(shiftedFieldPositions)))
+    if max(shiftMap) > len(shiftedFieldPositions) - 1:
+        raise Exception("shift1DFields: the provided shiftMap contains values ({}) greater than the number of 1D fields - 1 ({}).".format(max(shiftMap), len(shiftedFieldPositions) - 1))
+
+    for ipos, ifield in enumerate(shiftedFieldPositions):
+        if shiftMap[ipos] >= 0:
+            if newFieldPositions[shiftMap[ipos]] >= 0:
+                raise Exception("shift1DFields: the provided shiftMap contains twice the positive value ({}).".format(shiftMap[ipos]))
+            newFieldPositions[shiftMap[ipos]] = ifield
+        else:
+            availableFields.append(ifield)
+
+    count = 0
+    for ipos, ifield in enumerate(newFieldPositions):
+        if ifield < 0:
+            newFieldPositions[ipos] = availableFields[count]
+            count += 1
+
+    newIndexTable = [[] for _ in range(len(indexTable))]
+
+    for ipos, ifield in enumerate(newFieldPositions):
+        newIndexTable[ifield] = indexTable[shiftedFieldPositions[ipos]]
+
+    return availableFields, newFieldPositions, newIndexTable
+
+
+class Multi1D3DRemapper(Remapper):
     """! Allow to share the mesh projection for different SharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
     def __init__(self, xCoordinates, yCoordinates, indexTable, weights, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):
@@ -23,7 +55,7 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.
 
-        The axial coordinates will be read from the 1D fields passed to the remapper (there are assumed to all share the same axial mesh).
+        The axial coordinates will be read from the 1D fields passed to the remapper.
 
         Each cell of this 2D grid is associated to a 1D field.
 
@@ -39,7 +71,7 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
         @param outsideCellsScreening see Remapper.
         """
         Remapper.__init__(self, meshAlignment, offset, rescaling, rotation, outsideCellsScreening)
-        self._indexTable = [[] for k in range(max(indexTable) + 1)]
+        self._indexTable = [[] for _ in range(max(indexTable) + 1)]
         for position, indice1D in enumerate(indexTable):
             if indice1D >= 0:
                 self._indexTable[indice1D].append(position)
@@ -49,31 +81,41 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
             raise Exception("Multi1D3DRemapper.__init__ we give " + str(len(weights)) + "weight values instead of " + str(len(self._indexTable))
                             + ", the number of 1D calculations.")
         self._weights = weights
-        self._arrayX = mc.DataArrayDouble(xCoordinates)
-        self._arrayX.setInfoOnComponent(0, "X [m]")
-        self._arrayY = mc.DataArrayDouble(yCoordinates)
-        self._arrayY.setInfoOnComponent(0, "Y [m]")
-        self._arrayZ = 0
-        self._numberOf1DPositions = (self._arrayX.getNumberOfTuples() - 1) * (self._arrayY.getNumberOfTuples() - 1)
-        self._numberOfCellsIn1D = 0
+        self._xCoordinates = xCoordinates
+        self._yCoordinates = yCoordinates
+        self._zCoordinateArrays = [[] for _ in range(len(self._indexTable))]
+        self._numberOfCellsIn1D = [0] * len(self._indexTable)
         self._innerMesh = None
         self._innerField = mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME)
         self._innerField.setName("3DFieldFromMulti1D")
         self.isInnerFieldBuilt = False
 
-    def buildInnerField(self, mesh1D):
+    def buildInnerField(self, meshes1D):
         """! INTERNAL """
-        self._arrayZ = mesh1D.getCoordsAt(0)
-        cMesh = mc.MEDCouplingCMesh("3DMeshFromMulti1D")
-        cMesh.setCoords(self._arrayX, self._arrayY, self._arrayZ)
-        self._innerMesh = cMesh.buildUnstructured()
-        self._numberOfCellsIn1D = mesh1D.getNumberOfCells()
+        internal1DMeshes = []
+        if len(meshes1D) != len(self._indexTable):
+            raise Exception("Multi1D3DRemapper.buildInnerField we give " + str(len(meshes1D)) + " 1D meshes instead of " + str(len(self._indexTable)) + ".")
+        for imesh, mesh1D in enumerate(meshes1D):
+            self._zCoordinateArrays[imesh] = mesh1D.getCoordsAt(0)
+            self._numberOfCellsIn1D[imesh] = mesh1D.getNumberOfCells()
+            for fieldIndex in self._indexTable[imesh]:
+                internal1DMeshes.append(mc.MEDCouplingCMesh("3DMeshFromMulti1D"))
+                xIndex = fieldIndex % (len(self._xCoordinates) - 1)
+                yIndex = fieldIndex // (len(self._xCoordinates) - 1)
+                arrayX = mc.DataArrayDouble([self._xCoordinates[xIndex], self._xCoordinates[xIndex + 1]])
+                arrayX.setInfoOnComponent(0, "X [m]")
+                arrayY = mc.DataArrayDouble([self._yCoordinates[yIndex], self._yCoordinates[yIndex + 1]])
+                arrayY.setInfoOnComponent(0, "Y [m]")
+                internal1DMeshes[-1].setCoords(arrayX, arrayY, self._zCoordinateArrays[imesh])
+        self._innerMesh = mc.MEDCouplingMesh.MergeMeshes(internal1DMeshes)
+        self._innerMesh.setName("3DMeshFromMulti1D")
         self._innerField.setMesh(self._innerMesh)
         array = mc.DataArrayDouble()
-        array.alloc(self._numberOfCellsIn1D * self._numberOf1DPositions)
+        array.alloc(self._innerMesh.getNumberOfCells())
         array.fillWithValue(0.)
         self._innerField.setArray(array)
         self.isInnerFieldBuilt = True
+        self.isInit = False
 
     def getInnerField(self):
         """! INTERNAL """
@@ -86,32 +128,35 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
             resuField.setNature(fields1D[0].getNature())
         array3D = resuField.getArray()
         array3D.fillWithValue(defaultValue)
-        nbOfElems3D = array3D.getNbOfElems()
+        indexMin = 0
         for i, field in enumerate(fields1D):
             array1D = field.getArray()
             if resuField.getNature() == mc.ExtensiveMaximum or resuField.getNature() == mc.ExtensiveConservation:
                 array1D *= self._weights[i]
-            for position in self._indexTable[i]:
-                array3D.setPartOfValues1(array1D, position, nbOfElems3D, self._numberOf1DPositions, 0, 1, 1)
+            for _ in self._indexTable[i]:
+                array3D.setPartOfValues1(array1D, indexMin, indexMin + self._numberOfCellsIn1D[i], 1, 0, 1, 1)
+                indexMin += self._numberOfCellsIn1D[i]
         return resuField
 
     def build1DFields(self, field3D):
         """! INTERNAL """
         array3D = field3D.getArray()
         fields1D = []
+        indexMin = 0
         for i, list1D in enumerate(self._indexTable):
             fields1D.append(mc.MEDCouplingFieldDouble(mc.ON_CELLS, mc.ONE_TIME))
             fields1D[-1].setName(field3D.getName())
             mesh1D = mc.MEDCouplingCMesh("mesh1D")
-            mesh1D.setCoords(self._arrayZ)
+            mesh1D.setCoords(self._zCoordinateArrays[i])
             fields1D[-1].setMesh(mesh1D)
             array1D = mc.DataArrayDouble()
-            array1D.alloc(self._numberOfCellsIn1D)
+            array1D.alloc(self._numberOfCellsIn1D[i])
             array1D.fillWithValue(0.)
-            for position in list1D:
+            for _ in list1D:
                 array1Dtmp = mc.DataArrayDouble()
-                array1Dtmp.alloc(self._numberOfCellsIn1D)
-                array1Dtmp.setContigPartOfSelectedValuesSlice(0, array3D, position, array3D.getNumberOfTuples(), self._numberOf1DPositions)
+                array1Dtmp.alloc(self._numberOfCellsIn1D[i])
+                array1Dtmp.setContigPartOfSelectedValuesSlice(0, array3D, indexMin, indexMin + self._numberOfCellsIn1D[i], 1)
+                indexMin += self._numberOfCellsIn1D[i]
                 array1D.addEqual(array1Dtmp)
             if len(list1D) > 0:
                 array1D *= 1. / len(list1D)
@@ -135,37 +180,15 @@ class Multi1D3DRemapper(Remapper):  # pylint: disable=too-many-ancestors
         At the second call with the same input, field_0 (now at position 3) goes to 2, field_1 (at 0) goes to 3, field_2 (at 1) is discharged and field_3 (at 2) goes to 1. It returns [2].
         The thrid call returns [3], the fourth call [0].
         """
-        newFieldPositions = [-1] * len(self._shiftedFieldPositions)
-        availableFields = []
-
-        if len(shiftMap) != len(self._shiftedFieldPositions):
-            raise Exception("Multi1D3DRemapper.shift1DFields the provided shiftMap must contain as many values ({} provided) than the number of 1D fields ({}).".format(len(shiftMap), len(self._shiftedFieldPositions)))
-        if max(shiftMap) > len(self._shiftedFieldPositions) - 1:
-            raise Exception("Multi1D3DRemapper.shift1DFields the provided shiftMap contains values ({}) greater than the number of 1D fields - 1 ({}).".format(max(shiftMap), len(self._shiftedFieldPositions) - 1))
-
-        for ipos, ifield in enumerate(self._shiftedFieldPositions):
-            if shiftMap[ipos] >= 0:
-                if newFieldPositions[shiftMap[ipos]] >= 0:
-                    raise Exception("Multi1D3DRemapper.shift1DFields the provided shiftMap contains twice the positive value ({}).".format(shiftMap[ipos]))
-                newFieldPositions[shiftMap[ipos]] = ifield
-            else:
-                availableFields.append(ifield)
-
-        count = 0
-        for ipos, ifield in enumerate(newFieldPositions):
-            if ifield < 0:
-                newFieldPositions[ipos] = availableFields[count]
-                count += 1
-
-        newIndexTable = [[] for k in range(len(self._indexTable))]
-
-        for ipos, ifield in enumerate(newFieldPositions):
-            newIndexTable[ifield] = self._indexTable[self._shiftedFieldPositions[ipos]]
-
-        self._indexTable = newIndexTable
-        self._shiftedFieldPositions = newFieldPositions
-
+        availableFields, shiftedFieldPositions, indexTable = shift1DFields(shiftMap, self._shiftedFieldPositions, self._indexTable)
+        self.setShiftedIndex(shiftedFieldPositions, indexTable)
         return availableFields
+
+    def setShiftedIndex(self, shiftedFieldPositions, indexTable):
+        """ ! INTERNAL """
+        self._shiftedFieldPositions = shiftedFieldPositions
+        self._indexTable = indexTable
+        self.isInnerFieldBuilt = False
 
 
 class SharedRemappingMulti1D3D(SharedRemapping):
@@ -210,7 +233,7 @@ class SharedRemappingMulti1D3D(SharedRemapping):
             return [], valuesToGet
 
         if not self._remapper.isInnerFieldBuilt:
-            self._remapper.buildInnerField(fieldsToSet[0].getMesh() if self._isReverse else fieldsToGet[0].getMesh())
+            self._remapper.buildInnerField([field.getMesh() for field in (fieldsToSet if self._isReverse else fieldsToGet)])
         if self._isReverse:
             outputFields, outputValues = SharedRemapping.__call__(self, fieldsToGet, [self._remapper.getInnerField()] * len(fieldsToGet), valuesToGet)
             resu = []
@@ -220,7 +243,7 @@ class SharedRemappingMulti1D3D(SharedRemapping):
         indexFirst = 0
         intermediate3DField = []
         while indexFirst + self._numberOf1DFields <= len(fieldsToGet):
-            fields1D = [fieldsToGet[indexFirst + k] for k in range(self._numberOf1DFields)]
+            fields1D = fieldsToGet[indexFirst:indexFirst + self._numberOf1DFields]
             intermediate3DField.append(self._remapper.build3DField(fields1D, self._defaultValue))
             indexFirst += self._numberOf1DFields
         return SharedRemapping.__call__(self, intermediate3DField, fieldsToSet, valuesToGet)
