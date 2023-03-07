@@ -68,23 +68,26 @@ def makePrismeHexaMED(x0, y0, length2, coordzbas, coordzhaut):
     return makePrismeQuelconqueMED(coordx, coordy, coordzbas, coordzhaut)
 
 
-def makeMeshHexa():
+def makeMeshHexa(meshID = -1):
     length = 5.
     coordzbas = 0.
     coordzhaut = 10.
     entreplat = 2. * length * cos(pi / 6.)
     hexa = []
-    hexa.append(makePrismeHexaMED(-0.5 * entreplat, 0, length, coordzbas, coordzhaut))
-    hexa.append(makePrismeHexaMED(+0.5 * entreplat, 0, length, coordzbas, coordzhaut))
+    if meshID == 0 or meshID == -1:
+        hexa.append(makePrismeHexaMED(-0.5 * entreplat, 0, length, coordzbas, coordzhaut))
+    if meshID == 1 or meshID == -1:
+        hexa.append(makePrismeHexaMED(+0.5 * entreplat, 0, length, coordzbas, coordzhaut))
     meshHexa = mc.MEDCouplingUMesh.MergeUMeshes(hexa)
     meshHexa.setName("MeshHexa")
     return meshHexa
 
 
-def makeFieldHexa():
+def makeFieldHexa(meshID = -1):
+    nbMeshes = 2 if meshID < 0 else 1
     f = mc.MEDCouplingFieldDouble.New(mc.ON_CELLS)
-    f.setMesh(makeMeshHexa())
-    v = [0., 0.]
+    f.setMesh(makeMeshHexa(meshID))
+    v = [0.] * nbMeshes
     array = mc.DataArrayDouble.New()
     array.setValues(v, len(v), 1)
     f.setArray(array)
@@ -110,23 +113,26 @@ def makePrismeCarreMED(x0, y0, length, coordzbas, coordzhaut):
     return makePrismeQuelconqueMED(coordx, coordy, coordzbas, coordzhaut)
 
 
-def makeMeshCarre():
+def makeMeshCarre(meshID = -1):
     length = 5.
     coordzbas = 0.
     coordzhaut = 10.
     decalage = 1.
     carres = []
-    carres.append(makePrismeCarreMED(-0.5 * length + decalage, 0, length, coordzbas, coordzhaut))
-    carres.append(makePrismeCarreMED(+0.5 * length + decalage, 0, length, coordzbas, coordzhaut))
+    if meshID == 0 or meshID == -1:
+        carres.append(makePrismeCarreMED(-0.5 * length + decalage, 0, length, coordzbas, coordzhaut))
+    if meshID == 1 or meshID == -1:
+        carres.append(makePrismeCarreMED(+0.5 * length + decalage, 0, length, coordzbas, coordzhaut))
     meshCarre = mc.MEDCouplingUMesh.MergeUMeshes(carres)
     meshCarre.setName("MeshCarre")
     return meshCarre
 
 
-def makeFieldCarre():
+def makeFieldCarre(meshID = -1):
+    nbMeshes = 2 if meshID < 0 else 1
     f = mc.MEDCouplingFieldDouble.New(mc.ON_CELLS)
-    f.setMesh(makeMeshCarre())
-    v = [0., 0.]
+    f.setMesh(makeMeshCarre(meshID))
+    v = [0.] * nbMeshes
     array = mc.DataArrayDouble.New()
     array.setValues(v, len(v), 1)
     f.setArray(array)

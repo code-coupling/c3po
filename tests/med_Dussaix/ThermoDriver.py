@@ -2,7 +2,6 @@
 # This class is the "thermohydraulic" part of the two meshes model.
 from __future__ import print_function, division
 from math import *
-import numpy
 
 import c3po.medcouplingCompat as mc
 
@@ -52,29 +51,20 @@ class ThermoDriver(PhysicsDriver):
         return True
 
     def solveTimeStep(self):
-        T1 = self.T_[0]
-        T2 = self.T_[1]
-        X1 = (enthalpie(T1) - Hlsat) / (Hvsat - Hlsat)
-        X2 = (enthalpie(T2) - Hlsat) / (Hvsat - Hlsat)
-        alpha1 = 0.
-        alpha2 = 0.
-        rhov1 = rhov(Pression)
-        rhov2 = rhov(Pression)
-        if X1 > 0.:
-            T1 = Tsat
-        if X2 > 0.:
-            T2 = Tsat
-        rhol1 = rhol(T1)
-        rhol2 = rhol(T2)
-        if X1 > 0.:
-            alpha1 = X1 / (X1 + (1. - X1) * rhov1 / rhol1 * self.Vv_Vl_)
-            if alpha1 > 1.:
-                alpha1 = 1.
-        if X2 > 0.:
-            alpha2 = X2 / (X2 + (1. - X2) * rhov2 / rhol2 * self.Vv_Vl_)
-            if alpha2 > 1.:
-                alpha2 = 1.
-        v = [alpha1 * rhov1 + (1. - alpha1) * rhol1, alpha2 * rhov2 + (1. - alpha2) * rhol2]
+        v = [0.] * len(self.T_)
+        for iTemp in range(len(self.T_)):
+            T = self.T_[iTemp]
+            X = (enthalpie(T) - Hlsat) / (Hvsat - Hlsat)
+            alpha = 0.
+            rhov_ = rhov(Pression)
+            if X > 0.:
+                T = Tsat
+            rhol_ = rhol(T)
+            if X > 0.:
+                alpha = X / (X + (1. - X) * rhov_ / rhol_ * self.Vv_Vl_)
+                if alpha > 1.:
+                    alpha = 1.
+            v[iTemp] = alpha * rhov_ + (1. - alpha) * rhol_
         array = mc.DataArrayDouble.New()
         array.setValues(v, len(v), 1)
         self.MEDResu_.setArray(array)
@@ -112,8 +102,8 @@ class ThermoDriver(PhysicsDriver):
     def setInputMEDDoubleField(self, name, field):
         if name == "Temperatures":
             array = field.getArray()
-            self.T_[0] = array.getIJ(0, 0)
-            self.T_[1] = array.getIJ(1, 0)
+            for iT in range(len(self.T_)):
+                self.T_[iT] = array.getIJ(iT, 0)
 
     def getInputMEDDoubleFieldTemplate(self, name):
         return self.MEDResu_

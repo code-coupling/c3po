@@ -70,8 +70,9 @@ class NeutroDriver(PhysicsDriver):
     def setInputMEDDoubleField(self, name, field):
         if name == "Densities":
             array = field.getArray()
-            self.densities_[0] = array.getIJ(0, 0)
-            self.densities_[1] = array.getIJ(1, 0)
+            for idens in range(len(self.densities_)):
+                self.densities_[idens] = array.getIJ(idens, 0)
+                self.densities_[idens] = array.getIJ(idens, 0)
 
     def getInputMEDDoubleFieldTemplate(self, name):
         return self.MEDResu_
