@@ -11,11 +11,10 @@
 """ Contain the class MPISharedRemappingMulti1D3D. """
 from __future__ import print_function, division
 
-import c3po.medcouplingCompat as mc
-from c3po.exchangeMethods.SharedRemappingMulti1D3D import shift1DFields, Multi1D3DRemapper, SharedRemappingMulti1D3D
+from c3po.exchangeMethods.SharedRemappingMulti1D3D import shift1DFields, Multi1D3DRemapper
 from c3po.CollaborativeObject import CollaborativeObject
 from c3po.mpi.MPIRemote import MPIRemote
-from c3po.mpi.MPISharedRemapping import MPISharedRemapping, MPIRemapper
+from c3po.mpi.mpiExchangeMethods.MPISharedRemapping import MPISharedRemapping, MPIRemapper
 
 
 class MPIMulti1D3DRemapper(MPIRemapper):
@@ -89,7 +88,7 @@ class MPIMulti1D3DRemapper(MPIRemapper):
 
     def shift1DFields(self, shiftMap):
         """! See Multi1D3DRemapper.shift1DFields() """
-        availableFields, self._shiftedFieldPositions, self._globalIndexTable = shift1DFields(self, shiftMap, self._shiftedFieldPositions, self._globalIndexTable)
+        availableFields, self._shiftedFieldPositions, self._globalIndexTable = shift1DFields(shiftMap, self._shiftedFieldPositions, self._globalIndexTable)
         tmpFieldPositions = [0] * self._nbLocal1DFields
         tmpIndexTable = [[] for _ in range(self._nbLocal1DFields)]
         for index1D, positions in enumerate(self._globalIndexTable):
@@ -115,7 +114,7 @@ class MPISharedRemappingMulti1D3D(MPISharedRemapping):
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Project the input fields one by one before returning them as outputs, in the same order. """
         numberOf1DFields = len(fieldsToSet) if self._isReverse else len(fieldsToGet)
-        if numberOf1DFields % self._numberOf1DFields != 0:
+        if (numberOf1DFields != 0) if self._numberOf1DFields == 0 else (numberOf1DFields % self._numberOf1DFields != 0):
             msg = "The number of provided 1D fields ({}) is wrong.\n".format(numberOf1DFields)
             msg += "According to the provided remapper object, the number of 1D fields must be a multiple of {}.".format(self._numberOf1DFields)
             raise Exception(msg)

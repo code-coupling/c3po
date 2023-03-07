@@ -11,7 +11,7 @@
 """ Contain the class MPIExchangeMethod. """
 from __future__ import print_function, division
 
-from c3po.ExchangeMethod import ExchangeMethod
+from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 
 class MPIExchangeMethod(ExchangeMethod):
     """! MPIExchangeMethod is a class interface (to be implemented) which standardizes MPI exchange methods

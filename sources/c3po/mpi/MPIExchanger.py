@@ -20,6 +20,7 @@ from c3po.mpi.MPIRemoteProcesses import MPIRemoteProcesses
 from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 from c3po.mpi.MPISender import MPIFieldSender, MPIFileFieldSender, MPIValueSender
 from c3po.mpi.MPIRecipient import MPIFieldRecipient, MPIFileFieldRecipient, MPIValueRecipient
+from c3po.mpi.mpiExchangeMethods.MPIExchangeMethod import MPIExchangeMethod
 
 
 class MPIShortcutToData(object):
@@ -63,7 +64,7 @@ class MPIExchanger(LocalExchanger):
         MPIExchanger must be built in the same way for all the processes involved in the exchanges. Likewise, the exchange()
         method must be called at the same time by all processes.
 
-        The first parameter, method, can be either a c3po.mpi.MPIExchangeMethods.MPIExchangeMethod.MPIExchangeMethod or not:
+        The first parameter, method, can be either a c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod or not:
 
             - In the first case, the exchange method has to deal with data exchanges between MPI processes (in addition to
             local data processing such as unit change). MPIRemoteProcess and MPIRemoteProcesses are accepted, but not
@@ -77,12 +78,12 @@ class MPIExchanger(LocalExchanger):
             the set side, all the processes of the communicator of this object must be involved in the exchanges.
             MPIRemoteProcesses are not accepted.
 
-        @param exchangeWithFiles (bool) Only available with an exchange method that is not of type
-            c3po.mpi.MPIExchangeMethods.MPIExchangeMethod.MPIExchangeMethodwhen! When exchangeWithFiles is set to True, exchanged
+        @param exchangeWithFiles (bool) (Only available with an exchange method that is not of type
+            c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod.) When exchangeWithFiles is set to True, exchanged
             MEDField are written on files and read by the recipient process(es). Only basic data (such as the file path) are
             exchanged via MPI.
-        @param mpiComm Only available with an exchange method that is of type
-            c3po.mpi.MPIExchangeMethods.MPIExchangeMethod.MPIExchangeMethodwhen! If not None, it indicated to the exchange method
+        @param mpiComm (Only available with an exchange method that is of type
+            c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod.) If not None, it indicated to the exchange method
             to use this communicator for data exchange. Otherwise, all MPIRemoteProcess and MPIRemoteProcesses must use the same
             communicator, which is then used by the exchange method.
 
@@ -105,7 +106,7 @@ class MPIExchanger(LocalExchanger):
         else:
             if mpiComm is not None:
                 raise ValueError("MPIExchanger.__init__: mpiComm cannot be specified when using an exchange method that is not of type MPIExchangeMethod.")
-            self._initWithLocalExchangeMethod(method, fieldsToGet, fieldsToSet, valuesToGet, valuesToSet, exchangeWithFiles, mpiComm)
+            self._initWithLocalExchangeMethod(method, fieldsToGet, fieldsToSet, valuesToGet, valuesToSet, exchangeWithFiles)
 
     def _initWithLocalExchangeMethod(self, method, fieldsToGet, fieldsToSet, valuesToGet=[], valuesToSet=[], exchangeWithFiles=False):
         """! INTERNAL """

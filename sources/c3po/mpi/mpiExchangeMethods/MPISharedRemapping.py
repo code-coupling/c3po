@@ -13,7 +13,7 @@ from __future__ import print_function, division
 from mpi4py import MPI as mpi
 
 import c3po.medcouplingCompat as mc
-from c3po.mpi.MPIExchangeMethod import MPIExchangeMethod
+from c3po.mpi.mpiExchangeMethods.MPIExchangeMethod import MPIExchangeMethod
 
 
 class MPIRemapper(object):
@@ -167,7 +167,7 @@ class MPISharedRemapping(MPIExchangeMethod):
         transformedMED = []
 
         if len(fieldsToSet) > 0 or len(fieldsToGet) > 0:
-            self.initialize(fieldsToGet, fieldsToSet)
+            self.initialize(fieldsToGet[0] if len(fieldsToGet) > 0 else fieldsToSet[0])
             for field in fieldsToGet:
                 transformedMED.append(self._remapper.sendField(field))
             for field in fieldsToSet:

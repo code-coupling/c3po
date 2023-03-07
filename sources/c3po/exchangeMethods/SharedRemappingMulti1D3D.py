@@ -15,7 +15,7 @@ import c3po.medcouplingCompat as mc
 from c3po.exchangeMethods.SharedRemapping import Remapper, SharedRemapping
 
 
-def shift1DFields(self, shiftMap, shiftedFieldPositions, indexTable):
+def shift1DFields(shiftMap, shiftedFieldPositions, indexTable):
     """! INTERNAL """
     newFieldPositions = [-1] * len(shiftedFieldPositions)
     availableFields = []
@@ -107,12 +107,16 @@ class Multi1D3DRemapper(Remapper):
                 arrayY = mc.DataArrayDouble([self._yCoordinates[yIndex], self._yCoordinates[yIndex + 1]])
                 arrayY.setInfoOnComponent(0, "Y [m]")
                 internal1DMeshes[-1].setCoords(arrayX, arrayY, self._zCoordinateArrays[imesh])
-        self._innerMesh = mc.MEDCouplingMesh.MergeMeshes(internal1DMeshes)
+        if len(internal1DMeshes) > 0:
+            self._innerMesh = mc.MEDCouplingMesh.MergeMeshes(internal1DMeshes)
+        else:
+            self._innerMesh = mc.MEDCouplingUMesh()
         self._innerMesh.setName("3DMeshFromMulti1D")
         self._innerField.setMesh(self._innerMesh)
         array = mc.DataArrayDouble()
-        array.alloc(self._innerMesh.getNumberOfCells())
-        array.fillWithValue(0.)
+        if len(internal1DMeshes) > 0:
+            array.alloc(self._innerMesh.getNumberOfCells())
+            array.fillWithValue(0.)
         self._innerField.setArray(array)
         self.isInnerFieldBuilt = True
         self.isInit = False
