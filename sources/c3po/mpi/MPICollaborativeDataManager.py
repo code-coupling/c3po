@@ -16,6 +16,8 @@ from mpi4py import MPI
 from c3po.CollaborativeDataManager import CollaborativeDataManager
 from c3po.CollaborativeObject import CollaborativeObject
 from c3po.mpi.MPIRemote import MPIRemote
+from c3po.mpi.MPIDomainDecompositionDataManager import MPIDomainDecompositionDataManager
+from c3po.mpi.MPICollectiveDataManager import MPICollectiveDataManager
 
 
 class MPICollaborativeDataManager(CollaborativeDataManager):
@@ -46,6 +48,7 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         localData = []
         self.mpiComm = mpiComm
         self.isMPI = mpiComm is not None
+        indexToIgnore = []
 
         for data in dataManagers:
             if mpiComm is None and isinstance(data, MPIRemote):
@@ -58,17 +61,19 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
                     if self.mpiComm != data.mpiComm:
                         raise Exception("MPICollaborativeDataManager.__init__ All distant processes must used the same MPI communicator")
             if not isinstance(data, MPIRemote):
-                localData.append(data)
+                if isinstance(data, MPICollaborativeDataManager):
+                    localData += data.dataManagers
+                elif isinstance(data, MPIDomainDecompositionDataManager):
+                    localView = data.getLocalView()
+                    localData.append(localView)
+                else:
+                    if isinstance(data, MPICollectiveDataManager) and data.mpiComm.Get_rank() != 0:
+                        indexToIgnore.append(len(localData))
+                    localData.append(data)
 
         CollaborativeDataManager.__init__(self, localData)
+        self._ignoreForConstOperators(indexToIgnore)
         CollaborativeObject.__init__(self, dataManagers)    # pylint: disable=non-parent-init-called
-
-    def getMPIComm(self):
-        """! (Optional) Return the MPI communicator used by the code for parallel computations.
-
-        @return (mpi4py.Comm) mpi4py communicator.
-        """
-        return self.mpiComm
 
     def cloneEmpty(self):
         """! Return a clone of self without copying the data.
@@ -97,9 +102,11 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = CollaborativeDataManager.norm2(self)
+        #print("local :", self, norm)
         if self.isMPI:
             norm = self.mpiComm.allreduce(norm * norm, op=MPI.SUM)
             norm = math.sqrt(norm)
+        #print("global :", self, norm)
         return norm
 
     def dot(self, other):

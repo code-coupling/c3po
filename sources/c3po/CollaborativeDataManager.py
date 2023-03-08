@@ -25,7 +25,12 @@ class CollaborativeDataManager(DataManager, CollaborativeObject):
         @param dataManagers a list of DataManager.
         """
         self.dataManagers = dataManagers
+        self._indexToIgnore = []
         CollaborativeObject.__init__(self, self.dataManagers)
+
+    def _ignoreForConstOperators(self, indexToIgnore):
+        """! INTERNAL """
+        self._indexToIgnore[:] = indexToIgnore[:]
 
     def clone(self):
         """! Return a clone of self.
@@ -41,6 +46,7 @@ class CollaborativeDataManager(DataManager, CollaborativeObject):
         """
         dataClone = [data.cloneEmpty() for data in self.dataManagers]
         output = CollaborativeDataManager(dataClone)
+        output._ignoreForConstOperators(self._indexToIgnore)
         return output
 
     def copy(self, other):
@@ -60,10 +66,11 @@ class CollaborativeDataManager(DataManager, CollaborativeObject):
         @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
         """
         norm = 0.
-        for data in self.dataManagers:
-            localNorm = data.normMax()
-            if localNorm > norm:
-                norm = localNorm
+        for idata, data in enumerate(self.dataManagers):
+            if idata not in self._indexToIgnore:
+                localNorm = data.normMax()
+                if localNorm > norm:
+                    norm = localNorm
         return norm
 
     def norm2(self):
@@ -72,9 +79,10 @@ class CollaborativeDataManager(DataManager, CollaborativeObject):
         @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = 0.
-        for data in self.dataManagers:
-            localNorm = data.norm2()
-            norm += localNorm * localNorm
+        for idata, data in enumerate(self.dataManagers):
+            if idata not in self._indexToIgnore:
+                localNorm = data.norm2()
+                norm += localNorm * localNorm
         return math.sqrt(norm)
 
     def checkBeforeOperator(self, other):
@@ -209,5 +217,6 @@ class CollaborativeDataManager(DataManager, CollaborativeObject):
         self.checkBeforeOperator(other)
         result = 0.
         for i in range(len(self.dataManagers)):
-            result += self.dataManagers[i].dot(other.dataManagers[i])
+            if i not in self._indexToIgnore:
+                result += self.dataManagers[i].dot(other.dataManagers[i])
         return result
