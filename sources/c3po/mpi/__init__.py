@@ -16,6 +16,7 @@ from .MPIRemoteProcesses import MPIRemoteProcesses
 from .MPICollectiveProcess import MPICollectiveProcess
 from .MPICollectiveDataManager import MPICollectiveDataManager
 from .MPICollaborativeDataManager import MPICollaborativeDataManager
+from .MPIDomainDecompositionDataManager import MPIDomainDecompositionDataManager
 from .MPICollaborativePhysicsDriver import MPICollaborativePhysicsDriver
 from .MPIExchanger import MPIExchanger
 from .MPICoupler import MPICoupler
