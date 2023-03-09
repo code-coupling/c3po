@@ -125,11 +125,7 @@ class MPIExchanger(LocalExchanger):
 
             destinations = []
             isCollective = False
-
-            # On verifie qu'il n'y a pas de MPIRemoteProcesses (non supportes)
-            for obj in [data[0] for arg in [fieldsToGet, fieldsToSet, valuesToGet, valuesToSet] for data in arg]:
-                if isinstance(obj, MPIRemoteProcesses):
-                    raise Exception("MPIExchanger.__init__: MPIRemoteProcesses is not allowed with an exchange method that is not of type MPIExchangeMethod.")
+            invalidDestination = False
 
             # On regarde si on a une communication collective dans les set, auquel cas toutes les communications deviennent collectives
             for i in range(len(fieldsToSet)):
@@ -154,13 +150,17 @@ class MPIExchanger(LocalExchanger):
                     toSet = fieldsToSet[i][0]
                     if isinstance(toSet, MPIRemoteProcess) and toSet not in destinations:
                         destinations.append(toSet)
-                    if not isinstance(toSet, MPIRemoteProcess):
+                    elif isinstance(toSet, MPIRemoteProcesses):
+                        invalidDestination = True
+                    if not isinstance(toSet, MPIRemote):
                         self._dataNeeded = True
                 for i in range(len(valuesToSet)):
                     toSet = valuesToSet[i][0]
                     if isinstance(toSet, MPIRemoteProcess) and toSet not in destinations:
                         destinations.append(toSet)
-                    if not isinstance(toSet, MPIRemoteProcess):
+                    elif isinstance(toSet, MPIRemoteProcesses):
+                        invalidDestination = True
+                    if not isinstance(toSet, MPIRemote):
                         self._dataNeeded = True
 
             # On cree enfin les objets Sender et Recipient
@@ -168,29 +168,41 @@ class MPIExchanger(LocalExchanger):
                 toGet = fieldsToGet[i][0]
                 if not isinstance(toGet, MPICollectiveProcess):
                     self._fieldsToGet[i] = MPIShortcutToData(self._fieldsToGet[i])
-                    if not isinstance(toGet, MPIRemoteProcess):
+                    if not isinstance(toGet, MPIRemote):
+                        if invalidDestination:
+                            raise Exception("MPIExchanger.__init__: MPIRemoteProcesses is not allowed with an exchange method that is not of type MPIExchangeMethod.")
                         fieldSender = MPIFileFieldSender(destinations, ShortcutToField(*fieldsToGet[i]), self._fieldsToGet[i], False) if exchangeWithFiles else MPIFieldSender(destinations, ShortcutToField(*fieldsToGet[i]), self._fieldsToGet[i], False)
                         self._mpiExchanges.append(fieldSender)
                     elif self._dataNeeded:
+                        if isinstance(toGet, MPIRemoteProcesses):
+                            raise Exception("MPIExchanger.__init__: MPIRemoteProcesses is not allowed with an exchange method that is not of type MPIExchangeMethod.")
                         fieldRecipient = MPIFileFieldRecipient(toGet, self._fieldsToGet[i], isCollective, False) if exchangeWithFiles else MPIFieldRecipient(toGet, self._fieldsToGet[i], isCollective, False)
                         self._mpiExchanges.append(fieldRecipient)
             for i in range(len(fieldsToSet)):
                 toSet = fieldsToSet[i][0]
                 if not isinstance(toSet, MPICollectiveProcess):
                     self._fieldsToSet[i] = MPIShortcutToData(self._fieldsToSet[i])
-                    if not isinstance(toSet, MPIRemoteProcess):
+                    if not isinstance(toSet, MPIRemote):
+                        if invalidDestination:
+                            raise Exception("MPIExchanger.__init__: MPIRemoteProcesses is not allowed with an exchange method that is not of type MPIExchangeMethod.")
                         fieldSender = MPIFileFieldSender(destinations, ShortcutToField(*fieldsToSet[i]), self._fieldsToSet[i], True) if exchangeWithFiles else MPIFieldSender(destinations, ShortcutToField(*fieldsToSet[i]), self._fieldsToSet[i], True)
                         self._mpiExchanges.append(fieldSender)
                     elif self._dataNeeded:
+                        if isinstance(toGet, MPIRemoteProcesses):
+                            raise Exception("MPIExchanger.__init__: MPIRemoteProcesses is not allowed with an exchange method that is not of type MPIExchangeMethod.")
                         fieldRecipient = MPIFileFieldRecipient(toSet, self._fieldsToSet[i], isCollective, True) if exchangeWithFiles else MPIFieldRecipient(toSet, self._fieldsToSet[i], isCollective, True)
                         self._mpiExchanges.append(fieldRecipient)
             for i in range(len(valuesToGet)):
                 toGet = valuesToGet[i][0]
                 if not isinstance(toGet, MPICollectiveProcess):
                     self._valuesToGet[i] = MPIShortcutToData(self._valuesToGet[i])
-                    if not isinstance(toGet, MPIRemoteProcess):
+                    if not isinstance(toGet, MPIRemote):
+                        if invalidDestination:
+                            raise Exception("MPIExchanger.__init__: MPIRemoteProcesses is not allowed with an exchange method that is not of type MPIExchangeMethod.")
                         self._mpiExchanges.append(MPIValueSender(destinations, ShortcutToValue(*valuesToGet[i]), self._valuesToGet[i]))
                     elif self._dataNeeded:
+                        if isinstance(toGet, MPIRemoteProcesses):
+                            raise Exception("MPIExchanger.__init__: MPIRemoteProcesses is not allowed with an exchange method that is not of type MPIExchangeMethod.")
                         self._mpiExchanges.append(MPIValueRecipient(toGet, self._valuesToGet[i], isCollective))
 
     def _initWithMPIExchangeMethod(self, method, fieldsToGet, fieldsToSet, valuesToGet=[], valuesToSet=[], mpiComm=None):
