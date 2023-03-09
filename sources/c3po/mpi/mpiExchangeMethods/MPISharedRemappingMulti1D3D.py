@@ -124,7 +124,11 @@ class MPISharedRemappingMulti1D3D(MPISharedRemapping):
         if not self._remapper.isInnerFieldBuilt:
             self._remapper.buildInnerField([field.getMesh() for field in (fieldsToSet if self._isReverse else fieldsToGet)])
         if self._isReverse:
-            outputFields, outputValues = MPISharedRemapping.__call__(self, fieldsToGet, [self._remapper.getInnerField()] * len(fieldsToGet), valuesToGet)
+            numberRemapping = 0 if numberOf1DFields == 0 else numberOf1DFields // self._numberOf1DFields
+            innerField = self._remapper.getInnerField()
+            if numberOf1DFields > 0:
+                innerField.setNature(fieldsToSet[0].getNature())
+            outputFields, outputValues = MPISharedRemapping.__call__(self, fieldsToGet, [innerField] * numberRemapping, valuesToGet)
             resu = []
             for field3D in outputFields:
                 resu += self._remapper.build1DFields(field3D)

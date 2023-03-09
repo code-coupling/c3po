@@ -239,7 +239,10 @@ class SharedRemappingMulti1D3D(SharedRemapping):
         if not self._remapper.isInnerFieldBuilt:
             self._remapper.buildInnerField([field.getMesh() for field in (fieldsToSet if self._isReverse else fieldsToGet)])
         if self._isReverse:
-            outputFields, outputValues = SharedRemapping.__call__(self, fieldsToGet, [self._remapper.getInnerField()] * len(fieldsToGet), valuesToGet)
+            innerField = self._remapper.getInnerField()
+            if numberOf1DFields > 0:
+                innerField.setNature(fieldsToSet[0].getNature())
+            outputFields, outputValues = SharedRemapping.__call__(self, fieldsToGet, [innerField] * len(fieldsToGet), valuesToGet)
             resu = []
             for field3D in outputFields:
                 resu += self._remapper.build1DFields(field3D)
