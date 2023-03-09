@@ -179,7 +179,12 @@ class LocalExchanger(Exchanger):
         valuesToGet = [ds.get() for ds in self._valuesToGet]
         fieldsToSet, valuesToSet = self._method(fieldsToGet, fieldsToSet, valuesToGet)
         if (len(fieldsToSet) != len(self._fieldsToSet) or len(valuesToSet) != len(self._valuesToSet)):
-            raise Exception("LocalExchanger.exchange the method does not have the good number of outputs.")
+            expectedNb = len(self._fieldsToSet)
+            foundNb = len(fieldsToSet)
+            if len(fieldsToSet) == len(self._fieldsToSet):
+                expectedNb = len(self._valuesToSet)
+                foundNb = len(valuesToSet)
+            raise Exception("LocalExchanger.exchange the method does not have the good number of outputs (we got {} outputs instead of {}).". format(foundNb, expectedNb))
         for i, field in enumerate(fieldsToSet):
             self._fieldsToSet[i].set(field)
         for i, value in enumerate(valuesToSet):
