@@ -12,6 +12,7 @@ class ThermoDriver(PhysicsDriver):
     def __init__(self):
         PhysicsDriver.__init__(self)
         self._medP = None
+        self._medPTemplate = None
         self._medT = None
         self._medBu = None
         self._medBuOld = None
@@ -29,6 +30,8 @@ class ThermoDriver(PhysicsDriver):
         self._medT = MEDBuilder.makeField1D(self._length, self._nMesh)
         self._medBu = MEDBuilder.makeField1D(self._length, self._nMesh)
         self._medBuOld = MEDBuilder.makeField1D(self._length, self._nMesh)
+        self._medPTemplate = MEDBuilder.makeField1D(self._length, self._nMesh)
+        self._medPTemplate.setNature(mc.ExtensiveMaximum)
         self._stationaryMode = False
         return True
 
@@ -97,4 +100,4 @@ class ThermoDriver(PhysicsDriver):
             self._medP = field
 
     def getInputMEDDoubleFieldTemplate(self, name):
-        return self._medT
+        return self._medPTemplate

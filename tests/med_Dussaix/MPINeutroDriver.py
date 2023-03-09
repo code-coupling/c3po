@@ -27,11 +27,13 @@ class MPINeutroDriver(NeutroDriver):
             if self._mpiComm is not None and self._mpiComm.Get_size() != 2:
                 raise Exception("We are waiting for a mpiComm a size 2.")
             self.MEDResu_ = MEDBuilder.makeFieldCarre(self._mpiComm.Get_rank())
+            self.MEDTemplate_ = MEDBuilder.makeFieldCarre(self._mpiComm.Get_rank())
+            self.MEDTemplate_.setNature(mc.IntensiveMaximum)
             self.isInit_ = True
         return True
 
     def solveTimeStep(self):
-        meanDensity = mpi.allreduce(self.densities_[self._mpiComm.Get_rank()], op=mpi.SUM)
+        meanDensity = self._mpiComm.allreduce(self.densities_[0], op=mpi.SUM)
         v = [self.meanT_ * self.densities_[0] / meanDensity + self.meanT_ / 2.]
         array = mc.DataArrayDouble.New()
         array.setValues(v, len(v), 1)

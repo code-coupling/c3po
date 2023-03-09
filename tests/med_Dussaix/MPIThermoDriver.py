@@ -26,5 +26,7 @@ class MPIThermoDriver(ThermoDriver):
             if self._mpiComm is not None and self._mpiComm.Get_size() != 2:
                 raise Exception("We are waiting for a mpiComm a size 2.")
             self.MEDResu_ = MEDBuilder.makeFieldHexa(self._mpiComm.Get_rank())
+            self.MEDTemplate_ = MEDBuilder.makeFieldHexa(self._mpiComm.Get_rank())
+            self.MEDTemplate_.setNature(mc.ExtensiveMaximum)
             self.isInit_ = True
         return True

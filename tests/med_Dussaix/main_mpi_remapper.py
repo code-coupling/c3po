@@ -26,7 +26,7 @@ def main_mpi_remapper():
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
-    isThermo = comm.Get_rank() < 2
+    isThermo = rank < 2
     codeMPIComm = comm.Split(isThermo)
 
     myThermoDriver = c3po.mpi.MPIRemoteProcesses(comm, [0, 1])
@@ -68,18 +68,18 @@ def main_mpi_remapper():
     mycoupler.solve()
 
     print("Convergence :", mycoupler.getSolveStatus())
-    if rank == 1:
+    if rank in [2, 3]:
+        ref = 1032.46971894 if rank == 2 else 967.530281064
         FieldT = myNeutroDriver.getOutputMEDDoubleField("Temperatures")
         ArrayT = FieldT.getArray()
-        print("Temperatures :", ArrayT.getIJ(0, 0), ArrayT.getIJ(1, 0))
-        assert pytest.approx(ArrayT.getIJ(0, 0), abs=1.E-3) == 1032.46971894
-        assert pytest.approx(ArrayT.getIJ(1, 0), abs=1.E-3) == 967.530281064
-    if rank == 0:
+        print("Temperature (", rank - 2, "):", ArrayT.getIJ(0, 0))
+        assert pytest.approx(ArrayT.getIJ(0, 0), abs=1.E-3) == ref
+    if rank in [0, 1]:
+        ref = 822.372079129 if rank == 0 else 700.711939405
         FieldRho = myThermoDriver.getOutputMEDDoubleField("Densities")
         ArrayRho = FieldRho.getArray()
-        print("Densities :", ArrayRho.getIJ(0, 0), ArrayRho.getIJ(1, 0))
-        assert pytest.approx(ArrayRho.getIJ(0, 0), abs=1.E-3) == 822.372079129
-        assert pytest.approx(ArrayRho.getIJ(1, 0), abs=1.E-3) == 700.711939405
+        print("Density (", rank, "):", ArrayRho.getIJ(0, 0))
+        assert pytest.approx(ArrayRho.getIJ(0, 0), abs=1.E-3) == ref
 
     mycoupler.term()
     myNeutroDriver.term()

@@ -13,6 +13,7 @@ class NeutroDriver(PhysicsDriver):
         PhysicsDriver.__init__(self)
         self._medP = None
         self._medT = None
+        self._medTTemplate = None
         self._sizeX = 100.
         self._sizeY = 100.
         self._sizeZ = 500.
@@ -23,6 +24,8 @@ class NeutroDriver(PhysicsDriver):
 
     def initialize(self):
         self._medP = MEDBuilder.makeFieldCarre(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ)
+        self._medTTemplate = MEDBuilder.makeFieldCarre(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ)
+        self._medTTemplate.setNature(mc.IntensiveMaximum)
         self._medT = None
         self._stationaryMode = False
         return True
@@ -52,10 +55,13 @@ class NeutroDriver(PhysicsDriver):
                     x = (ix + 0.5) * dx
                     y = (iy + 0.5) * dy
                     z = (iz + 0.5) * dz
+                    T = arrayT.getIJ(imesh, 0)
+                    if T < 0.:
+                        T = 0.
                     arrayP.setIJ(imesh, 0, math.cos((x / (self._sizeX / 2.) - 1.) * math.pi / 2.) *
                                  math.cos((y / (self._sizeY / 2.) - 1.) * math.pi / 2.) *
                                  math.cos((z / (self._sizeZ / 2.) - 1.) * math.pi / 2.) *
-                                 (1. - (arrayT.getIJ(imesh, 0) - 1.) * 0.2))
+                                 (1. - (T - 1.) * 0.2))
                     imesh += 1
         return True
 
@@ -91,4 +97,4 @@ class NeutroDriver(PhysicsDriver):
             self._medT = field
 
     def getInputMEDDoubleFieldTemplate(self, name):
-        return self._medP
+        return self._medTTemplate

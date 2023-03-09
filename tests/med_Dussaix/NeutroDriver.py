@@ -15,6 +15,7 @@ class NeutroDriver(PhysicsDriver):
         PhysicsDriver.__init__(self)
         self.densities_ = [1., 1.]
         self.MEDResu_ = 0
+        self.MEDTemplate_ = 0
         self.meanT_ = 1.
         self.isInit_ = False
         self._stationaryMode = False
@@ -22,6 +23,8 @@ class NeutroDriver(PhysicsDriver):
     def initialize(self):
         if not self.isInit_:
             self.MEDResu_ = MEDBuilder.makeFieldCarre()
+            self.MEDTemplate_ = MEDBuilder.makeFieldCarre()
+            self.MEDTemplate_.setNature(mc.IntensiveMaximum)
             self.isInit_ = True
         return True
 
@@ -75,7 +78,7 @@ class NeutroDriver(PhysicsDriver):
                 self.densities_[idens] = array.getIJ(idens, 0)
 
     def getInputMEDDoubleFieldTemplate(self, name):
-        return self.MEDResu_
+        return self.MEDTemplate_
 
     def setInputDoubleValue(self, name, value):
         if name == "meanT":

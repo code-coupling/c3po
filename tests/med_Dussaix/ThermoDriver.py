@@ -33,6 +33,7 @@ class ThermoDriver(PhysicsDriver):
         PhysicsDriver.__init__(self)
         self.T_ = [1., 1.]
         self.MEDResu_ = 0
+        self.MEDTemplate_ = 0
         self.Vv_Vl_ = 1.
         self.isInit_ = False
         self._stationaryMode = False
@@ -41,6 +42,8 @@ class ThermoDriver(PhysicsDriver):
     def initialize(self):
         if not self.isInit_:
             self.MEDResu_ = MEDBuilder.makeFieldHexa()
+            self.MEDTemplate_ = MEDBuilder.makeFieldHexa()
+            self.MEDTemplate_.setNature(mc.ExtensiveMaximum)
             self.isInit_ = True
         return True
 
@@ -106,7 +109,7 @@ class ThermoDriver(PhysicsDriver):
                 self.T_[iT] = array.getIJ(iT, 0)
 
     def getInputMEDDoubleFieldTemplate(self, name):
-        return self.MEDResu_
+        return self.MEDTemplate_
 
     def setInputDoubleValue(self, name, value):
         if name == "Vv_Vl":
