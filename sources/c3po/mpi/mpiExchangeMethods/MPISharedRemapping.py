@@ -11,6 +11,7 @@
 """ Contain the class SharedRemapping. """
 from __future__ import print_function, division
 from mpi4py import MPI as mpi
+import os
 
 import c3po.medcouplingCompat as mc
 from c3po.mpi.mpiExchangeMethods.MPIExchangeMethod import MPIExchangeMethod
@@ -42,6 +43,7 @@ class MPIRemapper(object):
         @warning The option outsideCellsScreening is not ready to use yet.
         """
         self.isInit = False
+        self.isInitPerNature = {}
         self._meshAlignment = meshAlignment
         self._offset = offset
         if rescaling <= 0.:
@@ -50,13 +52,13 @@ class MPIRemapper(object):
         self._rotation = rotation
         if outsideCellsScreening:
             raise ValueError("MPIRemapper: The option outsideCellsScreening is not ready to use yet.")
-        self._cellsToScreenOutSource = []
-        self._cellsToScreenOutTarget = []
-        self._loadedMatrix = None
-        self._interpKernelDEC = None
+        self._interpKernelDECs = {}
 
     def initialize(self, ranksToGet, ranksToSet, mpiComm, field):
         """! INTERNAL """
+        if not self.isInit:
+            self.terminate()
+
         if len(set(ranksToSet) - set(ranksToGet)) != len(ranksToSet):
             raise Exception("MPIRemapper.initialize: there must not be ranks present in both lists of ranks (to get and to set).")
         if min(min(ranksToGet), min(ranksToSet)) !=0 and max(max(ranksToGet), max(ranksToSet)) != mpiComm.Get_size() - 1:
@@ -81,30 +83,37 @@ class MPIRemapper(object):
         if self._rotation != 0. and mpiComm.Get_rank() in ranksToGet:
             field.getMesh().rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
 
+        nature = field.getNature()
         if mpiComm == mpi.COMM_WORLD:
-            self._interpKernelDEC = mc.InterpKernelDEC(ranksToGet, ranksToSet)
+            self._interpKernelDECs[nature] = mc.InterpKernelDEC(ranksToGet, ranksToSet)
         else:
-            self._interpKernelDEC = mc.InterpKernelDEC(ranksToGet, ranksToSet, mpiComm)
-        self._interpKernelDEC.setMethod("P0")
-        self._interpKernelDEC.attachLocalField(field)
-        self._interpKernelDEC.synchronize()
+            self._interpKernelDECs[nature] = mc.InterpKernelDEC(ranksToGet, ranksToSet, mpiComm)
+        self._interpKernelDECs[nature].setMethod("P0")
+        self._interpKernelDECs[nature].attachLocalField(field)
+        self._interpKernelDECs[nature].synchronize()
+
         self.isInit = True
+        self.isInitPerNature[nature] = True
 
     def terminate(self):
-        if self.isInit:
-            self._interpKernelDEC.release()
-            self.isInit = False
+        for dec in self._interpKernelDECs.values():
+            dec.release()
+        self._interpKernelDECs = {}
+        self.isInitPerNature = {}
+        self.isInit = False
 
     def recvField(self, fieldTemplate):
         """! INTERNAL """
-        self._interpKernelDEC.attachLocalField(fieldTemplate)
-        self._interpKernelDEC.recvData()
+        nature = fieldTemplate.getNature()
+        self._interpKernelDECs[nature].attachLocalField(fieldTemplate)
+        self._interpKernelDECs[nature].recvData()
         return fieldTemplate
 
     def sendField(self, field):
         """! INTERNAL """
-        self._interpKernelDEC.attachLocalField(field)
-        self._interpKernelDEC.sendData()
+        nature = field.getNature()
+        self._interpKernelDECs[nature].attachLocalField(field)
+        self._interpKernelDECs[nature].sendData()
 
 
 class MPISharedRemapping(MPIExchangeMethod):
@@ -138,6 +147,7 @@ class MPISharedRemapping(MPIExchangeMethod):
         @warning at the present time, defaultValue has to be 0.
         """
         self._remapper = remapper
+        self._defaultValue = 0.
         if defaultValue != 0.:
             raise ValueError("MPISharedRemapping: At the present time, it is not possible to use a defaultValue different from 0 ({} was provided).".format(defaultValue))
         self._isReverse = reverse
@@ -154,7 +164,13 @@ class MPISharedRemapping(MPIExchangeMethod):
 
     def initialize(self, field):
         """! INTERNAL """
-        if not self._remapper.isInit:
+        localNature = field.getNature()
+        minNature = self._mpiComm.allreduce(localNature, op=mpi.MIN)
+        maxNature = self._mpiComm.allreduce(localNature, op=mpi.MAX)
+        if minNature != maxNature:
+            raise Exception("MPISharedRemapping.initialize: All fields involved in the same exchange must share the same nature. We found at least two: {} and {}.".format(minNature, maxNature))
+
+        if not self._remapper.isInit or localNature not in self._remapper.isInitPerNature or not self._remapper.isInitPerNature[localNature]:
             if len(self._ranksToGet) == 0:
                 raise Exception("MPISharedRemapping: setRanks() must be call before the first exchange.")
             self._remapper.initialize(self._ranksToGet, self._ranksToSet, self._mpiComm, field)
@@ -167,11 +183,12 @@ class MPISharedRemapping(MPIExchangeMethod):
         transformedMED = []
 
         if len(fieldsToSet) > 0 or len(fieldsToGet) > 0:
-            self.initialize(fieldsToGet[0] if len(fieldsToGet) > 0 else fieldsToSet[0])
+            for field in fieldsToGet + fieldsToSet:
+                self.initialize(field)
             for field in fieldsToGet:
-                transformedMED.append(self._remapper.sendField(field))
+                self._remapper.sendField(field)
             for field in fieldsToSet:
-                self._remapper.recvField(field)
+                transformedMED.append(self._remapper.recvField(field))
             if self._linearTransform != (1., 0.):
                 for med in transformedMED:
                     med.applyLin(*(self._linearTransform))
