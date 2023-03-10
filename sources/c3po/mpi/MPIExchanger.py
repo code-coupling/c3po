@@ -224,18 +224,17 @@ class MPIExchanger(LocalExchanger):
 
         def _readRanks(dataAccessor):
             """! INTERNAL """
-            ranks = []
             if isinstance(dataAccessor, MPIRemoteProcess):
-                ranks = mpi.Group.Translate_ranks(dataAccessor.mpiComm.Get_group(), [dataAccessor.rank], ExchangerMPIComm.Get_group())
+                return mpi.Group.Translate_ranks(dataAccessor.mpiComm.Get_group(), [dataAccessor.rank], ExchangerMPIComm.Get_group())
             elif isinstance(dataAccessor, MPIRemoteProcesses):
-                ranks = mpi.Group.Translate_ranks(dataAccessor.mpiComm.Get_group(), dataAccessor.ranks, ExchangerMPIComm.Get_group())
+                group = dataAccessor.mpiComm.Get_group().Incl(dataAccessor.ranks)
             else:
                 try:
-                    intersecGroup = mpi.Group.Intersection(dataAccessor.getMPIComm().Get_group(), ExchangerMPIComm.Get_group())
-                    ranks = mpi.Group.Translate_ranks(intersecGroup, list(range(intersecGroup.Get_size())), ExchangerMPIComm.Get_group())
+                    group = dataAccessor.getMPIComm().Get_group()
                 except NotImplementedError:
-                    ranks = [ExchangerMPIComm.Get_rank()]
-            return ranks
+                    return [ExchangerMPIComm.Get_rank()]
+            intersecGroup = mpi.Group.Intersection(group, ExchangerMPIComm.Get_group())
+            return mpi.Group.Translate_ranks(intersecGroup, list(range(intersecGroup.Get_size())), ExchangerMPIComm.Get_group())
 
         def _initObjectList(initialList, ranks):
             """! INTERNAL """
