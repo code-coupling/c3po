@@ -26,7 +26,7 @@ class MPIDomainDecompositionDataManager(LocalDataManager):
     MPIDomainDecompositionDataManager behaves a little bit like a MPICollaborativeDataManager built with only one LocalDataManager
     and a mpiComm. However, unlike MPICollaborativeDataManager which will be expanded by MPIExchanger, and therefore seen as a
     simple LocalDataManager in this case, MPIDomainDecompositionDataManager will be directly handled by MPIExchanger.
-    This is usually preferable when using a MPISharedRemapping as exchange method.
+    This is usually preferable when using a c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod as exchange method.
     """
 
     def __init__(self, mpiComm):

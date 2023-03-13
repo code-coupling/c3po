@@ -21,13 +21,20 @@ class MPIMulti1D3DRemapper(MPIRemapper):
     """! Allow to share the mesh projection for different MPISharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
     def __init__(self, xCoordinates, yCoordinates, indexTable, weights, physics, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):
-        """! Build a MPIMulti1D3DRemapper object, the MPI version of Multi1D3DRemapper.
+        """! Build a MPIMulti1D3DRemapper object, the MPI version of c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.
 
-        The constructor has the same form than Multi1D3DRemapper.__init__() with one additional mandatory parameter: physics.
+        The constructor has the same form than c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__() with one additional mandatory parameter: physics.
 
-        @param physics The list (or a MPICollaborativePhysicsDriver) of the 1D PhysicsDriver involved in the coupling. We just use it to identify remote ones.
-
-        See Multi1D3DRemapper.__init__() for the documentation of the other parameters.
+        @param xCoordinates see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
+        @param yCoordinates see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
+        @param indexTable see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
+        @param weights see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
+        @param physics The list (or a c3po.mpi.MPICollaborativePhysicsDriver.MPICollaborativePhysicsDriver) of the 1D c3po.PhysicsDriver.PhysicsDriver involved in the coupling. We just use it to identify remote ones.
+        @param meshAlignment see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper. The source mesh is the multi1D one and the target mesh the 3D one.
+        @param offset see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__(). The source mesh is the multi1D one and the target mesh the 3D one.
+        @param rescaling see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__(). The source mesh is the multi1D one and the target mesh the 3D one.
+        @param rotation see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__(). The source mesh is the multi1D one and the target mesh the 3D one.
+        @param outsideCellsScreening see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
         """
         MPIRemapper.__init__(self, meshAlignment, offset, rescaling, rotation, outsideCellsScreening)
         physicsList = []
@@ -101,12 +108,16 @@ class MPIMulti1D3DRemapper(MPIRemapper):
 
 
 class MPISharedRemappingMulti1D3D(MPISharedRemapping):
-    """! MPISharedRemappingMulti1D3D is the MPI version of SharedRemappingMulti1D3D. """
+    """! MPISharedRemappingMulti1D3D is the MPI version of c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D. """
 
     def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.)):
-        """! Build a MPISharedRemappingMulti1D3D object, to be given to an MPIExchanger.
+        """! Build a MPISharedRemappingMulti1D3D object, to be given to an c3po.mpi.MPIExchanger.MPIExchanger.
 
-        The constructor has the same form than MPISharedRemappingMulti1D3D.__init__(). See its documentation.
+        @param remapper A MPIMulti1D3DRemapper object performing the projection. It can thus be shared with other instances of
+               MPISharedRemappingMulti1D3D (its initialization will always be done only once).
+        @param reverse see c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D.__init__(). Direct is multi1D -> 3D, reverse is 3D -> multi1D.
+        @param defaultValue see c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D.__init__().
+        @param linearTransform see c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D.__init__().
         """
         MPISharedRemapping.__init__(self, remapper, reverse, defaultValue, linearTransform)
         self._numberOf1DFields = self._remapper.getNumberOf1DFields()

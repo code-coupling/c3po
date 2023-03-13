@@ -130,26 +130,16 @@ class MPIRemapper(object):
 
 
 class MPISharedRemapping(MPIExchangeMethod):
-    """! MPISharedRemapping is an MPIExchangeMethod which projects the input fields one by one before returning them as outputs,
-    in the same order.
+    """! MPISharedRemapping is the MPI version of c3po.exchangeMethods.SharedRemapping.SharedRemapping.
 
-    See c3po.Exchanger.Exchanger.__init__().
-
-    The method assumes that all input fields have the same mesh, and produces output fields on identical meshes.
-
-    This output mesh is the one of the first field passed to the method (obtained by getInputMEDFieldTemplate).
-
-    The input scalars are returned in the same order, without modification.
-
-    The initialization of the projection method (long operation) is done only once, and can be shared with other instances of
-    MPISharedRemapping through a MPIRemapper object.
+    MPI features of MEDCoupling must be available. It allows to use MEDCoupling projections between codes using domain decomposition methods.
     """
 
     def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.)):
-        """! Build an MPISharedRemapping object, to be given to an Exchanger.
+        """! Build an MPISharedRemapping object, to be given to an c3po.mpi.MPIExchanger.MPIExchanger.
 
-        @param remapper A MPIRemapper object (defined in C3PO and inheriting from MEDCouplingRemapper) performing the projection. It
-               can thus be shared with other instances of MPISharedRemapping (its initialization will always be done only once).
+        @param remapper A MPIRemapper object (defined in C3PO) performing the projection. It can thus be shared with other instances of
+               MPISharedRemapping (its initialization will always be done only once).
         @param reverse Allows the MPIRemapper to be shared with an instance of MPISharedRemapping performing the reverse exchange (the projection
                will be done in the reverse direction if reverse is set to True).
         @param defaultValue This is the default value to be assigned, during the projection, in the meshes of the target mesh that are not

@@ -163,8 +163,8 @@ class SharedRemapping(ExchangeMethod):
     def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.)):
         """! Build an SharedRemapping object, to be given to an Exchanger.
 
-        @param remapper A Remapper object (defined in C3PO and inheriting from MEDCouplingRemapper) performing the projection. It
-               can thus be shared with other instances of SharedRemapping (its initialization will always be done only once).
+        @param remapper A Remapper object (defined in C3PO) performing the projection. It can thus be shared with other instances of
+               SharedRemapping (its initialization will always be done only once).
         @param reverse Allows the Remapper to be shared with an instance of SharedRemapping performing the reverse exchange (the projection
                will be done in the reverse direction if reverse is set to True).
         @param defaultValue This is the default value to be assigned, during the projection, in the meshes of the target mesh that are not

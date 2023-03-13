@@ -66,18 +66,21 @@ class MPIExchanger(LocalExchanger):
 
         The first parameter, method, can be either a c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod or not:
 
-            - In the first case, the exchange method has to deal with data exchanges between MPI processes (in addition to
-            local data processing such as unit change). MPIRemoteProcess and MPIRemoteProcesses are accepted, but not
-            MPICollectiveProcess.
+          - In the first case, the exchange method has to deal with data exchanges between MPI processes (in addition to
+        local data processing such as unit change). MPIRemoteProcess and MPIRemoteProcesses are accepted, but not
+        MPICollectiveProcess.
 
-            - In the second case, these exchanges between MPI processes are done by MPIExchanger. The class manages MPI
-            exchanges and then uses the local exchange method with the mother class.
+          - In the second case, these exchanges between MPI processes are done by MPIExchanger. The class manages MPI
+        exchanges and then uses the local exchange method with the mother class. In this case, it is assumed that an object
+        is either held by a single process (and is replace by a MPIRemoteProcess in others), or collectively (MPICollectiveProcess).
+        When there is an MPICollectiveProcess on the set side, all the processes of the communicator of this object must be involved
+        in the exchanges. MPIRemoteProcesses are accepted only if no exchange are required.
 
-            In this case, it is assumed that an object is either held by a single process (and is replace by a
-            MPIRemoteProcess in others), or collectively (MPICollectiveProcess). When there is an MPICollectiveProcess on
-            the set side, all the processes of the communicator of this object must be involved in the exchanges.
-            MPIRemoteProcesses are not accepted.
-
+        @param method see LocalExchanger.__init__().
+        @param fieldsToGet LocalExchanger.__init__().
+        @param fieldsToSet LocalExchanger.__init__().
+        @param valuesToGet LocalExchanger.__init__().
+        @param valuesToSet LocalExchanger.__init__().
         @param exchangeWithFiles (bool) (Only available with an exchange method that is not of type
             c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod.) When exchangeWithFiles is set to True, exchanged
             MEDField are written on files and read by the recipient process(es). Only basic data (such as the file path) are
@@ -86,8 +89,6 @@ class MPIExchanger(LocalExchanger):
             c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod.) If not None, it indicated to the exchange method
             to use this communicator for data exchange. Otherwise, all MPIRemoteProcess and MPIRemoteProcesses must use the same
             communicator, which is then used by the exchange method.
-
-        See LocalExchanger.__init__() for the documentation of the other parameters.
         """
 
         self._subExchangers = None
