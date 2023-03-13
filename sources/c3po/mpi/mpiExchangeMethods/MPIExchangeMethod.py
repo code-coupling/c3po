@@ -26,4 +26,3 @@ class MPIExchangeMethod(ExchangeMethod):
         @param mpiComm MPI communicator related to the previous ranks.
         """
         raise NotImplementedError
-

@@ -72,7 +72,7 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
                     localData.append(data)
 
         CollaborativeDataManager.__init__(self, localData)
-        self._ignoreForConstOperators(indexToIgnore)
+        self.ignoreForConstOperators(indexToIgnore)
         CollaborativeObject.__init__(self, dataManagers)    # pylint: disable=non-parent-init-called
 
     def cloneEmpty(self):

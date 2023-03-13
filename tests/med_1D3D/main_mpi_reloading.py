@@ -113,6 +113,7 @@ def main_mpi_reloading():
             myThermoDrivers[iThermo].init()
 
     mycoupler.term()
+    myRemapper.terminate()
 
 if __name__ == "__main__":
     main_mpi_reloading()

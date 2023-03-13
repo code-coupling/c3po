@@ -48,6 +48,10 @@ class NameChanger(PhysicsDriver):
         self._field = 1
 
     def updateNameMappingValue(self, nameMappingValue):
+        """! Update (with the update() method of dict) the dictionary nameMappingValue previously provided.
+
+        @param nameMappingValue the Python dictionary used for the update.
+        """
         self._nameMappingValue.update(nameMappingValue)
         self._invertNameMappingValue = {}
         for key, val in self._nameMappingValue.items():
@@ -57,6 +61,10 @@ class NameChanger(PhysicsDriver):
                 self._invertNameMappingValue[val].append(key)
 
     def updateNameMappingField(self, nameMappingField):
+        """! Update (with the update() method of dict) the dictionary nameMappingField previously provided.
+
+        @param nameMappingField the Python dictionary used for the update.
+        """
         self._nameMappingField.update(nameMappingField)
         self._invertNameMappingField = {}
         for key, val in self._nameMappingField.items():

@@ -55,7 +55,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
         """
         Coupler.__init__(self, physics, exchangers, dataManagers)
 
-        if not (isinstance(physics, dict) or isinstance(physics, list)):
+        if not isinstance(physics, (dict, list)):
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ physics must be either a dictionary or a list.")
         if len(physics) != 2:
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly two PhysicsDriver, not {}.".format(len(physics)))
@@ -69,7 +69,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
             self._solver1 = physics[0]
             self._solver2 = physics[1]
 
-        if not (isinstance(exchangers, dict) or isinstance(exchangers, list)):
+        if not isinstance(exchangers, (dict, list)):
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ exchangers must be either a dictionary or a list.")
         if len(exchangers) != 4:
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly four Exchanger, not {}.".format(len(exchangers)))
@@ -87,7 +87,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
             self._exchangerResidual1 = exchangers[2]
             self._exchangerResidual2 = exchangers[3]
 
-        if not (isinstance(dataManagers, dict) or isinstance(dataManagers, list)):
+        if not isinstance(dataManagers, (dict, list)):
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ dataManagers must be either a dictionary or a list.")
         if len(dataManagers) != 1:
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly one DataManager, not {}.".format(len(dataManagers)))
@@ -308,4 +308,3 @@ class AdaptiveResidualBalanceCoupler(Coupler):
         """! See c3po.PhysicsDriver.PhysicsDriver.initTimeStep().  """
         self._iter = 0
         return Coupler.initTimeStep(self, dt)
-

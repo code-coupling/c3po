@@ -67,4 +67,3 @@ class CollaborativePhysicsDriver(Coupler, CollaborativeObject):
     def setInputStringValue(self, name, value):
         for physics in self._physicsDriversList:
             physics.setInputStringValue(name, value)
-

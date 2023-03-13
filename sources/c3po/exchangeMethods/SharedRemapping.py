@@ -17,18 +17,18 @@ from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 
 
 def computeCellsToScreenOut(mesh1, mesh2):
-        """! INTERNAL """
-        bary = []
-        try:
-            bary = mesh1.computeCellCenterOfMass()  # MEDCoupling 9
-        except:
-            bary = mesh1.getBarycenterAndOwner()  # MEDCoupling 7
-        _, cellsId = mesh2.getCellsContainingPoints(bary, 1.0e-8)
-        dsi = cellsId.deltaShiftIndex()
-        try:
-            return dsi.findIdsEqual(0)  # MEDCoupling 9
-        except:
-            return dsi.getIdsEqual(0)  # MEDCoupling 7
+    """! INTERNAL """
+    bary = []
+    try:
+        bary = mesh1.computeCellCenterOfMass()  # MEDCoupling 9
+    except:
+        bary = mesh1.getBarycenterAndOwner()  # MEDCoupling 7
+    _, cellsId = mesh2.getCellsContainingPoints(bary, 1.0e-8)
+    dsi = cellsId.deltaShiftIndex()
+    try:
+        return dsi.findIdsEqual(0)  # MEDCoupling 9
+    except:
+        return dsi.getIdsEqual(0)  # MEDCoupling 7
 
 
 class Remapper(object):

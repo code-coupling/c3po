@@ -11,7 +11,6 @@
 """ Contain the class SharedRemapping. """
 from __future__ import print_function, division
 from mpi4py import MPI as mpi
-import os
 
 import c3po.medcouplingCompat as mc
 from c3po.mpi.mpiExchangeMethods.MPIExchangeMethod import MPIExchangeMethod
@@ -106,6 +105,10 @@ class MPIRemapper(object):
         self.isInitPerNature[nature] = True
 
     def terminate(self):
+        """! Release all allocated resources.
+
+        @warning This method must be called once the object is no more needed in order to properly release MPI resources.
+        """
         for dec in self._interpKernelDECs.values():
             dec.release()
         self._interpKernelDECs = {}

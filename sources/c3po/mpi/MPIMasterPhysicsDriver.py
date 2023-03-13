@@ -90,8 +90,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         """! See PhysicsDriver.getMPIComm(). """
         if self._isCollective and self._localPhysicsDriver is not None:
             return self.mpiComm
-        else:
-            raise NotImplementedError
+        raise NotImplementedError
 
     def init(self):
         """! See PhysicsDriver.init(). """

@@ -122,7 +122,10 @@ class FixedPointCoupler(Coupler):
                 physics.initTimeStep(self._dt)
             data2physics.exchange()
 
-        physics.iterate() if self._useIterate else physics.solve()
+        if self._useIterate:
+            physics.iterate()
+        else:
+            physics.solve()
         physics2Data.exchange()
 
         if self._iter == 0:

@@ -28,7 +28,7 @@ class CollaborativeDataManager(DataManager, CollaborativeObject):
         self._indexToIgnore = []
         CollaborativeObject.__init__(self, self.dataManagers)
 
-    def _ignoreForConstOperators(self, indexToIgnore):
+    def ignoreForConstOperators(self, indexToIgnore):
         """! INTERNAL """
         self._indexToIgnore[:] = indexToIgnore[:]
 
@@ -46,7 +46,7 @@ class CollaborativeDataManager(DataManager, CollaborativeObject):
         """
         dataClone = [data.cloneEmpty() for data in self.dataManagers]
         output = CollaborativeDataManager(dataClone)
-        output._ignoreForConstOperators(self._indexToIgnore)
+        output.ignoreForConstOperators(self._indexToIgnore)
         return output
 
     def copy(self, other):

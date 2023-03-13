@@ -55,7 +55,7 @@ class MPIExchanger(LocalExchanger):
     the MPI environment is available.
     """
 
-    def __init__(self, method, fieldsToGet, fieldsToSet, valuesToGet=[], valuesToSet=[], exchangeWithFiles=False, mpiComm=None):
+    def __init__(self, method, fieldsToGet, fieldsToSet, valuesToGet=[], valuesToSet=[], exchangeWithFiles=False, mpiComm=None):    # pylint: disable=super-init-not-called
         """! Build a MPIExchanger object.
 
         The constructor has the same form than LocalExchanger.__init__() with two additional optionnal parameters:
@@ -209,32 +209,32 @@ class MPIExchanger(LocalExchanger):
         """! INTERNAL """
         ranksToGet = []
         ranksToSet = []
-        ExchangerMPIComm = mpiComm
+        exchangerMPIComm = mpiComm
 
         if mpiComm is None:
             for obj in [data[0] for arg in [fieldsToGet, fieldsToSet, valuesToGet, valuesToSet] for data in arg]:
                 if isinstance(obj, MPIRemote):
                     if obj.mpiComm == mpi.COMM_NULL:
                         raise Exception("MPIExchanger.__init__: All distant processes must be part of the communicator (mpi.COMM_NULL found).")
-                    if ExchangerMPIComm is not None and ExchangerMPIComm != obj.mpiComm:
+                    if exchangerMPIComm is not None and exchangerMPIComm != obj.mpiComm:
                         raise Exception("MPIExchanger.__init__: All distant processes must used the same MPI communicator.")
-                    ExchangerMPIComm = obj.mpiComm
-        if ExchangerMPIComm is None:
+                    exchangerMPIComm = obj.mpiComm
+        if exchangerMPIComm is None:
             raise Exception("MPIExchanger.__init__: No MPI communicator found.")
 
         def _readRanks(dataAccessor):
             """! INTERNAL """
             if isinstance(dataAccessor, MPIRemoteProcess):
-                return mpi.Group.Translate_ranks(dataAccessor.mpiComm.Get_group(), [dataAccessor.rank], ExchangerMPIComm.Get_group())
-            elif isinstance(dataAccessor, MPIRemoteProcesses):
+                return mpi.Group.Translate_ranks(dataAccessor.mpiComm.Get_group(), [dataAccessor.rank], exchangerMPIComm.Get_group())
+            if isinstance(dataAccessor, MPIRemoteProcesses):
                 group = dataAccessor.mpiComm.Get_group().Incl(dataAccessor.ranks)
             else:
                 try:
                     group = dataAccessor.getMPIComm().Get_group()
                 except NotImplementedError:
-                    return [ExchangerMPIComm.Get_rank()]
-            intersecGroup = mpi.Group.Intersection(group, ExchangerMPIComm.Get_group())
-            return mpi.Group.Translate_ranks(intersecGroup, list(range(intersecGroup.Get_size())), ExchangerMPIComm.Get_group())
+                    return [exchangerMPIComm.Get_rank()]
+            intersecGroup = mpi.Group.Intersection(group, exchangerMPIComm.Get_group())
+            return mpi.Group.Translate_ranks(intersecGroup, list(range(intersecGroup.Get_size())), exchangerMPIComm.Get_group())
 
         def _initObjectList(initialList, ranks):
             """! INTERNAL """
@@ -253,7 +253,7 @@ class MPIExchanger(LocalExchanger):
 
         LocalExchanger.__init__(self, method, localFieldsToGet, localFieldsToSet, localValuesToGet, localValuesToSet)
 
-        method.setRanks(ranksToGet, ranksToSet, ExchangerMPIComm)
+        method.setRanks(ranksToGet, ranksToSet, exchangerMPIComm)
 
     def exchange(self):
         """! Trigger the exchange of data.
