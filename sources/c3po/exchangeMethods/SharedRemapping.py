@@ -67,11 +67,12 @@ class Remapper(object):
 
     def initialize(self, sourceMesh, targetMesh):
         """! INTERNAL """
+        offsetAlign = []
         if self._meshAlignment:
             for mesh in [sourceMesh, targetMesh]:
                 [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
-                offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
-                mesh.translate(offsettmp)
+                offsetAlign.append([-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin])
+                mesh.translate(offsetAlign[-1])
         if self._offset != [0., 0., 0.]:
             sourceMesh.translate([-x for x in self._offset])
         if self._rescaling != 1.:
@@ -92,6 +93,16 @@ class Remapper(object):
         if self._outsideCellsScreening:
             self._cellsToScreenOutTarget = computeCellsToScreenOut(targetMesh, sourceMesh)
             self._cellsToScreenOutSource = computeCellsToScreenOut(sourceMesh, targetMesh)
+
+        if self._rotation != 0.:
+            sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
+        if self._rescaling != 1.:
+            sourceMesh.scale([0., 0., 0.], self._rescaling)
+        if self._offset != [0., 0., 0.]:
+            sourceMesh.translate([self._offset])
+        if self._meshAlignment:
+            sourceMesh.translate([-x for x in offsetAlign[0]])
+            targetMesh.translate([-x for x in offsetAlign[1]])
 
         self.isInit = True
 

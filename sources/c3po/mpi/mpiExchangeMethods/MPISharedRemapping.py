@@ -66,6 +66,7 @@ class MPIRemapper(object):
         if len(ranksToGet) + len(ranksToSet) != mpiComm.Get_size():
             raise Exception("MPIRemapper.initialize: the provided list of ranks must be a partitioned of the MPI communicator. Here we have {} and {} ranks while the size of the communicator is {}.".format(len(ranksToGet), len(ranksToSet), mpiComm.Get_size()))
 
+        offsetAlignement = []
         if self._meshAlignment:
             localComm = mpiComm.Split(mpiComm.Get_rank() in ranksToGet)
             [(xmin, xmax), (ymin, ymax), (zmin, _)] = field.getMesh().getBoundingBox()
@@ -74,8 +75,8 @@ class MPIRemapper(object):
             ymin = localComm.allreduce(ymin, op=mpi.MIN)
             ymax = localComm.allreduce(ymax, op=mpi.MAX)
             zmin = localComm.allreduce(zmin, op=mpi.MIN)
-            offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
-            field.getMesh().translate(offsettmp)
+            offsetAlignement = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
+            field.getMesh().translate(offsetAlignement)
         if self._offset != [0., 0., 0.] and mpiComm.Get_rank() in ranksToGet:
             field.getMesh().translate([-x for x in self._offset])
         if self._rescaling != 1. and mpiComm.Get_rank() in ranksToGet:
@@ -91,6 +92,15 @@ class MPIRemapper(object):
         self._interpKernelDECs[nature].setMethod("P0")
         self._interpKernelDECs[nature].attachLocalField(field)
         self._interpKernelDECs[nature].synchronize()
+
+        if self._rotation != 0. and mpiComm.Get_rank() in ranksToGet:
+            field.getMesh().rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
+        if self._rescaling != 1. and mpiComm.Get_rank() in ranksToGet:
+            field.getMesh().scale([0., 0., 0.], self._rescaling)
+        if self._offset != [0., 0., 0.] and mpiComm.Get_rank() in ranksToGet:
+            field.getMesh().translate([self._offset])
+        if self._meshAlignment:
+            field.getMesh().translate([-x for x in offsetAlignement])
 
         self.isInit = True
         self.isInitPerNature[nature] = True
