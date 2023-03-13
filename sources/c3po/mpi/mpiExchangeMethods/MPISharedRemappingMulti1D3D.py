@@ -69,6 +69,8 @@ class MPIMulti1D3DRemapper(MPIRemapper):
     def buildInnerField(self, meshes1D):
         """! INTERNAL """
         self._localMulti1D3DRemapper.buildInnerField(meshes1D)
+        self.isInnerFieldBuilt = True
+        self.isInit = False
 
     def getInnerField(self):
         """! INTERNAL """
@@ -89,13 +91,11 @@ class MPIMulti1D3DRemapper(MPIRemapper):
     def shift1DFields(self, shiftMap):
         """! See Multi1D3DRemapper.shift1DFields() """
         availableFields, self._shiftedFieldPositions, self._globalIndexTable = shift1DFields(shiftMap, self._shiftedFieldPositions, self._globalIndexTable)
-        tmpFieldPositions = [0] * self._nbLocal1DFields
         tmpIndexTable = [[] for _ in range(self._nbLocal1DFields)]
         for index1D, positions in enumerate(self._globalIndexTable):
             if self._globalToLocal[index1D] >= 0:
                 tmpIndexTable[self._globalToLocal[index1D]] = positions
-                tmpFieldPositions[self._globalToLocal[index1D]] = self._shiftedFieldPositions[index1D]
-        self._localMulti1D3DRemapper.setShiftedIndex(tmpFieldPositions, tmpIndexTable)
+        self._localMulti1D3DRemapper.setShiftedIndex([], tmpIndexTable)
         self.isInnerFieldBuilt = False
         return availableFields
 
