@@ -6,6 +6,6 @@ python test_reloading.py
 
 mpiexec -n 5 python main_mpi_hybrid.py
 
-mpiexec -n 5 python main_mpi_remapper.py
+mpiexec -n 5 python main_medmpi_collaborative.py
 
-mpiexec -n 5 python main_mpi_reloading.py
+mpiexec -n 5 python main_medmpi_reloading.py

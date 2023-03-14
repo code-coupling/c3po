@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import pytest
 
 
-def main_mpi_remapper():
+def main_medmpi_collaborative():
     from mpi4py import MPI
 
     import c3po
@@ -88,4 +88,4 @@ def main_mpi_remapper():
 
 
 if __name__ == "__main__":
-    main_mpi_remapper()
+    main_medmpi_collaborative()

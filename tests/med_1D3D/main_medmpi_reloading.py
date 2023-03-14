@@ -43,7 +43,7 @@ class OneIterationCoupler(c3po.Coupler):
         return self.getSolveStatus()
 
 
-def main_mpi_reloading():
+def main_medmpi_reloading():
     world = mpi.COMM_WORLD
     rankWorld = world.Get_rank()
     commThermo = world.Split(color=mpi.UNDEFINED if rankWorld == 0 else 0, key=rankWorld)
@@ -116,4 +116,4 @@ def main_mpi_reloading():
     myRemapper.terminate()
 
 if __name__ == "__main__":
-    main_mpi_reloading()
+    main_medmpi_reloading()
