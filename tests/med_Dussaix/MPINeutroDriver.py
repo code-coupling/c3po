@@ -33,8 +33,8 @@ class MPINeutroDriver(NeutroDriver):
         return True
 
     def solveTimeStep(self):
-        meanDensity = self._mpiComm.allreduce(self.densities_[0], op=mpi.SUM)
-        v = [self.meanT_ * self.densities_[0] / meanDensity + self.meanT_ / 2.]
+        sumDensities = self._mpiComm.allreduce(self.densities_[0], op=mpi.SUM)
+        v = [self.meanT_ * self.densities_[0] / sumDensities + self.meanT_ / 2.]
         array = mc.DataArrayDouble.New()
         array.setValues(v, len(v), 1)
         self.MEDResu_.setArray(array)
