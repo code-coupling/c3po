@@ -27,6 +27,8 @@ C3PO's Doxygen documentation can be generated from **doc** directory using:
 ./makedoc.sh
 ```
 
+It can also be found here: https://salome-c3po.readthedocs.io/ .
+
 ## Tests ##
 
 Tests are based on pytest.
