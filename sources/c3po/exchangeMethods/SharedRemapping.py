@@ -81,11 +81,7 @@ class Remapper(object):
             sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
 
         if self._loadedMatrix is not None:
-            try:
-                self._remapper.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", self._loadedMatrix)
-            except:
-                print("Remapper.initialize: Failure to load the matrix.")
-                self._remapper.prepare(sourceMesh, targetMesh, "P0P0")
+            self._remapper.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", self._loadedMatrix)
             self._loadedMatrix = None
         else:
             self._remapper.prepare(sourceMesh, targetMesh, "P0P0")
@@ -135,6 +131,8 @@ class Remapper(object):
         """! Load remapping matrix from file.
 
         This file is usually written by exportMatrix() method.
+
+        @note This method requires scipy.
 
         @param fileName name of the file to read from.
         """
