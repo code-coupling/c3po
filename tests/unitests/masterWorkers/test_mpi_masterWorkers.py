@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from pytest_easyMPI import mpi_parallel
+import os
 
-from tests.unitests.masterWorkers.main_masterWorkers import main_masterWorkers
+from tests import runMPITest
 
 
-@mpi_parallel(3)
-def test_mpi_masterWorkers():
-    main_masterWorkers()
+def test_masterWorkers():
+    runMPITest(3, os.path.join(os.path.dirname(os.path.realpath(__file__)), "main_masterWorkers.py"))

@@ -80,7 +80,7 @@ setup(
         "mpi4py>=1.3",
     ]),
     extras_require={
-        "pytest": ["pytest", "pytest-cov", "pytest-easyMPI", "pytest-html"],
+        "pytest": ["pytest", "pytest-cov", "pytest-html"],
     },
     python_requires=">=2.7, !=3.0.*, !=3.1.*",
     licence="3-Clause BSD"

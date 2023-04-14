@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
 
-from pytest_easyMPI import mpi_parallel
+import os
 
-from tests.med_Dussaix.main_mpi_masterWorkers import main_mpi_masterWorkers
+from tests import runMPITest
 
 
-@mpi_parallel(3)
 def test_masterWorkers():
-    main_mpi_masterWorkers()
+    runMPITest(3, os.path.join(os.path.dirname(os.path.realpath(__file__)), "main_mpi_masterWorkers.py"))
+

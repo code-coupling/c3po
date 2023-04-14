@@ -1,3 +1,4 @@
 [run]
 omit = sources/c3po/physicsDrivers/*
+parallel = True
 
