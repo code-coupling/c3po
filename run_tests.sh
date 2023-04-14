@@ -55,6 +55,7 @@ do
 done
 
 if $ISCOV ; then
+  export COVERAGE_PROCESS_START=$PWD/.coveragerc
   PYTESTCOV="--cov-report ${COVREPORT} --cov=c3po tests/"
 fi
 
