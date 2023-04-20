@@ -34,17 +34,17 @@ def computeCellsToScreenOut(mesh1, mesh2):
 class Remapper(object):
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
 
-    def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):
+    def __init__(self, meshAlignment=False, offset=None, rescaling=1., rotation=0., outsideCellsScreening=False):
         """! Build a Remapper object.
 
         @param meshAlignment If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding
-            box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
-        @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
+            box" are radially centred on (x = 0., y = 0.) and, if the meshes are 3D, have zmin = 0.
+        @param offset Value of the offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
             The given vector is used to translate the source mesh (after the mesh alignment, if any).
         @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is
-            initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh
+            initially larger than the target one). The scaling is centered on [0., 0.(, 0.)] and is applied to the source mesh after mesh
             alignment or translation, if any.
-        @param rotation Value of the rotation between the source and the target meshes. The rotation is centered on [0., 0., 0.] and is about
+        @param rotation Value of the rotation between the source and the target meshes. The rotation is centered on [0., 0.(, 0.)] and is about
             the vertical axis. >0 means that the source mesh is rotated of the given angle compared to the target one. The inverse rotation is
             applied to the source mesh, after mesh alignment or translation, if any. pi means half turn.
         @param outsideCellsScreening If set to True, target (and source) cells whose barycentre is outside of source (or target) mesh are screen
@@ -67,29 +67,27 @@ class Remapper(object):
 
     def initialize(self, sourceMesh, targetMesh):
         """! INTERNAL """
+        meshDimension = sourceMesh.getMeshDimension()
+        if targetMesh.getMeshDimension() != meshDimension:
+            raise Exception("Remapper : the dimension of source and target meshes are not the same ({} and {} respectively).".format(meshDimension, targetMesh.getMeshDimension()))
         offsetAlign = []
         if self._meshAlignment:
             for mesh in [sourceMesh, targetMesh]:
-<<<<<<< HEAD
-                [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
-                offsetAlign.append([-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin])
-                mesh.translate(offsetAlign[-1])
-        if self._offset != [0., 0., 0.]:
-=======
-                if mesh.getMeshDimension() == 2:
+                if meshDimension == 2:
                     [(xmin, xmax), (ymin, ymax)] = mesh.getBoundingBox()
-                    offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)]
                 else:
                     [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
-                    offsettmp = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
-                mesh.translate(offsettmp)
-        if self._offset != [0.] * sourceMesh.getMeshDimension():
->>>>>>> implement remapping 2D with _meshAlignment, _offset and _rescaling
+                offsetAlign.append([-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)] + ([zmin] if meshDimension == 3 else []))
+                mesh.translate(offsetAlign[-1])
+        if self._offset is not None and self._offset != [0.] * meshDimension:
             sourceMesh.translate([-x for x in self._offset])
         if self._rescaling != 1.:
-            sourceMesh.scale([0.] * sourceMesh.getMeshDimension(), 1. / self._rescaling)
+            sourceMesh.scale([0.] * meshDimension, 1. / self._rescaling)
         if self._rotation != 0.:
-            sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
+            if meshDimension == 2:
+                sourceMesh.rotate([0., 0.], self._rotation)
+            else:
+                sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
 
         if self._loadedMatrix is not None:
             self._remapper.setCrudeMatrix(sourceMesh, targetMesh, "P0P0", self._loadedMatrix)
@@ -102,10 +100,13 @@ class Remapper(object):
             self._cellsToScreenOutSource = computeCellsToScreenOut(sourceMesh, targetMesh)
 
         if self._rotation != 0.:
-            sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
+            if meshDimension == 2:
+                sourceMesh.rotate([0., 0.], -self._rotation)
+            else:
+                sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
         if self._rescaling != 1.:
-            sourceMesh.scale([0., 0., 0.], self._rescaling)
-        if self._offset != [0., 0., 0.]:
+            sourceMesh.scale([0.] * meshDimension, self._rescaling)
+        if self._offset is not None and self._offset != [0.] * meshDimension:
             sourceMesh.translate([self._offset])
         if self._meshAlignment:
             sourceMesh.translate([-x for x in offsetAlign[0]])

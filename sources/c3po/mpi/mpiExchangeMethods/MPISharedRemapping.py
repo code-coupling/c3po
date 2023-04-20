@@ -19,19 +19,19 @@ from c3po.mpi.mpiExchangeMethods.MPIExchangeMethod import MPIExchangeMethod
 class MPIRemapper(object):
     """! Allow to share the mesh projection for different MPISharedRemapping objects by building them with the same instance of this class. """
 
-    def __init__(self, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):
+    def __init__(self, meshAlignment=False, offset=None, rescaling=1., rotation=0., outsideCellsScreening=False):
         """! Build a MPIRemapper object.
 
         @warning It is mandatory to call the terminate() method after use, otherwise MPI may be badly ended.
 
         @param meshAlignment If set to True, at the initialization phase of the MPIRemapper object, meshes are translated such as their "bounding
-            box" are radially centred on (x = 0., y = 0.) and have zmin = 0.
-        @param offset Value of the 3D offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
+            box" are radially centred on (x = 0., y = 0.) and, if the meshes are 3D, have zmin = 0.
+        @param offset Value of the offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
             The given vector is used to translate the source mesh (after the mesh alignment, if any).
         @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is
-            initially larger than the target one). The scaling is centered on [0., 0., 0.] and is applied to the source mesh after mesh
+            initially larger than the target one). The scaling is centered on [0., 0.(, 0.)] and is applied to the source mesh after mesh
             alignment or translation, if any.
-        @param rotation Value of the rotation between the source and the target meshes. The rotation is centered on [0., 0., 0.] and is about
+        @param rotation Value of the rotation between the source and the target meshes. The rotation is centered on [0., 0.(, 0.)] and is about
             the vertical axis. >0 means that the source mesh is rotated of the given angle compared to the target one. The inverse rotation is
             applied to the source mesh, after mesh alignment or translation, if any. pi means half turn.
         @param outsideCellsScreening If set to True, target (and source) cells whose barycentre is outside of source (or target) mesh are screen
@@ -65,23 +65,34 @@ class MPIRemapper(object):
         if len(ranksToGet) + len(ranksToSet) != mpiComm.Get_size():
             raise Exception("MPIRemapper.initialize: the provided list of ranks must be a partitioned of the MPI communicator. Here we have {} and {} ranks while the size of the communicator is {}.".format(len(ranksToGet), len(ranksToSet), mpiComm.Get_size()))
 
-        offsetAlignement = []
+        meshDimension = field.getMesh().getMeshDimension()
+        minDim = mpiComm.allreduce(meshDimension, op=mpi.MIN)
+        maxDim = mpiComm.allreduce(meshDimension, op=mpi.MAX)
+        if minDim != maxDim:
+            raise Exception("MPIRemapper : All mesh dimensions should be the same! We found at least two: {} and {}.".format(minDim, maxDim))
+
+        offsetAlign = []
         if self._meshAlignment:
             localComm = mpiComm.Split(mpiComm.Get_rank() in ranksToGet)
-            [(xmin, xmax), (ymin, ymax), (zmin, _)] = field.getMesh().getBoundingBox()
+            if meshDimension == 2:
+                [(xmin, xmax), (ymin, ymax)] = field.getMesh().getBoundingBox()
+            else:
+                [(xmin, xmax), (ymin, ymax), (zmin, _)] = field.getMesh().getBoundingBox()
             xmin = localComm.allreduce(xmin, op=mpi.MIN)
             xmax = localComm.allreduce(xmax, op=mpi.MAX)
             ymin = localComm.allreduce(ymin, op=mpi.MIN)
             ymax = localComm.allreduce(ymax, op=mpi.MAX)
-            zmin = localComm.allreduce(zmin, op=mpi.MIN)
-            offsetAlignement = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax), -zmin]
-            field.getMesh().translate(offsetAlignement)
-        if self._offset != [0., 0., 0.] and mpiComm.Get_rank() in ranksToGet:
+            offsetAlign = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)] + ([localComm.allreduce(zmin, op=mpi.MIN)] if meshDimension == 3 else [])
+            field.getMesh().translate(offsetAlign)
+        if self._offset is not None and self._offset != [0.] * meshDimension and mpiComm.Get_rank() in ranksToGet:
             field.getMesh().translate([-x for x in self._offset])
         if self._rescaling != 1. and mpiComm.Get_rank() in ranksToGet:
-            field.getMesh().scale([0., 0., 0.], 1. / self._rescaling)
+            field.getMesh().scale([0.] * meshDimension, 1. / self._rescaling)
         if self._rotation != 0. and mpiComm.Get_rank() in ranksToGet:
-            field.getMesh().rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
+            if meshDimension == 2:
+                field.getMesh().rotate([0., 0.], self._rotation)
+            else:
+                field.getMesh().rotate([0., 0., 0.], [0., 0., 1.], self._rotation)
 
         nature = field.getNature()
         if mpiComm == mpi.COMM_WORLD:
@@ -93,13 +104,16 @@ class MPIRemapper(object):
         self._interpKernelDECs[nature].synchronize()
 
         if self._rotation != 0. and mpiComm.Get_rank() in ranksToGet:
-            field.getMesh().rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
+            if meshDimension == 2:
+                field.getMesh().rotate([0., 0.], -self._rotation)
+            else:
+                field.getMesh().rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
         if self._rescaling != 1. and mpiComm.Get_rank() in ranksToGet:
-            field.getMesh().scale([0., 0., 0.], self._rescaling)
-        if self._offset != [0., 0., 0.] and mpiComm.Get_rank() in ranksToGet:
+            field.getMesh().scale([0.] * meshDimension, self._rescaling)
+        if self._offset is not None and self._offset != [0.] * meshDimension and mpiComm.Get_rank() in ranksToGet:
             field.getMesh().translate([self._offset])
         if self._meshAlignment:
-            field.getMesh().translate([-x for x in offsetAlignement])
+            field.getMesh().translate([-x for x in offsetAlign])
 
         self.isInit = True
         self.isInitPerNature[nature] = True
