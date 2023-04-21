@@ -19,7 +19,7 @@ from c3po.mpi.mpiExchangeMethods.MPIExchangeMethod import MPIExchangeMethod
 class MPIRemapper(object):
     """! Allow to share the mesh projection for different MPISharedRemapping objects by building them with the same instance of this class. """
 
-    def __init__(self, meshAlignment=False, offset=None, rescaling=1., rotation=0., outsideCellsScreening=False):
+    def __init__(self, meshAlignment=False, offset=None, rescaling=1., rotation=0., outsideCellsScreening=False, reverseTransformations=True):
         """! Build a MPIRemapper object.
 
         @warning It is mandatory to call the terminate() method after use, otherwise MPI may be badly ended.
@@ -38,8 +38,14 @@ class MPIRemapper(object):
             out (defaultValue is assigned to them). It can be useful to screen out cells that are in contact with the other mesh, but that should
             not be intersected by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of the other
             mesh ! Be careful with this option.
+        @param reverseTransformations If set to True, all the transformations (translation, rescaling and rotation) applied in initialize() on
+            the provided meshes are reversed at the end of initialize().
 
         @warning The option outsideCellsScreening is not ready to use yet.
+
+        @warning There seems to be a bug in MEDCoupling that may cause wrong results when rescaling is used with a source mesh of nature
+            IntensiveConservation. In this case, it is necessary to use reverseTransformations=False and to never perform a remapping on a field
+            whose underling mesh has not been rescaled.
         """
         self.isInit = False
         self.isInitPerNature = {}
@@ -51,6 +57,7 @@ class MPIRemapper(object):
         self._rotation = rotation
         if outsideCellsScreening:
             raise ValueError("MPIRemapper: The option outsideCellsScreening is not ready to use yet.")
+        self._reverseTransformations = reverseTransformations
         self._interpKernelDECs = {}
 
     def initialize(self, ranksToGet, ranksToSet, mpiComm, field):
@@ -103,17 +110,18 @@ class MPIRemapper(object):
         self._interpKernelDECs[nature].attachLocalField(field)
         self._interpKernelDECs[nature].synchronize()
 
-        if self._rotation != 0. and mpiComm.Get_rank() in ranksToGet:
-            if meshDimension == 2:
-                field.getMesh().rotate([0., 0.], -self._rotation)
-            else:
-                field.getMesh().rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
-        if self._rescaling != 1. and mpiComm.Get_rank() in ranksToGet:
-            field.getMesh().scale([0.] * meshDimension, self._rescaling)
-        if self._offset is not None and self._offset != [0.] * meshDimension and mpiComm.Get_rank() in ranksToGet:
-            field.getMesh().translate([self._offset])
-        if self._meshAlignment:
-            field.getMesh().translate([-x for x in offsetAlign])
+        if self._reverseTransformations:
+            if self._rotation != 0. and mpiComm.Get_rank() in ranksToGet:
+                if meshDimension == 2:
+                    field.getMesh().rotate([0., 0.], -self._rotation)
+                else:
+                    field.getMesh().rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
+            if self._rescaling != 1. and mpiComm.Get_rank() in ranksToGet:
+                field.getMesh().scale([0.] * meshDimension, self._rescaling)
+            if self._offset is not None and self._offset != [0.] * meshDimension and mpiComm.Get_rank() in ranksToGet:
+                field.getMesh().translate([self._offset])
+            if self._meshAlignment:
+                field.getMesh().translate([-x for x in offsetAlign])
 
         self.isInit = True
         self.isInitPerNature[nature] = True

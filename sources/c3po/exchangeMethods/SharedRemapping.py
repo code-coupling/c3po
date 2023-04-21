@@ -34,7 +34,7 @@ def computeCellsToScreenOut(mesh1, mesh2):
 class Remapper(object):
     """! Allow to share the mesh projection for different SharedRemapping objects by building them with the same instance of this class. """
 
-    def __init__(self, meshAlignment=False, offset=None, rescaling=1., rotation=0., outsideCellsScreening=False):
+    def __init__(self, meshAlignment=False, offset=None, rescaling=1., rotation=0., outsideCellsScreening=False, reverseTransformations=True):
         """! Build a Remapper object.
 
         @param meshAlignment If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding
@@ -51,6 +51,12 @@ class Remapper(object):
             out (defaultValue is assigned to them). It can be useful to screen out cells that are in contact with the other mesh, but that should
             not be intersected by it. On the other hand, it will screen out cells actually intersected if their barycenter is outside of the other
             mesh ! Be careful with this option.
+        @param reverseTransformations If set to True, all the transformations (translation, rescaling and rotation) applied in initialize() on
+            the provided meshes are reversed at the end of initialize().
+
+        @warning There seems to be a bug in MEDCoupling that may cause wrong results when rescaling is used with a source mesh of nature
+            ExtensiveMaximum or IntensiveConservation. In this case, it is necessary to use reverseTransformations=False and to never perform a
+            remapping on a field whose underling mesh has not been rescaled.
         """
         self.isInit = False
         self._meshAlignment = meshAlignment
@@ -60,6 +66,7 @@ class Remapper(object):
         self._rescaling = rescaling
         self._rotation = rotation
         self._outsideCellsScreening = outsideCellsScreening
+        self._reverseTransformations = reverseTransformations
         self._cellsToScreenOutSource = []
         self._cellsToScreenOutTarget = []
         self._loadedMatrix = None
@@ -99,18 +106,19 @@ class Remapper(object):
             self._cellsToScreenOutTarget = computeCellsToScreenOut(targetMesh, sourceMesh)
             self._cellsToScreenOutSource = computeCellsToScreenOut(sourceMesh, targetMesh)
 
-        if self._rotation != 0.:
-            if meshDimension == 2:
-                sourceMesh.rotate([0., 0.], -self._rotation)
-            else:
-                sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
-        if self._rescaling != 1.:
-            sourceMesh.scale([0.] * meshDimension, self._rescaling)
-        if self._offset is not None and self._offset != [0.] * meshDimension:
-            sourceMesh.translate([self._offset])
-        if self._meshAlignment:
-            sourceMesh.translate([-x for x in offsetAlign[0]])
-            targetMesh.translate([-x for x in offsetAlign[1]])
+        if self._reverseTransformations:
+            if self._rotation != 0.:
+                if meshDimension == 2:
+                    sourceMesh.rotate([0., 0.], -self._rotation)
+                else:
+                    sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
+            if self._rescaling != 1.:
+                sourceMesh.scale([0.] * meshDimension, self._rescaling)
+            if self._offset is not None and self._offset != [0.] * meshDimension:
+                sourceMesh.translate([self._offset])
+            if self._meshAlignment:
+                sourceMesh.translate([-x for x in offsetAlign[0]])
+                targetMesh.translate([-x for x in offsetAlign[1]])
 
         self.isInit = True
 
