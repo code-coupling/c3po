@@ -20,7 +20,7 @@ from c3po.mpi.mpiExchangeMethods.MPISharedRemapping import MPISharedRemapping, M
 class MPIMulti1D3DRemapper(MPIRemapper):
     """! Allow to share the mesh projection for different MPISharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
-    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, physics, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):
+    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, physics, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False, reverseTransformations=True):
         """! Build a MPIMulti1D3DRemapper object, the MPI version of c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.
 
         The constructor has the same form than c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__() with one additional mandatory parameter: physics.
@@ -30,13 +30,17 @@ class MPIMulti1D3DRemapper(MPIRemapper):
         @param indexTable see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
         @param weights see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
         @param physics The list (or a c3po.mpi.MPICollaborativePhysicsDriver.MPICollaborativePhysicsDriver) of the 1D c3po.PhysicsDriver.PhysicsDriver involved in the coupling. We just use it to identify remote ones.
-        @param meshAlignment see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper. The source mesh is the multi1D one and the target mesh the 3D one.
-        @param offset see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__(). The source mesh is the multi1D one and the target mesh the 3D one.
-        @param rescaling see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__(). The source mesh is the multi1D one and the target mesh the 3D one.
-        @param rotation see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__(). The source mesh is the multi1D one and the target mesh the 3D one.
-        @param outsideCellsScreening see see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
+        @param meshAlignment see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper. The source mesh is the multi1D one and the target mesh the 3D one.
+        @param offset see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__(). The source mesh is the multi1D one and the target mesh the 3D one.
+        @param rescaling see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__(). The source mesh is the multi1D one and the target mesh the 3D one.
+        @param rotation see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__(). The source mesh is the multi1D one and the target mesh the 3D one.
+        @param outsideCellsScreening see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
+        @param reverseTransformations see c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__().
+
+        @warning There seems to be a bug in MEDCoupling that may cause wrong results when rescaling is used with a source mesh (multi1D) of
+            nature IntensiveConservation. In this case, using reverseTransformations=False should be enough to solve the problem.
         """
-        MPIRemapper.__init__(self, meshAlignment, offset, rescaling, rotation, outsideCellsScreening)
+        MPIRemapper.__init__(self, meshAlignment, offset, rescaling, rotation, outsideCellsScreening, reverseTransformations)
         physicsList = []
         if isinstance(physics, CollaborativeObject):
             physics = [physics]

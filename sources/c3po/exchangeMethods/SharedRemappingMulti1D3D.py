@@ -50,7 +50,7 @@ def shift1DFields(shiftMap, shiftedFieldPositions, indexTable):
 class Multi1D3DRemapper(Remapper):
     """! Allow to share the mesh projection for different SharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
-    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False):
+    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False, reverseTransformations=True):
         """! Build a Multi1D3DRemapper object.
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.
@@ -69,8 +69,13 @@ class Multi1D3DRemapper(Remapper):
         @param rescaling see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
         @param rotation see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
         @param outsideCellsScreening see Remapper.
+        @param reverseTransformations see Remapper.
+
+        @warning There seems to be a bug in MEDCoupling that may cause wrong results when rescaling is used with a source mesh (multi1D) of
+            nature ExtensiveMaximum or IntensiveConservation. In this case, using reverseTransformations=False should be enough to solve
+            the problem.
         """
-        Remapper.__init__(self, meshAlignment, offset, rescaling, rotation, outsideCellsScreening)
+        Remapper.__init__(self, meshAlignment, offset, rescaling, rotation, outsideCellsScreening, reverseTransformations)
         self._indexTable = [[] for _ in range(max(indexTable) + 1)]
         for position, indice1D in enumerate(indexTable):
             if indice1D >= 0:
