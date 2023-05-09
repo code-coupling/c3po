@@ -16,8 +16,7 @@ from setuptools import find_packages, setup
 
 def get_version():
     """Extract the package's version number from the ``VERSION`` file."""
-#    filename = os.path.join(os.path.dirname(__file__), "sources", "c3po", "VERSION")
-    filename = os.path.join(os.path.dirname(__file__), "c3po", "VERSION")
+    filename = os.path.join(os.path.dirname(__file__), "sources", "c3po", "VERSION")
     with open(filename) as file:
         return file.read().strip()
 
@@ -68,13 +67,13 @@ setup(
     maintainer_email="cyril.patricot@cea.fr",
     description="Collaborative Code Coupling PlatfOrm",
     url="https://sourceforge.net/projects/cea-c3po/",
-    packages=find_packages(),
+    packages=find_packages(where="sources"),
     package_data={
         "c3po": [
             "VERSION",
         ],
     },
-    #    package_dir={"": "sources"},
+    package_dir={"": "sources"},
     install_requires=check_dependencies([
         "numpy>=1.9",
         "mpi4py>=1.3",
