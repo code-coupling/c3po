@@ -186,4 +186,4 @@ class FixedPointCoupler(Coupler):
         """ See c3po.PhysicsDriver.PhysicsDriver.initTimeStep().  """
         self._iter = 0
         self._previousData = 0
-        Coupler.initTimeStep(self, dt)
+        return Coupler.initTimeStep(self, dt)
