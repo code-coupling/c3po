@@ -12,6 +12,7 @@
 from __future__ import print_function, division
 
 from c3po.DataAccessor import DataAccessor
+from c3po.services.TransientLogger import NoLog
 
 
 class PhysicsDriver(DataAccessor):
@@ -50,6 +51,8 @@ class PhysicsDriver(DataAccessor):
         self._solveStatus = True
         self._iterateStatus = (True, True)
         self._initNb = 0
+
+        self._transientLogger = NoLog()
 
     @staticmethod
     def GetICoCoMajorVersion():  # pylint: disable=invalid-name
@@ -438,6 +441,13 @@ class PhysicsDriver(DataAccessor):
         """
         raise NotImplementedError
 
+    def setTransientLogger(self, transientLogger):
+        """! Defines the logger for solveTransient method.
+
+        @param transientLogger (services.TransientLogger.TransientLogger) logger instance.
+        """
+        self._transientLogger = transientLogger
+
     def solveTransient(self, tmax, finishAtTmax=False, stopIfStationary=False):
         """! Make the PhysicsDriver to advance in time until it reaches the time tmax or it asks to stop.
 
@@ -448,6 +458,8 @@ class PhysicsDriver(DataAccessor):
         In case the PhysicsDriver asks to stop before tmax is reached, resetTime(tmax) is called.
         @param stopIfStationary (bool) if set to True, the method stops also if isStationary() returns True.
         """
+        self._transientLogger.init(driver=self, tmax=tmax, presentTime=self.presentTime())
+
         (dt, stop) = self.computeTimeStep()
         while (self.presentTime() < tmax - 1.E-8 * min(tmax, dt) and not stop):
             if finishAtTmax:
@@ -461,14 +473,18 @@ class PhysicsDriver(DataAccessor):
             ok = self.getSolveStatus()
             if ok:
                 self.validateTimeStep()
+                self._transientLogger.validate(dt=dt, presentTime=self.presentTime())
                 (dt, stop) = self.computeTimeStep()
                 if stopIfStationary:
                     stop = stop or self.isStationary()
             else:
                 self.abortTimeStep()
                 (dt2, stop) = self.computeTimeStep()
+                self._transientLogger.abort(dt, dt2, stop, self.presentTime())
                 if dt == dt2:
                     raise Exception("PhysicsDriver.solveTransient : we are about to repeat a failed time-step calculation !")
                 dt = dt2
         if stop and finishAtTmax:
             self.resetTime(tmax)
+
+        self._transientLogger.terminate(presentTime=self.presentTime())
