@@ -4,7 +4,7 @@ from __future__ import print_function, division
 import pytest
 
 
-def main_mpi_collaborative():
+def main_mpi_collaborative(exchangeWithFiles):
     from mpi4py import MPI
 
     import c3po
@@ -48,8 +48,8 @@ def main_mpi_collaborative():
     Neutro2ThermoTransformer = c3po.SharedRemapping(basicTransformer, reverse=True)
 
     DataCoupler = c3po.mpi.MPICollectiveDataManager(MPI.COMM_WORLD)
-    ExchangerNeutro2Thermo = c3po.mpi.MPIExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")], exchangeWithFiles=True)
-    ExchangerThermo2Data = c3po.mpi.MPIExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(DataCoupler, "Densities")], exchangeWithFiles=True)
+    ExchangerNeutro2Thermo = c3po.mpi.MPIExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")], exchangeWithFiles=exchangeWithFiles)
+    ExchangerThermo2Data = c3po.mpi.MPIExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(DataCoupler, "Densities")], exchangeWithFiles=exchangeWithFiles)
     ExchangerData2Neutro = c3po.mpi.MPIExchanger(Data2NeutroTransformer, [(DataCoupler, "Densities")], [(myNeutroDriver, "Densities")])
 
     OneIteration = OneIterationCoupler({"neutro": myNeutroDriver, "thermo": myThermoDriver}, [ExchangerNeutro2Thermo])
@@ -81,4 +81,5 @@ def main_mpi_collaborative():
 
 
 if __name__ == "__main__":
-    main_mpi_collaborative()
+    main_mpi_collaborative(True)
+    main_mpi_collaborative(False)

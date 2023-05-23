@@ -76,20 +76,23 @@ class MPIFileFieldSender(object):
 
         if self._fileName is None:
             num = 0
-            testFileName = "ExchangeField_rank" + str(MPI.COMM_WORLD.Get_rank()) + "_" + str(num) + ".med"
-            while os.path.exists(testFileName):
+            rank = MPI.COMM_WORLD.Get_rank()
+            fileExist = True
+            while fileExist:
+                self._fileName = "ExchangeField_rank" + str(rank) + "_" + str(num) + ".med"
+                fileExist = os.path.exists(self._fileName)
                 num += 1
-                testFileName = "ExchangeField_rank" + str(MPI.COMM_WORLD.Get_rank()) + "_" + str(num) + ".med"
-            self._fileName = testFileName
-
-        """for destination in self._destinations:
-                mpiComm = destination.mpiComm
-                if isinstance(destination, MPICollectiveProcess):
-                    mpiComm.Barrier()"""
 
         if len(self._destinations) > 0 and (self._isFirstSend or not self._isTemplate):
+            for destination in self._destinations:
+                mpiComm = destination.mpiComm
+                if isinstance(destination, MPICollectiveProcess):
+                    mpiComm.Barrier()
+                else:
+                    mpiComm.recv(source=destination.rank, tag=MPITag.data)
+
             time, iteration, order = field.getTime()
-            field.setTime(0, 0, 0)          
+            field.setTime(0, 0, 0)
             if os.path.exists(self._fileName):
                 mc.WriteFieldUsingAlreadyWrittenMesh(self._fileName, field)
             else:

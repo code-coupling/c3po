@@ -67,12 +67,14 @@ class MPIFileFieldRecipient(object):
         if self._field == 0 or not self._isTemplate:
             medInfo = ()
             if self._isCollective:
+                mpiComm.Barrier()
                 medInfo = mpiComm.bcast(medInfo, root=senderRank)
             else:
+                mpiComm.send(0, dest=senderRank, tag=MPITag.data)
                 medInfo = mpiComm.recv(source=senderRank, tag=MPITag.data)
             self._field = mc.ReadField(*(medInfo[0]))
             self._field.setNature(medInfo[1])
-            self._field.setTime(medInfo[2][0], medInfo[2][1], medInfo[2][2])
+            self._field.setTime(*(medInfo[2]))
         self._storing.store(self._field)
 
 
