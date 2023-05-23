@@ -64,6 +64,7 @@ class MPIFileFieldSender(object):
         self._storing = storing
         self._isTemplate = isTemplate
         self._isFirstSend = True
+        self._fileName = None
 
     def exchange(self):
         """! INTERNAL """
@@ -73,15 +74,29 @@ class MPIFileFieldSender(object):
         else:
             field = self._dataAccess.get()
 
-        if len(self._destinations) > 0 and (self._isFirstSend or not self._isTemplate):
+        if self._fileName is None:
             num = 0
-            while os.path.exists("ExchangeField_" + str(num) + ".med"):
+            testFileName = "ExchangeField_rank" + str(MPI.COMM_WORLD.Get_rank()) + "_" + str(num) + ".med"
+            while os.path.exists(testFileName):
                 num += 1
-            nameFile = "ExchangeField_" + str(num) + ".med"
-            mc.WriteField("ExchangeField_" + str(num) + ".med", field, True)
+                testFileName = "ExchangeField_rank" + str(MPI.COMM_WORLD.Get_rank()) + "_" + str(num) + ".med"
+            self._fileName = testFileName
 
-            _, iteration, order = field.getTime()
-            medInfo = [(field.getTypeOfField(), os.getcwd() + "/" + nameFile, field.getMesh().getName(), 0, field.getName(), iteration, order), field.getNature()]
+        """for destination in self._destinations:
+                mpiComm = destination.mpiComm
+                if isinstance(destination, MPICollectiveProcess):
+                    mpiComm.Barrier()"""
+
+        if len(self._destinations) > 0 and (self._isFirstSend or not self._isTemplate):
+            time, iteration, order = field.getTime()
+            field.setTime(0, 0, 0)          
+            if os.path.exists(self._fileName):
+                mc.WriteFieldUsingAlreadyWrittenMesh(self._fileName, field)
+            else:
+                mc.WriteField(self._fileName, field, True)
+
+            medInfo = [(field.getTypeOfField(), os.path.join(os.getcwd(), self._fileName), field.getMesh().getName(), 0, field.getName(), field.getTime()[1], field.getTime()[2]), field.getNature(), (time, iteration, order)]
+            field.setTime(time, iteration, order)
 
             for destination in self._destinations:
                 mpiComm = destination.mpiComm
@@ -89,6 +104,7 @@ class MPIFileFieldSender(object):
                     mpiComm.bcast(medInfo, root=mpiComm.Get_rank())
                 else:
                     mpiComm.send(medInfo, dest=destination.rank, tag=MPITag.data)
+
         self._isFirstSend = False
         self._storing.store(field)
 
