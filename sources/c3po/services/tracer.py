@@ -10,6 +10,7 @@
 
 """ Contain the class wrapper tracer. """
 from __future__ import print_function, division
+import re
 from types import FunctionType
 import time
 import sys
@@ -17,6 +18,9 @@ import os
 
 import c3po.medcouplingCompat as mc
 
+def getRegularName(name):
+    """! INTERNAL """
+    return re.sub("[^a-zA-Z0-9_]", "_", "_" + name)
 
 def getNameFieldInput(name, field):
     """! INTERNAL """
@@ -112,10 +116,10 @@ class TracerMeta(type):
                         toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n"
                     elif method.__name__.startswith("getOutputMED"):
                         nameField = getNameInput(*args, **kwargs)
-                        toWritePython = nameField + "_" + self.tracerObjectName + " = " + self.tracerObjectName + "." + method.__name__ + "('" + nameField + "')" + "\n"
+                        toWritePython = getRegularName(nameField) + "_" + self.tracerObjectName + " = " + self.tracerObjectName + "." + method.__name__ + "('" + nameField + "')" + "\n"
                     elif method.__name__.startswith("updateOutputMED"):
                         (nameField, _) = getNameFieldInput(*args, **kwargs)
-                        toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', " + nameField + "_" + self.tracerObjectName + ")" + "\n"
+                        toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', " + getRegularName(nameField) + "_" + self.tracerObjectName + ")" + "\n"
                     else:
                         stringArgs = getArgsString(*args, **kwargs)
                         toWritePython = self.tracerObjectName + "." + method.__name__ + stringArgs + "\n"
