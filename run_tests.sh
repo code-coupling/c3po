@@ -1,4 +1,7 @@
 #!/bin/bash
+set -euo pipefail
+unalias -a
+current_script_dir="$( cd "$( dirname "${0}" )" &> /dev/null && pwd )"
 ################################################################################
 # This is C3PO testing script
 ################################################################################
@@ -59,9 +62,27 @@ if $ISCOV ; then
   PYTESTCOV="--cov-report ${COVREPORT} --cov=c3po tests/"
 fi
 
+command_failed=()
+cd ${current_script_dir}
+export PYTHONPATH="${current_script_dir}:${PYTHONPATH}"
+set +eu
 pytest $IGNOREMPI $IGNOREMEDMPI $PYTESTCOV $HTMLREPORT
+set -eu
+if (( $? > 0 )); then
+  echo "pytest failed!"
+  command_failed+=("pytest")
+fi
+
 
 if $RUNPYLINT ; then
-  cd sources
+  cd ${current_script_dir}/sources
+  set +eu
   pylint c3po
+  set -eu
+  if (( $? > 0 )); then
+    echo "pylint failed!"
+    command_failed+=("pylint")
+  fi
 fi
+
+exit ${#command_failed[@]}
