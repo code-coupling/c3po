@@ -47,6 +47,20 @@ class MPIRemapper(object):
             IntensiveConservation. In this case, it is necessary to use reverseTransformations=False and to never perform a remapping on a field
             whose underling mesh has not been rescaled.
         """
+        try:
+            from c3po.medcouplingCompat import InterpKernelDEC
+        except ImportError as previousException:
+            previousmessage = previousException.msg if hasattr(ImportError, "msg") else previousException.message
+            message = ('MPIRemapper: we failed to import InterpKernelDEC from medcoupling (with the exception message: "{}"). '.format(previousmessage)
+                       + "medcoupling may have been installed without MPI option.")
+            if hasattr(ImportError, "msg"): #python3
+                #La construction typique python3 aurait plutot ete:
+                #raise ImportError(message) from previousException, mais cela provoque une erreur a l'import en python2.
+                previousException.msg = message
+                raise previousException
+            else:                           #python2
+                raise ImportError(message)
+
         self.isInit = False
         self.isInitPerNature = {}
         self._meshAlignment = meshAlignment
