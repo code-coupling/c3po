@@ -89,6 +89,9 @@ This directory contains the definition of the following elements:
     2. getTotalTimePhysicsDriver() that reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns the total time spent by one c3po.PhysicsDriver.PhysicsDriver in indicated methods.
     3. getTimesExchanger() that reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns time information about a chosen exchanger.
   - c3po.services.NameChanger.NameChanger wraps a c3po.PhysicsDriver.PhysicsDriver object and changes the names of the values and fields quantities that can be get/set through ICoCo methods. The idea is to improve the genericity of coupling scripts by using generic variable names without having to modify the names "by hand".
+  - c3po.services.TransientLogger.TransientLogger is a class interface (to be implemented) for logging (in standard output) information during a transient (method solveTransient() from c3po.PhysicsDriver.PhysicsDriver). There are two implementations of this class:
+    1. c3po.services.TransientLogger.Timekeeper provides basic information about transient progress. It is the default implementation used by c3po.PhysicsDriver.PhysicsDriver (but logging is by default desactivated).
+    2. c3po.services.TransientLogger.FortuneTeller derives from c3po.services.TransientLogger.Timekeeper and adds an evaluation of the remaining computing time to complete the transient.
 
 \subsection C3POMPIsources_sec II.4. c3po/mpi directory
 

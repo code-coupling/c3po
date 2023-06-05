@@ -41,8 +41,8 @@ class PhysicsScalarTransient(PhysicsDriver):
         return True
 
     def solveTimeStep(self):
-        self.result_ = self.a_ * (1 + self.t_) + self.b_ * self.x_
-        print("result =", self.a_, "*", (1 + self.t_), "+", self.b_, "*", self.x_)
+        self.result_ = self.a_ * (1 + self.t_ + self.dt_) + self.b_ * self.x_
+        print("result =", self.a_, "*", (1 + self.t_ + self.dt_), "+", self.b_, "*", self.x_)
         return True
 
     def setStationaryMode(self, stationaryMode):

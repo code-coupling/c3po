@@ -10,12 +10,27 @@ import c3po
 class ScalarPhysicsCoupler(c3po.Coupler):
     def __init__(self, physics, exchangers, dataManagers=[]):
         c3po.Coupler.__init__(self, physics, exchangers, dataManagers)
+        self._failed = False
 
     def solveTimeStep(self):
         self._physicsDrivers[0].solve()
         self._exchangers[0].exchange()
         self._physicsDrivers[1].solve()
         return self.getSolveStatus()
+
+    def abortTimeStep(self):
+        self._failed = True
+        c3po.Coupler.abortTimeStep(self)
+
+    def validateTimeStep(self):
+        self._failed = False
+        c3po.Coupler.validateTimeStep(self)
+
+    def computeTimeStep(self):
+        (dt, stop) = c3po.Coupler.computeTimeStep(self)
+        if self._failed:
+            dt = self._dt / 2.
+        return (dt, stop)
 
 
 def main_sequential():
@@ -50,7 +65,7 @@ def main_sequential():
 
     mycoupler = c3po.FixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
     mycoupler.setDampingFactor(0.5)
-    mycoupler.setConvergenceParameters(1E-5, 100)
+    mycoupler.setConvergenceParameters(1E-5, 10)
 
     listingW.initialize([(myPhysics, "Physics1"), (myPhysics2, "Physics2")], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
 
@@ -62,18 +77,33 @@ def main_sequential():
     print('Stationary mode :', mycoupler.getStationaryMode())
     assert not mycoupler.getStationaryMode()
 
+    mycoupler.setTransientPrintLevel(2)
     mycoupler.solveTransient(2.)
 
     print(myPhysics1.getOutputDoubleValue("y"), myPhysics2.getOutputDoubleValue("y"))
-    assert pytest.approx(myPhysics1.getOutputDoubleValue("y"), abs=1.E-4) == 3.166666
-    assert pytest.approx(myPhysics2.getOutputDoubleValue("y"), abs=1.E-4) == 2.533333
+    assert pytest.approx(myPhysics1.getOutputDoubleValue("y"), abs=1.E-4) == 3.416666
+    assert pytest.approx(myPhysics2.getOutputDoubleValue("y"), abs=1.E-4) == 2.733333
 
+    myPhysics1.setInputDoubleValue("x", 0.)
+    myPhysics2.setInputDoubleValue("x", 0.)
     mycoupler.resetTime(0.)
-    mycoupler.solveTransient(1.)
+    mycoupler.setTransientLogger(c3po.FortuneTeller())
+    mycoupler.setPrintLevel(1)
+    mycoupler.solveTransient(1., finishAtTmax=True)
 
     print(myPhysics1.getOutputDoubleValue("y"), myPhysics2.getOutputDoubleValue("y"))
-    assert pytest.approx(myPhysics1.getOutputDoubleValue("y"), abs=1.E-4) == 3.166666
-    assert pytest.approx(myPhysics2.getOutputDoubleValue("y"), abs=1.E-4) == 2.533333
+    assert pytest.approx(myPhysics1.getOutputDoubleValue("y"), abs=1.E-4) == 3. + 1./3.
+    assert pytest.approx(myPhysics2.getOutputDoubleValue("y"), abs=1.E-4) == 2. + 2./3.
+
+    myPhysics1.setInputDoubleValue("x", 0.)
+    myPhysics2.setInputDoubleValue("x", 0.)
+    mycoupler.resetTime(0.)
+    mycoupler.setTransientPrintLevel(1)
+    mycoupler.solveTransient(0.5, finishAtTmax=True)
+
+    print(myPhysics1.getOutputDoubleValue("y"), myPhysics2.getOutputDoubleValue("y"))
+    assert pytest.approx(myPhysics1.getOutputDoubleValue("y"), abs=1.E-4) == 2.5
+    assert pytest.approx(myPhysics2.getOutputDoubleValue("y"), abs=1.E-4) == 2.
 
     print(myPhysics1.getInputValuesNames())
     print(myPhysics1.getOutputValuesNames())
@@ -99,7 +129,7 @@ def main_sequential():
 
     Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral.log")]
     print(Nlines)
-    assert Nlines == [435, 429, 78, 78, 750]
+    assert Nlines == [708, 700, 129, 129, 1230]
 
 
 def test_sequential():

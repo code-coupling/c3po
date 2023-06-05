@@ -8,155 +8,141 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from abc import ABC, abstractmethod
+from __future__ import print_function, division
+from abc import ABCMeta, abstractmethod
 from datetime import datetime, timedelta
 import time
 
+from c3po.services.Printer import Printer
 
-class TransientLogger(ABC):
-    """! TransientLogger is a class which follows transient.
-    """
+
+class TransientLogger(object):
+    """! TransientLogger is the base class for the production of transient logging strings. """
+    __metaclass__ = ABCMeta
 
     @abstractmethod
-    def init(self, driver, tmax, presentTime):
-        """Method called before transient starts.
+    def initTransient(self, driver, tmax, finishAtTmax, stopIfStationary, presentTime):
+        """! Method called before transient starts.
 
-        Parameters
-        ----------
-        driver : c3po.PhysicsDriver
-            PhysicsDriver calling ``solveTransient``.
-        tmax : float
-            ``tmax`` given to ``solveTransient``.
-        presentTime : float
-            Present time when calling ``solveTransient``.
+        @param driver (c3po.PhysicsDriver.PhysicsDriver) The caller of solveTransient().
+        @param tmax (float) tmax argument given to solveTransient().
+        @param finishAtTmax (bool) finishAtTmax argument given to solveTransient().
+        @param stopIfStationary (bool) stopIfStationary argument given to solveTransient().
+        @param presentTime (float) Present time when calling solveTransient().
         """
         raise NotImplementedError
 
     @abstractmethod
-    def abort(self, dt, dt2, stop, presentTime):
-        """Method when time step is aborted.
+    def logAbort(self, dt, presentTime):
+        """! Method called when time step is aborted.
 
-        Parameters
-        ----------
-        dt : float
-            Time step failed.
-        dt2 : float
-            ``dt``value returned by ``computeTimeStep`` adter ``abortTimeStep``.
-        stop : bool
-            ``stop``value returned by ``computeTimeStep`` adter ``abortTimeStep``.
-        presentTime : float
-            Present time after calling ``abortTimeStep``.
+        @param dt (float) Size of the failed time step.
+        @param presentTime (float) Present time after calling abortTimeStep().
         """
         raise NotImplementedError
 
     @abstractmethod
-    def validate(self, dt, presentTime):
-        """Method when time step is validated.
+    def logValidate(self, dt, presentTime):
+        """! Method called when time step is validated.
 
-        Parameters
-        ----------
-        dt : float
-            Time step achieved.
-        presentTime : float
-            Present time after calling ``validateTimeStep``.
+        @param dt (float) Size of the validated time step.
+        @param presentTime (float) Present time after calling validateTimeStep().
         """
         raise NotImplementedError
 
     @abstractmethod
-    def terminate(self, presentTime):
-        """Method called after the transient.
+    def terminateTransient(self, presentTime, stop, isStationary):
+        """! Method called after the transient ends.
 
-        Parameters
-        ----------
-        presentTime : float
-            Present time after the transient.
+        @param presentTime (float) Present time after the transient.
+        @param stop (bool) Indicate if the transient ends because of a stopping criteria.
+        @param isStationary (bool) Indicate if the stopping criteria is due to isStationary().
         """
         raise NotImplementedError
 
 
-class NoLog(TransientLogger):
-
-    def init(self, driver, tmax, presentTime):
-        """Just pass"""
-        pass
-
-    def abort(self, dt, dt2, stop, presentTime):
-        """Just pass"""
-        pass
-
-    def validate(self, dt, presentTime):
-        """Just pass"""
-        pass
-
-    def terminate(self, presentTime):
-        """Just pass"""
-        pass
-
-
-class FinalTimeEstimator(TransientLogger):
-    """! TransientLogger which estimates the duration of the transient
-    with Exponential Moving Average.
-    """
-    def __init__(self, relaxation = 0.3, level = 1) -> None:
-        """Constructor.
-
-        Parameters
-        ----------
-        relaxation : float, optional
-            Relaxation factor for the moving average, by default 0.3
-        level : int, optional
-            The print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
-        """
-
-        self._relaxation = min(1.0, relaxation)
-        self._level = level
-
-        self._name = __class__.__name__
+class Timekeeper(TransientLogger):
+    """! TransientLogger which provides information about transient progress. """
+    def __init__(self):
+        self._name = ""
         self._initialTime = 0.0
         self._tmax = 1e30
-
-        self._simu_rate = 0.0
-        self._real_t0 = 0.0
         self._total_abort = 0
         self._step_abort = 0
-
         self._dt_range = (1.e30, 0.0)
-        self._ert = 1e30
 
-    def init(self, driver, tmax, presentTime):
-        """See ``TransientLogger.init``"""
-
+    def initTransient(self, driver, tmax, finishAtTmax, stopIfStationary, presentTime):
+        """! See ``TransientLogger.initTransient``"""
         self._name = driver.__class__.__name__
         self._initialTime = presentTime
         self._tmax = tmax
-
-        self._simu_rate = None
-        self._real_t0 = time.perf_counter()
         self._total_abort = 0
         self._step_abort = 0
-
         self._dt_range = (1.e30, 0.0)
-        self._ert = 1e30
+        return "{}: transient starts at {:9.3e}s, finishAtTmax = {}, stopIfStationary = {}".format(self._name, presentTime, finishAtTmax, stopIfStationary)
 
-        self._print_level("{}: starts transient".format(self._name))
-
-    def abort(self, dt, dt2, stop, presentTime):
-        """See ``TransientLogger.abort``"""
-
-        if self._level > 0:
-            print("{}: abort at {:9.3e}s{}, failed dt = {:9.3e}s, new dt = {:9.3e}s, stop = {}".format(
-                self._name, presentTime, "\U0001F614", dt, dt2, stop))
+    def logAbort(self, dt, presentTime):
+        """! See ``TransientLogger.logAbort``"""
         self._step_abort += 1
-
-    def _getProgression(self, presentTime):
-        return (presentTime - self._initialTime) / (self._tmax - self._initialTime) * 100.0
+        return "{}: abort at {:9.3e}s{}, failed dt = {:9.3e}s".format(
+            self._name, presentTime, u"\U0001F614".encode('utf-8').decode('utf-8'), dt)
 
     def _getProgressionStr(self, presentTime):
-        return ( "{}: transient simulation time = {:9.3e}s ({:6.2f} %)".format(
-            self._name, presentTime, self._getProgression(presentTime)))
+        """! INTERNAL """
+        return ( "{:9.3e}s".format(presentTime))
+
+    def logValidate(self, dt, presentTime):
+        """! See ``TransientLogger.logValidate``"""
+        self._dt_range = (min(dt, self._dt_range[0]), max(dt, self._dt_range[1]))
+        to_print = ("{}: validate at {}, dt = {:9.3e}s (#aborts={}{})".format(
+            self._name, self._getProgressionStr(presentTime), dt, self._step_abort, u"\U0001F928".encode('utf-8').decode('utf-8') if self._step_abort else ""))
+
+        self._total_abort += self._step_abort
+        self._step_abort = 0
+        return to_print
+
+    def terminateTransient(self, presentTime, stop, isStationary):
+        """! See ``TransientLogger.terminateTransient``"""
+        stopReason = "tmax is reached" if not stop else ("stationary is found" if isStationary else "computeTimeStep asks to stop")
+        to_print = "{}: transient ends at {} because {}. Total #aborts = {}, dt range = {}s.{}".format(
+            self._name, self._getProgressionStr(presentTime), stopReason, self._total_abort, self._dt_range, u"\U0001F973".encode('utf-8').decode('utf-8'))
+        return to_print
+
+
+class FortuneTeller(Timekeeper):
+    """! Timekeeper which estimates in addition the duration of the transient
+    with Exponential Moving Average.
+    """
+    def __init__(self, relaxation=0.3):
+        """! Build a FortuneTeller object.
+
+        @param relaxation (float) Relaxation factor for the Exponential Moving Average. Default: 0.3.
+        """
+        Timekeeper.__init__(self)
+        self._relaxation = min(1.0, relaxation)
+        self._simu_rate = 0.0
+        self._real_t0 = 0.0
+        self._ert = 1e30
+
+    def initTransient(self, driver, tmax, finishAtTmax, stopIfStationary, presentTime):
+        """! See ``TransientLogger.initTransient``"""
+        self._simu_rate = None
+        self._real_t0 = time.time()
+        self._ert = 1e30
+        return Timekeeper.initTransient(self, driver, tmax, finishAtTmax, stopIfStationary, presentTime)
+
+    def _getProgression(self, presentTime):
+        """! INTERNAL """
+        return min(1., (presentTime - self._initialTime) / (self._tmax - self._initialTime)) * 100.0
+
+    def _getProgressionStr(self, presentTime):
+        """! INTERNAL """
+        return Timekeeper._getProgressionStr(self, presentTime) + " ({:6.2f} %)".format(
+            self._getProgression(presentTime))
 
     def _getEstimatedRemainingTime(self, dt, presentTime):
-        real_t1 = time.perf_counter()
+        """! INTERNAL """
+        real_t1 = time.time()
         simu_rate = (real_t1 - self._real_t0) / dt
         self._real_t0 = real_t1
         if self._simu_rate is None:
@@ -164,34 +150,70 @@ class FinalTimeEstimator(TransientLogger):
         self._simu_rate = simu_rate * self._relaxation + self._simu_rate * (1. - self._relaxation)
         return self._simu_rate * (self._tmax - presentTime)
 
-    def validate(self, dt, presentTime):
-        """See ``TransientLogger.validate``"""
+    def logValidate(self, dt, presentTime):
+        """! See ``TransientLogger.logValidate``"""
+        to_print = Timekeeper.logValidate(self, dt, presentTime)
+        ert0 = self._ert
+        self._ert = self._getEstimatedRemainingTime(dt=dt, presentTime=presentTime)
+        if self._ert > 1.e-3:
+            to_print += ", estimated final time {} {} {}".format(
+                (datetime.now() +
+                    timedelta(seconds=int(self._ert))).strftime('%Y-%m-%d %H:%M:%S'),
+                "↗" if ert0 < self._ert else "↘",
+                u"\U0001F634".encode('utf-8').decode('utf-8') if self._getProgression(presentTime) < 80.0 else u"\U0001F600".encode('utf-8').decode('utf-8'))
+        return to_print
 
-        self._dt_range = (min(dt, self._dt_range[0]), max(dt, self._dt_range[1]))
-        to_print = (self._getProgressionStr(presentTime) +
-                    ", dt = {:9.3e}s (#aborts={}{})".format(
-                        dt, self._step_abort, "\U0001F928" if self._step_abort else ""))
-        if self._level > 0:
-            ert0 = self._ert
-            self._ert = self._getEstimatedRemainingTime(dt=dt, presentTime=presentTime)
-            if self._ert > 1.e-3:
-                to_print += ", estimated final time {} {} {}".format(
-                    (datetime.now() +
-                        timedelta(seconds=int(self._ert))).strftime('%Y-%m-%d %H:%M:%S'),
-                    "↗" if ert0 < self._ert else "↘",
-                    "\U0001F634" if self._getProgression(presentTime) < 80.0 else "\U0001F600")
-        self._print_level(to_print)
-        self._total_abort += self._step_abort
-        self._step_abort = 0
 
-    def terminate(self, presentTime):
-        """See ``TransientLogger.terminate``"""
+class TransientPrinter(object):
+    """! INTERNAL.
 
-        self._print_level("{}, total #aborts = {}, dt range = {}s.\U0001F973".format(
-            self._getProgressionStr(presentTime), self._total_abort, self._dt_range))
+    TransientPrinter writes information about transient in the standard output. """
+    def __init__(self, transientLogger):
+        """! Build a TransientPrinter object.
 
-    def _print_level(self, to_print):
-        if self._level == 1:
-            print("\x1b[80D\x1b[1A\x1b[K{}".format(to_print))
-        elif self._level >= 2:
-            print(to_print)
+        @param transientLogger (c3po.services.TransientLogger.TransientLogger) The TransientLogger object to use.
+        """
+        self._printer = Printer(0)
+        self._logger = transientLogger
+
+    def initTransient(self, driver, tmax, finishAtTmax, stopIfStationary, presentTime):
+        """! See TransientLogger.initTransient. """
+        if self._printer.getPrintLevel() > 0:
+            self._printer.print(self._logger.initTransient(driver, tmax, finishAtTmax, stopIfStationary, presentTime), tmplevel=2)
+
+    def logAbort(self, dt, presentTime):
+        """! See TransientLogger.logAbort. """
+        if self._printer.getPrintLevel() > 0:
+            self._printer.print(self._logger.logAbort(dt, presentTime))
+
+    def logValidate(self, dt, presentTime):
+        """! See TransientLogger.logValidate. """
+        if self._printer.getPrintLevel() > 0:
+            self._printer.print(self._logger.logValidate(dt, presentTime))
+
+    def terminateTransient(self, presentTime, stop, isStationary):
+        """! See TransientLogger.terminateTransient. """
+        if self._printer.getPrintLevel() > 0:
+            self._printer.print(self._logger.terminateTransient(presentTime, stop, isStationary), tmplevel=2)
+
+    def getPrinter(self):
+        """! Return the Printer object used.
+
+        @return (c3po.services.Printer.Printer) the Printer object used.
+        """
+        return self._printer
+
+    def setLogger(self, transientLogger):
+        """! Set a new TransientLogger object.
+
+        @param transientLogger (c3po.services.TransientLogger.TransientLogger) The TransientLogger object to use.
+        """
+        self._logger = transientLogger
+
+    def getLogger(self):
+        """! Return the TransientLogger object used.
+
+        @return (c3po.services.TransientLogger.TransientLogger) The used TransientLogger object.
+        """
+        return self._logger
+

@@ -17,12 +17,27 @@ def main_mpi_collaborative():
     class ScalarPhysicsCoupler(c3po.mpi.MPICoupler):
         def __init__(self, physics, exchangers, dataManagers=[]):
             c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
+            self._failed = False
 
         def solveTimeStep(self):
             self._physicsDrivers[0].solve()
             self._exchangers[0].exchange()
             self._physicsDrivers[1].solve()
             return self.getSolveStatus()
+
+        def abortTimeStep(self):
+            self._failed = True
+            c3po.Coupler.abortTimeStep(self)
+
+        def validateTimeStep(self):
+            self._failed = False
+            c3po.Coupler.validateTimeStep(self)
+
+        def computeTimeStep(self):
+            (dt, stop) = c3po.Coupler.computeTimeStep(self)
+            if self._failed:
+                dt = self._dt / 2.
+            return (dt, stop)
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -62,7 +77,7 @@ def main_mpi_collaborative():
 
     mycoupler = c3po.FixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
     mycoupler.setDampingFactor(0.5)
-    mycoupler.setConvergenceParameters(1E-5, 100)
+    mycoupler.setConvergenceParameters(1E-5, 10)
 
     listingW.initialize([(localPhysics, "Physics" + str(rank + 1))], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
 
@@ -76,18 +91,38 @@ def main_mpi_collaborative():
     else:
         myPhysics2.setOption(3., -1.)
 
+    mycoupler.setTransientPrintLevel(2)
     mycoupler.solveTransient(2.)
     print(localPhysics.getOutputDoubleValue("y"))
     reference = 0.
     if rank == 0:
-        reference = round(3.166666, 4)
+        reference = round(3.416666, 4)
     else:
-        reference = round(2.533333, 4)
+        reference = round(2.733333, 4)
 
     assert pytest.approx(localPhysics.getOutputDoubleValue("y"), abs=1.E-4) == reference
 
+    localPhysics.setInputDoubleValue("x", 0.)
     mycoupler.resetTime(0.)
-    mycoupler.solveTransient(1.)
+    mycoupler.setTransientLogger(c3po.FortuneTeller())
+    mycoupler.setPrintLevel(1)
+    mycoupler.solveTransient(1., finishAtTmax=True)
+    if rank == 0:
+        reference = round(3. + 1./3., 4)
+    else:
+        reference = round(2. + 2./3., 4)
+
+    print(localPhysics.getOutputDoubleValue("y"))
+    assert pytest.approx(localPhysics.getOutputDoubleValue("y"), abs=1.E-4) == reference
+
+    localPhysics.setInputDoubleValue("x", 0.)
+    mycoupler.resetTime(0.)
+    mycoupler.setTransientPrintLevel(1)
+    mycoupler.solveTransient(0.5, finishAtTmax=True)
+    if rank == 0:
+        reference = round(2.5, 4)
+    else:
+        reference = round(2., 4)
 
     print(localPhysics.getOutputDoubleValue("y"))
     assert pytest.approx(localPhysics.getOutputDoubleValue("y"), abs=1.E-4) == reference
@@ -129,7 +164,7 @@ def main_mpi_collaborative():
 
         Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral0.log"), nLines("listingGeneral1.log")]
         print(Nlines)
-        assert Nlines == [430, 428, 78, 78, 502, 502]
+        assert Nlines == [703, 699, 129, 129, 820, 820]
 
 if __name__ == "__main__":
     main_mpi_collaborative()
