@@ -13,6 +13,7 @@ from __future__ import print_function, division
 from types import FunctionType
 
 from c3po.PhysicsDriver import PhysicsDriver
+from c3po.services.Printer import warning
 
 
 class NameChanger(PhysicsDriver):
@@ -430,7 +431,7 @@ def nameChanger(nameMapping, wildcard=None):
     @throw Exception if applied to a class already modified by nameChanger, because it could result in an unexpected behavior.
     """
 
-    print("The class wrapper nameChanger is deprecated and will soon by deleted.\n"
+    warning("The class wrapper nameChanger is deprecated and will soon by deleted. "
           + "Please use the class NameChanger (acting on a PhysicsDriver object rather than a class).")
 
     def classWrapper(baseclass):

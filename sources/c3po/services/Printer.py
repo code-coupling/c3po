@@ -69,3 +69,10 @@ class Printer(object):
         """
         self.print(self._lastPrinted, tmplevel)
 
+
+def warning(message):
+    """! Write a warning message.
+
+    @param message (string) message of the warning.
+    """
+    print('\x1b[1;33m' + "WARNING : " + message + '\x1b[0m')

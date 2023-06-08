@@ -12,6 +12,7 @@
 from __future__ import print_function, division
 
 from c3po.PhysicsDriver import PhysicsDriver
+from c3po.services.Printer import warning
 
 
 class SaveAtInitTimeStep(object):
@@ -287,7 +288,7 @@ class TimeAccumulator(PhysicsDriver):
         The value associated with the name "macrodt" can be used to set the time-step size returned by computeTimeStep().
         """
         if name == "macrodt":
-            print('setInputDoubleValue("macrodt", value) is deprecated and will soon by deleted.\n'
+            warning('setInputDoubleValue("macrodt", value) is deprecated and will soon by deleted. '
                   + "Please use setComputedTimeStep(dt).")
             self._macrodt = value
         else:
