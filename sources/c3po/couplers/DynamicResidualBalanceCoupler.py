@@ -14,6 +14,7 @@ from __future__ import print_function, division
 from c3po.PhysicsDriver import PhysicsDriver
 from c3po.Coupler import Coupler
 from c3po.LocalDataManager import LocalDataManager
+from c3po.services.Printer import Printer
 
 class DynamicResidualBalanceCoupler(Coupler):
     """! DynamicResidualBalanceCoupler inherits from Coupler and proposes a dynamic residual balance algorithm.
@@ -100,7 +101,7 @@ class DynamicResidualBalanceCoupler(Coupler):
         if not isinstance(self._data, LocalDataManager):
             raise Exception("DynamicResidualBalanceCoupler.__init__ The provided Datamanager must be a LocalDataManager.")
 
-        self._printLevel = 2
+        self._iterationPrinter = Printer(2)
         self._leaveIfFailed = False
 
         self._epsSolver1Ref = 1e-4
@@ -135,7 +136,7 @@ class DynamicResidualBalanceCoupler(Coupler):
         """
         if not level in [0, 1, 2]:
             raise Exception("DynamicResidualBalanceCoupler.setPrintLevel level should be one of [0, 1, 2]!")
-        self._printLevel = level
+        self._iterationPrinter.setPrintLevel(level)
 
     def setFailureManagement(self, leaveIfSolvingFailed):
         """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
@@ -153,13 +154,15 @@ class DynamicResidualBalanceCoupler(Coupler):
             self.iterate()
             succeed, converged = self.getIterateStatus()
 
+        if self._iterationPrinter.getPrintLevel() == 1:
+            self._iterationPrinter.reprint(tmplevel=2)
+
         return succeed and converged
 
     def iterateTimeStep(self):
         """! See c3po.PhysicsDriver.PhysicsDriver.iterateTimeStep(). """
 
         converged = False
-        printEndOfLine = "\r" if self._printLevel == 1 else "\n"
 
         if self._iter == 0 :
             # -- Computation of the initial residual for Solver1
@@ -177,8 +180,6 @@ class DynamicResidualBalanceCoupler(Coupler):
             accuracySolver1 = self._data.getOutputDoubleValue('Residual2') / self._epsSolver2Ref * self._epsSolver1Ref
             self._solver1.setInputDoubleValue("Accuracy", accuracySolver1)
             self._accuracySolver1Old = accuracySolver1
-            if self._printLevel:
-                print("Accuracy Solver1: ", accuracySolver1, end=printEndOfLine)
 
             # -- First iteration for Solver1
             self._solver1.solve()
@@ -201,8 +202,9 @@ class DynamicResidualBalanceCoupler(Coupler):
             self._accuracySolver2 = self._data.getOutputDoubleValue('Residual1') / self._epsSolver1Ref * self._epsSolver2Ref
             self._solver2.setInputDoubleValue("Accuracy", self._accuracySolver2)
             self._accuracySolver2Old = self._accuracySolver2
-            if self._printLevel:
-                print("Accuracy Solver2: ", self._accuracySolver2, end=printEndOfLine)
+
+            if self._iterationPrinter.getPrintLevel() > 0:
+                self._iterationPrinter.print("Dynamic Residual Balance iteration {} accuracies: {} ; {}".format(self._iter, accuracySolver1, self._accuracySolver2))
 
             # -- First iteration for Solver2
             self._solver2.solve()
@@ -243,8 +245,6 @@ class DynamicResidualBalanceCoupler(Coupler):
 
             self._accuracySolver1Old = accuracySolver1
             self._solver1.setInputDoubleValue("Accuracy", accuracySolver1)
-            if self._printLevel:
-                print("Accuracy Solver1: ", accuracySolver1, end=printEndOfLine)
 
             # -- Computation of Solver1 with the new precision computed
             self._solver1.solve()
@@ -282,8 +282,9 @@ class DynamicResidualBalanceCoupler(Coupler):
 
             self._accuracySolver2Old = self._accuracySolver2
             self._solver2.setInputDoubleValue("Accuracy", self._accuracySolver2)
-            if self._printLevel:
-                print("Accuracy Solver2: ", self._accuracySolver2, end=printEndOfLine)
+
+            if self._iterationPrinter.getPrintLevel() > 0:
+                self._iterationPrinter.print("Dynamic Residual Balance iteration {} accuracies: {} ; {}".format(self._iter, accuracySolver1, self._accuracySolver2))
 
             # -- Computation of Solver2 with the new precision computed
             self._solver2.solve()

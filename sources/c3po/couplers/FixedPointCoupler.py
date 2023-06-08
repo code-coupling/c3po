@@ -14,6 +14,7 @@ from __future__ import print_function, division
 from c3po.PhysicsDriver import PhysicsDriver
 from c3po.Coupler import Coupler
 from c3po.CollaborativeDataManager import CollaborativeDataManager
+from c3po.services.Printer import Printer
 
 
 class FixedPointCoupler(Coupler):
@@ -52,7 +53,7 @@ class FixedPointCoupler(Coupler):
         self._tolerance = 1.E-6
         self._maxiter = 100
         self._dampingFactor = 1.
-        self._printLevel = 2
+        self._iterationPrinter = Printer(2)
         self._leaveIfFailed = False
         self._useIterate = False
         self._iter = 0
@@ -91,7 +92,7 @@ class FixedPointCoupler(Coupler):
         """
         if not level in [0, 1, 2]:
             raise Exception("FixedPointCoupler.setPrintLevel level should be one of [0, 1, 2]!")
-        self._printLevel = level
+        self._iterationPrinter.setPrintLevel(level)
 
     def setFailureManagement(self, leaveIfSolvingFailed):
         """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
@@ -146,12 +147,12 @@ class FixedPointCoupler(Coupler):
             self._previousData = self._data.clone()
 
         self.denormalizeData(self._normData)
-        if self._printLevel:
-            printEndOfLine = "\r" if self._printLevel == 1 else "\n"
+
+        if self._iterationPrinter.getPrintLevel() > 0:
             if self._iter == 0:
-                print("fixed-point iteration {} ".format(self._iter), end=printEndOfLine)
+                self._iterationPrinter.print("fixed-point iteration {} ".format(self._iter))
             else:
-                print("fixed-point iteration {} error : {:.5e}".format(self._iter, error), end=printEndOfLine)
+                self._iterationPrinter.print("fixed-point iteration {} error : {:.5e}".format(self._iter, error))
 
         self._iter += 1
 
@@ -171,6 +172,9 @@ class FixedPointCoupler(Coupler):
         while (succeed or not self._leaveIfFailed) and (not converged) and self._iter < self._maxiter:
             self.iterate()
             succeed, converged = self.getIterateStatus()
+
+        if self._iterationPrinter.getPrintLevel() == 1:
+            self._iterationPrinter.reprint(tmplevel=2)
 
         return succeed and converged
 

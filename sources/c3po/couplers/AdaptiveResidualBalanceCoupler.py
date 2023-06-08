@@ -14,6 +14,7 @@ from __future__ import print_function, division
 from c3po.PhysicsDriver import PhysicsDriver
 from c3po.Coupler import Coupler
 from c3po.LocalDataManager import LocalDataManager
+from c3po.services.Printer import Printer
 
 class AdaptiveResidualBalanceCoupler(Coupler):
     """! AdaptiveResidualBalanceCoupler inherits from Coupler and proposes a adaptive residual balance algorithm.
@@ -101,7 +102,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
         if not isinstance(self._data, LocalDataManager):
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ The provided Datamanager must be a LocalDataManager.")
 
-        self._printLevel = 2
+        self._iterationPrinter = Printer(2)
         self._leaveIfFailed = False
 
         self._epsSolver1Ref = 1e-4
@@ -146,7 +147,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
         """
         if not level in [0, 1, 2]:
             raise Exception("AdaptiveResidualBalanceCoupler.setPrintLevel level should be one of [0, 1, 2]!")
-        self._printLevel = level
+        self._iterationPrinter.setPrintLevel(level)
 
     def setFailureManagement(self, leaveIfSolvingFailed):
         """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
@@ -164,13 +165,15 @@ class AdaptiveResidualBalanceCoupler(Coupler):
             self.iterate()
             succeed, converged = self.getIterateStatus()
 
+        if self._iterationPrinter.getPrintLevel() == 1:
+            self._iterationPrinter.reprint(tmplevel=2)
+
         return succeed and converged
 
     def iterateTimeStep(self):
         """! See c3po.PhysicsDriver.PhysicsDriver.iterateTimeStep(). """
 
         converged = False
-        printEndOfLine = "\r" if self._printLevel == 1 else "\n"
 
         if self._iter == 0 :
 
@@ -184,8 +187,6 @@ class AdaptiveResidualBalanceCoupler(Coupler):
 
             # -- Convergence criteria for Solver1
             self._accuracySolver1 = self._convRateSolver1Initial * residualSolver1Initial
-            if self._printLevel:
-                print("Accuracy Solver1: ", self._accuracySolver1, end=printEndOfLine)
             self._solver1.setInputDoubleValue('Accuracy', self._accuracySolver1)
 
             # -- First iteration for Solver1
@@ -206,9 +207,10 @@ class AdaptiveResidualBalanceCoupler(Coupler):
 
             # -- Convergence criteria for Solver2
             self._accuracySolver2 = self._convRateSolver2Initial / 2. * residualSolver1Initial / self._epsSolver1Ref * self._epsSolver2Ref
-            if self._printLevel:
-                print("Accuracy Solver2: ", self._accuracySolver2, end=printEndOfLine)
             self._solver2.setInputDoubleValue('Accuracy', self._accuracySolver2)
+
+            if self._iterationPrinter.getPrintLevel() > 0:
+                self._iterationPrinter.print("Adaptive Residual Balance iteration {} accuracies: {} ; {}".format(self._iter, self._accuracySolver1, self._accuracySolver2))
 
             # -- First iteration for Solver2
             self._solver2.solve()
@@ -249,8 +251,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
             else :
                 converged = True
 
-            if self._printLevel:
-                print("Accuracy Solver1: ", self._accuracySolver1, end=printEndOfLine)
+            accuracy1ToPrint = self._accuracySolver1
 
             # -- Computation of Solver1 with the new precision computed
             self._solver1.solve()
@@ -283,8 +284,8 @@ class AdaptiveResidualBalanceCoupler(Coupler):
                     self._solver1.setInputDoubleValue('Accuracy', self._epsSolver1Ref)
                 self._solver2.setInputDoubleValue('Accuracy', self._accuracySolver2)
 
-            if self._printLevel:
-                print("Accuracy Solver2: ", self._accuracySolver2, end=printEndOfLine)
+            if self._iterationPrinter.getPrintLevel() > 0:
+                self._iterationPrinter.print("Adaptive Residual Balance iteration {} accuracies: {} ; {}".format(self._iter, self._accuracySolver1, self._accuracySolver2))
 
             # -- Computation of Solver2 with the new precision computed
             self._solver2.solve()

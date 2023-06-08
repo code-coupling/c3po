@@ -15,6 +15,7 @@ import numpy as np
 
 from c3po.Coupler import Coupler
 from c3po.CollaborativeDataManager import CollaborativeDataManager
+from c3po.services.Printer import Printer
 
 
 def solveTriang(matrixA, vectorB):
@@ -80,7 +81,7 @@ class JFNKCoupler(Coupler):
         self._krylovMaxIter = 100
         self._epsilon = 1.E-4
         self._isConverged = False
-        self._printLevel = 2
+        self._iterationPrinter = Printer(2)
         self._leaveIfFailed = False
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
@@ -122,7 +123,7 @@ class JFNKCoupler(Coupler):
         """
         if not level in [0, 1, 2]:
             raise Exception("JFNKCoupler.setPrintLevel level should be one of [0, 1, 2]!")
-        self._printLevel = level
+        self._iterationPrinter.setPrintLevel(level)
 
     def setFailureManagement(self, leaveIfSolvingFailed):
         """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
@@ -144,9 +145,6 @@ class JFNKCoupler(Coupler):
         residual = 0
         previousData = 0
         matrixQ = []
-
-        if self._printLevel:
-            printEndOfLine = "\r" if self._printLevel == 1 else "\n"
 
         # On calcul ici l'etat "0"
         physics.solve()
@@ -183,8 +181,8 @@ class JFNKCoupler(Coupler):
 
             errorNewton = self.getNorm(residual) / self.getNorm(data)
 
-            if self._printLevel:
-                print("JFNK Newton iteration {} initial error : {:.5e}".format(iterNewton, errorNewton), end=printEndOfLine)
+            if self._iterationPrinter.getPrintLevel() > 0:
+                self._iterationPrinter.print("JFNK Newton iteration {} initial error : {:.5e}".format(iterNewton, errorNewton))
 
             if errorNewton > self._newtonTolerance:
 
@@ -268,8 +266,8 @@ class JFNKCoupler(Coupler):
 
                     errorKrylov = abs(krylovResidual[-1]) / norm2Residual
 
-                    if self._printLevel:
-                        print("    JFNK Krylov iteration {} error : {:.5e}".format(iterKrylov - 1, errorKrylov), end=printEndOfLine)
+                    if self._iterationPrinter.getPrintLevel() > 0:
+                        self._iterationPrinter.print("    JFNK Krylov iteration {} error : {:.5e}".format(iterKrylov - 1, errorKrylov))
 
                 squareR = matrixR[0:iterKrylov, 0:iterKrylov]
                 reduceKrylovResidual = krylovResidual[0:iterKrylov]
@@ -281,8 +279,8 @@ class JFNKCoupler(Coupler):
 
             iterNewton += 1
 
-        if self._printLevel == 1:
-            print("JFNK Newton iteration {} initial error : {:.5e}".format(iterNewton - 1, errorNewton))
+        if self._iterationPrinter.getPrintLevel() == 1:
+            self._iterationPrinter.reprint(tmplevel=2)
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and errorNewton <= self._newtonTolerance

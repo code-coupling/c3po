@@ -206,6 +206,7 @@ def couplage_plaque(coupler_type='FixedPoint'):
         CouplerGS.setNormChoice(c3po.NormChoice.norm2)
         CouplerGS.setConvergenceParameters(1E-12, 100)
         CouplerGS.init()
+        CouplerGS.setPrintLevel(1)
         # Initialisation frontiere domaine
         Ph2toData.exchange()
         DatatoPh1.exchange()
@@ -216,6 +217,7 @@ def couplage_plaque(coupler_type='FixedPoint'):
         CouplerCS.setNormChoice(c3po.NormChoice.norm2)
         CouplerCS.setConvergenceParameters(1E-12, 100)
         CouplerCS.init()
+        CouplerCS.setPrintLevel(1)
         # Initialisation frontiere domaine
         Ph2toData.exchange()
         DatatoPh1.exchange()
@@ -226,6 +228,7 @@ def couplage_plaque(coupler_type='FixedPoint'):
         CouplerAnderson.setOrder(3)
         CouplerAnderson.setConvergenceParameters(1E-12, 100)
         CouplerAnderson.init()
+        CouplerAnderson.setPrintLevel(1)
         # Initialisation frontiere domaine
         Ph2toData.exchange()
         DatatoPh1.exchange()
@@ -236,6 +239,7 @@ def couplage_plaque(coupler_type='FixedPoint'):
         CouplerJFNK.setKrylovConvergenceParameters(1E-4, 3)
         CouplerJFNK.setConvergenceParameters(1E-12, 100)
         CouplerJFNK.init()
+        CouplerJFNK.setPrintLevel(1)
         # Initialisation frontiere domaine
         Ph2toData.exchange()
         DatatoPh1.exchange()
@@ -267,11 +271,13 @@ def couplage_plaque(coupler_type='FixedPoint'):
         if coupler_type == 'AdaptiveResidualBalance':
             CouplerResidualBalance.setConvRateInit(0.1, 0.1)
         CouplerResidualBalance.setConvergenceParameters(1E-12, 1E-12, 100)
+        CouplerResidualBalance.setPrintLevel(1)
 
         # On utilise un FixedPointCoupler pour verifier les erreurs multi-physiques.
         myFixedPointCoupler = c3po.FixedPointCoupler([CouplerResidualBalance], [Ph2toData, DatatoPh1], [DataCoupler])
 
         myFixedPointCoupler.init()
+        myFixedPointCoupler.setPrintLevel(1)
         myFixedPointCoupler.setUseIterate(True)
         myFixedPointCoupler.setConvergenceParameters(1E-12, 100)
         myFixedPointCoupler.setNormChoice(c3po.NormChoice.norm2)

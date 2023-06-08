@@ -15,6 +15,7 @@ import numpy as np
 
 from c3po.Coupler import Coupler
 from c3po.CollaborativeDataManager import CollaborativeDataManager
+from c3po.services.Printer import Printer
 
 
 def deleteQRColumn(matrixQ, matrixR, dataTemp):
@@ -86,7 +87,7 @@ class AndersonCoupler(Coupler):
         self._order = 2
         self._andersonDampingFactor = 1.
         self._isConverged = False
-        self._printLevel = 2
+        self._iterationPrinter = Printer(2)
         self._leaveIfFailed = False
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):
@@ -130,7 +131,7 @@ class AndersonCoupler(Coupler):
         """
         if not level in [0, 1, 2]:
             raise Exception("AndersonCoupler.setPrintLevel level should be one of [0, 1, 2]!")
-        self._printLevel = level
+        self._iterationPrinter.setPrintLevel(level)
 
     def setFailureManagement(self, leaveIfSolvingFailed):
         """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
@@ -162,9 +163,9 @@ class AndersonCoupler(Coupler):
         dropErr = 1.e10
 
         # Init On calcul ici l'etat "0"
-        if self._printLevel:
-            printEndOfLine = "\r" if self._printLevel == 1 else "\n"
-            print("Anderson iteration {} ".format(iiter), end=printEndOfLine)
+        if self._iterationPrinter.getPrintLevel() > 0:
+            self._iterationPrinter.print("Anderson iteration {} ".format(iiter))
+
         physics.solve()
         if self._leaveIfFailed and not physics.getSolveStatus():
             return False
@@ -197,8 +198,8 @@ class AndersonCoupler(Coupler):
         error = self.getNorm(diffData) / self.getNorm(data)
 
         iiter += 1
-        if self._printLevel:
-            print("Anderson iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
+        if self._iterationPrinter.getPrintLevel() > 0:
+            self._iterationPrinter.print("Anderson iteration {} error : {:.5e} ".format(iiter - 1, error))
 
         while error > self._tolerance and iiter < self._maxiter:
             self.abortTimeStep()
@@ -301,11 +302,11 @@ class AndersonCoupler(Coupler):
                 previousData.copy(data)
 
             iiter += 1
-            if self._printLevel:
-                print("Anderson iteration {} error : {:.5e} ".format(iiter - 1, error), end=printEndOfLine)
+            if self._iterationPrinter.getPrintLevel() > 0:
+                self._iterationPrinter.print("Anderson iteration {} error : {:.5e} ".format(iiter - 1, error))
 
-        if self._printLevel == 1:
-            print("Anderson iteration {} error : {:.5e} ".format(iiter - 1, error))
+        if self._iterationPrinter.getPrintLevel() == 1:
+            self._iterationPrinter.reprint(tmplevel=2)
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and error <= self._tolerance
