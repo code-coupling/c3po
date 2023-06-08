@@ -16,6 +16,7 @@ from c3po.Coupler import Coupler
 from c3po.LocalDataManager import LocalDataManager
 from c3po.services.Printer import Printer
 
+
 class AdaptiveResidualBalanceCoupler(Coupler):
     """! AdaptiveResidualBalanceCoupler inherits from Coupler and proposes a adaptive residual balance algorithm.
 
@@ -62,7 +63,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly two PhysicsDriver, not {}.".format(len(physics)))
         if isinstance(physics, dict):
             for key in physics.keys():
-                if key not in ["Solver1", "Solver2"] :
+                if key not in ["Solver1", "Solver2"]:
                     raise Exception('AdaptiveResidualBalanceCoupler.__init__ if physics is provided as a dictionary, the keys must be : ["Solver1", "Solver2"]. We found : {}.'.format(list(physics.keys())))
             self._solver1 = physics["Solver1"]
             self._solver2 = physics["Solver2"]
@@ -76,7 +77,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly four Exchanger, not {}.".format(len(exchangers)))
         if isinstance(exchangers, dict):
             for key in exchangers.keys():
-                if key not in ["1to2", "2to1", "Residual1", "Residual2"] :
+                if key not in ["1to2", "2to1", "Residual1", "Residual2"]:
                     raise Exception('AdaptiveResidualBalanceCoupler.__init__ if exchangers is provided as a dictionary, the keys must be : ["1to2", "2to1", "Residual1", "Residual2"]. We found : {}.'.format(list(exchangers.keys())))
             self._exchanger1to2 = exchangers["1to2"]
             self._exchanger2to1 = exchangers["2to1"]
@@ -94,7 +95,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
             raise Exception("AdaptiveResidualBalanceCoupler.__init__ There must be exactly one DataManager, not {}.".format(len(dataManagers)))
         if isinstance(dataManagers, dict):
             for key in dataManagers.keys():
-                if key not in ["Residuals"] :
+                if key not in ["Residuals"]:
                     raise Exception('AdaptiveResidualBalanceCoupler.__init__ if dataManagers is provided as a dictionary, the keys must be : ["Residuals"]. We found : {}.'.format(list(dataManagers.keys())))
             self._data = dataManagers["Residuals"]
         else:
@@ -175,7 +176,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
 
         converged = False
 
-        if self._iter == 0 :
+        if self._iter == 0:
 
             # -- Initial residual for Solver1, obtained from a first iteration during the initialisation
             self._solver1.iterate()
@@ -217,7 +218,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
 
             # -- End of the first multiphysics iteration
 
-        else :
+        else:
             self._solver1.abortTimeStep()
             self._solver1.initTimeStep(self._dt)
             self._solver2.abortTimeStep()
@@ -239,16 +240,16 @@ class AdaptiveResidualBalanceCoupler(Coupler):
             convRateSolver1 = self._residualTotal / lastResidual
 
             # -- Deal with the new precision computed: we don't want a new precision smaller than the targeted one! And if one solver reachs its targeted precision, the one for the second solver is also set to its targeted value
-            if self._accuracySolver1 > self._epsSolver1Ref :
+            if self._accuracySolver1 > self._epsSolver1Ref:
                 # -- Computation of the new precision for Solver1
                 self._accuracySolver1 = convRateSolver1 * solver2ResidualScaled
                 self._accuracySolver1 = max(self._accuracySolver1, self._epsSolver1Ref)
-                if self._accuracySolver1 == self._epsSolver1Ref :
+                if self._accuracySolver1 == self._epsSolver1Ref:
                     self._accuracySolver2 = self._epsSolver2Ref
                     self._solver2.setInputDoubleValue('Accuracy', self._epsSolver2Ref)
                     converged = True
                 self._solver1.setInputDoubleValue('Accuracy', self._accuracySolver1)
-            else :
+            else:
                 converged = True
 
             accuracy1ToPrint = self._accuracySolver1
@@ -262,7 +263,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
             self._exchangerResidual1.exchange()
 
             # -- Deal with the new precision computed: we don't want a new precision smaller than the targeted one! And if one solver reachs its targeted precision, the one for the second solver is also set to its targeted value
-            if self._accuracySolver2 > self._epsSolver2Ref :
+            if self._accuracySolver2 > self._epsSolver2Ref:
                 # -- Computation of the initial residual for Solver2
                 self._solver2.iterate()
                 self._exchangerResidual2.exchange()
@@ -272,13 +273,13 @@ class AdaptiveResidualBalanceCoupler(Coupler):
                 residualDemiTotalOld = self._residualHalfTotal
                 self._residualHalfTotal = self._residualSolver2Initial / self._epsSolver2Ref + self._data.getOutputDoubleValue('Residual1') / self._epsSolver1Ref
 
-                 # -- Convergence rate for Solver2
+                # -- Convergence rate for Solver2
                 convRateSolver2 = self._residualHalfTotal / residualDemiTotalOld
 
                 # -- Computation of the new precision for Solver2
                 self._accuracySolver2 = convRateSolver2 / 2. * residualSolver1Initial / self._epsSolver1Ref * self._epsSolver2Ref
 
-                if self._accuracySolver2 < self._epsSolver2Ref :
+                if self._accuracySolver2 < self._epsSolver2Ref:
                     self._accuracySolver2 = self._epsSolver2Ref
                     self._accuracySolver1 = self._epsSolver1Ref
                     self._solver1.setInputDoubleValue('Accuracy', self._epsSolver1Ref)

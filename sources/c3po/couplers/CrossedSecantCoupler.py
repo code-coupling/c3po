@@ -107,16 +107,16 @@ class CrossedSecantCoupler(Coupler):
         data2physics.exchange()
 
         physics.solve()
-        physics2Data.exchange() # data = G(X0) , previousData = X0
+        physics2Data.exchange()  # data = G(X0) , previousData = X0
         self.normalizeData(normData)
         diffData -= data
-        diffDataOld = diffData.clone() # G(x0) - x0
+        diffDataOld = diffData.clone()  # G(x0) - x0
 
         error = self.getNorm(diffData) / self.getNorm(data)
         iiter += 1
         if self._iterationPrinter.getPrintLevel() > 0:
             self._iterationPrinter.print("crossed secant iteration {} error : {:.5e} ".format(iiter - 1, error))
-        dataOld = data.clone() # dataOld = X1 = G(x0)
+        dataOld = data.clone()  # dataOld = X1 = G(x0)
         diffData.copy(data)
 
         while error > self._tolerance and iiter < self._maxiter:
@@ -136,11 +136,11 @@ class CrossedSecantCoupler(Coupler):
             if self._iterationPrinter.getPrintLevel() > 0:
                 self._iterationPrinter.print("crossed secant iteration {} error : {:.5e} ".format(iiter - 1, error))
 
-            if error > self._tolerance :
+            if error > self._tolerance:
                 dataOld -= data
                 diffDataOld -= diffData
                 normDenominator = diffDataOld.norm2()
-                factor = - dataOld.dot(diffDataOld)/(normDenominator * normDenominator)
+                factor = - dataOld.dot(diffDataOld) / (normDenominator * normDenominator)
                 dataOld.copy(data)
                 diffDataOld.copy(diffData)
                 diffData *= factor

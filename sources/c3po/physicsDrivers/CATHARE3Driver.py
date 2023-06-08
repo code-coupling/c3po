@@ -16,12 +16,12 @@ try:
     import Cathare_opt
     from Cathare_opt import Problem_Cathare as C3
 except ImportError:
-  try:
-      #import Cathare_opt
-      import Cathare_opt.Problem_Cathare as C3
-  except ImportError:
-      # importation dans Corpus
-      from CATHARE3SWIG import CATHARE3 as C3
+    try:
+        #import Cathare_opt
+        import Cathare_opt.Problem_Cathare as C3
+    except ImportError:
+        # importation dans Corpus
+        from CATHARE3SWIG import CATHARE3 as C3
 from c3po.PhysicsDriver import PhysicsDriver
 
 

@@ -53,12 +53,12 @@ class MPIRemapper(object):
             previousmessage = previousException.msg if hasattr(ImportError, "msg") else previousException.message
             message = ('MPIRemapper: we failed to import InterpKernelDEC from medcoupling (with the exception message: "{}"). '.format(previousmessage)
                        + "medcoupling may have been installed without MPI option.")
-            if hasattr(ImportError, "msg"): #python3
-                #La construction typique python3 aurait plutot ete:
-                #raise ImportError(message) from previousException, mais cela provoque une erreur a l'import en python2.
+            if hasattr(ImportError, "msg"):  # python3
+                # La construction typique python3 aurait plutot ete:
+                # raise ImportError(message) from previousException, mais cela provoque une erreur a l'import en python2.
                 previousException.msg = message
                 raise previousException
-            else:                           #python2
+            else:  # python2
                 raise ImportError(message)
 
         self.isInit = False
@@ -81,7 +81,7 @@ class MPIRemapper(object):
 
         if len(set(ranksToSet) - set(ranksToGet)) != len(ranksToSet):
             raise Exception("MPIRemapper.initialize: there must not be ranks present in both lists of ranks (to get and to set).")
-        if min(min(ranksToGet), min(ranksToSet)) !=0 and max(max(ranksToGet), max(ranksToSet)) != mpiComm.Get_size() - 1:
+        if min(min(ranksToGet), min(ranksToSet)) != 0 and max(max(ranksToGet), max(ranksToSet)) != mpiComm.Get_size() - 1:
             raise Exception("MPIRemapper.initialize: ranks must be between 0 and {} (included). We found a min value of {} and a max value of {}.".format(mpiComm.Get_size() - 1, min(min(ranksToGet), min(ranksToSet)), max(max(ranksToGet), max(ranksToSet))))
         if len(ranksToGet) + len(ranksToSet) != mpiComm.Get_size():
             raise Exception("MPIRemapper.initialize: the provided list of ranks must be a partitioned of the MPI communicator. Here we have {} and {} ranks while the size of the communicator is {}.".format(len(ranksToGet), len(ranksToSet), mpiComm.Get_size()))

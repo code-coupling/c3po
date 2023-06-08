@@ -18,9 +18,11 @@ import os
 
 import c3po.medcouplingCompat as mc
 
+
 def getRegularName(name):
     """! INTERNAL """
     return re.sub("[^a-zA-Z0-9_]", "_", "_" + name)
+
 
 def getNameFieldInput(name, field):
     """! INTERNAL """

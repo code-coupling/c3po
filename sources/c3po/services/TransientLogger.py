@@ -63,6 +63,7 @@ class TransientLogger(object):
 
 class Timekeeper(TransientLogger):
     """! TransientLogger which provides information about transient progress. """
+
     def __init__(self):
         self._name = ""
         self._initialTime = 0.0
@@ -89,7 +90,7 @@ class Timekeeper(TransientLogger):
 
     def _getProgressionStr(self, presentTime):
         """! INTERNAL """
-        return ( "{:9.3e}s".format(presentTime))
+        return ("{:9.3e}s".format(presentTime))
 
     def logValidate(self, dt, presentTime):
         """! See ``TransientLogger.logValidate``"""
@@ -113,6 +114,7 @@ class FortuneTeller(Timekeeper):
     """! Timekeeper which estimates in addition the duration of the transient
     with Exponential Moving Average.
     """
+
     def __init__(self, relaxation=0.3):
         """! Build a FortuneTeller object.
 
@@ -165,6 +167,7 @@ class TransientPrinter(object):
     """! INTERNAL.
 
     TransientPrinter writes information about transient in the standard output. """
+
     def __init__(self, transientLogger):
         """! Build a TransientPrinter object.
 
@@ -213,4 +216,3 @@ class TransientPrinter(object):
         @return (c3po.services.TransientLogger.TransientLogger) The used TransientLogger object.
         """
         return self._logger
-

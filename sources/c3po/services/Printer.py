@@ -17,6 +17,7 @@ class Printer(object):
 
     Printer writes strings in the standard output.
     """
+
     def __init__(self, printLevel):
         """! Build a Printer.
 
