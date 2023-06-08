@@ -84,8 +84,8 @@ class Timekeeper(TransientLogger):
     def logAbort(self, dt, presentTime):
         """! See ``TransientLogger.logAbort``"""
         self._step_abort += 1
-        return "{}: abort at {:9.3e}s{}, failed dt = {:9.3e}s".format(
-            self._name, presentTime, u"\U0001F614".encode('utf-8').decode('utf-8'), dt)
+        return "{}: abort at {:9.3e}s, failed dt = {:9.3e}s".format(
+            self._name, presentTime, dt)
 
     def _getProgressionStr(self, presentTime):
         """! INTERNAL """
@@ -94,8 +94,8 @@ class Timekeeper(TransientLogger):
     def logValidate(self, dt, presentTime):
         """! See ``TransientLogger.logValidate``"""
         self._dt_range = (min(dt, self._dt_range[0]), max(dt, self._dt_range[1]))
-        to_print = ("{}: validate at {}, dt = {:9.3e}s (#aborts={}{})".format(
-            self._name, self._getProgressionStr(presentTime), dt, self._step_abort, u"\U0001F928".encode('utf-8').decode('utf-8') if self._step_abort else ""))
+        to_print = ("{}: validate at {}, dt = {:9.3e}s (#aborts={})".format(
+            self._name, self._getProgressionStr(presentTime), dt, self._step_abort))
 
         self._total_abort += self._step_abort
         self._step_abort = 0
@@ -104,8 +104,8 @@ class Timekeeper(TransientLogger):
     def terminateTransient(self, presentTime, stop, isStationary):
         """! See ``TransientLogger.terminateTransient``"""
         stopReason = "tmax is reached" if not stop else ("stationary is found" if isStationary else "computeTimeStep asks to stop")
-        to_print = "{}: transient ends at {} because {}. Total #aborts = {}, dt range = {}s.{}".format(
-            self._name, self._getProgressionStr(presentTime), stopReason, self._total_abort, self._dt_range, u"\U0001F973".encode('utf-8').decode('utf-8'))
+        to_print = "{}: transient ends at {} because {}. Total #aborts = {}, dt range = {}s.".format(
+            self._name, self._getProgressionStr(presentTime), stopReason, self._total_abort, self._dt_range)
         return to_print
 
 
@@ -153,14 +153,11 @@ class FortuneTeller(Timekeeper):
     def logValidate(self, dt, presentTime):
         """! See ``TransientLogger.logValidate``"""
         to_print = Timekeeper.logValidate(self, dt, presentTime)
-        ert0 = self._ert
         self._ert = self._getEstimatedRemainingTime(dt=dt, presentTime=presentTime)
         if self._ert > 1.e-3:
-            to_print += ", estimated final time {} {} {}".format(
+            to_print += ", estimated final time {}".format(
                 (datetime.now() +
-                    timedelta(seconds=int(self._ert))).strftime('%Y-%m-%d %H:%M:%S'),
-                "↗" if ert0 < self._ert else "↘",
-                u"\U0001F634".encode('utf-8').decode('utf-8') if self._getProgression(presentTime) < 80.0 else u"\U0001F600".encode('utf-8').decode('utf-8'))
+                    timedelta(seconds=int(self._ert))).strftime('%Y-%m-%d %H:%M:%S'))
         return to_print
 
 
