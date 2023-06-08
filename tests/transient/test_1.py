@@ -103,8 +103,8 @@ def main_1():
     transientCoupler.init()
     transientCoupler.setStationaryMode(False)
 
-    accuPhysics1.setInputDoubleValue("macrodt", 1.)
-    accuPhysics2.setInputDoubleValue("macrodt", 2.)
+    accuPhysics1.setComputedTimeStep(1.)
+    accuPhysics2.setComputedTimeStep(2.)
 
     transientCoupler.initTimeStep(0.45)
     transientCoupler.solve()
