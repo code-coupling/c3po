@@ -81,6 +81,13 @@ class TimeAccumulator(PhysicsDriver):
         """
         self._stabilizedTransient = stabilizedTransient
 
+    def setComputedTimeStep(self, dt):
+        """! Set time-step size returned by computeTimeStep().
+
+        @param dt (float) time-step size returned by computeTimeStep(). None can be set to use the time step recommended by the hold PhysicsDriver. Default: None.
+        """
+        self._macrodt = dt
+
     def getPhysicsDriver(self):
         """! Return the wrapped PhysicsDriver.
 
@@ -106,9 +113,9 @@ class TimeAccumulator(PhysicsDriver):
 
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
-        self._physics.init()
         self._timeDifference = 0.
-        self._macrodt = None
+        self._afterAbort = False
+        self._physics.init()
         return self._physics.getInitStatus()
 
     def terminate(self):
@@ -280,6 +287,8 @@ class TimeAccumulator(PhysicsDriver):
         The value associated with the name "macrodt" can be used to set the time-step size returned by computeTimeStep().
         """
         if name == "macrodt":
+            print('setInputDoubleValue("macrodt", value) is deprecated and will soon by deleted.\n'
+                  + "Please use setComputedTimeStep(dt).")
             self._macrodt = value
         else:
             self._physics.setInputDoubleValue(name, value)

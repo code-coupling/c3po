@@ -80,7 +80,6 @@ class JFNKCoupler(Coupler):
         self._krylovTolerance = 1.E-4
         self._krylovMaxIter = 100
         self._epsilon = 1.E-4
-        self._isConverged = False
         self._iterationPrinter = Printer(2)
         self._leaveIfFailed = False
 

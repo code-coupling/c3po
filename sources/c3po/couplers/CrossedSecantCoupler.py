@@ -49,7 +49,6 @@ class CrossedSecantCoupler(Coupler):
         Coupler.__init__(self, physics, exchangers, dataManagers)
         self._tolerance = 1.E-6
         self._maxiter = 100
-        self._isConverged = False
         self._iterationPrinter = Printer(2)
 
         if not isinstance(physics, list) or not isinstance(exchangers, list) or not isinstance(dataManagers, list):

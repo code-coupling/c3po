@@ -86,7 +86,6 @@ class AndersonCoupler(Coupler):
         self._maxiter = 100
         self._order = 2
         self._andersonDampingFactor = 1.
-        self._isConverged = False
         self._iterationPrinter = Printer(2)
         self._leaveIfFailed = False
 
