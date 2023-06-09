@@ -84,8 +84,16 @@ class TracerMeta(type):
 
         def _wrapper(method):
             def _trace(self, *args, **kwargs):
+                if self.static_wDir:
+                    cwd = os.getcwd()
+                    os.chdir(self.static_wDir)
                 if hasattr(self, "tracerRecurrenceDepth") and self.tracerRecurrenceDepth > 0:
-                    return method(self, *args, **kwargs)
+                    try:
+                        to_return = method(self, *args, **kwargs)
+                    finally:
+                        if self.static_wDir:
+                            os.chdir(cwd)
+                    return to_return
 
                 if method.__name__ == "__init__":
                     if name not in self.static_Objectcounter:
@@ -164,6 +172,9 @@ class TracerMeta(type):
                         os.dup2(prevIdstderr, sys.stderr.fileno())
                         os.close(prevIdstderr)
 
+                    if self.static_wDir:
+                        os.chdir(cwd)
+
                 if self.static_saveOutputMED and (method.__name__.startswith("getOutputMED") or method.__name__.startswith("updateOutputMED")):
                     nameField = getNameInput(*args, **kwargs)
                     nameMEDFile = name + "_output_" + nameField + "_"
@@ -219,7 +230,7 @@ class TracerMeta(type):
         return type.__new__(cls, name, bases, newDct)
 
 
-def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=None, stderrFile=None, listingWriter=None):
+def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=None, stderrFile=None, listingWriter=None, workingDir=None):
     """! tracer is a class wrapper allowing to trace the calls of the methods of the base class.
 
     tracer is to be applied on a class (not an object) and return a new class that inherits from the provided one.
@@ -245,6 +256,7 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         redirected there. It has to be closed (file.close()) by caller.
     @param listingWriter a ListingWriter object which will manage the writing of the coupling listing file. Refer to the documentation
         of ListingWriter.
+    @param workingDir Path to an existing directory which is used as working directory when calling the methods of the traced object.
 
     The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveInputMED,
     static_saveOutputMED, static_stdout, static_stderr and static_lWriter.
@@ -295,6 +307,7 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         baseclass.static_stdout = stdoutFile
         baseclass.static_stderr = stderrFile
         baseclass.static_lWriter = listingWriter
+        baseclass.static_wDir = workingDir
         newclass = TracerMeta(baseclass.__name__, (baseclass,), baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         delattr(baseclass, "static_pythonFile")
@@ -303,5 +316,6 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         delattr(baseclass, "static_stdout")
         delattr(baseclass, "static_stderr")
         delattr(baseclass, "static_lWriter")
+        delattr(baseclass, "static_wDir")
         return newclass
     return classWrapper
