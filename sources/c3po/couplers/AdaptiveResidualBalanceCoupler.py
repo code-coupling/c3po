@@ -286,7 +286,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
                 self._solver2.setInputDoubleValue('Accuracy', self._accuracySolver2)
 
             if self._iterationPrinter.getPrintLevel() > 0:
-                self._iterationPrinter.print("Adaptive Residual Balance iteration {} accuracies: {} ; {}".format(self._iter, self._accuracySolver1, self._accuracySolver2))
+                self._iterationPrinter.print("Adaptive Residual Balance iteration {} accuracies: {} ; {}".format(self._iter, accuracy1ToPrint, self._accuracySolver2))
 
             # -- Computation of Solver2 with the new precision computed
             self._solver2.solve()

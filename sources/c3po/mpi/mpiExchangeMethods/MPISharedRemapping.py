@@ -48,7 +48,7 @@ class MPIRemapper(object):
             whose underling mesh has not been rescaled.
         """
         try:
-            from c3po.medcouplingCompat import InterpKernelDEC
+            from c3po.medcouplingCompat import InterpKernelDEC  # pylint: disable=import-outside-toplevel, unused-import
         except ImportError as previousException:
             previousmessage = previousException.msg if hasattr(ImportError, "msg") else previousException.message
             message = ('MPIRemapper: we failed to import InterpKernelDEC from medcoupling (with the exception message: "{}"). '.format(previousmessage)
@@ -57,9 +57,8 @@ class MPIRemapper(object):
                 # La construction typique python3 aurait plutot ete:
                 # raise ImportError(message) from previousException, mais cela provoque une erreur a l'import en python2.
                 previousException.msg = message
-                raise previousException
-            else:  # python2
-                raise ImportError(message)
+                raise previousException     # pylint: disable=raise-missing-from
+            raise ImportError(message)  # python2 pylint: disable=raise-missing-from
 
         self.isInit = False
         self.isInitPerNature = {}

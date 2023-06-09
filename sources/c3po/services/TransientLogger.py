@@ -8,6 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+""" Contains the class TransientLogger and its daughters Timekeeper and FortuneTeller. """
 from __future__ import print_function, division
 from abc import ABCMeta, abstractmethod
 from datetime import datetime, timedelta
@@ -68,46 +69,46 @@ class Timekeeper(TransientLogger):
         self._name = ""
         self._initialTime = 0.0
         self._tmax = 1e30
-        self._total_abort = 0
-        self._step_abort = 0
-        self._dt_range = (1.e30, 0.0)
+        self._totalAbort = 0
+        self._stepAbort = 0
+        self._dtRange = (1.e30, 0.0)
 
     def initTransient(self, driver, tmax, finishAtTmax, stopIfStationary, presentTime):
         """! See ``TransientLogger.initTransient``"""
         self._name = driver.__class__.__name__
         self._initialTime = presentTime
         self._tmax = tmax
-        self._total_abort = 0
-        self._step_abort = 0
-        self._dt_range = (1.e30, 0.0)
+        self._totalAbort = 0
+        self._stepAbort = 0
+        self._dtRange = (1.e30, 0.0)
         return "{}: transient starts at {:9.3e}s, finishAtTmax = {}, stopIfStationary = {}".format(self._name, presentTime, finishAtTmax, stopIfStationary)
 
     def logAbort(self, dt, presentTime):
         """! See ``TransientLogger.logAbort``"""
-        self._step_abort += 1
+        self._stepAbort += 1
         return "{}: abort at {:9.3e}s, failed dt = {:9.3e}s".format(
             self._name, presentTime, dt)
 
     def _getProgressionStr(self, presentTime):
         """! INTERNAL """
-        return ("{:9.3e}s".format(presentTime))
+        return "{:9.3e}s".format(presentTime)
 
     def logValidate(self, dt, presentTime):
         """! See ``TransientLogger.logValidate``"""
-        self._dt_range = (min(dt, self._dt_range[0]), max(dt, self._dt_range[1]))
-        to_print = ("{}: validate at {}, dt = {:9.3e}s (#aborts={})".format(
-            self._name, self._getProgressionStr(presentTime), dt, self._step_abort))
+        self._dtRange = (min(dt, self._dtRange[0]), max(dt, self._dtRange[1]))
+        toPrint = ("{}: validate at {}, dt = {:9.3e}s (#aborts={})".format(
+            self._name, self._getProgressionStr(presentTime), dt, self._stepAbort))
 
-        self._total_abort += self._step_abort
-        self._step_abort = 0
-        return to_print
+        self._totalAbort += self._stepAbort
+        self._stepAbort = 0
+        return toPrint
 
     def terminateTransient(self, presentTime, stop, isStationary):
         """! See ``TransientLogger.terminateTransient``"""
         stopReason = "tmax is reached" if not stop else ("stationary is found" if isStationary else "computeTimeStep asks to stop")
-        to_print = "{}: transient ends at {} because {}. Total #aborts = {}, dt range = {}s.".format(
-            self._name, self._getProgressionStr(presentTime), stopReason, self._total_abort, self._dt_range)
-        return to_print
+        toPrint = "{}: transient ends at {} because {}. Total #aborts = {}, dt range = {}s.".format(
+            self._name, self._getProgressionStr(presentTime), stopReason, self._totalAbort, self._dtRange)
+        return toPrint
 
 
 class FortuneTeller(Timekeeper):
@@ -122,14 +123,14 @@ class FortuneTeller(Timekeeper):
         """
         Timekeeper.__init__(self)
         self._relaxation = min(1.0, relaxation)
-        self._simu_rate = 0.0
-        self._real_t0 = 0.0
+        self._simuRate = 0.0
+        self._realT0 = 0.0
         self._ert = 1e30
 
     def initTransient(self, driver, tmax, finishAtTmax, stopIfStationary, presentTime):
         """! See ``TransientLogger.initTransient``"""
-        self._simu_rate = None
-        self._real_t0 = time.time()
+        self._simuRate = None
+        self._realT0 = time.time()
         self._ert = 1e30
         return Timekeeper.initTransient(self, driver, tmax, finishAtTmax, stopIfStationary, presentTime)
 
@@ -144,23 +145,23 @@ class FortuneTeller(Timekeeper):
 
     def _getEstimatedRemainingTime(self, dt, presentTime):
         """! INTERNAL """
-        real_t1 = time.time()
-        simu_rate = (real_t1 - self._real_t0) / dt
-        self._real_t0 = real_t1
-        if self._simu_rate is None:
-            self._simu_rate = simu_rate
-        self._simu_rate = simu_rate * self._relaxation + self._simu_rate * (1. - self._relaxation)
-        return self._simu_rate * (self._tmax - presentTime)
+        realT1 = time.time()
+        simuRate = (realT1 - self._realT0) / dt
+        self._realT0 = realT1
+        if self._simuRate is None:
+            self._simuRate = simuRate
+        self._simuRate = simuRate * self._relaxation + self._simuRate * (1. - self._relaxation)
+        return self._simuRate * (self._tmax - presentTime)
 
     def logValidate(self, dt, presentTime):
         """! See ``TransientLogger.logValidate``"""
-        to_print = Timekeeper.logValidate(self, dt, presentTime)
+        toPrint = Timekeeper.logValidate(self, dt, presentTime)
         self._ert = self._getEstimatedRemainingTime(dt=dt, presentTime=presentTime)
         if self._ert > 1.e-3:
-            to_print += ", estimated final time {}".format(
+            toPrint += ", estimated final time {}".format(
                 (datetime.now() +
                     timedelta(seconds=int(self._ert))).strftime('%Y-%m-%d %H:%M:%S'))
-        return to_print
+        return toPrint
 
 
 class TransientPrinter(object):
