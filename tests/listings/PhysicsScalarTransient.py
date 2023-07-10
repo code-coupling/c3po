@@ -15,6 +15,7 @@ class PhysicsScalarTransient(PhysicsDriver):
         self.t_ = 0.
         self.dt_ = 0.
         self._stationaryMode = False
+        self._output_file = None
 
     def setOption(self, a, b):
         self.a_ = a
@@ -25,10 +26,11 @@ class PhysicsScalarTransient(PhysicsDriver):
         self.x_ = 0.
         self.t_ = 0.
         self.dt_ = 0.
+        self._output_file = open("listing_PST.txt", "w")
         return True
 
     def terminate(self):
-        pass
+        self._output_file.close()
 
     def presentTime(self):
         return self.t_
@@ -43,6 +45,7 @@ class PhysicsScalarTransient(PhysicsDriver):
     def solveTimeStep(self):
         self.result_ = self.a_ * (1 + self.t_ + self.dt_) + self.b_ * self.x_
         print("result =", self.a_, "*", (1 + self.t_ + self.dt_), "+", self.b_, "*", self.x_)
+        self._output_file.write("{} {}\n".format(self.t_, self.result_))
         return True
 
     def setStationaryMode(self, stationaryMode):

@@ -36,4 +36,14 @@ def test_collaborative():
         os.remove("listingGeneralMerged.log")
     except:
         pass
+    try:
+        os.remove("run_1/listing_PST.txt")
+        os.rmdir("run_1")
+    except:
+        pass
+    try:
+        os.remove("run_2/listing_PST.txt")
+        os.rmdir("run_2")
+    except:
+        pass
 

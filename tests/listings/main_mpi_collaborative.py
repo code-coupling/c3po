@@ -47,11 +47,19 @@ def main_mpi_collaborative():
     if rank == 0:
         file1 = open("first.log", "w")
         file3 = open("listingFirst.log", "w")
-        Physics1 = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
+        try:
+            os.mkdir("run_1")
+        except:
+            pass
+        Physics1 = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW, workingDir="run_1")(PhysicsScalarTransient)
     else:
         file2 = open("second.log", "w")
         file4 = open("listingSecond.log", "w")
-        Physics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
+        try:
+            os.mkdir("run_2")
+        except:
+            pass
+        Physics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW, workingDir="run_2")(PhysicsScalarTransient)
 
     TracedExchanger = c3po.tracer(listingWriter=listingW)(c3po.mpi.MPIExchanger)
 
@@ -162,9 +170,9 @@ def main_mpi_collaborative():
                     n += 1
             return n
 
-        Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral0.log"), nLines("listingGeneral1.log")]
+        Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral0.log"), nLines("listingGeneral1.log"), nLines("run_1/listing_PST.txt")]
         print(Nlines)
-        assert Nlines == [703, 699, 129, 129, 820, 820]
+        assert Nlines == [703, 699, 129, 129, 820, 820, 129]
 
 if __name__ == "__main__":
     main_mpi_collaborative()

@@ -84,16 +84,8 @@ class TracerMeta(type):
 
         def _wrapper(method):
             def _trace(self, *args, **kwargs):
-                if self.static_wDir:
-                    cwd = os.getcwd()
-                    os.chdir(self.static_wDir)
                 if hasattr(self, "tracerRecurrenceDepth") and self.tracerRecurrenceDepth > 0:
-                    try:
-                        to_return = method(self, *args, **kwargs)
-                    finally:
-                        if self.static_wDir:
-                            os.chdir(cwd)
-                    return to_return
+                    return method(self, *args, **kwargs)
 
                 if method.__name__ == "__init__":
                     if name not in self.static_Objectcounter:
@@ -145,6 +137,10 @@ class TracerMeta(type):
                     prevIdstderr = os.dup(sys.stderr.fileno())
                     os.dup2(self.static_stderr.fileno(), sys.stderr.fileno())
 
+                if self.static_wDir:
+                    cwd = os.getcwd()
+                    os.chdir(self.static_wDir)
+
                 self.tracerRecurrenceDepth += 1
 
                 start = time.time()
@@ -158,6 +154,9 @@ class TracerMeta(type):
                 else:
                     end = time.time()
                 finally:
+                    if self.static_wDir:
+                        os.chdir(cwd)
+
                     if self.static_pythonFile is not None:
                         self.static_pythonFile.write(toWritePython)
                         self.static_pythonFile.flush()
@@ -171,9 +170,6 @@ class TracerMeta(type):
                         sys.stderr.flush()
                         os.dup2(prevIdstderr, sys.stderr.fileno())
                         os.close(prevIdstderr)
-
-                    if self.static_wDir:
-                        os.chdir(cwd)
 
                 if self.static_saveOutputMED and (method.__name__.startswith("getOutputMED") or method.__name__.startswith("updateOutputMED")):
                     nameField = getNameInput(*args, **kwargs)
@@ -259,7 +255,7 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
     @param workingDir Path to an existing directory which is used as working directory when calling the methods of the traced object.
 
     The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveInputMED,
-    static_saveOutputMED, static_stdout, static_stderr and static_lWriter.
+    static_saveOutputMED, static_stdout, static_stderr, static_lWriter and static_wDir.
 
     One additional static attribute is added for internal use: static_Objectcounter.
 
@@ -307,7 +303,7 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         baseclass.static_stdout = stdoutFile
         baseclass.static_stderr = stderrFile
         baseclass.static_lWriter = listingWriter
-        baseclass.static_wDir = workingDir
+        baseclass.static_wDir =  workingDir if workingDir is None else os.path.abspath(workingDir)
         newclass = TracerMeta(baseclass.__name__, (baseclass,), baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         delattr(baseclass, "static_pythonFile")

@@ -43,8 +43,17 @@ def main_sequential():
     file5 = open("listingGeneral.log", "wb+")
     listingW = c3po.ListingWriter(file5)
 
-    Physics1 = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW)(PhysicsScalarTransient)
-    Physics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW)(PhysicsScalarTransient)
+    try:
+        os.mkdir("run_1")
+    except:
+        pass
+    try:
+        os.mkdir("run_2")
+    except:
+        pass
+
+    Physics1 = c3po.tracer(pythonFile=file1, stdoutFile=file3, listingWriter=listingW, workingDir="run_1")(PhysicsScalarTransient)
+    Physics2 = c3po.tracer(pythonFile=file2, stdoutFile=file4, listingWriter=listingW, workingDir="run_2")(PhysicsScalarTransient)
     TracedExchanger = c3po.tracer(listingWriter=listingW)(c3po.LocalExchanger)
 
     myPhysics = Physics1()
@@ -127,9 +136,9 @@ def main_sequential():
                 n += 1
         return n
 
-    Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral.log")]
+    Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral.log"), nLines("run_1/listing_PST.txt")]
     print(Nlines)
-    assert Nlines == [708, 700, 129, 129, 1230]
+    assert Nlines == [708, 700, 129, 129, 1230, 129]
 
 
 def test_sequential():
@@ -152,6 +161,16 @@ def test_sequential():
         pass
     try:
         os.remove("listingGeneral.log")
+    except:
+        pass
+    try:
+        os.remove("run_1/listing_PST.txt")
+        os.rmdir("run_1")
+    except:
+        pass
+    try:
+        os.remove("run_2/listing_PST.txt")
+        os.rmdir("run_2")
     except:
         pass
 
