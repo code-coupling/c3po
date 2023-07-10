@@ -485,7 +485,6 @@ class PhysicsDriver(DataAccessor):
                 presentTime = self.presentTime()
                 self._transientPrinter.logValidate(dt, presentTime)
                 (dt, stop) = self.computeTimeStep()
-                stop = stop or lastTimeStep
                 if stopIfStationary:
                     stop = stop or self.isStationary()
             else:
