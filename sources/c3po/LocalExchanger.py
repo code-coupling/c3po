@@ -213,12 +213,12 @@ class LocalExchanger(Exchanger):
         except:
             return [elements]
 
-        divisions = [0] * 4
+        divisions = [0] * 4 #Number of elems that are still to be affected divided by current pattern.
         resu = []
 
         for pattern in patterns:
             for position in range(4):
-                divisions[position] = len(elements[position]) - index[position] // pattern[position] if pattern[position] > 0 else -1
+                divisions[position] = (len(elements[position]) - index[position]) // pattern[position] if pattern[position] > 0 else -1
             minDivision = -1
             for position in range(4):
                 if divisions[position] >= 0 and (divisions[position] < minDivision or minDivision < 0):
