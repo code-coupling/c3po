@@ -47,7 +47,7 @@ class TimeAccumulator(PhysicsDriver):
     If the stabilizedTransient mode is not activated, steady-state calculations (initTimeStep(0) in stationaryMode) are directly asked to the wraped PhysicsDriver.
     """
 
-    def __init__(self, physics, saveParameters=None, stabilizedTransient=(False, 100.)):
+    def __init__(self, physics, saveParameters=None, stabilizedTransient=(False, 100.), finishAtTmax=True):
         """! Build a TimeAccumulator object.
 
         @param physics the PhysicsDriver to wrap.
@@ -57,6 +57,7 @@ class TimeAccumulator(PhysicsDriver):
             returns True or the current time reaches tInit + tMax) and then uses resetTime(tInit) in order to keep time consistency (tInit is the returned value of
             physics.presentTime() before solving). If activated is set to False (default value), steady-states (dt = 0) are directly asked to physics.
             The method setStabilizedTransient() allows to modify these data.
+        @param finishAtTmax the argument finishAtTmax set to PhysicsDriver.solveTransient() method called when dt > 0.
         """
         PhysicsDriver.__init__(self)
         self._physics = physics
@@ -67,6 +68,7 @@ class TimeAccumulator(PhysicsDriver):
         self._savingMode = SaveAtInitTimeStep.transient
         self._stabilizedTransient = stabilizedTransient
         self._afterAbort = False
+        self._finishAtTmax = finishAtTmax
 
     def setSavingMode(self, savingMode):
         """! Set a saving mode.
@@ -161,7 +163,7 @@ class TimeAccumulator(PhysicsDriver):
         """
         timeInit = self._physics.presentTime()
         if self._dt > 0.:
-            self._physics.solveTransient(timeInit + self._dt, finishAtTmax=True)
+            self._physics.solveTransient(timeInit + self._dt, finishAtTmax=self._finishAtTmax)
             self._timeDifference += self._physics.presentTime() - timeInit
         elif self._stabilizedTransient[0]:
             self._physics.solveTransient(timeInit + self._stabilizedTransient[1], stopIfStationary=True)
