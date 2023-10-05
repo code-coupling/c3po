@@ -28,16 +28,20 @@ class MPIFieldRecipient(object):
         self._isCollective = isCollective
         self._isTemplate = isTemplate
         self._field = 0
+        self._isFirstSend = True
+        self._isNumpyAvailable = False
 
     def exchange(self):
         """! INTERNAL """
         mpiComm = self._sender.mpiComm
         senderRank = self._sender.rank
-        if not isinstance(self._field, mc.MEDCouplingFieldDouble):
+        if self._isFirstSend or not self._isNumpyAvailable:
             if self._isCollective:
                 self._field = mpiComm.bcast(self._field, root=senderRank)
             else:
                 self._field = mpiComm.recv(source=senderRank, tag=MPITag.data)
+            if self._isFirstSend:
+                self._isNumpyAvailable = hasattr(self._field, "getArray") and hasattr(self._field.getArray(), "toNumPyArray")
         elif not self._isTemplate:
             arraySize = self._field.getArray().getNbOfElems()
             numpyArray = numpy.empty(arraySize)
@@ -48,6 +52,7 @@ class MPIFieldRecipient(object):
             dataArray = mc.DataArrayDouble(numpyArray)
             self._field.setArray(dataArray)
         self._storing.store(self._field)
+        self._isFirstSend = False
 
 
 class MPIFileFieldRecipient(object):

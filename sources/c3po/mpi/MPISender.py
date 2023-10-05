@@ -30,6 +30,7 @@ class MPIFieldSender(object):
         self._storing = storing
         self._isTemplate = isTemplate
         self._isFirstSend = True
+        self._isNumpyAvailable = False
 
     def exchange(self):
         """! INTERNAL """
@@ -40,11 +41,13 @@ class MPIFieldSender(object):
             field = self._dataAccess.get()
         for destination in self._destinations:
             mpiComm = destination.mpiComm
-            if self._isFirstSend or not isinstance(field, mc.MEDCouplingFieldDouble):
+            if self._isFirstSend or not self._isNumpyAvailable:
                 if isinstance(destination, MPICollectiveProcess):
                     mpiComm.bcast(field, root=mpiComm.Get_rank())
                 else:
                     mpiComm.send(field, dest=destination.rank, tag=MPITag.data)
+                if self._isFirstSend:
+                    self._isNumpyAvailable = hasattr(field, "getArray") and hasattr(field.getArray(), "toNumPyArray")
             elif not self._isTemplate:
                 npArray = field.getArray().toNumPyArray()
                 if isinstance(destination, MPICollectiveProcess):
