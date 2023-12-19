@@ -4,7 +4,7 @@ import math
 
 import c3po.medcouplingCompat as mc
 
-import tests.med_1D3D.MEDBuilder as MEDBuilder
+import tests.medBuilder as medBuilder
 from c3po.PhysicsDriver import PhysicsDriver
 
 
@@ -23,8 +23,8 @@ class NeutroDriver(PhysicsDriver):
         self._stationaryMode = False
 
     def initialize(self):
-        self._medP = MEDBuilder.makeFieldCarre(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ)
-        self._medTTemplate = MEDBuilder.makeFieldCarre(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ)
+        self._medP = medBuilder.makeField3DCart(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ)
+        self._medTTemplate = medBuilder.makeField3DCart(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ)
         self._medTTemplate.setNature(mc.IntensiveMaximum)
         self._medT = None
         self._stationaryMode = False

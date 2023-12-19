@@ -4,7 +4,7 @@ from __future__ import print_function, division
 
 import c3po.medcouplingCompat as mc
 
-import tests.med_Dussaix.MEDBuilder as MEDBuilder
+import tests.med_Dussaix.med_Dussaix_builder as medBuilder
 from tests.med_Dussaix.ThermoDriver import ThermoDriver
 
 
@@ -25,8 +25,8 @@ class MPIThermoDriver(ThermoDriver):
         if not self.isInit_:
             if self._mpiComm is not None and self._mpiComm.Get_size() != 2:
                 raise Exception("We are waiting for a mpiComm a size 2.")
-            self.MEDResu_ = MEDBuilder.makeFieldHexa(self._mpiComm.Get_rank())
-            self.MEDTemplate_ = MEDBuilder.makeFieldHexa(self._mpiComm.Get_rank())
+            self.MEDResu_ = medBuilder.makeField3DHexa(self._mpiComm.Get_rank())
+            self.MEDTemplate_ = medBuilder.makeField3DHexa(self._mpiComm.Get_rank())
             self.MEDTemplate_.setNature(mc.ExtensiveMaximum)
             self.isInit_ = True
         return True

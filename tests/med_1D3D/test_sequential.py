@@ -112,7 +112,7 @@ def test_sequential():
         num = 0
         while os.path.exists("NeutroDriver_output_Power_" + str(num) + ".med"):
             num += 1
-        fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_" + str(num - 1) + ".med", "3DMesh", 0, "P", -1, -1)
+        fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_" + str(num - 1) + ".med", "3DMesh", 0, "3DField", -1, -1)
         resuP = fieldP.getArray().toNumPyArray().tolist()
 
         assert len(refP) == len(resuP)

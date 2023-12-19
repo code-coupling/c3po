@@ -6,7 +6,7 @@ import numpy
 
 import c3po.medcouplingCompat as mc
 
-import tests.med_Dussaix.MEDBuilder as MEDBuilder
+import tests.med_Dussaix.med_Dussaix_builder as medBuilder
 from c3po.PhysicsDriver import PhysicsDriver
 
 
@@ -22,8 +22,8 @@ class NeutroDriver(PhysicsDriver):
 
     def initialize(self):
         if not self.isInit_:
-            self.MEDResu_ = MEDBuilder.makeFieldCarre()
-            self.MEDTemplate_ = MEDBuilder.makeFieldCarre()
+            self.MEDResu_ = medBuilder.makeField3DSquare()
+            self.MEDTemplate_ = medBuilder.makeField3DSquare()
             self.MEDTemplate_.setNature(mc.IntensiveMaximum)
             self.isInit_ = True
         return True

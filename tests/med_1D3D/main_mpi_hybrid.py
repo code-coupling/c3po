@@ -122,7 +122,7 @@ def main_mpi_hybrid():
                 for i in range(len(refT)):
                     assert pytest.approx(resuT[i], abs=1.E-3) == refT[i]
 
-                fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_3.med", "3DMesh", 0, "P", -1, -1)
+                fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_3.med", "3DMesh", 0, "3DField", -1, -1)
                 resuP = fieldP.getArray().toNumPyArray().tolist()
                 refP = [0.02749115639939625, 0.06636952262474233, 0.06636952262474233, 0.02749115639939625, 0.06636952262474233, 0.16023020164888085, 0.16023020164888085, 0.06636952262474233,
                         0.06636952262474233, 0.16023020164888085, 0.16023020164888085, 0.06636952262474233, 0.02749115639939625, 0.06636952262474233, 0.06636952262474233, 0.02749115639939625,

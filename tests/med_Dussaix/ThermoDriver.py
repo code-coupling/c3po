@@ -5,7 +5,7 @@ from math import *
 
 import c3po.medcouplingCompat as mc
 
-import tests.med_Dussaix.MEDBuilder as MEDBuilder
+import tests.med_Dussaix.med_Dussaix_builder as medBuilder
 from c3po.PhysicsDriver import PhysicsDriver
 
 Tsat = 1173.
@@ -41,8 +41,8 @@ class ThermoDriver(PhysicsDriver):
     # Initialize the object.
     def initialize(self):
         if not self.isInit_:
-            self.MEDResu_ = MEDBuilder.makeFieldHexa()
-            self.MEDTemplate_ = MEDBuilder.makeFieldHexa()
+            self.MEDResu_ = medBuilder.makeField3DHexa()
+            self.MEDTemplate_ = medBuilder.makeField3DHexa()
             self.MEDTemplate_.setNature(mc.ExtensiveMaximum)
             self.isInit_ = True
         return True

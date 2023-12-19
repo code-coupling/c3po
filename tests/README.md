@@ -23,7 +23,8 @@ Coupling between two steady-state PhysicsDrivers working on two (different) mesh
 The same calculation is made:
 
 - in sequential;
-- using SPMD (Single Programm Multiple Data) paradimg with 2 MPI processes;
+- using SPMD (Single Programm Multiple Data) paradigm with 2 MPI processes;
+- using a double level SPMD paradigm with 4 MPI processes: 2 processes per PhysicsDrivers;
 - using a master - workers paradigm with 3 MPI processes.
 
 ### listing ###
@@ -49,7 +50,20 @@ Then, a time-dependant calculation is made, with exchanges only every n time-ste
 
 Steady-state coupling between one 3D model and four 1D models.
 
+The possibility to shift 1D models and to reload some of them by new ones is also tested.
+
 The same calculation is made:
 
 - in sequential;
-- using a hybrid SPMD (Single Programm Multiple Data) and master - workers paradigm with 5 MPI processes: a master process is chosen among the four calculating the 1D models; it drives the three others and is coupled using SPMD paradigm with the process running the 3D model.
+- using a hybrid SPMD (Single Programm Multiple Data) and master - workers paradigm with 5 MPI processes: a master process is chosen among the four calculating the 1D models; it drives the three others and is coupled using SPMD paradigm with the process running the 3D model;
+- using a double level SPMD paradigm with 5 MPI processes.
+
+### plaques_coupling ###
+
+Interface coupling between two 2D thermal diffusion models with radiation cooling.
+
+The same coupling is performed with the following coupling algorithms: fixed-point method, Anderson acceleration, crossed-secant method, JFNK method, adaptative residual balance and dynamic residual balance.
+
+### unitests ###
+
+Not very interesting unit tests.

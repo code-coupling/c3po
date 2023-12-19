@@ -4,7 +4,7 @@ import math
 
 import c3po.medcouplingCompat as mc
 
-import tests.med_1D3D.MEDBuilder as MEDBuilder
+import tests.medBuilder as medBuilder
 from c3po.PhysicsDriver import PhysicsDriver
 
 
@@ -27,10 +27,10 @@ class ThermoDriver(PhysicsDriver):
 
     def initialize(self):
         self._medP = None
-        self._medT = MEDBuilder.makeField1D(self._length, self._nMesh)
-        self._medBu = MEDBuilder.makeField1D(self._length, self._nMesh)
-        self._medBuOld = MEDBuilder.makeField1D(self._length, self._nMesh)
-        self._medPTemplate = MEDBuilder.makeField1D(self._length, self._nMesh)
+        self._medT = medBuilder.makeField1D(self._length, self._nMesh)
+        self._medBu = medBuilder.makeField1D(self._length, self._nMesh)
+        self._medBuOld = medBuilder.makeField1D(self._length, self._nMesh)
+        self._medPTemplate = medBuilder.makeField1D(self._length, self._nMesh)
         self._medPTemplate.setNature(mc.ExtensiveMaximum)
         self._stationaryMode = False
         return True

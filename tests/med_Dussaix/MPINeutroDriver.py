@@ -6,7 +6,7 @@ from mpi4py import MPI as mpi
 
 import c3po.medcouplingCompat as mc
 
-import tests.med_Dussaix.MEDBuilder as MEDBuilder
+import tests.med_Dussaix.med_Dussaix_builder as medBuilder
 from tests.med_Dussaix.NeutroDriver import NeutroDriver
 
 
@@ -26,8 +26,8 @@ class MPINeutroDriver(NeutroDriver):
         if not self.isInit_:
             if self._mpiComm is not None and self._mpiComm.Get_size() != 2:
                 raise Exception("We are waiting for a mpiComm a size 2.")
-            self.MEDResu_ = MEDBuilder.makeFieldCarre(self._mpiComm.Get_rank())
-            self.MEDTemplate_ = MEDBuilder.makeFieldCarre(self._mpiComm.Get_rank())
+            self.MEDResu_ = medBuilder.makeField3DSquare(self._mpiComm.Get_rank())
+            self.MEDTemplate_ = medBuilder.makeField3DSquare(self._mpiComm.Get_rank())
             self.MEDTemplate_.setNature(mc.IntensiveMaximum)
             self.isInit_ = True
         return True

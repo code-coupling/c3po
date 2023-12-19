@@ -5,15 +5,41 @@ import math
 import pytest
 
 import c3po
+import c3po.medcouplingCompat as mc
 
-refArray = [1., 4./3., 0.0, 0.0]
-refCoord = [1., 1.]
+
+def test_exception():
+    import tests.medBuilder as medBuilder
+    field1 = medBuilder.makeField2DCart([0., 1., 2.], [0., 1., 2.])
+    field2 = medBuilder.makeField3DCart(1., 1., 1., 2, 2, 2)
+
+    remapper = c3po.Remapper()
+    sharedRemapping = c3po.SharedRemapping(remapper)
+
+    errorMsg = ""
+    try:
+        sharedRemapping.initialize(field1, field2)
+    except Exception as exception:
+        errorMsg = str(exception)
+
+    refMsg = "SharedRemapping : the following error occured during remapper initialization with the fields 2DField and 3DField:"
+    refMsg += "\n    Remapper : the dimension of source and target meshes are not the same (2DMesh : 2 and 3DMesh : 3 respectively)."
+
+    print(errorMsg)
+
+    assert errorMsg == refMsg
+
 
 def test_sequential():
-    from tests.unitests.remapper_2D.MEDBuilder import makeField2DCart
+    import tests.medBuilder as medBuilder
 
-    field1 = makeField2DCart([0., 1., 2.], [0., 1., 2.])
-    field2 = makeField2DCart([10., 11., 12.], [10., 11., 12.])
+    refArray = [1., 4./3., 0.0, 0.0]
+    refCoord = [1., 1.]
+
+    field1 = medBuilder.makeField2DCart([0., 1., 2.], [0., 1., 2.])
+    field2 = medBuilder.makeField2DCart([10., 11., 12.], [10., 11., 12.])
+    field1.setNature(mc.IntensiveMaximum)
+    field2.setNature(mc.IntensiveMaximum)
 
     array1 = field1.getArray()
     array1.setIJ(0, 0, 2.)
@@ -39,4 +65,5 @@ def test_sequential():
 
 
 if __name__ == "__main__":
+    test_exception()
     test_sequential()

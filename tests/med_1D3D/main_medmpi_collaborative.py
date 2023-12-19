@@ -90,7 +90,7 @@ def main_medmpi_collaborative():
 
     if rankWorld == 0:
         try:
-            fieldT = mc.ReadField(mc.ON_CELLS, "NeutroDriver_input_Temperature_2.med", "3DMesh", 0, "P", -1, -1)
+            fieldT = mc.ReadField(mc.ON_CELLS, "NeutroDriver_input_Temperature_2.med", "3DMesh", 0, "3DField", -1, -1)
             resuT = fieldT.getArray().toNumPyArray().tolist()
             """refT = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                     1.5304669563087145, 1.5304669563087145, 1.376243629593887, 1.376243629593887, 1.5304669563087145, 1.5304669563087145, 1.3762436295939438, 1.3762436295939438, 1.6075786196661284,
@@ -127,7 +127,7 @@ def main_medmpi_collaborative():
             for i in range(len(refT)):
                 assert pytest.approx(resuT[i], abs=1.E-3) == refT[i]
 
-            fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_3.med", "3DMesh", 0, "P", -1, -1)
+            fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_3.med", "3DMesh", 0, "3DField", -1, -1)
             resuP = fieldP.getArray().toNumPyArray().tolist()
             """refP = [0.02749115639939625, 0.06636952262474233, 0.06636952262474233, 0.02749115639939625, 0.06636952262474233, 0.16023020164888085, 0.16023020164888085, 0.06636952262474233,
                     0.06636952262474233, 0.16023020164888085, 0.16023020164888085, 0.06636952262474233, 0.02749115639939625, 0.06636952262474233, 0.06636952262474233, 0.02749115639939625,
