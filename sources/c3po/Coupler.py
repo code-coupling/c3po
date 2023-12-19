@@ -92,7 +92,7 @@ class Coupler(PhysicsDriver):
             physics.init()
         resu = True
         for physics in self._physicsDriversList:
-            resu = (resu and physics.getInitStatus())
+            resu = physics.getInitStatus() and resu
         return resu
 
     def terminate(self):
@@ -121,14 +121,14 @@ class Coupler(PhysicsDriver):
         self._dt = dt
         resu = True
         for physics in self._physicsDriversList:
-            resu = (physics.initTimeStep(dt) and resu)
+            resu = physics.initTimeStep(dt) and resu
         return resu
 
     def getSolveStatus(self):
         """! See PhysicsDriver.getSolveStatus(). """
         resu = True
         for physics in self._physicsDriversList:
-            resu = resu and physics.getSolveStatus()
+            resu = physics.getSolveStatus() and resu
         return resu
 
     def validateTimeStep(self):
@@ -160,7 +160,7 @@ class Coupler(PhysicsDriver):
         """! See PhysicsDriver.isStationary(). """
         resu = True
         for physics in self._physicsDriversList:
-            resu = (resu and physics.isStationary())
+            resu = physics.isStationary() and resu
         return resu
 
     def resetTime(self, time_):
