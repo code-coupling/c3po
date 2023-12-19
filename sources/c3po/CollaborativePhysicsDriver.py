@@ -57,13 +57,16 @@ class CollaborativePhysicsDriver(Coupler, CollaborativeObject):
             physics.forget(label, method)
 
     def setInputDoubleValue(self, name, value):
+        """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue(). """
         for physics in self._physicsDriversList:
             physics.setInputDoubleValue(name, value)
 
     def setInputIntValue(self, name, value):
+        """! See c3po.DataAccessor.DataAccessor.setInputIntValue(). """
         for physics in self._physicsDriversList:
             physics.setInputIntValue(name, value)
 
     def setInputStringValue(self, name, value):
+        """! See c3po.DataAccessor.DataAccessor.setInputStringValue(). """
         for physics in self._physicsDriversList:
             physics.setInputStringValue(name, value)

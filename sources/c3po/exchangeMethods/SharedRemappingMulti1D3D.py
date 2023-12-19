@@ -13,6 +13,7 @@ from __future__ import print_function, division
 
 import c3po.medcouplingCompat as mc
 from c3po.exchangeMethods.SharedRemapping import Remapper, SharedRemapping
+from c3po.services.Printer import warning
 
 
 def shift1DFields(shiftMap, shiftedFieldPositions, indexTable):
@@ -227,6 +228,8 @@ class SharedRemappingMulti1D3D(SharedRemapping):
         @param defaultValue see SharedRemapping.
         @param linearTransform see SharedRemapping.
         """
+        warning("SharedRemappingMulti1D3D is deprecated and will soon by deleted. Please use c3po.multi1D package instead.")
+
         SharedRemapping.__init__(self, remapper, reverse, defaultValue, linearTransform)
         self._numberOf1DFields = self._remapper.getNumberOf1DFields()
 

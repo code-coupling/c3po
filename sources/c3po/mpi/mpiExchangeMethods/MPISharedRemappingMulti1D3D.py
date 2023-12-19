@@ -15,6 +15,7 @@ from c3po.exchangeMethods.SharedRemappingMulti1D3D import shift1DFields, Multi1D
 from c3po.CollaborativeObject import CollaborativeObject
 from c3po.mpi.MPIRemote import MPIRemote
 from c3po.mpi.mpiExchangeMethods.MPISharedRemapping import MPISharedRemapping, MPIRemapper
+from c3po.services.Printer import warning
 
 
 class MPIMulti1D3DRemapper(MPIRemapper):
@@ -123,6 +124,8 @@ class MPISharedRemappingMulti1D3D(MPISharedRemapping):
         @param defaultValue see c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D.__init__().
         @param linearTransform see c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D.__init__().
         """
+        warning("MPISharedRemappingMulti1D3D is deprecated and will soon by deleted. Please use c3po.mpi.multi1D package instead.")
+
         MPISharedRemapping.__init__(self, remapper, reverse, defaultValue, linearTransform)
         self._numberOf1DFields = self._remapper.getNumberOf1DFields()
 

@@ -3,7 +3,7 @@
 
 \section intro_sec I. Introduction
 
-C3PO (Collaborative Code Coupling PlatfOrm) is a high-level Python library, offering generic services for the definition of coupled calculations with codes meeting a certain framework. This framework is defined by:
+C3PO (Collaborative Code Coupling PlatfOrm) is a Python library offering generic services for the definition of coupled calculations with codes meeting a certain framework. This framework is defined by:
 
   - Use of Python. Codes have to be wrapped into a Python class, which allows to coordinate them in a homogeneous way regardless of their native programming language.
   - Use of MEDCoupling for data exchanges. MEDCoupling is the common format choosen for the exchanges of space-dependent variables. MEDCoupling is a C++ library, with Python binding, provided by the open-source SALOME platform [1].
@@ -48,10 +48,12 @@ The directory sources/c3po also contains six directories:
   - medcouplingCompat which deals with various versions of MEDCoupling. Import this module to use all versions of MEDCoupling in an identical way (following the last version API).
   - physicsDrivers with specific implementations of c3po.PhysicsDriver.PhysicsDriver for some codes.
   - services with some optionnal services (mainly for monitoring of coupled calculations). See below.
-  - mpi with C3PO sources related to MPI. See below.
+  - multi1D with sources related to the use of a set of 1D models in a 3D coupling. See below.
+  - mpi with sources related to MPI. See below.
 
 \note When "import c3po" is made, the classes and functions defined in c3po/couplers, c3po/exchangeMethods and c3po/services are imported and made available directly in c3po module.
 \note "import c3po.medcouplingCompat" must be done if one wants to use directly MEDCoupling (using this helper).
+\note "import c3po.multi1D" (or "import c3po.mpi.multi1D") must be done to access multi1D functionalities.
 \note "import c3po.mpi" must be done to get access to MPI classes of C3PO (the classes and functions defined in c3po/mpi/mpiExchangeMethods are imported and made available directly in c3po.mpi module). mpi4py must be available.
 \note Each class of c3po/physicsDrivers must be imported separately.
 
@@ -73,7 +75,6 @@ This directory contains the definition of the following classes (exchange method
   - c3po.exchangeMethods.ExchangeMethod.ExchangeMethod is a class interface (to be implemented) which standardizes exchange methods to be used with c3po.LocalExchanger.LocalExchanger (or its daughter class c3po.mpi.MPIExchanger.MPIExchanger).
   - c3po.exchangeMethods.DirectMatching.DirectMatching is the most simple exchange method: it does nothing else than output = input.
   - c3po.exchangeMethods.SharedRemapping.SharedRemapping projects the input fields one by one before returning them as outputs, in the same order.
-  - c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D is similar to c3po.exchangeMethods.SharedRemapping.SharedRemapping but one side of the exchange is a set of 1D fields.
 
 \subsection services_sec II.3. c3po/services directory
 
@@ -93,7 +94,22 @@ This directory contains the definition of the following elements:
     1. c3po.services.TransientLogger.Timekeeper provides basic information about transient progress. It is the default implementation used by c3po.PhysicsDriver.PhysicsDriver (but logging is by default desactivated).
     2. c3po.services.TransientLogger.FortuneTeller derives from c3po.services.TransientLogger.Timekeeper and adds an evaluation of the remaining computing time to complete the transient.
 
-\subsection C3POMPIsources_sec II.4. c3po/mpi directory
+\subsection multi1D_sec II.4. c3po/multi1D directory
+
+This directory contains the definition of the following classes:
+
+  - c3po.multi1D.Grid.Grid is a class interface that allows to define 2D grids and to assign indices to each grid cell. The following daughter classes are available:
+    - c3po.multi1D.Grid.MEDGrid to import a grid defined as a 2D MEDCoupling field,
+    - c3po.multi1D.Grid.CartesianGrid for cartesian grids,
+    - c3po.multi1D.Grid.HexagonalGrid for hexagonal grids,
+    - c3po.multi1D.Grid.MultiLevelGrid to define nested grids.
+  - c3po.multi1D.Multi1DAPI.Multi1DAPI is a minimalist class interface for handling a set of 1D components. c3po.multi1D.Multi1DAPI.Multi1DWithObjectsAPI is an extension of the previous class where each 1D component can hold a set of objects identified by name.
+  - c3po.multi1D.MEDInterface.MEDInterface is a class that can read and write 3D fields by associating a c3po.multi1D.Grid.Grid and a c3po.multi1D.Multi1DAPI.Multi1DAPI.
+  - c3po.multi1D.Multi1DPhysicsDriver.Multi1DPhysicsDriver is the master class of the multi1D package. It holds a set of 1D PhysicsDriver (through the non-user class c3po.multi1D.Multi1DPhysicsDriver.DriverAPI that implements c3po.multi1D.Multi1DAPI.Multi1DAPI for 1D PhysicsDriver), and behaves like a unique 3D PhysicsDriver (using internally c3po.multi1D.MEDInterface.MEDInterface).
+
+  When c3po.multi1D is imported, the above-mentioned classes are imported and made available in c3po.multi1D.
+
+\subsection C3POMPIsources_sec II.5. c3po/mpi directory
 
 This directory contains the definition of C3PO sources related to MPI.
 
@@ -127,15 +143,19 @@ These two parallelization modes share a common base of concepts.
   - c3po.mpi.MPIMasterExchanger.MPIMasterExchanger is used by the master to control remote c3po.Exchanger.Exchanger(s).
   - c3po.mpi.MPIWorker.MPIWorker defines the behavior of workers.
 
-The directory sources/c3po/mpi also contains one directory:
+The directory sources/c3po/mpi also contains two directories:
 
   - mpiExchangeMethods with specific implementations of MPI exchange methods. See below.
+  - multi1D with specializations of c3po.multi1D for MPI couplings. See below.
 
 \subsubsection mpiExchMeth_sec II.4.4. c3po/mpi/mpiExchangeMethods directory:
 
   - c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod is a class interface (to be implemented) which standardizes MPI exchange methods. Unlike the exchanges methods of c3po/exchangeMethods, MPI exchange methods support MPI exchanges. It has to be used with a c3po.mpi.MPIExchanger.MPIExchanger.
   - c3po.mpi.mpiExchangeMethods.MPISharedRemapping.MPISharedRemapping this is the MPI version of c3po.exchangeMethods.SharedRemapping.SharedRemapping. MPI features of MEDCoupling must be available. It allows to use MEDCoupling projections between codes using domain decomposition methods.
-  - c3po.mpi.mpiExchangeMethods.MPISharedRemappingMulti1D3D.MPISharedRemappingMulti1D3D This is the MPI version of c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D. It uses c3po.mpi.mpiExchangeMethods.MPISharedRemapping.MPISharedRemapping in order to improve the preformance of data exchange.
+
+\subsubsection mpimulti1D_sec II.4.5. c3po/mpi/multi1D directory:
+
+  - c3po.mpi.multi1D.MPIMulti1DPhysicsDriver is the MPI collaborative version of c3po.multi1D.Multi1DPhysicsDriver.Multi1DPhysicsDriver.
 
  \section contacts_sec III. Contacts
 
