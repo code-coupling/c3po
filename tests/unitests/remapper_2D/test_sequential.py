@@ -7,6 +7,7 @@ import pytest
 import c3po
 
 refArray = [1., 4./3., 0.0, 0.0]
+refCoord = [1., 1.]
 
 def test_sequential():
     from tests.unitests.remapper_2D.MEDBuilder import makeField2DCart
@@ -17,7 +18,7 @@ def test_sequential():
     array1 = field1.getArray()
     array1.setIJ(0, 0, 2.)
 
-    remapper = c3po.Remapper(meshAlignment=True, rescaling=1.5, offset=[0.99999, 0.], rotation=math.pi/2., outsideCellsScreening=True)
+    remapper = c3po.Remapper(meshAlignment=True, rescaling=1.5, offset=[0.99999, 0., 0.], rotation=math.pi/2., outsideCellsScreening=True)
     remapper.initialize(field1.getMesh(), field2.getMesh())
 
     resuField = remapper.directRemap(field1, 0.)
@@ -25,9 +26,16 @@ def test_sequential():
 
     print(resuValues)
 
+    noodsCoord = field1.getMesh().getCoordinatesOfNode(4)
+    print(noodsCoord)
+
     assert len(refArray) == len(resuValues)
     for i in range(len(refArray)):
         assert pytest.approx(resuValues[i], abs=1.E-4) == refArray[i]
+
+    assert len(noodsCoord) == len(refCoord)
+    for i in range(len(refCoord)):
+        assert pytest.approx(noodsCoord[i], abs=1.E-4) == refCoord[i]
 
 
 if __name__ == "__main__":

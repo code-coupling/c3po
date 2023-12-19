@@ -9,6 +9,7 @@ import c3po
 import c3po.mpi
 
 refArray = [1., 4./3., 0.0, 0.0]
+refCoord = [1., 1.]
 
 def main_medmpi():
     from tests.unitests.remapper_2D.MEDBuilder import makeField2DCart
@@ -25,11 +26,17 @@ def main_medmpi():
     else:
         field = makeField2DCart([10., 11., 12.], [10., 11., 12.])
 
-    remapper = c3po.mpi.MPIRemapper(meshAlignment=True, rescaling=1.5, offset=[1., 0.], rotation=math.pi/2., outsideCellsScreening=False) #outsideCellsScreening not available
+    remapper = c3po.mpi.MPIRemapper(meshAlignment=True, rescaling=1.5, offset=[1., 0., 0.], rotation=math.pi/2., outsideCellsScreening=False) #outsideCellsScreening not available
     remapper.initialize([0, 1], [2], world, field)
 
     if rank == 0 or rank == 1:
         remapper.sendField(field)
+        if rank == 0:
+            noodsCoord = field.getMesh().getCoordinatesOfNode(3)
+            print(noodsCoord)
+            assert len(noodsCoord) == len(refCoord)
+            for i in range(len(refCoord)):
+                assert pytest.approx(noodsCoord[i], abs=1.E-4) == refCoord[i]
     else:
         resuField = remapper.recvField(field)
         resuValues = resuField.getArray().toNumPyArray().tolist()

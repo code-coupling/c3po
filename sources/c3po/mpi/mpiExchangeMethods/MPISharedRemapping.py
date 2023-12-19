@@ -27,7 +27,8 @@ class MPIRemapper(object):
         @param meshAlignment If set to True, at the initialization phase of the MPIRemapper object, meshes are translated such as their "bounding
             box" are radially centred on (x = 0., y = 0.) and, if the meshes are 3D, have zmin = 0.
         @param offset Value of the offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
-            The given vector is used to translate the source mesh (after the mesh alignment, if any).
+            The given vector is used to translate the source mesh (after the mesh alignment, if any). The dimension of offset must be >= the
+            dimension of the meshes (we use only the first components).
         @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is
             initially larger than the target one). The scaling is centered on [0., 0.(, 0.)] and is applied to the source mesh after mesh
             alignment or translation, if any.
@@ -92,6 +93,7 @@ class MPIRemapper(object):
             raise Exception("MPIRemapper : All mesh dimensions should be the same! We found at least two: {} and {}.".format(minDim, maxDim))
 
         offsetAlign = []
+        userOffset = None
         if self._meshAlignment:
             localComm = mpiComm.Split(mpiComm.Get_rank() in ranksToGet)
             if meshDimension == 2:
@@ -104,8 +106,12 @@ class MPIRemapper(object):
             ymax = localComm.allreduce(ymax, op=mpi.MAX)
             offsetAlign = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)] + ([localComm.allreduce(zmin, op=mpi.MIN)] if meshDimension == 3 else [])
             field.getMesh().translate(offsetAlign)
-        if self._offset is not None and self._offset != [0.] * meshDimension and mpiComm.Get_rank() in ranksToGet:
-            field.getMesh().translate([-x for x in self._offset])
+        if self._offset is not None and mpiComm.Get_rank() in ranksToGet:
+            if len(self._offset) < meshDimension:
+                raise Exception("Remapper : the dimension the provided offset vector ({}) is not >= the one of meshes ({}).".format(len(self._offset), meshDimension))
+            userOffset = self._offset[:meshDimension]
+            if userOffset != [0.] * meshDimension:
+                field.getMesh().translate([-x for x in userOffset])
         if self._rescaling != 1. and mpiComm.Get_rank() in ranksToGet:
             field.getMesh().scale([0.] * meshDimension, 1. / self._rescaling)
         if self._rotation != 0. and mpiComm.Get_rank() in ranksToGet:
@@ -131,8 +137,8 @@ class MPIRemapper(object):
                     field.getMesh().rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
             if self._rescaling != 1. and mpiComm.Get_rank() in ranksToGet:
                 field.getMesh().scale([0.] * meshDimension, self._rescaling)
-            if self._offset is not None and self._offset != [0.] * meshDimension and mpiComm.Get_rank() in ranksToGet:
-                field.getMesh().translate([self._offset])
+            if userOffset is not None and userOffset != [0.] * meshDimension and mpiComm.Get_rank() in ranksToGet:
+                field.getMesh().translate(userOffset)
             if self._meshAlignment:
                 field.getMesh().translate([-x for x in offsetAlign])
 

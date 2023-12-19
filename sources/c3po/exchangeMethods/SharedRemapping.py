@@ -40,7 +40,8 @@ class Remapper(object):
         @param meshAlignment If set to True, at the initialization phase of the Remapper object, meshes are translated such as their "bounding
             box" are radially centred on (x = 0., y = 0.) and, if the meshes are 3D, have zmin = 0.
         @param offset Value of the offset between the source and the target meshes (>0 on z means that the source mesh is above the target one).
-            The given vector is used to translate the source mesh (after the mesh alignment, if any).
+            The given vector is used to translate the source mesh (after the mesh alignment, if any). The dimension of offset must be >= the
+            dimension of the meshes (we use only the first components).
         @param rescaling Value of a rescaling factor to be applied between the source and the target meshes (>1 means that the source mesh is
             initially larger than the target one). The scaling is centered on [0., 0.(, 0.)] and is applied to the source mesh after mesh
             alignment or translation, if any.
@@ -78,6 +79,7 @@ class Remapper(object):
         if targetMesh.getMeshDimension() != meshDimension:
             raise Exception("Remapper : the dimension of source and target meshes are not the same ({} and {} respectively).".format(meshDimension, targetMesh.getMeshDimension()))
         offsetAlign = []
+        userOffset = None
         if self._meshAlignment:
             for mesh in [sourceMesh, targetMesh]:
                 if meshDimension == 2:
@@ -86,8 +88,12 @@ class Remapper(object):
                     [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
                 offsetAlign.append([-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)] + ([zmin] if meshDimension == 3 else []))
                 mesh.translate(offsetAlign[-1])
-        if self._offset is not None and self._offset != [0.] * meshDimension:
-            sourceMesh.translate([-x for x in self._offset])
+        if self._offset is not None:
+            if len(self._offset) < meshDimension:
+                raise Exception("Remapper : the dimension the provided offset vector ({}) is not >= the one of meshes ({}).".format(len(self._offset), meshDimension))
+            userOffset = self._offset[:meshDimension]
+            if userOffset != [0.] * meshDimension:
+                sourceMesh.translate([-x for x in userOffset])
         if self._rescaling != 1.:
             sourceMesh.scale([0.] * meshDimension, 1. / self._rescaling)
         if self._rotation != 0.:
@@ -114,8 +120,8 @@ class Remapper(object):
                     sourceMesh.rotate([0., 0., 0.], [0., 0., 1.], -self._rotation)
             if self._rescaling != 1.:
                 sourceMesh.scale([0.] * meshDimension, self._rescaling)
-            if self._offset is not None and self._offset != [0.] * meshDimension:
-                sourceMesh.translate([self._offset])
+            if userOffset is not None and userOffset != [0.] * meshDimension:
+                sourceMesh.translate(userOffset)
             if self._meshAlignment:
                 sourceMesh.translate([-x for x in offsetAlign[0]])
                 targetMesh.translate([-x for x in offsetAlign[1]])

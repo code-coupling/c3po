@@ -50,7 +50,7 @@ def shift1DFields(shiftMap, shiftedFieldPositions, indexTable):
 class Multi1D3DRemapper(Remapper):
     """! Allow to share the mesh projection for different SharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
-    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False, reverseTransformations=True):
+    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, meshAlignment=False, offset=None, rescaling=1., rotation=0., outsideCellsScreening=False, reverseTransformations=True):
         """! Build a Multi1D3DRemapper object.
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.

@@ -20,7 +20,7 @@ from c3po.mpi.mpiExchangeMethods.MPISharedRemapping import MPISharedRemapping, M
 class MPIMulti1D3DRemapper(MPIRemapper):
     """! Allow to share the mesh projection for different MPISharedRemappingMulti1D3D objects by building them with the same instance of this class. """
 
-    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, physics, meshAlignment=False, offset=[0., 0., 0.], rescaling=1., rotation=0., outsideCellsScreening=False, reverseTransformations=True):
+    def __init__(self, xCoordinates, yCoordinates, indexTable, weights, physics, meshAlignment=False, offset=None, rescaling=1., rotation=0., outsideCellsScreening=False, reverseTransformations=True):
         """! Build a MPIMulti1D3DRemapper object, the MPI version of c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.
 
         The constructor has the same form than c3po.exchangeMethods.SharedRemappingMulti1D3D.Multi1D3DRemapper.__init__() with one additional mandatory parameter: physics.
