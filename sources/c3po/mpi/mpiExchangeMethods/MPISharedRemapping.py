@@ -80,17 +80,17 @@ class MPIRemapper(object):
             self.terminate()
 
         if len(set(ranksToSet) - set(ranksToGet)) != len(ranksToSet):
-            raise Exception("MPIRemapper.initialize: there must not be ranks present in both lists of ranks (to get and to set).")
+            raise ValueError("MPIRemapper.initialize: there must not be ranks present in both lists of ranks (to get and to set).")
         if min(min(ranksToGet), min(ranksToSet)) != 0 and max(max(ranksToGet), max(ranksToSet)) != mpiComm.Get_size() - 1:
-            raise Exception("MPIRemapper.initialize: ranks must be between 0 and {} (included). We found a min value of {} and a max value of {}.".format(mpiComm.Get_size() - 1, min(min(ranksToGet), min(ranksToSet)), max(max(ranksToGet), max(ranksToSet))))
+            raise ValueError("MPIRemapper.initialize: ranks must be between 0 and {} (included). We found a min value of {} and a max value of {}.".format(mpiComm.Get_size() - 1, min(min(ranksToGet), min(ranksToSet)), max(max(ranksToGet), max(ranksToSet))))
         if len(ranksToGet) + len(ranksToSet) != mpiComm.Get_size():
-            raise Exception("MPIRemapper.initialize: the provided list of ranks must be a partitioned of the MPI communicator. Here we have {} and {} ranks while the size of the communicator is {}.".format(len(ranksToGet), len(ranksToSet), mpiComm.Get_size()))
+            raise ValueError("MPIRemapper.initialize: the provided list of ranks must be a partitioned of the MPI communicator. Here we have {} and {} ranks while the size of the communicator is {}.".format(len(ranksToGet), len(ranksToSet), mpiComm.Get_size()))
 
         meshDimension = field.getMesh().getMeshDimension()
         minDim = mpiComm.allreduce(meshDimension, op=mpi.MIN)
         maxDim = mpiComm.allreduce(meshDimension, op=mpi.MAX)
         if minDim != maxDim:
-            raise Exception("MPIRemapper : All mesh dimensions should be the same! We found at least two: {} and {}.".format(minDim, maxDim))
+            raise ValueError("MPIRemapper : All mesh dimensions should be the same! We found at least two: {} and {}.".format(minDim, maxDim))
 
         offsetAlign = []
         userOffset = None
@@ -108,7 +108,7 @@ class MPIRemapper(object):
             field.getMesh().translate(offsetAlign)
         if self._offset is not None and mpiComm.Get_rank() in ranksToGet:
             if len(self._offset) < meshDimension:
-                raise Exception("Remapper : the dimension the provided offset vector ({}) is not >= the one of meshes ({}).".format(len(self._offset), meshDimension))
+                raise ValueError("MPIRemapper : the dimension the provided offset vector ({}) is not >= the mesh dimension ({}).".format(len(self._offset), meshDimension))
             userOffset = self._offset[:meshDimension]
             if userOffset != [0.] * meshDimension:
                 field.getMesh().translate([-x for x in userOffset])
@@ -212,12 +212,15 @@ class MPISharedRemapping(MPIExchangeMethod):
         minNature = self._mpiComm.allreduce(localNature, op=mpi.MIN)
         maxNature = self._mpiComm.allreduce(localNature, op=mpi.MAX)
         if minNature != maxNature:
-            raise Exception("MPISharedRemapping.initialize: All fields involved in the same exchange must share the same nature. We found at least two: {} and {}.".format(minNature, maxNature))
+            raise ValueError("MPISharedRemapping.initialize: All fields involved in the same exchange must share the same nature. We found at least two: {} and {}.".format(minNature, maxNature))
 
         if not self._remapper.isInit or localNature not in self._remapper.isInitPerNature or not self._remapper.isInitPerNature[localNature]:
             if len(self._ranksToGet) == 0:
                 raise Exception("MPISharedRemapping: setRanks() must be call before the first exchange.")
-            self._remapper.initialize(self._ranksToGet, self._ranksToSet, self._mpiComm, field)
+            try:
+                self._remapper.initialize(self._ranksToGet, self._ranksToSet, self._mpiComm, field)
+            except ValueError as exception:
+                raise ValueError("MPISharedRemapping : the following error occured during remapper initialization with the field {}:\n    {}".format(field.getName(), exception))
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Project the input fields one by one before returning them as outputs, in the same order. """

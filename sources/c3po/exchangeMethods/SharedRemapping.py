@@ -77,7 +77,8 @@ class Remapper(object):
         """! INTERNAL """
         meshDimension = sourceMesh.getMeshDimension()
         if targetMesh.getMeshDimension() != meshDimension:
-            raise Exception("Remapper : the dimension of source and target meshes are not the same ({} and {} respectively).".format(meshDimension, targetMesh.getMeshDimension()))
+            raise ValueError("Remapper : the dimension of source and target meshes are not the same ({} : {} and {} : {} respectively).".format(
+                sourceMesh.getName(), meshDimension, targetMesh.getName(), targetMesh.getMeshDimension()))
         offsetAlign = []
         userOffset = None
         if self._meshAlignment:
@@ -90,7 +91,7 @@ class Remapper(object):
                 mesh.translate(offsetAlign[-1])
         if self._offset is not None:
             if len(self._offset) < meshDimension:
-                raise Exception("Remapper : the dimension the provided offset vector ({}) is not >= the one of meshes ({}).".format(len(self._offset), meshDimension))
+                raise ValueError("Remapper : the dimension the provided offset vector ({}) is not >= the mesh dimension ({}).".format(len(self._offset), meshDimension))
             userOffset = self._offset[:meshDimension]
             if userOffset != [0.] * meshDimension:
                 sourceMesh.translate([-x for x in userOffset])
@@ -204,15 +205,17 @@ class SharedRemapping(ExchangeMethod):
     def initialize(self, fieldsToGet, fieldsToSet):
         """! INTERNAL """
         if not self._remapper.isInit:
-            if self._isReverse:
-                self._remapper.initialize(fieldsToSet[0].getMesh(), fieldsToGet[0].getMesh())
-            else:
-                self._remapper.initialize(fieldsToGet[0].getMesh(), fieldsToSet[0].getMesh())
+            sourceField = fieldsToSet[0] if self._isReverse else fieldsToGet[0]
+            targetField = fieldsToGet[0] if self._isReverse else fieldsToSet[0]
+            try:
+                self._remapper.initialize(sourceField.getMesh(), targetField.getMesh())
+            except ValueError as exception:
+                raise ValueError("SharedRemapping : the following error occured during remapper initialization with the fields {} and {}:\n    {}".format(sourceField.getName(), targetField.getName(), exception))
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
         """! Project the input fields one by one before returning them as outputs, in the same order. """
         if len(fieldsToSet) != len(fieldsToGet):
-            raise Exception("SharedRemapping : there must be the same number of input and output MED fields")
+            raise ValueError("SharedRemapping : there must be the same number of input and output MED fields")
 
         transformedMED = []
 
