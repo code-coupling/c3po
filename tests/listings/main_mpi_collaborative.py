@@ -75,19 +75,22 @@ def main_mpi_collaborative():
         myPhysics2 = Physics2()
         localPhysics = myPhysics2
 
+    listingW.setPhysicsDriverName(localPhysics, "Physics" + str(rank + 1))
+
     Transformer = c3po.DirectMatching()
 
     First2Second = TracedExchanger(Transformer, [], [], [(myPhysics, "y")], [(myPhysics2, "x")])
     Second2Data = TracedExchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
     Data2First = TracedExchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics, "x")])
+    listingW.setExchangerName(First2Second, "1 -> 2")
+    listingW.setExchangerName(Second2Data, "2 -> Data")
+    listingW.setExchangerName(Data2First, "Data -> 1")
 
     OneIterationCoupler = ScalarPhysicsCoupler([myPhysics, myPhysics2], [First2Second])
 
     mycoupler = c3po.FixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
     mycoupler.setDampingFactor(0.5)
     mycoupler.setConvergenceParameters(1E-5, 10)
-
-    listingW.initialize([(localPhysics, "Physics" + str(rank + 1))], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
 
     mycoupler.init()
 

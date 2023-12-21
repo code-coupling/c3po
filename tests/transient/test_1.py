@@ -51,11 +51,15 @@ def main_1():
 
     myPhysics1 = TracedPhysics()
     myPhysics1.setOption(coef1, sec1, 0.2)
+    listingW.setPhysicsDriverName(myPhysics1, "Physics1")
     accuPhysics1 = TracedAccu(myPhysics1, saveParameters=(1, "INTERNAL"), stabilizedTransient=(True, 100.))
+    listingWAccu.setPhysicsDriverName(accuPhysics1, "accuPhysics1")
 
     myPhysics2 = TracedPhysics()
     myPhysics2.setOption(coef2, sec2, 0.3)
+    listingW.setPhysicsDriverName(myPhysics2, "Physics2")
     accuPhysics2 = TracedAccu(myPhysics2, saveParameters=(1, "INTERNAL"), stabilizedTransient=(True, 100.))
+    listingWAccu.setPhysicsDriverName(accuPhysics2, "accuPhysics2")
 
     transformer = c3po.DirectMatching()
 
@@ -64,14 +68,15 @@ def main_1():
     second2First = TracedExchanger(transformer, [], [], [(accuPhysics2, "y")], [(accuPhysics1, "x")])
     second2Data = TracedExchanger(transformer, [], [], [(accuPhysics2, "y")], [(myData, "y")])
     data2First = TracedExchanger(transformer, [], [], [(myData, "y")], [(accuPhysics1, "x")])
+    listingW.setExchangerName(first2Second, "1 -> 2")
+    listingW.setExchangerName(second2First, "2 -> 1")
+    listingW.setExchangerName(second2Data, "2 -> Data")
+    listingW.setExchangerName(data2First, "Data -> 1")
 
     iterativeCoupler = OneIterationCoupler([accuPhysics1, accuPhysics2], [first2Second])
 
     stationaryCoupler = c3po.AndersonCoupler([iterativeCoupler], [second2Data, data2First], [myData])
     stationaryCoupler.setConvergenceParameters(1E-5, 100)
-
-    listingW.initialize([(myPhysics1, "Physics1"), (myPhysics2, "Physics2")], [(first2Second, "1 -> 2"), (second2First, "2 -> 1"), (second2Data, "2 -> Data"), (data2First, "Data -> 1")])
-    listingWAccu.initialize([(accuPhysics1, "accuPhysics1"), (accuPhysics2, "accuPhysics2")], [])
 
     accuPhysics1.init()
     accuPhysics1.setStabilizedTransient((False, 100.))

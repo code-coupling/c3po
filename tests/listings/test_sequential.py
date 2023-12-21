@@ -58,10 +58,12 @@ def main_sequential():
 
     myPhysics = Physics1()
     myPhysics.setOption(1., 0.5)
+    listingW.setPhysicsDriverName(myPhysics, "Physics1")
     myPhysics1 = c3po.NameChanger(myPhysics, nameMappingValue={"toto": "x", "tat@*": "*"}, wildcard="*")
 
     myPhysics2 = Physics2()
     myPhysics2.setOption(3., -1.)
+    listingW.setPhysicsDriverName(myPhysics2, "Physics2")
 
     Transformer = c3po.DirectMatching()
 
@@ -69,14 +71,15 @@ def main_sequential():
     First2Second = TracedExchanger(Transformer, [], [], [(myPhysics1, "tat@y")], [(myPhysics2, "x")])
     Second2Data = TracedExchanger(Transformer, [], [], [(myPhysics2, "y")], [(DataCoupler, "y")])
     Data2First = TracedExchanger(Transformer, [], [], [(DataCoupler, "y")], [(myPhysics1, "toto")])
+    listingW.setExchangerName(First2Second, "1 -> 2")
+    listingW.setExchangerName(Second2Data, "2 -> Data")
+    listingW.setExchangerName(Data2First, "Data -> 1")
 
     OneIterationCoupler = ScalarPhysicsCoupler([myPhysics1, myPhysics2], [First2Second])
 
     mycoupler = c3po.FixedPointCoupler([OneIterationCoupler], [Second2Data, Data2First], [DataCoupler])
     mycoupler.setDampingFactor(0.5)
     mycoupler.setConvergenceParameters(1E-5, 10)
-
-    listingW.initialize([(myPhysics, "Physics1"), (myPhysics2, "Physics2")], [(First2Second, "1 -> 2"), (Second2Data, "2 -> Data"), (Data2First, "Data -> 1")])
 
     myPhysics1.init()
     myPhysics2.init()
@@ -123,6 +126,21 @@ def main_sequential():
     myPhysics2.term()
     myPhysics1.term()
 
+    myPhysics1.init()
+    myPhysics1.initTimeStep(0.1)
+    myPhysics1.solveTimeStep()
+    myPhysics1.validateTimeStep()
+    myPhysics1.term()
+
+    listingW.terminate()
+    listingW.setPhysicsDriverName(myPhysics, "Physics1")
+
+    myPhysics1.init()
+    myPhysics1.initTimeStep(0.1)
+    myPhysics1.solveTimeStep()
+    myPhysics1.validateTimeStep()
+    myPhysics1.term()
+
     file1.close()
     file2.close()
     file3.close()
@@ -138,7 +156,7 @@ def main_sequential():
 
     Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral.log"), nLines("run_1/listing_PST.txt")]
     print(Nlines)
-    assert Nlines == [708, 700, 129, 129, 1230, 129]
+    assert Nlines == [720, 700, 131, 129, 1251, 1]
 
 
 def test_sequential():
