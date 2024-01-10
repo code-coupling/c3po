@@ -10,7 +10,7 @@
 
 """ Contain the class ListingWriter. """
 from __future__ import print_function, division
-import time
+import os
 
 
 def getFormattedTime(timeValue):
@@ -49,6 +49,9 @@ class ListingWriter(object):
         self._isBoxOpen = False
         self._physics = []
         self._physicsData = []
+        self._physicsToBeAdded = []
+        self._nameOfPhysicsToBeAdded = []
+        self._isFirstBox = True
         self._exchangers = []
         self._exchangersData = []
         self._timeInit = 0.
@@ -59,7 +62,7 @@ class ListingWriter(object):
         self._terminatedPhysics = []
         self._boxFormat = [""] * 7
 
-    def initialize(self, physics, exchangers):
+    def initialize(self, physics, exchangers, force=False):
         """! Clear and initialize the object.
 
         Can be replace by a call to terminate() (optional for the first call) followed by calls to setPhysicsDriverName() and setExchangerName().
@@ -70,12 +73,13 @@ class ListingWriter(object):
             An object that does not meet these conditions is ignored. A column (entitled with name) is created in the listing file for each of them.
         @param exchangers a list of tuples (object, name). object should be an Exchanger object, modified with c3po.services.tracer.tracer to point on this ListingWriter
             object. An object that does not meet these conditions is ignored. name allows to identify them in the final listing file.
+        @param force if set to True, physics and exchangers are added even if they do not meet the previously defined conditions.
         """
         self.terminate()
         for phy in physics:
-            self.setPhysicsDriverName(phy[0], phy[1])
+            self.setPhysicsDriverName(phy[0], phy[1], force)
         for exc in exchangers:
-            self.setExchangerName(exc[0], exc[1])
+            self.setExchangerName(exc[0], exc[1], force)
 
     def terminate(self):
         """! Get ready to write a new listing.
@@ -90,31 +94,37 @@ class ListingWriter(object):
         self._exchangersData = []
         self._isPrepared = False
 
-    def setPhysicsDriverName(self, physics, name):
+    def setPhysicsDriverName(self, physics, name, force=False):
         """! Get ready to write a listing with the provided PhysicsDriver.
 
         @param physics a PhysicsDriver object, modified with c3po.services.tracer.tracer to point on this ListingWriter object.
             If physics does not meet these conditions, it is ignored. Otherwise, a column (entitled with name) will be created in the listing file for it.
         @param name the name to use for physics in the listing.
+        @param force if set to True, physics is added even if it does not meet the previously defined conditions.
         """
-        if self._isPrepared:
-            raise Exception("setPhysicsDriverName: we cannot add a PhysicsDriver (here {}) when the calculation is running. All names must be set before the first call to an ICoCo method.".format(name))
-        if isinstance(self, MergedListingWriter) or (hasattr(physics, "static_lWriter") and physics.static_lWriter is self):
-            self._physics.append(physics)
-            self._physicsData.append([name, u""])  # (name, format)
+        if force or (hasattr(physics, "static_lWriter") and physics.static_lWriter is self):
+            if self._isPrepared:
+                if not self._isFirstBox:
+                    raise Exception("setPhysicsDriverName: we cannot add a PhysicsDriver (here {}) when the calculation is running if this is not the first listing of the file. In this case, all names must be set before the first call to an ICoCo method.".format(name))
+                self._physicsToBeAdded.append(physics)
+                self._nameOfPhysicsToBeAdded.append(name)
+            else:
+                self._physics.append(physics)
+                self._physicsData.append([name, u""])  # (name, format)
 
-    def setExchangerName(self, exchanger, name):
+    def setExchangerName(self, exchanger, name, force=False):
         """! Get ready to write a listing with the provided Exchanger.
 
         @param exchanger a Exchanger object, modified with c3po.services.tracer.tracer to point on this ListingWriter object.
             If exchanger does not meet these conditions, it is ignored. Otherwise, a lign will be written in the listing for each call of exchanger's exchange() method .
         @param name the name to use for exchanger in the listing.
+        @param force if set to True, exchanger is added even if it does not meet the previously defined conditions.
         """
-        if self._isPrepared:
-            raise Exception("setExchangerName: we cannot add an Exchanger (here {}) when the calculation is running. All names must be set before the first call to an ICoCo method.".format(name))
-        if isinstance(self, MergedListingWriter) or (hasattr(exchanger, "static_lWriter") and exchanger.static_lWriter is self):
+        if force or (hasattr(exchanger, "static_lWriter") and exchanger.static_lWriter is self):
             self._exchangers.append(exchanger)
             self._exchangersData.append([name, u""])  # (name, format)
+            if self._isPrepared:
+                self._defineExchangerFormat(self._exchangersData[-1])
 
     def prepare(self):
         """! INTERNAL """
@@ -124,12 +134,14 @@ class ListingWriter(object):
         self._sumCalculationTime = 0.
         self._timeValidatedPhysics = [-1. for _ in self._physics]
         self._terminatedPhysics = [False for _ in self._physics]
+        self._defineFormats()
+        self._isPrepared = True
 
+    def _defineFormats(self):
+        """! INTERNAL """
         self._boxFormat = [""] * 7
         for phy in self._physicsData:
-            phy[1] += u"┃{:^28}│"
-        for exc in self._exchangersData:
-            exc[1] += u"┃{0:^28.28}│"
+            phy[1] = u"┃{:^28}│"
         self._boxFormat[ListingWriter.enumTop] += u"┏{}┯".format(u"━" * 28)
         self._boxFormat[ListingWriter.enumEntete] += u"┃{:^28}│".format(u"In / Out")
         self._boxFormat[ListingWriter.enumCloseTop] += u"┠{}┼".format(u"─" * 28)
@@ -143,8 +155,6 @@ class ListingWriter(object):
                     ph1[1] += u"{:^23}│"
                 else:
                     ph1[1] += u"                       │"
-            for exc in self._exchangersData:
-                exc[1] += u"{1:-^23}│"
             self._boxFormat[ListingWriter.enumTop] += u"━━━━━━━━━━━━━━━━━━━━━━━┯"
             self._boxFormat[ListingWriter.enumEntete] += u"{:^23.23}│"
             self._boxFormat[ListingWriter.enumCloseTop] += u"───────────────────────┼"
@@ -157,8 +167,6 @@ class ListingWriter(object):
 
         for phy in self._physicsData:
             phy[1] += u"{:^12}│"
-        for exc in self._exchangersData:
-            exc[1] += u"{2:^12}│"
         self._boxFormat[ListingWriter.enumTop] += u"━━━━━━━━━━━━┯"
         self._boxFormat[ListingWriter.enumEntete] += u"    time    │"
         self._boxFormat[ListingWriter.enumCloseTop] += u"────────────┼"
@@ -169,8 +177,6 @@ class ListingWriter(object):
 
         for phy in self._physicsData:
             phy[1] += u"{:^12}┃\n"
-        for exc in self._exchangersData:
-            exc[1] += u"{3:^12}┃\n"
         self._boxFormat[ListingWriter.enumTop] += u"━━━━━━━━━━━━┓ Reference time = {:}\n"
         self._boxFormat[ListingWriter.enumEntete] += u"     dt     ┃\n"
         self._boxFormat[ListingWriter.enumCloseTop] += u"────────────┨\n"
@@ -179,9 +185,18 @@ class ListingWriter(object):
         self._boxFormat[ListingWriter.enumInterrupt] += u"────────────┨\n"
         self._boxFormat[ListingWriter.enumContinue] += u"────────────┨\n"
 
+        for exc in self._exchangersData:
+            self._defineExchangerFormat(exc)
+
         self._charPerLine = len(self._boxFormat[ListingWriter.enumTop].encode('utf-8'))
 
-        self._isPrepared = True
+    def _defineExchangerFormat(self, exc):
+        """! INTERNAL """
+        exc[1] = u"┃{0:^28.28}│"
+        for _ in self._physicsData:
+            exc[1] += u"{1:-^23}│"
+        exc[1] += u"{2:^12}│"
+        exc[1] += u"{3:^12}┃\n"
 
     def writeInitialize(self, presentTime):
         """! INTERNAL """
@@ -218,9 +233,16 @@ class ListingWriter(object):
             self._terminatedPhysics[i] = False
 
         self._isBoxOpen = False
+        self._isFirstBox = False
 
     def writeAfter(self, sourceObject, inputVar, outputTuple, methodName, presentTime, calculationTime):
         """! INTERNAL """
+        if sourceObject in self._physicsToBeAdded:
+            index = self._physicsToBeAdded.index(sourceObject)
+            self._addPhysicsDriver(self._nameOfPhysicsToBeAdded[index], (sourceObject, inputVar, outputTuple, methodName, presentTime, calculationTime))
+            self._physicsToBeAdded.pop(index)
+            self._nameOfPhysicsToBeAdded.pop(index)
+            return
         if not self._isPrepared:
             self.prepare()
         if self._autoFormat and not self._isBoxOpen:
@@ -289,6 +311,27 @@ class ListingWriter(object):
             self.writeTerminate()
 
         self._listingFile.flush()
+
+    def _addPhysicsDriver(self, name, writeArgs):
+        """! INTERNAL """
+        with open("tmp_c3po_listing_1.txt", "wb") as filetmp:
+            dummyWriter = ListingWriter(filetmp)
+            dummyWriter.setPhysicsDriverName(writeArgs[0], name, force=True)
+            dummyWriter.writeAfter(*writeArgs)
+        mergeListing([self._listingFile.name, "tmp_c3po_listing_1.txt"], "tmp_c3po_listing_2.txt")
+        with open(self._listingFile.name, "w") as newListing, open("tmp_c3po_listing_2.txt", "r") as toCopy:
+            for line in toCopy:
+               newListing.write(line)
+        os.remove("tmp_c3po_listing_1.txt")
+        os.remove("tmp_c3po_listing_2.txt")
+        self._isPrepared = False
+        self.setPhysicsDriverName(writeArgs[0], name)
+        self._timeValidatedPhysics.append(-1)
+        self._terminatedPhysics.append(False)
+        self._defineFormats()
+        self._listingFile.seek(-len(self._boxFormat[ListingWriter.enumTerm].encode('utf-8')), 2)
+        self._listingFile.truncate()
+        self._isPrepared = True
 
 
 class MergedListingWriter(ListingWriter):
@@ -461,7 +504,7 @@ def mergeListing(listingsName, newListingName):
     runningPhysics = [False for p in mydumbPhysics]
     myExchanger = len(physicsName) + 1
 
-    writer.initialize(mydumbPhysics, [(myExchanger, "")])
+    writer.initialize(mydumbPhysics, [(myExchanger, "")], force=True)
     writer.prepare()
     writer.writeInitialize(refTime)
 

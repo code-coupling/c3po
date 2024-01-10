@@ -60,10 +60,12 @@ def main_sequential():
     myPhysics.setOption(1., 0.5)
     listingW.setPhysicsDriverName(myPhysics, "Physics1")
     myPhysics1 = c3po.NameChanger(myPhysics, nameMappingValue={"toto": "x", "tat@*": "*"}, wildcard="*")
+    myPhysics1.init()
 
     myPhysics2 = Physics2()
     myPhysics2.setOption(3., -1.)
     listingW.setPhysicsDriverName(myPhysics2, "Physics2")
+    myPhysics2.init()
 
     Transformer = c3po.DirectMatching()
 
@@ -81,8 +83,6 @@ def main_sequential():
     mycoupler.setDampingFactor(0.5)
     mycoupler.setConvergenceParameters(1E-5, 10)
 
-    myPhysics1.init()
-    myPhysics2.init()
     mycoupler.init()
 
     mycoupler.setStationaryMode(False)
@@ -141,6 +141,25 @@ def main_sequential():
     myPhysics1.validateTimeStep()
     myPhysics1.term()
 
+    listingW.terminate()
+    listingW.setPhysicsDriverName(myPhysics, "Physics1")
+    myPhysics1.init()
+    try:
+        listingW.setPhysicsDriverName(myPhysics2, "Physics2")
+    except Exception as error:
+        errorMsg = str(error)
+
+    refMsg = "setPhysicsDriverName: we cannot add a PhysicsDriver (here Physics2) when the calculation is running if this is not the first listing of the file. In this case, all names must be set before the first call to an ICoCo method."
+    print(errorMsg)
+    assert errorMsg == refMsg
+
+    myPhysics2.init()
+    myPhysics1.initTimeStep(0.1)
+    myPhysics1.solveTimeStep()
+    myPhysics1.validateTimeStep()
+    myPhysics2.term()
+    myPhysics1.term()
+
     file1.close()
     file2.close()
     file3.close()
@@ -156,7 +175,8 @@ def main_sequential():
 
     Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral.log"), nLines("run_1/listing_PST.txt")]
     print(Nlines)
-    assert Nlines == [718, 699, 131, 129, 1249, 1]
+
+    assert Nlines == [726, 702, 132, 129, 1263, 1]
 
 
 def test_sequential():
