@@ -21,7 +21,7 @@ class MPIValueBcast(MPIExchangeMethod):
     A reduce is first made on the source processes, then the result is broacasted on the target processes.
     """
 
-    def __init__(self, reduceOp):
+    def __init__(self, reduceOp=None):
         """! Build an MPIValueBcast object, to be given to an c3po.mpi.MPIExchanger.MPIExchanger.
 
         @param reduceOp A mpi4py reduce operator. The result of the reduce is sent to the target processes.
