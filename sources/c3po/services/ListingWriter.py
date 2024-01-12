@@ -51,7 +51,6 @@ class ListingWriter(object):
         self._physicsData = []
         self._physicsToBeAdded = []
         self._nameOfPhysicsToBeAdded = []
-        self._isFirstBox = True
         self._exchangers = []
         self._exchangersData = []
         self._timeInit = 0.
@@ -104,8 +103,6 @@ class ListingWriter(object):
         """
         if force or (hasattr(physics, "static_lWriter") and physics.static_lWriter is self):
             if self._isPrepared:
-                if not self._isFirstBox:
-                    raise Exception("setPhysicsDriverName: we cannot add a PhysicsDriver (here {}) when the calculation is running if this is not the first listing of the file. In this case, all names must be set before the first call to an ICoCo method.".format(name))
                 self._physicsToBeAdded.append(physics)
                 self._nameOfPhysicsToBeAdded.append(name)
             else:
@@ -233,7 +230,6 @@ class ListingWriter(object):
             self._terminatedPhysics[i] = False
 
         self._isBoxOpen = False
-        self._isFirstBox = False
 
     def writeAfter(self, sourceObject, inputVar, outputTuple, methodName, presentTime, calculationTime):
         """! INTERNAL """
@@ -319,9 +315,14 @@ class ListingWriter(object):
             dummyWriter.setPhysicsDriverName(writeArgs[0], name, force=True)
             dummyWriter.writeAfter(*writeArgs)
         mergeListing([self._listingFile.name, "tmp_c3po_listing_1.txt"], "tmp_c3po_listing_2.txt")
-        with open(self._listingFile.name, "w") as newListing, open("tmp_c3po_listing_2.txt", "r") as toCopy:
+        position = 0
+        with open(self._listingFile.name, "r") as listingFile:
+            goToLastBox(listingFile)
+            position = listingFile.tell()
+        with open("tmp_c3po_listing_2.txt", "r") as toCopy:
+            self._listingFile.seek(position, 0)
             for line in toCopy:
-               newListing.write(line)
+               self._listingFile.write(line.encode('utf-8'))
         os.remove("tmp_c3po_listing_1.txt")
         os.remove("tmp_c3po_listing_2.txt")
         self._isPrepared = False
@@ -458,10 +459,28 @@ class MergedListingWriter(ListingWriter):
                 self._listingFile.write(self._boxFormat[MergedListingWriter.enumExchangeEnd].format(*((toWrite,) + tuple(columnList) + (presentTimeToWrite,))).encode('utf-8'))
 
 
+def goToLastBox(listingFile):
+    """! INTERNAL """
+    previousPosition = listingFile.seek(0, 0)
+    boxPosition = previousPosition
+    numberOfLines = 0
+    line = listingFile.readline()
+    while line:
+        if line.startswith(u"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━"):
+            boxPosition = previousPosition
+            numberOfLines = 0
+        numberOfLines += 1
+        previousPosition = listingFile.tell()
+        line = listingFile.readline()
+    listingFile.seek(boxPosition, 0)
+    return numberOfLines
+
+
 def mergeListing(listingsName, newListingName):
     """! mergeListing() allows to merge listing files produced by ListingWriter (or by previous call to mergeListing()).
 
     It is designed to produce a comprehensive view of a MPI calculation.
+    Only the last listing box of the provided files are considered.
 
     @param listingsName list of the name of the listing files to merge.
     @param newListingName name of the file to write.
@@ -471,9 +490,8 @@ def mergeListing(listingsName, newListingName):
     listings = [open(lname, "r") for lname in listingsName]
     newListing = open(newListingName, "wb+")
     writer = MergedListingWriter(newListing)
-    lineNumbers = [sum(1 for _ in lis) for lis in listings]
-    for lis in listings:
-        lis.seek(0)
+    lineNumbers = [goToLastBox(lis) for lis in listings]
+
     lineCurrentNumbers = [0 for lis in listings]
     physicsName = []
     physicsNumber = [0 for lis in listings]
@@ -636,7 +654,7 @@ def getTotalTimePhysicsDriver(listingName, physicsDriverName,
                                            "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate",
                                            "save", "restore"]):
     """! getTotalTimePhysicsDriver() reads a listing file produced by ListingWriter or mergeListing and returns the total time
-    spent by one PhysicsDriver in indicated methods.
+    spent by one PhysicsDriver in indicated methods (in the last calculation).
 
     @param listingName name of the listing file to read.
     @param physicsDriverName name (given in the listing file) of the PhysicsDriver for which the total time is requested.
@@ -647,8 +665,7 @@ def getTotalTimePhysicsDriver(listingName, physicsDriverName,
     @return The total time spent by the PhysicsDriver in the indicated methods.
     """
     listing = open(listingName, "r")
-    lineNumber = sum(1 for _ in listing)
-    listing.seek(0)
+    lineNumber = goToLastBox(listing)
     lineCurrentNumber = 0
     physicsColumn = -1
 
@@ -681,7 +698,7 @@ def getTotalTimePhysicsDriver(listingName, physicsDriverName,
 
 def getTimesExchanger(listingName, exchangerName, physicsDriverNames):
     """! getTimesExchanger() reads a listing file produced by ListingWriter or mergeListing and returns time information about
-    a chosen exchanger.
+    a chosen exchanger (during the last calculation).
 
     For each PhysicsDriver involved in the exchange, the function distinguishes between exchange time and waiting time. The
     exchange is assumed to really begin when all involved PhysicsDriver enter the exchange.
@@ -697,8 +714,7 @@ def getTimesExchanger(listingName, exchangerName, physicsDriverNames):
     values: first the total exchange time spent by this PhysicsDriver in the Exchanger, then its total waiting time in the Exchanger.
     """
     listing = open(listingName, "r")
-    lineNumber = sum(1 for _ in listing)
-    listing.seek(0)
+    lineNumber = goToLastBox(listing)
     lineCurrentNumber = 0
     physicsColumns = [-1 for p in physicsDriverNames]
 

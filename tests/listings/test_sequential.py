@@ -144,16 +144,9 @@ def main_sequential():
     listingW.terminate()
     listingW.setPhysicsDriverName(myPhysics, "Physics1")
     myPhysics1.init()
-    try:
-        listingW.setPhysicsDriverName(myPhysics2, "Physics2")
-    except Exception as error:
-        errorMsg = str(error)
-
-    refMsg = "setPhysicsDriverName: we cannot add a PhysicsDriver (here Physics2) when the calculation is running if this is not the first listing of the file. In this case, all names must be set before the first call to an ICoCo method."
-    print(errorMsg)
-    assert errorMsg == refMsg
-
+    listingW.setPhysicsDriverName(myPhysics2, "Physics2")
     myPhysics2.init()
+
     myPhysics1.initTimeStep(0.1)
     myPhysics1.solveTimeStep()
     myPhysics1.validateTimeStep()
@@ -176,7 +169,7 @@ def main_sequential():
     Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral.log"), nLines("run_1/listing_PST.txt")]
     print(Nlines)
 
-    assert Nlines == [726, 702, 132, 129, 1263, 1]
+    assert Nlines == [724, 701, 132, 129, 1260, 1]
 
 
 def test_sequential():
