@@ -156,7 +156,7 @@ def main_sequential():
 
     Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral.log"), nLines("run_1/listing_PST.txt")]
     print(Nlines)
-    assert Nlines == [720, 700, 131, 129, 1251, 1]
+    assert Nlines == [718, 699, 131, 129, 1249, 1]
 
 
 def test_sequential():

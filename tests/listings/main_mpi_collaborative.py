@@ -175,7 +175,7 @@ def main_mpi_collaborative():
 
         Nlines = [nLines("first.log"), nLines("second.log"), nLines("listingFirst.log"), nLines("listingSecond.log"), nLines("listingGeneral0.log"), nLines("listingGeneral1.log"), nLines("run_1/listing_PST.txt")]
         print(Nlines)
-        assert Nlines == [703, 699, 129, 129, 820, 820, 129]
+        assert Nlines == [701, 698, 129, 129, 819, 819, 129]
 
 if __name__ == "__main__":
     main_mpi_collaborative()
