@@ -150,8 +150,11 @@ class MPIRemapper(object):
 
         @warning This method must be called once the object is no more needed in order to properly release MPI resources.
         """
-        for dec in self._interpKernelDECs.values():
-            dec.release()
+        try:    # FIXME: remove try/except when MEDCoupling < 9.7 is not supported
+            for dec in self._interpKernelDECs.values():
+                dec.release()   # Not supported by MEDCoupling < 9.7.
+        except AttributeError:
+            pass
         self._interpKernelDECs = {}
         self.isInitPerNature = {}
         self.isInit = False
