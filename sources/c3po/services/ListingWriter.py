@@ -310,29 +310,40 @@ class ListingWriter(object):
 
     def _addPhysicsDriver(self, name, writeArgs):
         """! INTERNAL """
-        with open("tmp_c3po_listing_1.txt", "wb") as filetmp:
-            dummyWriter = ListingWriter(filetmp)
-            dummyWriter.setPhysicsDriverName(writeArgs[0], name, force=True)
-            dummyWriter.writeAfter(*writeArgs)
-        mergeListing([self._listingFile.name, "tmp_c3po_listing_1.txt"], "tmp_c3po_listing_2.txt")
-        position = 0
-        with open(self._listingFile.name, "r") as listingFile:
-            goToLastBox(listingFile)
-            position = listingFile.tell()
-        with open("tmp_c3po_listing_2.txt", "r") as toCopy:
-            self._listingFile.seek(position, 0)
-            for line in toCopy:
-               self._listingFile.write(line.encode('utf-8'))
-        os.remove("tmp_c3po_listing_1.txt")
-        os.remove("tmp_c3po_listing_2.txt")
-        self._isPrepared = False
-        self.setPhysicsDriverName(writeArgs[0], name)
-        self._timeValidatedPhysics.append(-1)
-        self._terminatedPhysics.append(False)
-        self._defineFormats()
-        self._listingFile.seek(-len(self._boxFormat[ListingWriter.enumTerm].encode('utf-8')), 2)
-        self._listingFile.truncate()
-        self._isPrepared = True
+        listingDir = os.path.dirname(self._listingFile.name)
+        tmp_file_1 = os.path.join(listingDir, "tmp_c3po_listing_1.txt")
+        tmp_file_2 = os.path.join(listingDir, "tmp_c3po_listing_2.txt")
+        try:
+            with open(tmp_file_1, "wb") as filetmp:
+                dummyWriter = ListingWriter(filetmp)
+                dummyWriter.setPhysicsDriverName(writeArgs[0], name, force=True)
+                dummyWriter.writeAfter(*writeArgs)
+            mergeListing([self._listingFile.name, tmp_file_1], tmp_file_2)
+            position = 0
+            with open(self._listingFile.name, "r") as listingFile:
+                goToLastBox(listingFile)
+                position = listingFile.tell()
+            with open(tmp_file_2, "r") as toCopy:
+                self._listingFile.seek(position, 0)
+                for line in toCopy:
+                    self._listingFile.write(line.encode('utf-8'))
+            self._isPrepared = False
+            self.setPhysicsDriverName(writeArgs[0], name)
+            self._timeValidatedPhysics.append(-1)
+            self._terminatedPhysics.append(False)
+            self._defineFormats()
+            self._listingFile.seek(-len(self._boxFormat[ListingWriter.enumTerm].encode('utf-8')), 2)
+            self._listingFile.truncate()
+        finally:
+            self._isPrepared = True
+            try:
+                os.remove(tmp_file_1)
+            except:
+                pass
+            try:
+                os.remove(tmp_file_2)
+            except:
+                pass
 
 
 class MergedListingWriter(ListingWriter):
