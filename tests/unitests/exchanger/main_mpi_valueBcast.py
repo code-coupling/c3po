@@ -6,7 +6,7 @@ import c3po
 import c3po.mpi
 
 
-def makeBroadcast(ranks1, ranks2, op, result):
+def makeBroadcast(ranks1, ranks2, op, input, result):
     world = mpi.COMM_WORLD
     rank = world.Get_rank()
 
@@ -19,7 +19,7 @@ def makeBroadcast(ranks1, ranks2, op, result):
     comm2 = world.Split(1 if rank in ranks2 else mpi.UNDEFINED)
     if rank in ranks1:
         dataManager1 = c3po.mpi.MPICollectiveDataManager(comm1)
-        dataManager1.setInputDoubleValue("a", 1.)
+        dataManager1.setInputDoubleValue("a", input)
     if rank in ranks2:
         dataManager2 = c3po.mpi.MPICollectiveDataManager(comm2)
 
@@ -45,12 +45,15 @@ def makeError():
 
 
 def main_mpi_valueBcast():
-    makeBroadcast([0, 1], [2, 3], mpi.SUM, 2)
-    makeBroadcast([0, 1], [1, 2, 3], mpi.SUM, 2)
-    makeBroadcast([0, 1], [3], mpi.SUM, 2)
-    makeBroadcast([0, 1, 2, 3], [0, 1, 2, 3], mpi.SUM, 4)
+    makeBroadcast([0, 1], [2, 3], mpi.SUM, 1., 2.)
+    makeBroadcast([0, 1], [1, 2, 3], mpi.SUM, 1., 2.)
+    makeBroadcast([0, 1], [3], mpi.SUM, 1., 2.)
+    makeBroadcast([0, 1, 2, 3], [0, 1, 2, 3], mpi.SUM, 1., 4.)
 
-    makeBroadcast([0, 1], [2, 3], None, 1)
+    makeBroadcast([0, 1], [2, 3], None, 1., 1.)
+
+    makeBroadcast([0, 1], [2, 3], None, "toto", "toto")
+    makeBroadcast([0, 1], [2, 3], mpi.SUM, "tu", "tutu")
 
     makeError()
 
