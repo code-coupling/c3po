@@ -163,7 +163,8 @@ disable=print-statement,
         abstract-method,
         consider-using-f-string,
         unspecified-encoding,
-        raise-missing-from
+        raise-missing-from,
+        fixme
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

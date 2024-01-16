@@ -323,10 +323,10 @@ class ListingWriter(object):
             with open(self._listingFile.name, "r") as listingFile:
                 goToLastBox(listingFile)
                 position = listingFile.tell()
-            with open(tmpFile2, "r") as toCopy:
+            with open(tmpFile2, "rb") as toCopy:
                 self._listingFile.seek(position, 0)
                 for line in toCopy:
-                    self._listingFile.write(line.encode('utf-8'))
+                    self._listingFile.write(line)
             self._isPrepared = False
             self.setPhysicsDriverName(writeArgs[0], name)
             self._timeValidatedPhysics.append(-1)
@@ -472,12 +472,13 @@ class MergedListingWriter(ListingWriter):
 
 def goToLastBox(listingFile):
     """! INTERNAL """
-    previousPosition = listingFile.seek(0, 0)
+    previousPosition = 0
+    listingFile.seek(0, 0)
     boxPosition = previousPosition
     numberOfLines = 0
     line = listingFile.readline()
     while line:
-        if line.startswith(u"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━"):
+        if line.startswith("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━"):
             boxPosition = previousPosition
             numberOfLines = 0
         numberOfLines += 1

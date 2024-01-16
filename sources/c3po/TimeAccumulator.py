@@ -164,12 +164,11 @@ class TimeAccumulator(PhysicsDriver):
             self._physics.solveTransient(timeInit + self._dt, finishAtTmax=True)
             self._timeDifference += self._physics.presentTime() - timeInit
             return abs(self._timeDifference - self._dt) < 1.E-8 * self._dt
-        elif self._stabilizedTransient[0]:
+        if self._stabilizedTransient[0]:
             self._physics.solveTransient(timeInit + self._stabilizedTransient[1], stopIfStationary=True)
             self.resetTime(timeInit)
             return self.isStationary()
-        else:
-            self._physics.solve()
+        self._physics.solve()
         return self._physics.getSolveStatus()
 
     def validateTimeStep(self):
