@@ -311,19 +311,19 @@ class ListingWriter(object):
     def _addPhysicsDriver(self, name, writeArgs):
         """! INTERNAL """
         listingDir = os.path.dirname(self._listingFile.name)
-        tmp_file_1 = os.path.join(listingDir, "tmp_c3po_listing_1.txt")
-        tmp_file_2 = os.path.join(listingDir, "tmp_c3po_listing_2.txt")
+        tmpFile1 = os.path.join(listingDir, "tmp_c3po_listing_1.txt")
+        tmpFile2 = os.path.join(listingDir, "tmp_c3po_listing_2.txt")
         try:
-            with open(tmp_file_1, "wb") as filetmp:
+            with open(tmpFile1, "wb") as filetmp:
                 dummyWriter = ListingWriter(filetmp)
                 dummyWriter.setPhysicsDriverName(writeArgs[0], name, force=True)
                 dummyWriter.writeAfter(*writeArgs)
-            mergeListing([self._listingFile.name, tmp_file_1], tmp_file_2)
+            mergeListing([self._listingFile.name, tmpFile1], tmpFile2)
             position = 0
             with open(self._listingFile.name, "r") as listingFile:
                 goToLastBox(listingFile)
                 position = listingFile.tell()
-            with open(tmp_file_2, "r") as toCopy:
+            with open(tmpFile2, "r") as toCopy:
                 self._listingFile.seek(position, 0)
                 for line in toCopy:
                     self._listingFile.write(line.encode('utf-8'))
@@ -337,11 +337,11 @@ class ListingWriter(object):
         finally:
             self._isPrepared = True
             try:
-                os.remove(tmp_file_1)
+                os.remove(tmpFile1)
             except:
                 pass
             try:
-                os.remove(tmp_file_2)
+                os.remove(tmpFile2)
             except:
                 pass
 

@@ -41,14 +41,14 @@ def buildName(keyword, cname, loc, irad=-1):
 class CATHARE3Driver(C3, PhysicsDriver):
     """! This is the implementation of PhysicsDriver for CATHARE3. """
 
-    def __init__(self, dt_post=0.0):
+    def __init__(self, dtPost=0.0):
         C3.__init__(self)
         PhysicsDriver.__init__(self)
         self.io = 0
         self._timeShift = 0.
         self._stationaryMode = False
         self.tpost = -1e8
-        self.dt_post = dt_post
+        self.dtPost = dtPost
 
 
     def getMEDCouplingMajorVersion(self):
@@ -68,7 +68,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
 
     def validateTimeStep(self):
         C3.validateTimeStep(self)
-        if (self.presentTime() - self.tpost > self.dt_post):
+        if self.presentTime() - self.tpost > self.dtPost:
             self.post(1)
             self.tpost = self.presentTime()
         else: self.post(0)
@@ -157,7 +157,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
                     localArray = mc.DataArrayDouble.New(nbCells)
                     localArray.fillWithZero()
                     localArray += field.getArray()[count: count + nbCells]
-                    count += nbCells
+                    count += nbCellsdtPost
 
                     f1d.setArray(localArray)
                     C3.setInputMEDField(self, newName, f1d)
@@ -169,7 +169,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
         field *= 0.0
         return field
 
-    def post(self, post_med):
+    def post(self, postMED):
         """! INTERNAL """
         # ecriture des maillages et entete fichier colonne
         if self.io == 0:
@@ -187,7 +187,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
             for name in self.post_names["fields"]:
                 field = self.getOutputMEDDoubleField(name)
                 fic.write("{:12.5g} ".format(field.normMax()[0]))
-                if (post_med):
+                if postMED:
                     field.setTime(temps, self.io, 0)
                     mc.WriteFieldUsingAlreadyWrittenMesh("{}.med".format(shortName(name)), field)
                     self.io += 1
