@@ -213,7 +213,7 @@ class LocalExchanger(Exchanger):
         except:
             return [elements]
 
-        divisions = [0] * 4 #Number of elems that are still to be affected divided by current pattern.
+        divisions = [0] * 4  # Number of elems that are still to be affected divided by current pattern.
         resu = []
 
         for pattern in patterns:

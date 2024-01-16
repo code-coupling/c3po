@@ -303,7 +303,7 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         baseclass.static_stdout = stdoutFile
         baseclass.static_stderr = stderrFile
         baseclass.static_lWriter = listingWriter
-        baseclass.static_wDir =  workingDir if workingDir is None else os.path.abspath(workingDir)
+        baseclass.static_wDir = workingDir if workingDir is None else os.path.abspath(workingDir)
         newclass = TracerMeta(baseclass.__name__, (baseclass,), baseclass.__dict__)
         newclass.__doc__ = baseclass.__doc__
         delattr(baseclass, "static_pythonFile")

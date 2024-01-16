@@ -50,7 +50,6 @@ class CATHARE3Driver(C3, PhysicsDriver):
         self.tpost = -1e8
         self.dtPost = dtPost
 
-
     def getMEDCouplingMajorVersion(self):
         return mc.MEDCouplingVersionMajMinRel()[0]
 
@@ -71,8 +70,8 @@ class CATHARE3Driver(C3, PhysicsDriver):
         if self.presentTime() - self.tpost > self.dtPost:
             self.post(1)
             self.tpost = self.presentTime()
-        else: self.post(0)
-
+        else:
+            self.post(0)
 
     def setStationaryMode(self, stationaryMode):
         self._stationaryMode = stationaryMode
