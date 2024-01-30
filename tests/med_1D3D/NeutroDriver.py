@@ -23,8 +23,8 @@ class NeutroDriver(PhysicsDriver):
         self._stationaryMode = False
 
     def initialize(self):
-        self._medP = medBuilder.makeField3DCart(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ)
-        self._medTTemplate = medBuilder.makeField3DCart(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ)
+        self._medP = medBuilder.makeField3DCart(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ, offset=[10, 20, 30])
+        self._medTTemplate = medBuilder.makeField3DCart(self._sizeX, self._sizeY, self._sizeZ, self._nbMeshX, self._nbMeshY, self._nbMeshZ, offset=[10, 20, 30])
         self._medTTemplate.setNature(mc.IntensiveMaximum)
         self._medT = None
         self._stationaryMode = False

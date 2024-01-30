@@ -87,7 +87,7 @@ class Remapper(object):
                     [(xmin, xmax), (ymin, ymax)] = mesh.getBoundingBox()
                 else:
                     [(xmin, xmax), (ymin, ymax), (zmin, _)] = mesh.getBoundingBox()
-                offsetAlign.append([-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)] + ([zmin] if meshDimension == 3 else []))
+                offsetAlign.append([-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)] + ([-zmin] if meshDimension == 3 else []))
                 mesh.translate(offsetAlign[-1])
         if self._offset is not None:
             if len(self._offset) < meshDimension:

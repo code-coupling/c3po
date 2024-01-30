@@ -104,7 +104,7 @@ class MPIRemapper(object):
             xmax = localComm.allreduce(xmax, op=mpi.MAX)
             ymin = localComm.allreduce(ymin, op=mpi.MIN)
             ymax = localComm.allreduce(ymax, op=mpi.MAX)
-            offsetAlign = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)] + ([localComm.allreduce(zmin, op=mpi.MIN)] if meshDimension == 3 else [])
+            offsetAlign = [-0.5 * (xmin + xmax), -0.5 * (ymin + ymax)] + ([-localComm.allreduce(zmin, op=mpi.MIN)] if meshDimension == 3 else [])
             field.getMesh().translate(offsetAlign)
         if self._offset is not None and mpiComm.Get_rank() in ranksToGet:
             if len(self._offset) < meshDimension:
