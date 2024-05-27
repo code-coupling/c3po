@@ -13,7 +13,6 @@ These classes recieve data from a remote process.
 """
 from __future__ import print_function, division
 from mpi4py import MPI
-import numpy
 
 import c3po.medcouplingCompat as mc
 from c3po.mpi.MPITag import MPITag
@@ -29,27 +28,21 @@ class MPIFieldRecipient(object):
         self._isTemplate = isTemplate
         self._field = 0
         self._isFirstSend = True
-        self._isNumpyAvailable = False
 
     def exchange(self):
         """! INTERNAL """
         mpiComm = self._sender.mpiComm
         senderRank = self._sender.rank
-        if self._isFirstSend or not self._isNumpyAvailable:
+        if self._isFirstSend:
             if self._isCollective:
                 self._field = mpiComm.bcast(self._field, root=senderRank)
             else:
                 self._field = mpiComm.recv(source=senderRank, tag=MPITag.data)
-            if self._isFirstSend:
-                self._isNumpyAvailable = hasattr(self._field, "getArray") and hasattr(self._field.getArray(), "toNumPyArray")
         elif not self._isTemplate:
-            arraySize = self._field.getArray().getNbOfElems()
-            numpyArray = numpy.empty(arraySize)
             if self._isCollective:
-                mpiComm.Bcast([numpyArray, MPI.DOUBLE], root=senderRank)
+                dataArray = mpiComm.bcast(dataArray, root=senderRank)
             else:
-                mpiComm.Recv([numpyArray, MPI.DOUBLE], source=senderRank, tag=MPITag.data)
-            dataArray = mc.DataArrayDouble(numpyArray)
+                dataArray = mpiComm.recv()
             self._field.setArray(dataArray)
         self._storing.store(self._field)
         self._isFirstSend = False
@@ -100,3 +93,4 @@ class MPIValueRecipient(object):
             self._storing.store(mpiComm.bcast(value, root=senderRank))
         else:
             self._storing.store(mpiComm.recv(source=senderRank, tag=MPITag.data))
+
