@@ -172,13 +172,17 @@ class TracerMeta(type):
                         os.close(prevIdstderr)
 
                 if self.static_saveOutputMED and (method.__name__.startswith("getOutputMED") or method.__name__.startswith("updateOutputMED")):
-                    nameField = getNameInput(*args, **kwargs)
+                    if method.__name__.startswith("getOutputMED"):
+                        nameField = getNameInput(*args, **kwargs)
+                        field = result
+                    else:
+                        (nameField, field) = getNameFieldInput(*args, **kwargs)
                     nameMEDFile = name + "_output_" + nameField + "_"
                     num = 0
                     while os.path.exists(nameMEDFile + str(num) + ".med"):
                         num += 1
                     nameMEDFile = nameMEDFile + str(num) + ".med"
-                    mc.WriteField(nameMEDFile, result, True)
+                    mc.WriteField(nameMEDFile, field, True)
 
                 if self.static_lWriter is not None:
                     if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
