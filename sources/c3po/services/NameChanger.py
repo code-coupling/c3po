@@ -136,6 +136,10 @@ class NameChanger(PhysicsDriver):
         """! See PhysicsDriver.setMPIComm(). """
         self._physics.setMPIComm(mpicomm)
 
+    def getMPIComm(self):
+        """! See c3po.DataAccessor.DataAccessor.getMPIComm(). """
+        return self._physics.getMPIComm()
+
     def initialize(self):
         """! See PhysicsDriver.initialize(). """
         self._physics.init()
