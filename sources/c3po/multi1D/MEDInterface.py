@@ -37,12 +37,9 @@ def _buildGridMesh(grid, height):
     for iObjectCell in range(grid.getNumberOfCells()):
         iObject = grid.getCorrespondence(iObjectCell)
         if iObject > -1:
-            #if iObject >= len(channelObjectNames[iAxialCell]):
-            #    raise ValueError(f"We found in the objectGrids associated with component {iChannel}, at the axial cell {iAxialCell}, a wrong object index {iObject}. It must be < {len(channelObjectNames[iAxialCell])}, the number of objects in this axial cell of this component.")
             baseCoordinates = grid.getNodeCoordinates(iObjectCell)
             numNodes = len(baseCoordinates) // 2
             coordinates = mc.DataArrayDouble(2 * numNodes, 3)
-            #coordinates = [0.] * (2 * numNodes * 3)
             iNodeGlobal = 0
             for iNode in range(numNodes):
                 coordinates.setIJ(iNodeGlobal, 0, baseCoordinates[2 * iNode + 0])
@@ -123,7 +120,7 @@ class MEDInterface():
                     yShift[iCell] /= numNodes
                     for iAxialCell in range(numAxialCells):
                         zPosition += cellSizes[iAxialCell]
-                        for iNode in range(numNodes):                                 #Cher ?
+                        for iNode in range(numNodes):
                             coordinates.setIJ(iNodeGlobal, 0, baseCoordinates[2 * iNode + 0])
                             coordinates.setIJ(iNodeGlobal, 1, baseCoordinates[2 * iNode + 1])
                             coordinates.setIJ(iNodeGlobal, 2, zPosition)
@@ -144,7 +141,7 @@ class MEDInterface():
         volumeArray = channelMEDMeshVolumes.getArray()
         for iChannel in range(len(self._channelCorrespondences)):
             channelVolume = 0.
-            for iCell in range(len(self._channelCorrespondences[iChannel])):      #Cher ?
+            for iCell in range(len(self._channelCorrespondences[iChannel])):
                 self._channelExtensiveFactors[iChannel][iCell] = volumeArray[self._channelCorrespondences[iChannel][iCell]]
                 channelVolume += self._channelExtensiveFactors[iChannel][iCell]
             if channelVolume > 0.:

@@ -10,6 +10,7 @@
 
 """ Contain the function shiftList. """
 
+
 def shiftList(listToShift, shiftMap):
     """! Shift in place listToShift according to shiftMap.
 

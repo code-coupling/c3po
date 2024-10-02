@@ -17,6 +17,7 @@ from c3po.mpi.MPICollaborativePhysicsDriver import MPICollaborativePhysicsDriver
 
 class MPIMulti1DPhysicsDriver(Multi1DPhysicsDriver):
     """! MPIMulti1DPhysicsDriver is the MPI collaborative version of c3po.multi1D.Multi1DPhysicsDriver. """
+
     def __init__(self, physics, grid, weights=None, mpiComm=None):
         """! Build a MPIMulti1DPhysicsDriver.
 

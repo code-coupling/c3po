@@ -140,7 +140,7 @@ class MPISharedRemappingMulti1D3D(MPISharedRemapping):
             raise Exception("MPISharedRemappingMulti1D3D: we cannot deal with scalar values.")
 
         if not self._remapper.isInnerFieldBuilt:
-            self._remapper.buildInnerField([field.getMesh() for field in (fieldsToSet if self._isReverse else fieldsToGet)])    #pylint: disable=superfluous-parens
+            self._remapper.buildInnerField([field.getMesh() for field in (fieldsToSet if self._isReverse else fieldsToGet)])  # pylint: disable=superfluous-parens
         if self._isReverse:
             numberRemapping = 0 if numberOf1DFields == 0 else numberOf1DFields // self._numberOf1DFields
             innerField = self._remapper.getInnerField()

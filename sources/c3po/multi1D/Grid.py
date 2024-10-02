@@ -106,7 +106,7 @@ class MEDGrid(Grid):
     def clone(self):
         """! See Grid.clone(). """
         output = MEDGrid(self.toMED())
-        output._medMesh = output._medMesh.deepCopy()    #pylint: disable=protected-access
+        output._medMesh = output._medMesh.deepCopy()  # pylint: disable=protected-access
         return output
 
     def getCorrespondence(self, cellId):
@@ -210,7 +210,7 @@ class CartesianGrid(MEDGrid):
     def clone(self):
         """! see Grid.clone() """
         output = CartesianGrid(self._xSizes, self._ySizes)
-        output._correspondences[:] = self._correspondences[:]   #pylint: disable=protected-access
+        output._correspondences[:] = self._correspondences[:]  # pylint: disable=protected-access
         return output
 
     def setCorrespondenceCartesian(self, xIndex, yIndex, correspondence):
@@ -239,7 +239,7 @@ class HexagonalGrid(MEDGrid):
         """
         self._numRings = numRings
         self._pitch = pitch
-        radius = pitch/math.sqrt(3.0)
+        radius = pitch / math.sqrt(3.0)
 
         numCells = 0
         for i in range(1, self._numRings + 1):
@@ -303,7 +303,7 @@ class HexagonalGrid(MEDGrid):
     def clone(self):
         """! see Grid.clone() """
         output = HexagonalGrid(self._numRings, self._pitch)
-        output._correspondences[:] = self._correspondences[:]   #pylint: disable=protected-access
+        output._correspondences[:] = self._correspondences[:]  # pylint: disable=protected-access
         return output
 
     def setCorrespondenceHexagonal(self, ringIndex, positionIndex, correspondence):
@@ -428,7 +428,7 @@ class MultiLevelGrid(Grid):
         else:
             shift = 0
             for leaf in self._leafGrids:
-                leaf.setCorrespondences(correspondences[shift:shift+leaf.getNumberOfCells()])
+                leaf.setCorrespondences(correspondences[shift:shift + leaf.getNumberOfCells()])
                 shift += leaf.getNumberOfCells()
 
     def setCorrespondence(self, cellId, correspondence):

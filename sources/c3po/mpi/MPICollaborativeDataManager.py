@@ -102,11 +102,11 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
         """
         norm = CollaborativeDataManager.norm2(self)
-        #print("local :", self, norm)
+        # print("local :", self, norm)
         if self.isMPI:
             norm = self.mpiComm.allreduce(norm * norm, op=MPI.SUM)
             norm = math.sqrt(norm)
-        #print("global :", self, norm)
+        # print("global :", self, norm)
         return norm
 
     def dot(self, other):

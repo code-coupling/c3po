@@ -274,7 +274,7 @@ class AndersonCoupler(Coupler):
                 if dropErr > 0.:
                     condDF = np.linalg.cond(matrixR)
                     while condDF > dropErr and mAA > 1:
-                        #print("cond(D) = %1.8e, reducing mAA to %d" % (condDF, mAA - 1))
+                        # print("cond(D) = %1.8e, reducing mAA to %d" % (condDF, mAA - 1))
                         if datatmp == 0.:
                             datatmp = data.clone()
                         matrixQ, matrixR = deleteQRColumn(matrixQ, matrixR, datatmp)
