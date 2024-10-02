@@ -48,6 +48,7 @@ class MPIShortcutToData(object):
         self._containerToSet.set(something)
 
     def clean(self):
+        """! INTERNAL """
         self._something = 0
 
 

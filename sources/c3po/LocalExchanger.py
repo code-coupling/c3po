@@ -85,6 +85,7 @@ class ShortcutToField(object):
         self._setMethod(self._name, field)
 
     def clean(self):
+        """! INTERNAL."""
         self._fieldTemplate = None
         self._fieldToUpdate = None
 

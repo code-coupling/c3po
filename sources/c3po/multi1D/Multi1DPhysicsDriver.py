@@ -287,7 +287,7 @@ class DriversAPI(Multi1DAPI):
         field = self._physicsDrivers[index].getOutputMEDDoubleField(fieldName)
         array = field.getArray()
         if self._weights is not None and (field.getNature() == mc.ExtensiveMaximum or field.getNature() == mc.ExtensiveConservation):
-           array *= self._weights[index]
+            array *= self._weights[index]
         return array.getValues()
 
     def setValues(self, index, fieldName, values):

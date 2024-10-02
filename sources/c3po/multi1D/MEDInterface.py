@@ -48,7 +48,7 @@ def _buildGridMesh(grid, height):
                 coordinates.setIJ(iNodeGlobal, 0, baseCoordinates[2 * iNode + 0])
                 coordinates.setIJ(iNodeGlobal, 1, baseCoordinates[2 * iNode + 1])
                 coordinates.setIJ(iNodeGlobal, 2, 0.)
-                iNodeGlobal +=1
+                iNodeGlobal += 1
             for iNode in range(numNodes):
                 coordinates.setIJ(iNodeGlobal, 0, baseCoordinates[2 * iNode + 0])
                 coordinates.setIJ(iNodeGlobal, 1, baseCoordinates[2 * iNode + 1])
@@ -91,7 +91,7 @@ class MEDInterface():
         self._objectMEDMesh = None
 
         channelMEDMeshName = "BaseMesh"
-        objectMEDMeshName  = "ObjectMesh"
+        objectMEDMeshName = "ObjectMesh"
 
         xShift = [0.] * numCells
         yShift = [0.] * numCells
@@ -253,7 +253,7 @@ class MEDInterface():
         @return the required 3D MEDCoupling field.
         """
         fieldNature = self._multi1DAPI.getNature(fieldName)
-        isIntensive = fieldNature == mc.IntensiveConservation or fieldNature == mc.IntensiveMaximum
+        isIntensive = fieldNature in (mc.IntensiveConservation, mc.IntensiveMaximum)
 
         requiredObjects = []
         try:
@@ -334,7 +334,7 @@ class MEDInterface():
         @param field MEDCoupling field with data to be set.
         """
         fieldNature = field.getNature()
-        isIntensive = fieldNature == mc.IntensiveConservation or fieldNature == mc.IntensiveMaximum
+        isIntensive = fieldNature in (mc.IntensiveConservation, mc.IntensiveMaximum)
 
         valuesArray = field.getArray()
 
@@ -377,4 +377,3 @@ class MEDInterface():
                         for iAxialCell in range(numCells):
                             values[iAxialCell] += valuesArray.getIJ(iCell + iAxialCell, 0) * intensiveFactor
                     self._multi1DAPI.setValues(iChannel, fieldName, values)
-

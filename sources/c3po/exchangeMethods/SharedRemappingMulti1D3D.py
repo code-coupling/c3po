@@ -245,7 +245,7 @@ class SharedRemappingMulti1D3D(SharedRemapping):
             return [], valuesToGet
 
         if not self._remapper.isInnerFieldBuilt:
-            self._remapper.buildInnerField([field.getMesh() for field in (fieldsToSet if self._isReverse else fieldsToGet)])
+            self._remapper.buildInnerField([field.getMesh() for field in (fieldsToSet if self._isReverse else fieldsToGet)])    #pylint: disable=superfluous-parens
         if self._isReverse:
             innerField = self._remapper.getInnerField()
             if numberOf1DFields > 0:

@@ -176,12 +176,12 @@ class CATHARE3Driver(C3, PhysicsDriver):
                 field = self.getOutputMEDDoubleField(name)
                 mc.WriteUMesh("{}.med".format(shortName(name)), field.getMesh(), True)
 
-            with open("suivi_c3.txt", "w") as fic:  # pylint: disable=unspecified-encoding
+            with open("suivi_c3.txt", "w") as fic:
                 headerNames = ["Time"] + self.post_names["fields"] + self.post_names["scalars"]
                 fic.write(" ".join(["{:>12}".format(shortName(p).split("@")[0]) for p in headerNames]) + "\n")
 
         temps = self.presentTime()
-        with open("suivi_c3.txt", "a") as fic:  # pylint: disable=unspecified-encoding
+        with open("suivi_c3.txt", "a") as fic:
             fic.write("{:12.5f} ".format(temps))
             for name in self.post_names["fields"]:
                 field = self.getOutputMEDDoubleField(name)

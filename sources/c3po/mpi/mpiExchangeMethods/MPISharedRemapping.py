@@ -58,8 +58,8 @@ class MPIRemapper(object):
                 # La construction typique python3 aurait plutot ete:
                 # raise ImportError(message) from previousException, mais cela provoque une erreur a l'import en python2.
                 previousException.msg = message
-                raise previousException     # pylint: disable=raise-missing-from
-            raise ImportError(message)  # python2 pylint: disable=raise-missing-from
+                raise previousException
+            raise ImportError(message)  # python2
 
         self.isInit = False
         self.isInitPerNature = {}

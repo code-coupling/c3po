@@ -160,7 +160,7 @@ class FortuneTeller(Timekeeper):
         if self._ert > 1.e-3:
             toPrint += ", estimated final time {}".format(
                 (datetime.now() +
-                    timedelta(seconds=int(self._ert))).strftime('%Y-%m-%d %H:%M:%S'))
+                 timedelta(seconds=int(self._ert))).strftime('%Y-%m-%d %H:%M:%S'))
         return toPrint
 
 

@@ -164,7 +164,8 @@ disable=print-statement,
         consider-using-f-string,
         unspecified-encoding,
         raise-missing-from,
-        fixme
+        fixme,
+        unsubscriptable-object
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

@@ -12,6 +12,7 @@
 Importing this module instead of MEDCoupling directly should allow C3PO to nicely
 deal with all possible versions of MEDCoupling.
 """
+# pylint: disable=invalid-name
 
 try:
     # MC version 8 and higher:
