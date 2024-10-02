@@ -48,6 +48,10 @@ class MPIFieldRecipient(object):
         self._storing.store(self._field)
         self._isFirstSend = False
 
+    def clean(self):
+        """! INTERNAL """
+        self._isFirstSend = True
+
 
 class MPIFileFieldRecipient(object):
     """! INTERNAL """
@@ -75,6 +79,10 @@ class MPIFileFieldRecipient(object):
             self._field.setNature(medInfo[1])
             self._field.setTime(*(medInfo[2]))
         self._storing.store(self._field)
+
+    def clean(self):
+        """! INTERNAL """
+        self._field = 0
 
 
 class MPIValueRecipient(object):

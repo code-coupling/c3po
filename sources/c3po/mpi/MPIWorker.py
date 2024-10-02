@@ -199,4 +199,6 @@ class MPIWorker(object):
 
                 elif tag == MPITag.exchange:
                     self._exchangers[data].exchange()
+                elif tag == MPITag.clean:
+                    self._exchangers[data].clean()
         self._physicsDriver.term()

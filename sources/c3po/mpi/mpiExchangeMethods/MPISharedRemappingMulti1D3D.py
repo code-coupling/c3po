@@ -162,3 +162,7 @@ class MPISharedRemappingMulti1D3D(MPISharedRemapping):
         if self._isReverse:
             return [(0, self._numberOf1DFields, 0, 0), (1, 0, 0, 0)]
         return [(self._numberOf1DFields, 0, 0, 0), (0, 1, 0, 0)]
+
+    def clean(self):
+        """! See ExchangeMethod.clean. """
+        self._remapper.isInnerFieldBuilt = False

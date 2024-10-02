@@ -72,3 +72,7 @@ class MPIValueBcast(MPIExchangeMethod):
     def getPatterns(self):
         """! See ExchangeMethod.getPatterns. """
         return [(0, 0, 1, 0), (0, 0, 0, 1)]
+
+    def clean(self):
+        """! See ExchangeMethod.clean. """
+        pass

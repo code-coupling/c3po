@@ -53,3 +53,18 @@ class MPIMasterExchanger(Exchanger):
                 raise Exception("MPIMasterExchanger.exchange : we found an unknown worker type.")
         if self._localExchanger is not None:
             self._localExchanger.exchange()
+
+    def clean(self):
+        """! See c3po.Exchanger.clean. """
+        for process in self._workerProcesses:
+            if isinstance(process, MPIRemoteProcess):
+                process.mpiComm.send(self._idExchangerWorker, dest=process.rank, tag=MPITag.clean)
+            elif isinstance(process, MPIRemoteProcesses):
+                for processRank in process.ranks:
+                    process.mpiComm.send(self._idExchangerWorker, dest=processRank, tag=MPITag.clean)
+            elif isinstance(process, MPICollectiveProcess):
+                process.mpiComm.bcast((MPITag.clean, self._idExchangerWorker), root=process.mpiComm.Get_rank())
+            else:
+                raise Exception("MPIMasterExchanger.exchange : we found an unknown worker type.")
+        if self._localExchanger is not None:
+            self._localExchanger.clean()

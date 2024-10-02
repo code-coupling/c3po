@@ -30,3 +30,8 @@ class CollaborativeExchanger(Exchanger, CollaborativeObject):
         """! Trigger the exchange of data. """
         for exc in self.exchangers:
             exc.exchange()
+
+    def clean(self):
+        """! See Exchanger.clean. """
+        for exc in self.exchangers:
+            exc.clean()

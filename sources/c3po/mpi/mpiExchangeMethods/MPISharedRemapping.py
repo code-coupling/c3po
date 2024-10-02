@@ -248,3 +248,7 @@ class MPISharedRemapping(MPIExchangeMethod):
     def getPatterns(self):
         """! See ExchangeMethod.getPatterns. """
         return [(1, 0, 0, 0), (0, 1, 0, 0)]
+
+    def clean(self):
+        """! See ExchangeMethod.clean. """
+        self._remapper.isInit = False

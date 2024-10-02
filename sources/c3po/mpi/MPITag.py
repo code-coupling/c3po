@@ -68,3 +68,4 @@ class MPITag(object):
     dotData = 113
 
     exchange = 150
+    clean = 151

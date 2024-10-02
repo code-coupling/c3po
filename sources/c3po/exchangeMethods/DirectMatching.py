@@ -29,3 +29,7 @@ class DirectMatching(ExchangeMethod):
     def getPatterns(self):
         """! See ExchangeMethod.getPatterns. """
         return [(1, 1, 0, 0), (0, 0, 1, 1)]
+
+    def clean(self):
+        """! See ExchangeMethod.clean. """
+        pass

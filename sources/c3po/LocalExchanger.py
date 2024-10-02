@@ -84,6 +84,10 @@ class ShortcutToField(object):
             self.initialize()
         self._setMethod(self._name, field)
 
+    def clean(self):
+        self._fieldTemplate = None
+        self._fieldToUpdate = None
+
 
 class ShortcutToValue(object):
     """! INTERNAL. """
@@ -189,6 +193,14 @@ class LocalExchanger(Exchanger):
             self._fieldsToSet[i].set(field)
         for i, value in enumerate(valuesToSet):
             self._valuesToSet[i].set(value)
+
+    def clean(self):
+        """! See Exchanger.clean. """
+        for shortcut in self._fieldsToSet:
+            shortcut.clean()
+        for shortcut in self._fieldsToGet:
+            shortcut.clean()
+        self._method.clean()
 
     @staticmethod
     def _expandInputList(inputList):

@@ -54,6 +54,12 @@ class MPIFieldSender(object):
         self._isFirstSend = False
         self._storing.store(field)
 
+    def clean(self):
+        """! INTERNAL """
+        self._dataAccess.clean()
+        self._isFirstSend = True
+
+
 class MPIFileFieldSender(object):
     """! INTERNAL """
 
@@ -109,6 +115,12 @@ class MPIFileFieldSender(object):
 
         self._isFirstSend = False
         self._storing.store(field)
+
+    def clean(self):
+        """! INTERNAL """
+        self._dataAccess.clean()
+        self._isFirstSend = True
+        self._fileName = None
 
 
 class MPIValueSender(object):

@@ -23,8 +23,7 @@ class ExchangeMethod(object):
         raise NotImplementedError
 
     def getPatterns(self):
-        """!
-        Return a list of patterns.
+        """! Return a list of patterns.
 
         A pattern is a tuple of 4 integers. They are related respectively to the number of fields to get,
         fields to set, values to get and values to set with the __call__ method.
@@ -44,3 +43,10 @@ class ExchangeMethod(object):
         of this kind are required for this pattern, but they will not be available for the following ones.
         """
         return [(-1, -1, -1, -1)]
+
+    def clean(self):
+        """! Clean up internal variables used to speed up data exchange under the assumption that meshes do not vary.
+
+        @note The method is usually called by the c3po.Exchanger object that holds self.
+        """
+        raise NotImplementedError

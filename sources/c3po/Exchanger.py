@@ -21,3 +21,10 @@ class Exchanger(object):
     def exchange(self):
         """! Trigger the exchange of data. """
         raise NotImplementedError
+
+    def clean(self):
+        """! Clean up internal variables used to speed up data exchange under the assumption that meshes do not vary.
+
+        @note It is mandatory to call this method each time the mesh of one of the DataAccessor involved in the exchange is modified.
+        """
+        raise NotImplementedError

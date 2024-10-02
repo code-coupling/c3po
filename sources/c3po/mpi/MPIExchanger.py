@@ -47,6 +47,9 @@ class MPIShortcutToData(object):
         """! INTERNAL """
         self._containerToSet.set(something)
 
+    def clean(self):
+        self._something = 0
+
 
 class MPIExchanger(LocalExchanger):
     """! MPIExchanger is the MPI version of c3po.LocalExchanger.LocalExchanger.
@@ -268,3 +271,13 @@ class MPIExchanger(LocalExchanger):
                 LocalExchanger.exchange(self)
         else:
             self._subExchangers.exchange()
+
+    def clean(self):
+        """! See c3po.Exchanger.clean. """
+        if self._subExchangers is None:
+            for exc in self._mpiExchanges:
+                exc.clean()
+            if self._dataNeeded:
+                LocalExchanger.clean(self)
+        else:
+            self._subExchangers.clean()
