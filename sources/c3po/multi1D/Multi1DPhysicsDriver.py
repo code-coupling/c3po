@@ -11,14 +11,14 @@
 """ Contain the classes Multi1DPhysicsDriver and DriversAPI. """
 import c3po.medcouplingCompat as mc
 
-from c3po.PhysicsDriver import PhysicsDriver
+from c3po.services.PhysicsDriverWrapper import PhysicsDriverWrapper
 from c3po.CollaborativePhysicsDriver import CollaborativePhysicsDriver
 from c3po.multi1D.Multi1DAPI import Multi1DAPI
 from c3po.multi1D.MEDInterface import MEDInterface
 from c3po.multi1D.shiftList import shiftList
 
 
-class Multi1DPhysicsDriver(PhysicsDriver):
+class Multi1DPhysicsDriver(PhysicsDriverWrapper):
     """! Multi1DPhysicsDriver allows to handle as a unique PhysicsDriver that reads and writes 3D fields a list of 1D PhysicsDriver. """
 
     def __init__(self, physics, grid, weights=None):
@@ -30,8 +30,7 @@ class Multi1DPhysicsDriver(PhysicsDriver):
             They are used as multiplication factors for extensive variables, thus allowing to choose the weigh of each PhysicsDriver in the 3D model.
             For exemple, a weigh of 10. means that the associated PhysicsDriver represents 10 identical PhysicsDriver.
         """
-        super().__init__()
-        self._physics = CollaborativePhysicsDriver(physics)
+        super().__init__(CollaborativePhysicsDriver(physics))
         self._grid = grid
         self._weights = weights
         self._driverAPI = None
@@ -53,7 +52,7 @@ class Multi1DPhysicsDriver(PhysicsDriver):
 
         @return the wrapped PhysicsDriver list.
         """
-        return self._physics.getElements()
+        return self.getPhysicsDriver().getElements()
 
     def shiftPhysicsDrivers(self, shiftMap):
         """! Shift the hold PhysicsDriver according to shiftMap.
@@ -71,91 +70,6 @@ class Multi1DPhysicsDriver(PhysicsDriver):
         if self._weights is not None:
             shiftList(self._weights, shiftMap)
         return shiftList(self.getPhysicsDrivers(), shiftMap)
-
-    def getMEDCouplingMajorVersion(self):
-        """! See PhysicsDriver.getMEDCouplingMajorVersion(). """
-        return self._physics.getMEDCouplingMajorVersion()
-
-    def isMEDCoupling64Bits(self):
-        """! See PhysicsDriver.isMEDCoupling64Bits(). """
-        return self._physics.isMEDCoupling64Bits()
-
-    def setDataFile(self, datafile):
-        """! See PhysicsDriver.setDataFile(). """
-        self._physics.setDataFile(datafile)
-
-    def setMPIComm(self, mpicomm):
-        """! See PhysicsDriver.setMPIComm(). """
-        self._physics.setMPIComm(mpicomm)
-
-    def getMPIComm(self):
-        """! See c3po.DataAccessor.DataAccessor.getMPIComm(). """
-        return self._physics.getMPIComm()
-
-    def initialize(self):
-        """! See PhysicsDriver.initialize(). """
-        self._physics.init()
-        return self._physics.getInitStatus()
-
-    def terminate(self):
-        """! See PhysicsDriver.terminate(). """
-        self._physics.term()
-
-    def presentTime(self):
-        """! See PhysicsDriver.presentTime(). """
-        return self._physics.presentTime()
-
-    def computeTimeStep(self):
-        """! See PhysicsDriver.computeTimeStep(). """
-        return self._physics.computeTimeStep()
-
-    def initTimeStep(self, dt):
-        """! See PhysicsDriver.initTimeStep(). """
-        return self._physics.initTimeStep(dt)
-
-    def solveTimeStep(self):
-        """! See PhysicsDriver.solveTimeStep(). """
-        return self._physics.solveTimeStep()
-
-    def iterateTimeStep(self):
-        """! See PhysicsDriver.iterateTimeStep(). """
-        return self._physics.iterateTimeStep()
-
-    def validateTimeStep(self):
-        """! See PhysicsDriver.validateTimeStep(). """
-        self._physics.validateTimeStep()
-
-    def setStationaryMode(self, stationaryMode):
-        """! See PhysicsDriver.setStationaryMode(). """
-        self._physics.setStationaryMode(stationaryMode)
-
-    def getStationaryMode(self):
-        """! See PhysicsDriver.getStationaryMode(). """
-        return self._physics.getStationaryMode()
-
-    def abortTimeStep(self):
-        """! See PhysicsDriver.abortTimeStep(). """
-        self._physics.abortTimeStep()
-
-    def isStationary(self):
-        """! See PhysicsDriver.isStationary(). """
-        return self._physics.isStationary()
-
-    def resetTime(self, time_):
-        """! See PhysicsDriver.resetTime(). """
-        self._physics.resetTime(time_)
-
-    def save(self, label, method):
-        """! See PhysicsDriver.save(). """
-        self._physics.save(label, method)
-
-    def restore(self, label, method):
-        """! See PhysicsDriver.restore(). """
-        self._physics.restore(label, method)
-
-    def forget(self, label, method):
-        """! See PhysicsDriver.forget(). """
-        self._physics.forget(label, method)
 
     def getInputFieldsNames(self):
         """! See c3po.DataAccessor.DataAccessor.getInputFieldsNames(). """
@@ -220,22 +134,6 @@ class Multi1DPhysicsDriver(PhysicsDriver):
         self._initMEDInterface(False, name)
         outputField = self._medInterface.getField(name)
         field.setArray(outputField.getArray())
-
-    def getInputValuesNames(self):
-        """! See c3po.DataAccessor.DataAccessor.getInputValuesNames(). """
-        return self._physics.getInputValuesNames()
-
-    def setInputDoubleValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue(). """
-        self._physics.setInputDoubleValue(name, value)
-
-    def setInputIntValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setInputIntValue(). """
-        self._physics.setInputIntValue(name, value)
-
-    def setInputStringValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setInputStringValue(). """
-        self._physics.setInputStringValue(name, value)
 
 
 class DriversAPI(Multi1DAPI):

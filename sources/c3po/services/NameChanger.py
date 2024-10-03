@@ -12,11 +12,11 @@
 from __future__ import print_function, division
 from types import FunctionType
 
-from c3po.PhysicsDriver import PhysicsDriver
+from c3po.services.PhysicsDriverWrapper import PhysicsDriverWrapper
 from c3po.services.Printer import warning
 
 
-class NameChanger(PhysicsDriver):
+class NameChanger(PhysicsDriverWrapper):
     """! NameChanger wraps a PhysicsDriver object and changes the names of the values and fields quantities that can be get/set through ICoCo methods.
 
     This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
@@ -36,8 +36,7 @@ class NameChanger(PhysicsDriver):
 
         @note nameMappingValue and nameMappingField are copied.
         """
-        PhysicsDriver.__init__(self)
-        self._physics = physics
+        PhysicsDriverWrapper.__init__(self, physics)
         self._nameMappingValue = {}
         self._nameMappingField = {}
         self._invertNameMappingValue = {}
@@ -73,13 +72,6 @@ class NameChanger(PhysicsDriver):
                 self._invertNameMappingField[val] = [key]
             else:
                 self._invertNameMappingField[val].append(key)
-
-    def getPhysicsDriver(self):
-        """! Return the wrapped PhysicsDriver.
-
-        @return the wrapped PhysicsDriver.
-        """
-        return self._physics
 
     def _getNewName(self, name, variableType, inverse):
         """! Return the change name(s).
@@ -120,91 +112,6 @@ class NameChanger(PhysicsDriver):
             return []
         return name
 
-    def getMEDCouplingMajorVersion(self):
-        """! See PhysicsDriver.getMEDCouplingMajorVersion(). """
-        return self._physics.getMEDCouplingMajorVersion()
-
-    def isMEDCoupling64Bits(self):
-        """! See PhysicsDriver.isMEDCoupling64Bits(). """
-        return self._physics.isMEDCoupling64Bits()
-
-    def setDataFile(self, datafile):
-        """! See PhysicsDriver.setDataFile(). """
-        self._physics.setDataFile(datafile)
-
-    def setMPIComm(self, mpicomm):
-        """! See PhysicsDriver.setMPIComm(). """
-        self._physics.setMPIComm(mpicomm)
-
-    def getMPIComm(self):
-        """! See c3po.DataAccessor.DataAccessor.getMPIComm(). """
-        return self._physics.getMPIComm()
-
-    def initialize(self):
-        """! See PhysicsDriver.initialize(). """
-        self._physics.init()
-        return self._physics.getInitStatus()
-
-    def terminate(self):
-        """! See PhysicsDriver.terminate(). """
-        self._physics.term()
-
-    def presentTime(self):
-        """! See PhysicsDriver.presentTime(). """
-        return self._physics.presentTime()
-
-    def computeTimeStep(self):
-        """! See PhysicsDriver.computeTimeStep(). """
-        return self._physics.computeTimeStep()
-
-    def initTimeStep(self, dt):
-        """! See PhysicsDriver.initTimeStep(). """
-        return self._physics.initTimeStep(dt)
-
-    def solveTimeStep(self):
-        """! See PhysicsDriver.solveTimeStep(). """
-        return self._physics.solveTimeStep()
-
-    def iterateTimeStep(self):
-        """! See PhysicsDriver.iterateTimeStep(). """
-        return self._physics.iterateTimeStep()
-
-    def validateTimeStep(self):
-        """! See PhysicsDriver.validateTimeStep(). """
-        self._physics.validateTimeStep()
-
-    def setStationaryMode(self, stationaryMode):
-        """! See PhysicsDriver.setStationaryMode(). """
-        self._physics.setStationaryMode(stationaryMode)
-
-    def getStationaryMode(self):
-        """! See PhysicsDriver.getStationaryMode(). """
-        return self._physics.getStationaryMode()
-
-    def abortTimeStep(self):
-        """! See PhysicsDriver.abortTimeStep(). """
-        self._physics.abortTimeStep()
-
-    def isStationary(self):
-        """! See PhysicsDriver.isStationary(). """
-        return self._physics.isStationary()
-
-    def resetTime(self, time_):
-        """! See PhysicsDriver.resetTime(). """
-        self._physics.resetTime(time_)
-
-    def save(self, label, method):
-        """! See PhysicsDriver.save(). """
-        self._physics.save(label, method)
-
-    def restore(self, label, method):
-        """! See PhysicsDriver.restore(). """
-        self._physics.restore(label, method)
-
-    def forget(self, label, method):
-        """! See PhysicsDriver.forget(). """
-        self._physics.forget(label, method)
-
     def getInputFieldsNames(self):
         """! See c3po.DataAccessor.DataAccessor.getInputFieldsNames(). """
         names = self._physics.getInputFieldsNames()
@@ -230,10 +137,6 @@ class NameChanger(PhysicsDriver):
     def getFieldType(self, name):
         """! See c3po.DataAccessor.DataAccessor.getFieldType(). """
         return self._physics.getFieldType(self._getNewName(name, variableType=self._field, inverse=False))
-
-    def getMeshUnit(self):
-        """! See c3po.DataAccessor.DataAccessor.getMeshUnit(). """
-        return self._physics.getMeshUnit()
 
     def getFieldUnit(self, name):
         """! See c3po.DataAccessor.DataAccessor.getFieldUnit(). """
