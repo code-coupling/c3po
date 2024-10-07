@@ -22,7 +22,7 @@ class NameChanger(PhysicsDriverWrapper):
     This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
     """
 
-    def __init__(self, physics, nameMappingValue={}, nameMappingField={}, wildcard=None):
+    def __init__(self, physics, nameMappingValue={}, nameMappingField={}, wildcard=None, exclusive=False):
         """! Build a NameChanger object.
 
         @param physics the PhysicsDriver to wrap.
@@ -33,65 +33,58 @@ class NameChanger(PhysicsDriverWrapper):
         @param wildcard a Python string. If both new and old names terminate by this wildcard (a wildcard in the middle of the names is not taken into account),
             nameChanger will substitute only the preceding part. For example : c3po.NameChanger(nameMappingValue={"newName*" : "oldName*"}, wildcard="*") will substitute
             newNameA05 in oldNameA05 and newNameB9 in oldNameB9.
+        @param exclusive set True to limit available names to the ones provided in the mapping.
 
         @note nameMappingValue and nameMappingField are copied.
         """
-        PhysicsDriverWrapper.__init__(self, physics)
-        self._nameMappingValue = {}
-        self._nameMappingField = {}
-        self._invertNameMappingValue = {}
-        self._invertNameMappingField = {}
-        self.updateNameMappingValue(nameMappingValue)
-        self.updateNameMappingField(nameMappingField)
-        self._wildcard = wildcard
-        self._value = 0
-        self._field = 1
 
-    def updateNameMappingValue(self, nameMappingValue):
+        PhysicsDriverWrapper.__init__(self, physics)
+        self._nameMapping = [{}, {}, {}, {}]
+        self._invertNameMapping = [{}, {}, {}, {}]
+        self._wildcard = wildcard
+        self._exclusive = exclusive
+        self._valueO = 0
+        self._valueI = 1
+        self._fieldO = 2
+        self._fieldI = 3
+        self._updateNameMapping((0, 1), nameMappingValue)
+        self._updateNameMapping((2, 3), nameMappingField)
+
+    def _updateNameMapping(self, variableTypes, nameMapping):
+        for variableType in variableTypes:
+            self._nameMapping[variableType].update(nameMapping)
+            for key, val in self._nameMapping[variableType].items():
+                if val not in self._invertNameMapping[variableType]:
+                    self._invertNameMapping[variableType][val] = [key]
+                else:
+                    self._invertNameMapping[variableType][val].append(key)
+
+    def updateNameMappingValue(self, nameMappingValue, variableTypes = (0, 1)):
         """! Update (with the update() method of dict) the dictionary nameMappingValue previously provided.
 
         @param nameMappingValue the Python dictionary used for the update.
+        @param variableTypes list which values are 0 (for output) and/or 1 for input.
         """
-        self._nameMappingValue.update(nameMappingValue)
-        self._invertNameMappingValue = {}
-        for key, val in self._nameMappingValue.items():
-            if val not in self._invertNameMappingValue:
-                self._invertNameMappingValue[val] = [key]
-            else:
-                self._invertNameMappingValue[val].append(key)
+        self._updateNameMapping(variableTypes, nameMappingValue)
 
-    def updateNameMappingField(self, nameMappingField):
+    def updateNameMappingField(self, nameMappingField, variableTypes = (0, 1)):
         """! Update (with the update() method of dict) the dictionary nameMappingField previously provided.
 
         @param nameMappingField the Python dictionary used for the update.
+        @param variableTypes list which values are 0 (for output) and/or 1 for input.
         """
-        self._nameMappingField.update(nameMappingField)
-        self._invertNameMappingField = {}
-        for key, val in self._nameMappingField.items():
-            if val not in self._invertNameMappingField:
-                self._invertNameMappingField[val] = [key]
-            else:
-                self._invertNameMappingField[val].append(key)
+        self._updateNameMapping([v + 2 for v in variableTypes], nameMappingField)
 
     def _getNewName(self, name, variableType, inverse):
         """! Return the change name(s).
 
         @param name (string) previous name.
-        @param variableType put 0 (self._value) if name is the name of a value, 1 (self._field) if it is the name of a field.
+        @param variableType put 0 (self._valueO) if name is the name of an output value, 1 (self._valueI) if name is the name of an input value, 2 (self._field0) if it is the name of an output field, 3 (self._fieldI) if it is the name of an input field.
         @param inverse True to inverse research (old -> new), False to direct (new -> old).
 
         @return the list of new names if inverse, and the single new name otherwise.
         """
-        if variableType == self._value and not inverse:
-            dictionary = self._nameMappingValue
-        elif variableType == self._value and inverse:
-            dictionary = self._invertNameMappingValue
-        elif variableType == self._field and not inverse:
-            dictionary = self._nameMappingField
-        elif variableType == self._field and inverse:
-            dictionary = self._invertNameMappingField
-        else:
-            raise ValueError("Bad call.")
+        dictionary = (self._invertNameMapping if inverse else self._nameMapping)[variableType]
 
         if name in dictionary:
             return dictionary[name]
@@ -110,123 +103,114 @@ class NameChanger(PhysicsDriverWrapper):
                         return name.replace(key[:-wildcardLen], value[:-wildcardLen], 1)
         if inverse:
             return []
+        elif self._exclusive:
+            raise ValueError("name='{}' is not available here. Interface only has {}".format(
+                name, list(dictionary[name].keys())))
         return name
+
+    def _getIONames(self, names, variableType):
+        newNames = [newName for revNames in [
+            self._getNewName(name, variableType=variableType, inverse=True) for name in names]
+                    for newName in revNames]
+        if not self._exclusive:
+            newNames += [name for name in names if name not in newNames]
+        return newNames
 
     def getInputFieldsNames(self):
         """! See c3po.DataAccessor.DataAccessor.getInputFieldsNames(). """
-        names = self._physics.getInputFieldsNames()
-        newNames = []
-        for name in names:
-            newNames += self._getNewName(name, variableType=self._field, inverse=True)
-        for name in names:
-            if name not in newNames:
-                newNames.append(name)
-        return newNames
+        return self._getIONames(self._physics.getInputFieldsNames(), self._fieldI)
 
     def getOutputFieldsNames(self):
         """! See c3po.DataAccessor.DataAccessor.getOutputFieldsNames(). """
-        names = self._physics.getOutputFieldsNames()
-        newNames = []
-        for name in names:
-            newNames += self._getNewName(name, variableType=self._field, inverse=True)
-        for name in names:
-            if name not in newNames:
-                newNames.append(name)
-        return newNames
+        return self._getIONames(self._physics.getOutputFieldsNames(), self._fieldO)
 
     def getFieldType(self, name):
         """! See c3po.DataAccessor.DataAccessor.getFieldType(). """
-        return self._physics.getFieldType(self._getNewName(name, variableType=self._field, inverse=False))
+        if name in self._nameMapping[self._fieldI]:
+            return self._physics.getFieldType(self._getNewName(name, variableType=self._fieldI, inverse=False))
+        return self._physics.getFieldType(self._getNewName(name, variableType=self._fieldO, inverse=False))
 
     def getFieldUnit(self, name):
         """! See c3po.DataAccessor.DataAccessor.getFieldUnit(). """
-        return self._physics.getFieldUnit(self._getNewName(name, variableType=self._field, inverse=False))
+        if name in self._nameMapping[self._fieldI]:
+            return self._physics.getFieldUnit(self._getNewName(name, variableType=self._fieldI, inverse=False))
+        return self._physics.getFieldUnit(self._getNewName(name, variableType=self._fieldO, inverse=False))
 
     def getInputMEDDoubleFieldTemplate(self, name):
         """! See c3po.DataAccessor.DataAccessor.getInputMEDDoubleFieldTemplate(). """
-        return self._physics.getInputMEDDoubleFieldTemplate(self._getNewName(name, variableType=self._field, inverse=False))
+        return self._physics.getInputMEDDoubleFieldTemplate(self._getNewName(name, variableType=self._fieldI, inverse=False))
 
     def setInputMEDDoubleField(self, name, field):
         """! See c3po.DataAccessor.DataAccessor.setInputMEDDoubleField(). """
-        self._physics.setInputMEDDoubleField(self._getNewName(name, variableType=self._field, inverse=False), field)
+        self._physics.setInputMEDDoubleField(self._getNewName(name, variableType=self._fieldI, inverse=False), field)
 
     def getOutputMEDDoubleField(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputMEDDoubleField(). """
-        return self._physics.getOutputMEDDoubleField(self._getNewName(name, variableType=self._field, inverse=False))
+        return self._physics.getOutputMEDDoubleField(self._getNewName(name, variableType=self._fieldO, inverse=False))
 
     def updateOutputMEDDoubleField(self, name, field):
         """! See c3po.DataAccessor.DataAccessor.updateOutputMEDDoubleField(). """
-        return self._physics.updateOutputMEDDoubleField(self._getNewName(name, variableType=self._field, inverse=False), field)
+        return self._physics.updateOutputMEDDoubleField(self._getNewName(name, variableType=self._fieldO, inverse=False), field)
 
     def getInputMEDIntFieldTemplate(self, name):
         """! See c3po.DataAccessor.DataAccessor.getInputMEDIntFieldTemplate(). """
-        return self._physics.getInputMEDIntFieldTemplate(self._getNewName(name, variableType=self._field, inverse=False))
+        return self._physics.getInputMEDIntFieldTemplate(self._getNewName(name, variableType=self._fieldI, inverse=False))
 
     def setInputMEDIntField(self, name, field):
         """! See c3po.DataAccessor.DataAccessor.setInputMEDIntField(). """
-        self._physics.setInputMEDIntField(self._getNewName(name, variableType=self._field, inverse=False), field)
+        self._physics.setInputMEDIntField(self._getNewName(name, variableType=self._fieldI, inverse=False), field)
 
     def getOutputMEDIntField(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputMEDIntField(). """
-        return self._physics.getOutputMEDIntField(self._getNewName(name, variableType=self._field, inverse=False))
+        return self._physics.getOutputMEDIntField(self._getNewName(name, variableType=self._fieldO, inverse=False))
 
     def updateOutputMEDIntField(self, name, field):
         """! See c3po.DataAccessor.DataAccessor.updateOutputMEDIntField(). """
-        return self._physics.updateOutputMEDIntField(self._getNewName(name, variableType=self._field, inverse=False), field)
+        return self._physics.updateOutputMEDIntField(self._getNewName(name, variableType=self._fieldO, inverse=False), field)
 
     def getInputValuesNames(self):
         """! See c3po.DataAccessor.DataAccessor.getInputValuesNames(). """
-        names = self._physics.getInputValuesNames()
-        newNames = []
-        for name in names:
-            newNames += self._getNewName(name, variableType=self._value, inverse=True)
-        for name in names:
-            if name not in newNames:
-                newNames.append(name)
-        return newNames
+        return self._getIONames(self._physics.getInputValuesNames(), self._valueI)
 
     def getOutputValuesNames(self):
         """! See c3po.DataAccessor.DataAccessor.getOutputValuesNames(). """
-        names = self._physics.getOutputValuesNames()
-        newNames = []
-        for name in names:
-            newNames += self._getNewName(name, variableType=self._value, inverse=True)
-        for name in names:
-            if name not in newNames:
-                newNames.append(name)
-        return newNames
+        return self._getIONames(self._physics.getOutputValuesNames(), self._valueO)
 
     def getValueType(self, name):
         """! See c3po.DataAccessor.DataAccessor.getValueType(). """
-        return self._physics.getValueType(self._getNewName(name, variableType=self._value, inverse=False))
+        if name in self._nameMapping[self._valueI]:
+            return self._physics.getValueType(self._getNewName(name, variableType=self._valueI, inverse=False))
+        return self._physics.getValueType(self._getNewName(name, variableType=self._valueO, inverse=False))
 
     def getValueUnit(self, name):
         """! See c3po.DataAccessor.DataAccessor.getValueUnit(). """
-        return self._physics.getValueUnit(self._getNewName(name, variableType=self._value, inverse=False))
+        if name in self._nameMapping[self._valueI]:
+            return self._physics.getValueUnit(self._getNewName(name, variableType=self._valueI, inverse=False))
+        return self._physics.getValueUnit(self._getNewName(name, variableType=self._valueO, inverse=False))
 
     def setInputDoubleValue(self, name, value):
         """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue(). """
-        self._physics.setInputDoubleValue(self._getNewName(name, variableType=self._value, inverse=False), value)
+        self._physics.setInputDoubleValue(self._getNewName(name, variableType=self._valueI, inverse=False), value)
 
     def getOutputDoubleValue(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputDoubleValue(). """
-        return self._physics.getOutputDoubleValue(self._getNewName(name, variableType=self._value, inverse=False))
+        return self._physics.getOutputDoubleValue(self._getNewName(name, variableType=self._valueO, inverse=False))
 
     def setInputIntValue(self, name, value):
         """! See c3po.DataAccessor.DataAccessor.setInputIntValue(). """
-        self._physics.setInputIntValue(self._getNewName(name, variableType=self._value, inverse=False), value)
+        self._physics.setInputIntValue(self._getNewName(name, variableType=self._valueI, inverse=False), value)
 
     def getOutputIntValue(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputIntValue(). """
-        return self._physics.getOutputIntValue(self._getNewName(name, variableType=self._value, inverse=False))
+        return self._physics.getOutputIntValue(self._getNewName(name, variableType=self._valueO, inverse=False))
 
     def setInputStringValue(self, name, value):
         """! See c3po.DataAccessor.DataAccessor.setInputStringValue(). """
-        self._physics.setInputStringValue(self._getNewName(name, variableType=self._value, inverse=False), value)
+        self._physics.setInputStringValue(self._getNewName(name, variableType=self._valueI, inverse=False), value)
 
     def getOutputStringValue(self, name):
         """! See c3po.DataAccessor.DataAccessor.getOutputStringValue(). """
-        return self._physics.getOutputStringValue(self._getNewName(name, variableType=self._value, inverse=False))
+        return self._physics.getOutputStringValue(self._getNewName(name, variableType=self._valueO, inverse=False))
 
 
 class NameChangerMeta(type):
