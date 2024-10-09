@@ -331,6 +331,8 @@ class MEDInterface():
         @param field MEDCoupling field with data to be set.
         """
         fieldNature = field.getNature()
+        if fieldNature == mc.NoNature:
+            raise Exception("The nature of the provided field is not defined ('NoNature' found). Please define one.")
         isIntensive = fieldNature in (mc.IntensiveConservation, mc.IntensiveMaximum)
 
         valuesArray = field.getArray()
