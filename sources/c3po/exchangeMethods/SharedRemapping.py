@@ -141,6 +141,32 @@ class Remapper(object):
         outputField.getArray()[self._cellsToScreenOutSource] = defaultValue
         return outputField
 
+    def getMatrix(self):
+        """! Export remapping matrix.
+
+        The matrix can be serialized using pickle, then it can be loaded using setMatrix() method in order to save initialization time.
+
+        @note This method requires scipy.
+
+        @param matrix object.
+        """
+        if not self.isInit:
+            raise AssertionError("Remapper.getMatrix: the object is not initialized! Remapper is usually initialized by the SharedRemapping object using it at the first call.")
+        return self._remapper.getCrudeMatrix()
+
+    def setMatrix(self, matrix):
+        """! Load remapping matrix.
+
+        This matrix is usually obtained by exportMatrix() method.
+
+        @note This method requires scipy.
+
+        @param matrix object.
+        """
+        if self.isInit:
+            raise AssertionError("Remapper.setMatrix: the object is already initialized! You can set matrix only before initialization.")
+        self._loadedMatrix = matrix
+
     def exportMatrix(self, fileName):
         """! Export remapping matrix on file.
 
@@ -148,10 +174,8 @@ class Remapper(object):
 
         @param fileName name of the file to write in.
         """
-        if not self.isInit:
-            raise AssertionError("Remapper.export: the object is not initialized! Remapper is usually initialized by the SharedRemapping object using it at the first call.")
         with open(fileName, 'wb') as matrixFile:
-            matrix = self._remapper.getCrudeMatrix()
+            matrix = self.getMatrix()
             pickle.dump(matrix, matrixFile)
 
     def loadMatrix(self, fileName):
@@ -163,10 +187,8 @@ class Remapper(object):
 
         @param fileName name of the file to read from.
         """
-        if self.isInit:
-            raise AssertionError("Remapper.export: the object is already initialized! You can load matrix only before initialization.")
         with open(fileName, 'rb') as matrixFile:
-            self._loadedMatrix = pickle.load(matrixFile)
+            self.setMatrix(pickle.load(matrixFile))
 
 
 class SharedRemapping(ExchangeMethod):
