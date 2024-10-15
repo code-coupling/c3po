@@ -72,162 +72,155 @@ def getArgsString(*args, **kwargs):
     stringArgs += ")"
     return stringArgs
 
+def buildTypeArgs(name, bases, dct):
+    """! INTERNAL """
+    def _wrapper(method):
+        def _trace(self, *args, **kwargs):
+            if hasattr(self, "tracerRecurrenceDepth") and self.tracerRecurrenceDepth > 0:
+                return method(self, *args, **kwargs)
 
-class TracerMeta(type):
-    """! Metaclass related to the use of tracer. """
+            if method.__name__ == "__init__":
+                if name not in self.static_Objectcounter:
+                    self.static_Objectcounter[name] = 0
+                self.tracerObjectName = "my" + name + str(self.static_Objectcounter[name])
+                self.static_Objectcounter[name] += 1
+                self.tracerRecurrenceDepth = 0
 
-    def __init__(cls, name, bases, dct):
-        type.__init__(cls, name, bases, dct)
-        cls.static_Objectcounter = {}
+            if self.static_saveInputMED and method.__name__.startswith("setInputMED"):
+                (nameField, field) = getNameFieldInput(*args, **kwargs)
+                nameMEDFile = name + "_input_" + nameField + "_"
+                num = 0
+                while os.path.exists(nameMEDFile + str(num) + ".med"):
+                    num += 1
+                nameMEDFile = nameMEDFile + str(num) + ".med"
+                _, iteration, order = field.getTime()
+                medInfo = (field.getTypeOfField(), nameMEDFile, field.getMesh().getName(),
+                            0, field.getName(), iteration, order)
+                mc.WriteField(nameMEDFile, field, True)
+                if self.static_pythonFile is not None:
+                    self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
 
-    def __new__(cls, name, bases, dct):
-
-        def _wrapper(method):
-            def _trace(self, *args, **kwargs):
-                if hasattr(self, "tracerRecurrenceDepth") and self.tracerRecurrenceDepth > 0:
-                    return method(self, *args, **kwargs)
-
+            if self.static_pythonFile is not None:
+                toWritePython = ""
                 if method.__name__ == "__init__":
-                    if name not in self.static_Objectcounter:
-                        self.static_Objectcounter[name] = 0
-                    self.tracerObjectName = "my" + name + str(self.static_Objectcounter[name])
-                    self.static_Objectcounter[name] += 1
-                    self.tracerRecurrenceDepth = 0
+                    stringArgs = getArgsString(*args, **kwargs)
+                    toWritePython = self.tracerObjectName + " = " + name + stringArgs + "\n"
+                elif method.__name__.startswith("setInputMED"):
+                    (nameField, _) = getNameFieldInput(*args, **kwargs)
+                    toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n"
+                elif method.__name__.startswith("getOutputMED"):
+                    nameField = getNameInput(*args, **kwargs)
+                    toWritePython = getRegularName(nameField) + "_" + self.tracerObjectName + " = " + self.tracerObjectName + "." + method.__name__ + "('" + nameField + "')" + "\n"
+                elif method.__name__.startswith("updateOutputMED"):
+                    (nameField, _) = getNameFieldInput(*args, **kwargs)
+                    toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', " + getRegularName(nameField) + "_" + self.tracerObjectName + ")" + "\n"
+                else:
+                    stringArgs = getArgsString(*args, **kwargs)
+                    toWritePython = self.tracerObjectName + "." + method.__name__ + stringArgs + "\n"
 
-                if self.static_saveInputMED and method.__name__.startswith("setInputMED"):
-                    (nameField, field) = getNameFieldInput(*args, **kwargs)
-                    nameMEDFile = name + "_input_" + nameField + "_"
-                    num = 0
-                    while os.path.exists(nameMEDFile + str(num) + ".med"):
-                        num += 1
-                    nameMEDFile = nameMEDFile + str(num) + ".med"
-                    _, iteration, order = field.getTime()
-                    medInfo = (field.getTypeOfField(), nameMEDFile, field.getMesh().getName(),
-                               0, field.getName(), iteration, order)
-                    mc.WriteField(nameMEDFile, field, True)
-                    if self.static_pythonFile is not None:
-                        self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
+            prevIdstdout = 0
+            prevIdstderr = 0
+            if self.static_stdout is not None:
+                sys.stdout.flush()
+                prevIdstdout = os.dup(sys.stdout.fileno())
+                os.dup2(self.static_stdout.fileno(), sys.stdout.fileno())
+            if self.static_stderr is not None:
+                sys.stderr.flush()
+                prevIdstderr = os.dup(sys.stderr.fileno())
+                os.dup2(self.static_stderr.fileno(), sys.stderr.fileno())
+
+            if self.static_wDir:
+                cwd = os.getcwd()
+                os.chdir(self.static_wDir)
+
+            self.tracerRecurrenceDepth += 1
+
+            start = time.time()
+
+            try:
+                result = method(self, *args, **kwargs)
+            except:
+                if self.static_pythonFile is not None:
+                    toWritePython = "try: " + toWritePython + "except: pass" + "\n"
+                raise
+            else:
+                end = time.time()
+            finally:
+                if self.static_wDir:
+                    os.chdir(cwd)
 
                 if self.static_pythonFile is not None:
-                    toWritePython = ""
-                    if method.__name__ == "__init__":
-                        stringArgs = getArgsString(*args, **kwargs)
-                        toWritePython = self.tracerObjectName + " = " + name + stringArgs + "\n"
-                    elif method.__name__.startswith("setInputMED"):
-                        (nameField, _) = getNameFieldInput(*args, **kwargs)
-                        toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n"
-                    elif method.__name__.startswith("getOutputMED"):
-                        nameField = getNameInput(*args, **kwargs)
-                        toWritePython = getRegularName(nameField) + "_" + self.tracerObjectName + " = " + self.tracerObjectName + "." + method.__name__ + "('" + nameField + "')" + "\n"
-                    elif method.__name__.startswith("updateOutputMED"):
-                        (nameField, _) = getNameFieldInput(*args, **kwargs)
-                        toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', " + getRegularName(nameField) + "_" + self.tracerObjectName + ")" + "\n"
-                    else:
-                        stringArgs = getArgsString(*args, **kwargs)
-                        toWritePython = self.tracerObjectName + "." + method.__name__ + stringArgs + "\n"
+                    self.static_pythonFile.write(toWritePython)
+                    self.static_pythonFile.flush()
+                self.tracerRecurrenceDepth -= 1
 
-                prevIdstdout = 0
-                prevIdstderr = 0
                 if self.static_stdout is not None:
                     sys.stdout.flush()
-                    prevIdstdout = os.dup(sys.stdout.fileno())
-                    os.dup2(self.static_stdout.fileno(), sys.stdout.fileno())
+                    os.dup2(prevIdstdout, sys.stdout.fileno())
+                    os.close(prevIdstdout)
                 if self.static_stderr is not None:
                     sys.stderr.flush()
-                    prevIdstderr = os.dup(sys.stderr.fileno())
-                    os.dup2(self.static_stderr.fileno(), sys.stderr.fileno())
+                    os.dup2(prevIdstderr, sys.stderr.fileno())
+                    os.close(prevIdstderr)
 
-                if self.static_wDir:
-                    cwd = os.getcwd()
-                    os.chdir(self.static_wDir)
-
-                self.tracerRecurrenceDepth += 1
-
-                start = time.time()
-
-                try:
-                    result = method(self, *args, **kwargs)
-                except:
-                    if self.static_pythonFile is not None:
-                        toWritePython = "try: " + toWritePython + "except: pass" + "\n"
-                    raise
+            if self.static_saveOutputMED and (method.__name__.startswith("getOutputMED") or method.__name__.startswith("updateOutputMED")):
+                if method.__name__.startswith("getOutputMED"):
+                    nameField = getNameInput(*args, **kwargs)
+                    field = result
                 else:
-                    end = time.time()
-                finally:
-                    if self.static_wDir:
-                        os.chdir(cwd)
+                    (nameField, field) = getNameFieldInput(*args, **kwargs)
+                nameMEDFile = name + "_output_" + nameField + "_"
+                num = 0
+                while os.path.exists(nameMEDFile + str(num) + ".med"):
+                    num += 1
+                nameMEDFile = nameMEDFile + str(num) + ".med"
+                mc.WriteField(nameMEDFile, field, True)
 
-                    if self.static_pythonFile is not None:
-                        self.static_pythonFile.write(toWritePython)
-                        self.static_pythonFile.flush()
-                    self.tracerRecurrenceDepth -= 1
+            if self.static_lWriter is not None:
+                if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
+                                        "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate", "exchange",
+                                        "save", "restore"]:
+                    inputVar = 0.
+                    if method.__name__ == "initTimeStep":
+                        inputVar = getDtInput(*args, **kwargs)
+                    elif method.__name__ == "setStationaryMode":
+                        inputVar = getStationaryModeInput(*args, **kwargs)
+                    elif method.__name__ == "resetTime":
+                        inputVar = getTimeInput(*args, **kwargs)
+                    elif method.__name__ in ["save", "restore"]:
+                        inputVar = getArgsString(*getSaveInput(*args, **kwargs))
 
-                    if self.static_stdout is not None:
-                        sys.stdout.flush()
-                        os.dup2(prevIdstdout, sys.stdout.fileno())
-                        os.close(prevIdstdout)
-                    if self.static_stderr is not None:
-                        sys.stderr.flush()
-                        os.dup2(prevIdstderr, sys.stderr.fileno())
-                        os.close(prevIdstderr)
+                    self.static_lWriter.writeAfter(self, inputVar, result, method.__name__, start, end - start)
 
-                if self.static_saveOutputMED and (method.__name__.startswith("getOutputMED") or method.__name__.startswith("updateOutputMED")):
-                    if method.__name__.startswith("getOutputMED"):
-                        nameField = getNameInput(*args, **kwargs)
-                        field = result
-                    else:
-                        (nameField, field) = getNameFieldInput(*args, **kwargs)
-                    nameMEDFile = name + "_output_" + nameField + "_"
-                    num = 0
-                    while os.path.exists(nameMEDFile + str(num) + ".med"):
-                        num += 1
-                    nameMEDFile = nameMEDFile + str(num) + ".med"
-                    mc.WriteField(nameMEDFile, field, True)
+            return result
 
-                if self.static_lWriter is not None:
-                    if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
-                                           "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate", "exchange",
-                                           "save", "restore"]:
-                        inputVar = 0.
-                        if method.__name__ == "initTimeStep":
-                            inputVar = getDtInput(*args, **kwargs)
-                        elif method.__name__ == "setStationaryMode":
-                            inputVar = getStationaryModeInput(*args, **kwargs)
-                        elif method.__name__ == "resetTime":
-                            inputVar = getTimeInput(*args, **kwargs)
-                        elif method.__name__ in ["save", "restore"]:
-                            inputVar = getArgsString(*getSaveInput(*args, **kwargs))
+        _trace.__name__ = method.__name__
+        _trace.__doc__ = method.__doc__
+        _trace.__dict__.update(method.__dict__)
+        return _trace
 
-                        self.static_lWriter.writeAfter(self, inputVar, result, method.__name__, start, end - start)
+    newDct = {}
+    for nameattr, method in dct.items():
+        if isinstance(method, FunctionType):
+            newDct[nameattr] = _wrapper(method)
+        else:
+            newDct[nameattr] = method
 
-                return result
+    icocoMethods = ["setDataFile", "setMPIComm", "initialize", "terminate", "presentTime", "computeTimeStep", "initTimeStep", "solveTimeStep", "validateTimeStep", "setStationaryMode",
+                    "getStationaryMode", "isStationary", "abortTimeStep", "resetTime", "iterateTimeStep", "save", "restore", "forget", "getInputFieldsNames", "getOutputFieldsNames",
+                    "getFieldType", "getMeshUnit", "getFieldUnit", "getInputMEDDoubleFieldTemplate", "setInputMEDDoubleField", "getOutputMEDDoubleField", "updateOutputMEDDoubleField",
+                    "getInputMEDIntFieldTemplate", "setInputMEDIntField", "getOutputMEDIntField", "updateOutputMEDIntField", "getInputMEDStringFieldTemplate", "setInputMEDStringField",
+                    "getOutputMEDStringField", "updateOutputMEDStringField", "getInputValuesNames", "getOutputValuesNames", "getValueType", "getValueUnit", "setInputDoubleValue",
+                    "getOutputDoubleValue", "setInputIntValue", "getOutputIntValue", "setInputStringValue", "getOutputStringValue"]
 
-            _trace.__name__ = method.__name__
-            _trace.__doc__ = method.__doc__
-            _trace.__dict__.update(method.__dict__)
-            return _trace
+    for method in icocoMethods + ["__init__"]:
+        if method not in newDct:
+            for base in bases:
+                if hasattr(base, method):
+                    newDct[method] = _wrapper(getattr(base, method))
+                    break
 
-        newDct = {}
-        for nameattr, method in dct.items():
-            if isinstance(method, FunctionType):
-                newDct[nameattr] = _wrapper(method)
-            else:
-                newDct[nameattr] = method
-
-        icocoMethods = ["setDataFile", "setMPIComm", "initialize", "terminate", "presentTime", "computeTimeStep", "initTimeStep", "solveTimeStep", "validateTimeStep", "setStationaryMode",
-                        "getStationaryMode", "isStationary", "abortTimeStep", "resetTime", "iterateTimeStep", "save", "restore", "forget", "getInputFieldsNames", "getOutputFieldsNames",
-                        "getFieldType", "getMeshUnit", "getFieldUnit", "getInputMEDDoubleFieldTemplate", "setInputMEDDoubleField", "getOutputMEDDoubleField", "updateOutputMEDDoubleField",
-                        "getInputMEDIntFieldTemplate", "setInputMEDIntField", "getOutputMEDIntField", "updateOutputMEDIntField", "getInputMEDStringFieldTemplate", "setInputMEDStringField",
-                        "getOutputMEDStringField", "updateOutputMEDStringField", "getInputValuesNames", "getOutputValuesNames", "getValueType", "getValueUnit", "setInputDoubleValue",
-                        "getOutputDoubleValue", "setInputIntValue", "getOutputIntValue", "setInputStringValue", "getOutputStringValue"]
-        for method in icocoMethods:
-            if method not in newDct:
-                for base in bases:
-                    if hasattr(base, method):
-                        newDct[method] = _wrapper(getattr(base, method))
-                        break
-
-        return type.__new__(cls, name, bases, newDct)
+    return name, bases, newDct
 
 
 def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=None, stderrFile=None, listingWriter=None, workingDir=None):
@@ -258,7 +251,7 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         of ListingWriter.
     @param workingDir Path to an existing directory which is used as working directory when calling the methods of the traced object.
 
-    The parameters of tracer are added to the class ("static" attributes) with the names static_pythonFile, static_saveInputMED,
+    The parameters of tracer are added to the returned class ("static" attributes) with the names static_pythonFile, static_saveInputMED,
     static_saveOutputMED, static_stdout, static_stderr, static_lWriter and static_wDir.
 
     One additional static attribute is added for internal use: static_Objectcounter.
@@ -280,14 +273,11 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
     @warning tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger.
             It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or
             outputs).
-    @warning tracer looks for ICoCo methods (the methods to implement in order to define a PhysicsDriver) in base classes and redefine
-            them. Other inherited methods are invisible to tracer.
-    @warning A class that inherits from a class wrapped by tracer will be wrapped as well, with the same parameters.
-            It may be a workaround for the previous warning.
-            The definition of the daughter class ("class Daughter(Mother): ...") must be done after the application of tracer on Mother.
-            Otherwise it will result in TypeError when the daughter class will try to call mother methods (since its mother class does
-            not exist anymore!). As a consequence, if tracer is to be applied to C3PO classes, it is recommended to change their name
-            "(MyNewClass = c3po.tracer(...)(MyClass)").
+    @warning tracer looks for ICoCo methods (the methods to implement in order to define a PhysicsDriver) (plus __init__) in base classes and
+            redefine them. Other inherited methods are invisible to tracer.
+    @warning It is recommended not to overload a class:
+            use "MyNewClass = c3po.tracer(...)(MyClass)" and not "MyClass = c3po.tracer(...)(MyClass)".
+            Overloading a class may lead to TypeError, in particular in case of inheritance, if the mother class is not accessible any more.
 
     @throw Exception if applied to a class already modified by tracer, because it could result in an unexpected behavior.
     """
@@ -308,7 +298,8 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         baseclass.static_stderr = stderrFile
         baseclass.static_lWriter = listingWriter
         baseclass.static_wDir = workingDir if workingDir is None else os.path.abspath(workingDir)
-        newclass = TracerMeta(baseclass.__name__, (baseclass,), baseclass.__dict__)
+        newclass = type(*buildTypeArgs(baseclass.__name__, (baseclass,), baseclass.__dict__))
+        newclass.static_Objectcounter = {}
         newclass.__doc__ = baseclass.__doc__
         delattr(baseclass, "static_pythonFile")
         delattr(baseclass, "static_saveInputMED")
