@@ -28,6 +28,7 @@ from .CollaborativePhysicsDriver import CollaborativePhysicsDriver
 from .TimeAccumulator import TimeAccumulator, SaveAtInitTimeStep
 from .services.tracer import tracer
 from .services.PhysicsDriverWrapper import PhysicsDriverWrapper
+from .services.wrapper import buildWrappingClass, wrapper
 from .services.NameChanger import nameChanger, NameChanger
 from .services.ListingWriter import ListingWriter, mergeListing, getTotalTimePhysicsDriver, getTimesExchanger
 from .services.TransientLogger import TransientLogger, Timekeeper, FortuneTeller

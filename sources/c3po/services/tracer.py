@@ -260,20 +260,24 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
 
     tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
 
-        @c3po.tracer(...)
-        class MyClass(...):
-            ...
+    ```
+    @c3po.tracer(...)
+    class MyClass(...):
+        ...
+    ```
 
     or it can be used in order to redefined only locally the class like that:
 
-        MyNewClass = c3po.tracer(...)(MyClass)
+    ```
+    MyNewClass = c3po.tracer(...)(MyClass)
+    ```
 
     @note In case a method calls another method of self, tracer modifies only to the first method call.
 
     @warning tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger.
             It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or
             outputs).
-    @warning tracer looks for ICoCo methods (the methods to implement in order to define a PhysicsDriver) (plus __init__) in base classes and
+    @warning tracer looks for ICoCo methods (the methods to implement in order to define a PhysicsDriver) (plus `__init__`) in base classes and
             redefine them. Other inherited methods are invisible to tracer.
     @warning It is recommended not to overload a class:
             use "MyNewClass = c3po.tracer(...)(MyClass)" and not "MyClass = c3po.tracer(...)(MyClass)".
