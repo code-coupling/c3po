@@ -17,6 +17,7 @@ import sys
 import os
 
 import c3po.medcouplingCompat as mc
+from c3po.services.wrapper import buildWrappingClass
 
 
 def getRegularName(name):
@@ -102,7 +103,7 @@ def buildTypeArgs(name, bases, dct):
 
             if self.static_pythonFile is not None:
                 toWritePython = ""
-                if method.__name__ == "__init__":
+                if method.__name__ == "__init__" and (not hasattr(self, "static_printinit") or self.static_printinit):
                     stringArgs = getArgsString(*args, **kwargs)
                     toWritePython = self.tracerObjectName + " = " + name + stringArgs + "\n"
                 elif method.__name__.startswith("setInputMED"):
@@ -286,31 +287,47 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
     @throw Exception if applied to a class already modified by tracer, because it could result in an unexpected behavior.
     """
 
-    def classWrapper(baseclass):
-        if pythonFile is not None:
-            pythonFile.write("# -*- coding: utf-8 -*-" + "\n")
-            pythonFile.write("from __future__ import print_function, division" + "\n")
-            pythonFile.write("import c3po.medcouplingCompat as mc" + "\n")
-            pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
+    def tracerWrapper(toTrace):
+        def classWrapper(baseclass):
+            if pythonFile is not None:
+                pythonFile.write("# -*- coding: utf-8 -*-" + "\n")
+                pythonFile.write("from __future__ import print_function, division" + "\n")
+                pythonFile.write("import c3po.medcouplingCompat as mc" + "\n")
+                pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
 
-        if hasattr(baseclass, "static_pythonFile"):
-            raise Exception("tracer: the class " + baseclass.__name__ + " has already been modified by tracer. It is not allowed.")
-        baseclass.static_pythonFile = pythonFile
-        baseclass.static_saveInputMED = saveInputMED
-        baseclass.static_saveOutputMED = saveOutputMED
-        baseclass.static_stdout = stdoutFile
-        baseclass.static_stderr = stderrFile
-        baseclass.static_lWriter = listingWriter
-        baseclass.static_wDir = workingDir if workingDir is None else os.path.abspath(workingDir)
-        newclass = type(*buildTypeArgs(baseclass.__name__, (baseclass,), baseclass.__dict__))
-        newclass.static_Objectcounter = {}
-        newclass.__doc__ = baseclass.__doc__
-        delattr(baseclass, "static_pythonFile")
-        delattr(baseclass, "static_saveInputMED")
-        delattr(baseclass, "static_saveOutputMED")
-        delattr(baseclass, "static_stdout")
-        delattr(baseclass, "static_stderr")
-        delattr(baseclass, "static_lWriter")
-        delattr(baseclass, "static_wDir")
-        return newclass
-    return classWrapper
+            if hasattr(baseclass, "static_pythonFile"):
+                raise Exception("tracer: the class " + baseclass.__name__ + " has already been modified by tracer. It is not allowed.")
+            baseclass.static_pythonFile = pythonFile
+            baseclass.static_saveInputMED = saveInputMED
+            baseclass.static_saveOutputMED = saveOutputMED
+            baseclass.static_stdout = stdoutFile
+            baseclass.static_stderr = stderrFile
+            baseclass.static_lWriter = listingWriter
+            baseclass.static_wDir = workingDir if workingDir is None else os.path.abspath(workingDir)
+            newclass = type(*buildTypeArgs(baseclass.__name__, (baseclass,), baseclass.__dict__))
+            newclass.static_Objectcounter = {}
+            newclass.__doc__ = baseclass.__doc__
+            delattr(baseclass, "static_pythonFile")
+            delattr(baseclass, "static_saveInputMED")
+            delattr(baseclass, "static_saveOutputMED")
+            delattr(baseclass, "static_stdout")
+            delattr(baseclass, "static_stderr")
+            delattr(baseclass, "static_lWriter")
+            delattr(baseclass, "static_wDir")
+            return newclass
+
+        def objectWrapper(toWrap):
+            wrappingClass = buildWrappingClass(type(toWrap), toWrap.__dict__.keys())
+            wrappingClass.static_printinit = False
+            tracedWrappingClass = classWrapper(wrappingClass)
+            delattr(wrappingClass, "static_printinit")
+            return tracedWrappingClass(toWrap)
+
+        if isinstance(toTrace, type):
+            return classWrapper(toTrace)
+        raise Exception("tracer: the provided object should be a class!")
+        #return objectWrapper(toTrace)      # Tant que la separation PhysicsDriver / ICoCo ne sera pas bien faite,
+                                            # il sera difficile d'utiliser le mecanisme de wrapper sans appliquer
+                                            # tracer aux methodes definies dans PhysicsDriver elle-meme (init(), solveTransient() etc.).
+
+    return tracerWrapper
