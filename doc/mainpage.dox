@@ -48,14 +48,17 @@ The directory sources/c3po also contains six directories:
   - medcouplingCompat which deals with various versions of MEDCoupling. Import this module to use all versions of MEDCoupling in an identical way (following the last version API).
   - physicsDrivers with specific implementations of c3po.PhysicsDriver.PhysicsDriver for some codes.
   - services with some optionnal services (mainly for monitoring of coupled calculations). See below.
+  - raises for optionnal error handling services. See below.
   - multi1D with sources related to the use of a set of 1D models in a 3D coupling. See below.
   - mpi with sources related to MPI. See below.
 
 \note When "import c3po" is made, the classes and functions defined in c3po/couplers, c3po/exchangeMethods and c3po/services are imported and made available directly in c3po module.
 \note "import c3po.medcouplingCompat" must be done if one wants to use directly MEDCoupling (using this helper).
+\note "import c3po.raises" must be done to access raises functionalities. icoco package must be available.
 \note "import c3po.multi1D" (or "import c3po.mpi.multi1D") must be done to access multi1D functionalities.
 \note "import c3po.mpi" must be done to get access to MPI classes of C3PO (the classes and functions defined in c3po/mpi/mpiExchangeMethods are imported and made available directly in c3po.mpi module). mpi4py must be available.
 \note Each class of c3po/physicsDrivers must be imported separately.
+\note "import c3po.services.checkScope" must be done, as it uses an additionnal prerequisite "icoco".
 
 \subsection couplers_sec II.1. c3po/couplers directory
 
@@ -94,7 +97,14 @@ This directory contains the definition of the following elements:
     1. c3po.services.TransientLogger.Timekeeper provides basic information about transient progress. It is the default implementation used by c3po.PhysicsDriver.PhysicsDriver (but logging is by default desactivated).
     2. c3po.services.TransientLogger.FortuneTeller derives from c3po.services.TransientLogger.Timekeeper and adds an evaluation of the remaining computing time to complete the transient.
 
-\subsection multi1D_sec II.4. c3po/multi1D directory
+\subsection raises_sec II.4. c3po/raises directory
+
+This directory contains the definition of the following elements:
+
+  - c3po.raises.checkScope.CheckScopeMeta is a metaclass which adds scope checks required by ICoCo standard (and raise appropriate errors).
+  - c3po.raises.checkScope.checkScope is a class wrapper that applies c3po.raises.checkScope.CheckScopeMeta metaclass.
+
+\subsection multi1D_sec II.5. c3po/multi1D directory
 
 This directory contains the definition of the following classes:
 
@@ -109,7 +119,7 @@ This directory contains the definition of the following classes:
 
   When c3po.multi1D is imported, the above-mentioned classes are imported and made available in c3po.multi1D.
 
-\subsection C3POMPIsources_sec II.5. c3po/mpi directory
+\subsection C3POMPIsources_sec II.6. c3po/mpi directory
 
 This directory contains the definition of C3PO sources related to MPI.
 
@@ -120,7 +130,7 @@ Two parallelization modes are available (and can be mixed):
 
 These two parallelization modes share a common base of concepts.
 
-\subsubsection CommonMPIsources_sec II.4.1. Common base
+\subsubsection CommonMPIsources_sec II.6.1. Common base
 
   - c3po.mpi.MPIRemote.MPIRemote. It can replaces a remote c3po.PhysicsDriver.PhysicsDriver and c3po.DataManager.DataManager (and inherits from these class) but passes most of the methods: it does nothing.
   - c3po.mpi.MPIRemoteProcess.MPIRemoteProcess identifies a (single) remote process. It inherits from c3po.mpi.MPIRemote.MPIRemote but contains in addition the rank of the process in charge of the real object.
@@ -128,7 +138,7 @@ These two parallelization modes share a common base of concepts.
   - c3po.mpi.MPICollectiveProcess.MPICollectiveProcess defines a collective process. In particular, it allows, by inheritance (a new class that inherits from c3po.mpi.MPICollectiveProcess.MPICollectiveProcess must be defined), to define a collective c3po.PhysicsDriver.PhysicsDriver: all processors will locally launch this component.
   - c3po.mpi.MPIExchanger.MPIExchanger is the MPI version of c3po.LocalExchanger.LocalExchanger. The class either use directly a c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod or use a c3po.exchangeMethods.ExchangeMethod.ExchangeMethod (in the case where each code exposes its data on a single MPI process). In this last case, it takes in charge data exchanges between MPI processes then uses locally c3po.LocalExchanger.LocalExchanger.
 
-\subsubsection CollaborativeMPIsources_sec II.4.2. Collaborative mode
+\subsubsection CollaborativeMPIsources_sec II.6.2. Collaborative mode
 
   - c3po.mpi.MPICollaborativeDataManager.MPICollaborativeDataManager is the MPI collaborative version of c3po.CollaborativeDataManager.CollaborativeDataManager. It allows to handle a set of c3po.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class, data can be distributed on different MPI processes but still used in the same way.
   - c3po.mpi.MPIDomainDecompositionDataManager.MPIDomainDecompositionDataManager is the version of c3po.DataManager.DataManager to be used to handle data comming from codes using domain decomposition methods. As for c3po.mpi.MPICollaborativeDataManager.MPICollaborativeDataManager, the data are distributed on different MPI processes.
@@ -136,7 +146,7 @@ These two parallelization modes share a common base of concepts.
   - c3po.mpi.MPICoupler.MPICoupler is the MPI collaborative version of c3po.Coupler.Coupler.
   - c3po.mpi.MPICollaborativePhysicsDriver.MPICollaborativePhysicsDriver is the MPI collaborative version of c3po.CollaborativePhysicsDriver.CollaborativePhysicsDriver (and is a specific kind of c3po.mpi.MPICoupler.MPICoupler). It allows to handle a set of c3po.PhysicsDriver.PhysicsDriver as a single one.
 
-\subsubsection MasterWorkersMPIsources_sec II.4.3. Master/workers mode
+\subsubsection MasterWorkersMPIsources_sec II.6.3. Master/workers mode
 
   - c3po.mpi.MPIMasterPhysicsDriver.MPIMasterPhysicsDriver is used by the master process to control remote c3po.PhysicsDriver.PhysicsDriver(s) as a local one.
   - c3po.mpi.MPIMasterDataManager.MPIMasterDataManager is used by the master process to control remote c3po.DataManager.DataManager(s) as a local one.
@@ -148,12 +158,12 @@ The directory sources/c3po/mpi also contains two directories:
   - mpiExchangeMethods with specific implementations of MPI exchange methods. See below.
   - multi1D with specializations of c3po.multi1D for MPI couplings. See below.
 
-\subsubsection mpiExchMeth_sec II.4.4. c3po/mpi/mpiExchangeMethods directory:
+\subsubsection mpiExchMeth_sec II.6.4. c3po/mpi/mpiExchangeMethods directory:
 
   - c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod is a class interface (to be implemented) which standardizes MPI exchange methods. Unlike the exchanges methods of c3po/exchangeMethods, MPI exchange methods support MPI exchanges. It has to be used with a c3po.mpi.MPIExchanger.MPIExchanger.
   - c3po.mpi.mpiExchangeMethods.MPISharedRemapping.MPISharedRemapping this is the MPI version of c3po.exchangeMethods.SharedRemapping.SharedRemapping. MPI features of MEDCoupling must be available. It allows to use MEDCoupling projections between codes using domain decomposition methods.
 
-\subsubsection mpimulti1D_sec II.4.5. c3po/mpi/multi1D directory:
+\subsubsection mpimulti1D_sec II.6.5. c3po/mpi/multi1D directory:
 
   - c3po.mpi.multi1D.MPIMulti1DPhysicsDriver is the MPI collaborative version of c3po.multi1D.Multi1DPhysicsDriver.Multi1DPhysicsDriver.
 

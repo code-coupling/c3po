@@ -148,7 +148,7 @@ class Remapper(object):
 
         @note This method requires scipy.
 
-        @param matrix object.
+        @return matrix object.
         """
         if not self.isInit:
             raise AssertionError("Remapper.getMatrix: the object is not initialized! Remapper is usually initialized by the SharedRemapping object using it at the first call.")
