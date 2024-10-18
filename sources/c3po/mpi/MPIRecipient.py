@@ -39,10 +39,11 @@ class MPIFieldRecipient(object):
             else:
                 self._field = mpiComm.recv(source=senderRank, tag=MPITag.data)
         elif not self._isTemplate:
+            dataArray = 0
             if self._isCollective:
                 dataArray = mpiComm.bcast(dataArray, root=senderRank)
             else:
-                dataArray = mpiComm.recv()
+                dataArray = mpiComm.recv(source=senderRank, tag=MPITag.data)
             self._field.setArray(dataArray)
         self._storing.store(self._field)
         self._isFirstSend = False

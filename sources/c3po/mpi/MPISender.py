@@ -50,7 +50,7 @@ class MPIFieldSender(object):
                 if isinstance(destination, MPICollectiveProcess):
                     mpiComm.bcast(dataArrayDouble, root=mpiComm.Get_rank())
                 else:
-                    mpiComm.send(dataArrayDouble, dest=destination.rank)
+                    mpiComm.send(dataArrayDouble, dest=destination.rank, tag=MPITag.data)
         self._isFirstSend = False
         self._storing.store(field)
 
