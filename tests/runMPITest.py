@@ -7,7 +7,8 @@ import subprocess
 def runMPITest(nbProcesses, fileAbspath):
     subprocessError = None
     try:
-        result = subprocess.run(args=['mpirun', '-n', str(nbProcesses), 'python', fileAbspath], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, universal_newlines=True)
+        # cf https://mpi4py.readthedocs.io/en/stable/mpi4py.run.html
+        result = subprocess.run(args=['mpirun', '-n', str(nbProcesses), 'python', '-m', 'mpi4py', fileAbspath], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, universal_newlines=True)
         print(result.stdout)
     except subprocess.CalledProcessError as error:
         print(error.stdout)

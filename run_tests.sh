@@ -66,6 +66,10 @@ command_failed=()
 cd ${current_script_dir}
 export PYTHONPATH="${current_script_dir}:${PYTHONPATH}"
 set +eu
+# Usefull pytest options
+# -vv : increase verbosity
+# -s test output to console
+# -x stops at first fail
 pytest $IGNOREMPI $IGNOREMEDMPI $PYTESTCOV $HTMLREPORT
 set -eu
 if (( $? > 0 )); then

@@ -100,7 +100,7 @@ def test_sequential():
         num = 0
         while os.path.exists("NeutroDriver_input_Temperature_" + str(num) + ".med"):
             num += 1
-        fieldT = mc.ReadField(mc.ON_CELLS, "NeutroDriver_input_Temperature_" + str(num - 1) + ".med", "3DMesh", 0, "Temperature", -1, -1)
+        fieldT = mc.ReadField(mc.ON_CELLS, "NeutroDriver_input_Temperature_" + str(num - 1) + ".med", "3DMesh", 0, "Temperature", 1, 0)
         resuT = fieldT.getArray().toNumPyArray().tolist()
 
         assert len(refT) == len(resuT)
