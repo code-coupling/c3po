@@ -52,7 +52,7 @@ def _buildGridMesh(grid, height):
                 coordinates.setIJ(iNodeGlobal, 2, height)
                 iNodeGlobal += 1
             meshes.append(_buildChannelMesh("tmpMesh", 1, numNodes, coordinates))
-    return mc.MEDCouplingMesh.MergeMeshes(meshes)
+    return mc.MEDCouplingMesh.MergeMeshes(meshes) if len(meshes) > 0 else None
 
 
 class MEDInterface():
@@ -172,9 +172,10 @@ class MEDInterface():
 
                         if (objectGrids[iCell][iAxialCell], cellSizes[iAxialCell]) not in builtMEDGrids:
                             builtMEDGrids[(objectGrids[iCell][iAxialCell], cellSizes[iAxialCell])] = _buildGridMesh(objectGrids[iCell][iAxialCell], cellSizes[iAxialCell])
-                        tmpMesh = builtMEDGrids[(objectGrids[iCell][iAxialCell], cellSizes[iAxialCell])].deepCopy()
-                        tmpMesh.translate([xShift[iCell], yShift[iCell], zPosition])
-                        meshes.append(tmpMesh)
+                        if builtMEDGrids[(objectGrids[iCell][iAxialCell], cellSizes[iAxialCell])] is not None:
+                            tmpMesh = builtMEDGrids[(objectGrids[iCell][iAxialCell], cellSizes[iAxialCell])].deepCopy()
+                            tmpMesh.translate([xShift[iCell], yShift[iCell], zPosition])
+                            meshes.append(tmpMesh)
 
                         for iObjectCell in range(objectGrids[iCell][iAxialCell].getNumberOfCells()):
                             iObject = objectGrids[iCell][iAxialCell].getCorrespondence(iObjectCell)
@@ -216,11 +217,9 @@ class MEDInterface():
     def getObjectMEDMesh(self):
         """! Return the 3D MEDCouling second level mesh (built using objectGrids[i][j] at each cell of the BaseMEDMesh).
 
-        @return the 3D MEDCouling second level mesh.
+        @return the 3D MEDCouling second level mesh (and None if not defined).
         """
-        if self._objectMEDMesh is not None:
-            return self._objectMEDMesh
-        return self.getBaseMEDMesh()
+        return self._objectMEDMesh
 
     def getPartOfObjectMEDMesh(self, objectNames):
         """! Return the part of the 3D MEDCouling second level mesh associated with the provided object names.
@@ -365,9 +364,10 @@ class MEDInterface():
                             if objectName in self._objectCorrespondences[iChannel]:
                                 correspondences = self._objectCorrespondences[iChannel][objectName]
                                 for iCell in range(numCells):
-                                    intensiveFactor = 1. / len(correspondences[iCell]) if isIntensive else 1.
-                                    for jCell in correspondences[iCell]:
-                                        values[iObject][iCell] += valuesArray.getIJ(jCell, 0) * intensiveFactor
+                                    if len(correspondences[iCell]) > 0:
+                                        intensiveFactor = 1. / len(correspondences[iCell]) if isIntensive else 1.
+                                        for jCell in correspondences[iCell]:
+                                            values[iObject][iCell] += valuesArray.getIJ(jCell, 0) * intensiveFactor
                     self._multi1DAPI.setObjectValues(iChannel, fieldName, values)
                 else:
                     values = [0.] * numCells
