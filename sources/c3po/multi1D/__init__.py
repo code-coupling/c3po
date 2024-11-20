@@ -10,7 +10,7 @@
 
 """! import c3po.multi1D classes. """
 
-from .Grid import Grid, MEDGrid, CartesianGrid, HexagonalGrid, MultiLevelGrid
+from .Grid import Grid, MEDGrid, CartesianGrid, HexagonalGrid, MultiLevelGrid, NO_CORRESPONDENCE
 from .MEDInterface import MEDInterface
 from .Multi1DAPI import Multi1DAPI, Multi1DWithObjectsAPI
 from .Multi1DPhysicsDriver import Multi1DPhysicsDriver

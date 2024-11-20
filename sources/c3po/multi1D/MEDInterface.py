@@ -12,10 +12,21 @@
 import c3po.medcouplingCompat as mc
 
 from c3po.multi1D.Multi1DAPI import Multi1DAPI, Multi1DWithObjectsAPI
+from c3po.multi1D.Grid import NO_CORRESPONDENCE
 
 
-def _buildChannelMesh(nameMesh, numCells, numBaseNodes, coordinates):
-    """! Build the part of a 3D mesh to be associated with an 1D object. """
+def _buildColumnMesh(nameMesh, numCells, numBaseNodes, coordinates):
+    """! INTERNAL
+
+    Return a MEDCoupling "column" mesh, built on a 2D base (with only one cell).
+
+    @param nameMesh name of the mesh to be built.
+    @param numCells number of axial cells of the column.
+    @param numBaseNodes number of nodes of the base.
+    @param coordinates 3D coordinates of all nodes of the mesh to be built.
+
+    @return The required mesh.
+    """
     mesh = mc.MEDCouplingUMesh(nameMesh, 3)
     mesh.allocateCells(numCells)
     for i in range(numCells):
@@ -32,11 +43,19 @@ def _buildChannelMesh(nameMesh, numCells, numBaseNodes, coordinates):
 
 
 def _buildGridMesh(grid, height):
-    """! Build a 3D (but with only one cell in z) mesh image of a Grid. """
+    """! INTERNAL
+
+    Return a MEDCoupling "flat" mesh, from a 2D grid, and with only one cell in z.
+
+    @param grid a c3po.multi1D.Grid object.
+    @param height Size in z of the mesh to built.
+
+    @return The required mesh (or None if grid is empty).
+    """
     meshes = []
     for iObjectCell in range(grid.getNumberOfCells()):
         iObject = grid.getCorrespondence(iObjectCell)
-        if iObject > -1:
+        if iObject < NO_CORRESPONDENCE:
             baseCoordinates = grid.getNodeCoordinates(iObjectCell)
             numNodes = len(baseCoordinates) // 2
             coordinates = mc.DataArrayDouble(2 * numNodes, 3)
@@ -51,11 +70,11 @@ def _buildGridMesh(grid, height):
                 coordinates.setIJ(iNodeGlobal, 1, baseCoordinates[2 * iNode + 1])
                 coordinates.setIJ(iNodeGlobal, 2, height)
                 iNodeGlobal += 1
-            meshes.append(_buildChannelMesh("tmpMesh", 1, numNodes, coordinates))
+            meshes.append(_buildColumnMesh("tmpMesh", 1, numNodes, coordinates))
     return mc.MEDCouplingMesh.MergeMeshes(meshes) if len(meshes) > 0 else None
 
 
-class MEDInterface():
+class MEDInterface:
     """! @brief MEDInterface links a set of 1D objects with 3D MEDCoupling meshes. """
 
     def __init__(self, multi1DAPI, baseGrid, objectGrids=None):
@@ -96,9 +115,9 @@ class MEDInterface():
         meshes = []
         for iCell in range(numCells):
             iChannel = baseGrid.getCorrespondence(iCell)
-            if iChannel >= numChannels:
-                raise ValueError(f"The provided baseGrid object has a correspondence value {iChannel} higher than the number of 1D components {numChannels} of the provided multi1DAPI object.")
-            if iChannel > -1:
+            if iChannel < NO_CORRESPONDENCE:
+                if iChannel >= numChannels:
+                    raise ValueError(f"The provided baseGrid object has a correspondence value {iChannel} higher than the number of 1D components {numChannels} of the provided multi1DAPI object.")
                 cellSizes = self._multi1DAPI.getCellSizes(iChannel)
                 numAxialCells = len(cellSizes)
                 if self._multi1DAPI.getNumberOfCells(iChannel) != numAxialCells:
@@ -126,7 +145,7 @@ class MEDInterface():
                             coordinates.setIJ(iNodeGlobal, 2, zPosition)
                             iNodeGlobal += 1
 
-                    tmpMesh = _buildChannelMesh("tmpMesh", numAxialCells, numNodes, coordinates)
+                    tmpMesh = _buildColumnMesh("tmpMesh", numAxialCells, numNodes, coordinates)
                     meshes.append(tmpMesh)
 
                     self._channelCorrespondences[iChannel].append(correspondenceIndex)
@@ -156,7 +175,7 @@ class MEDInterface():
             correspondenceIndex = 0
             for iCell in range(numCells):
                 iChannel = baseGrid.getCorrespondence(iCell)
-                if iChannel > -1 and len(objectGrids[iCell]) > 0:
+                if iChannel < NO_CORRESPONDENCE and len(objectGrids[iCell]) > 0:
                     cellSizes = self._multi1DAPI.getCellSizes(iChannel)
                     numAxialCells = len(cellSizes)
                     if len(objectGrids[iCell]) != numAxialCells:
@@ -179,7 +198,7 @@ class MEDInterface():
 
                         for iObjectCell in range(objectGrids[iCell][iAxialCell].getNumberOfCells()):
                             iObject = objectGrids[iCell][iAxialCell].getCorrespondence(iObjectCell)
-                            if iObject > -1:
+                            if iObject < NO_CORRESPONDENCE:
                                 if iObject >= len(channelObjectNames[iAxialCell]):
                                     raise ValueError(f"We found in the objectGrids associated with component {iChannel}, at the axial cell {iAxialCell}, a wrong object index {iObject}. It must be < {len(channelObjectNames[iAxialCell])}, the number of objects in this axial cell of this component.")
                                 objectName = channelObjectNames[iAxialCell][iObject]

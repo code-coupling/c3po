@@ -14,6 +14,8 @@ import math
 
 import c3po.medcouplingCompat as mc
 
+NO_CORRESPONDENCE = 2**62
+
 
 class Grid(ABC):
     """! Grid is an abstract class defining a 2D mesh to be used by MEDInterface.
@@ -47,12 +49,16 @@ class Grid(ABC):
     def setCorrespondences(self, correspondences):
         """! Set the whole table of correspondences.
 
+        @note Use c3po.multi1D.NO_CORRESPONDENCE as correspondence value in empty positions.
+
         @param correspondences Table of correspondence to be copied. correspondences[i] will be associated with the cell i.
         """
 
     @abstractmethod
     def setCorrespondence(self, cellId, correspondence):
         """! Set one correspondence in one cell.
+
+        @note Use c3po.multi1D.NO_CORRESPONDENCE as correspondence value in empty positions.
 
         @param cellId Index of the cell in the mesh.
         @param correspondence value to set in the cell.
@@ -97,7 +103,7 @@ class MEDGrid(Grid):
             raise ValueError(f"The mesh dimension should be 2 (it is {field.getMesh().getMeshDimension()}).")
 
         self._medMesh = field.getMesh()
-        self._correspondences = [-1] * (self._medMesh.getNumberOfCells() if field.getMesh().getMeshDimension() == 2 else 0)
+        self._correspondences = [NO_CORRESPONDENCE] * (self._medMesh.getNumberOfCells() if field.getMesh().getMeshDimension() == 2 else 0)
         if field.getArray().getNumberOfComponents() == 1:
             array = field.getArray()
             for i in range(len(self._correspondences)):
@@ -216,6 +222,8 @@ class CartesianGrid(MEDGrid):
     def setCorrespondenceCartesian(self, xIndex, yIndex, correspondence):
         """! Set one correspondence from the indexes of the cell in the cartesian grid.
 
+        @note Use c3po.multi1D.NO_CORRESPONDENCE as correspondence value in empty positions.
+
         @param xIndex Index of the cell along the x axis.
         @param yIndex Index of the cell along the y axis.
         @param correspondence value to associate with the cell.
@@ -308,6 +316,8 @@ class HexagonalGrid(MEDGrid):
 
     def setCorrespondenceHexagonal(self, ringIndex, positionIndex, correspondence):
         """! Set one correspondence from the indexes of the cell in the hexagonal grid.
+
+        @note Use c3po.multi1D.NO_CORRESPONDENCE as correspondence value in empty positions.
 
         @param ringIndex Index of the ring.
         @param positionIndex Index of the cell on the ring.

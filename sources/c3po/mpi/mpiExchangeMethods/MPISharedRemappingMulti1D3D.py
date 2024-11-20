@@ -123,6 +123,8 @@ class MPISharedRemappingMulti1D3D(MPISharedRemapping):
         @param reverse see c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D.__init__(). Direct is multi1D -> 3D, reverse is 3D -> multi1D.
         @param defaultValue see c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D.__init__().
         @param linearTransform see c3po.exchangeMethods.SharedRemappingMulti1D3D.SharedRemappingMulti1D3D.__init__().
+
+        @warning MPISharedRemappingMulti1D3D is deprecated and will soon by deleted. Please use c3po.mpi.multi1D package instead.
         """
         warning("MPISharedRemappingMulti1D3D is deprecated and will soon by deleted. Please use c3po.mpi.multi1D package instead.")
 

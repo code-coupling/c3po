@@ -83,17 +83,20 @@ refBu3 = [  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 refBu = [refBu0, refBu1, refBu2, refBu3]
 
 def test_unit():
-    from c3po.multi1D.shiftList import shiftList
+    from c3po.multi1D.Multi1DPhysicsDriver import shiftList
 
     listToShift = [0, 1, 2, 3]
     shiftMap = [3, "out", 1, 2]
     shiftedFields = []
-    shiftedFields.append(shiftList(listToShift, shiftMap))
-    shiftedFields.append(shiftList(listToShift, shiftMap))
-    shiftedFields.append(shiftList(listToShift, shiftMap))
-    shiftedFields.append(shiftList(listToShift, shiftMap))
+    for i in range(4):
+        discharged, newList = shiftList(listToShift, shiftMap)
+        shiftedFields.append(discharged)
+        listToShift[:] = newList[:]
 
     assert shiftedFields == [[1], [2], [3], [0]]
+
+    with pytest.raises(expected_exception=ValueError):
+        shiftList(listToShift, [3, -1, 1, 2])
 
 
 class OneIterationCoupler(c3po.Coupler):

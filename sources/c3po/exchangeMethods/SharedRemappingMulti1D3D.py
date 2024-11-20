@@ -227,6 +227,8 @@ class SharedRemappingMulti1D3D(SharedRemapping):
         @param reverse see SharedRemapping. Direct is multi1D -> 3D, reverse is 3D -> multi1D.
         @param defaultValue see SharedRemapping.
         @param linearTransform see SharedRemapping.
+
+        @warning SharedRemappingMulti1D3D is deprecated and will soon by deleted. Please use c3po.multi1D package instead.
         """
         warning("SharedRemappingMulti1D3D is deprecated and will soon by deleted. Please use c3po.multi1D package instead.")
 
