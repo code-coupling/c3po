@@ -32,6 +32,12 @@ class PhysicsScalarTransient(PhysicsDriver):
     def terminate(self):
         self._output_file.close()
 
+    """def getValueType(self, name):
+        print("getValueType" , name)
+        if name in ['x', 'y']:
+            return "Double"
+        raise Exception(name + " is unknown.")"""
+
     def presentTime(self):
         return self.t_
 

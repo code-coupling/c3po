@@ -27,9 +27,9 @@ class NameChanger(PhysicsDriverWrapper):
 
         @param physics the PhysicsDriver to wrap.
         @param nameMappingValue a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code) for values.
-            Names that are not in this mapping dictionary can, of course, still be used!
+            Names that are not in this mapping dictionary can still be used if exclusive=False.
         @param nameMappingField a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code) for fields.
-            Names that are not in this mapping dictionary can, of course, still be used!
+            Names that are not in this mapping dictionary can still be used if exclusive=False.
         @param wildcard a Python string. If both new and old names terminate by this wildcard (a wildcard in the middle of the names is not taken into account),
             nameChanger will substitute only the preceding part. For example : c3po.NameChanger(nameMappingValue={"newName*" : "oldName*"}, wildcard="*") will substitute
             newNameA05 in oldNameA05 and newNameB9 in oldNameB9.
@@ -47,10 +47,10 @@ class NameChanger(PhysicsDriverWrapper):
         self._valueI = 1
         self._fieldO = 2
         self._fieldI = 3
-        self._updateNameMapping((0, 1), nameMappingValue)
-        self._updateNameMapping((2, 3), nameMappingField)
+        self._updateNameMapping(nameMappingValue, (0, 1))
+        self._updateNameMapping(nameMappingField, (2, 3))
 
-    def _updateNameMapping(self, variableTypes, nameMapping):
+    def _updateNameMapping(self, nameMapping, variableTypes):
         for variableType in variableTypes:
             self._nameMapping[variableType].update(nameMapping)
             for key, val in self._nameMapping[variableType].items():
@@ -65,7 +65,7 @@ class NameChanger(PhysicsDriverWrapper):
         @param nameMappingValue the Python dictionary used for the update.
         @param variableTypes list which values are 0 (for output) and/or 1 for input.
         """
-        self._updateNameMapping(variableTypes, nameMappingValue)
+        self._updateNameMapping(nameMappingValue, variableTypes)
 
     def updateNameMappingField(self, nameMappingField, variableTypes = (0, 1)):
         """! Update (with the update() method of dict) the dictionary nameMappingField previously provided.
@@ -73,7 +73,7 @@ class NameChanger(PhysicsDriverWrapper):
         @param nameMappingField the Python dictionary used for the update.
         @param variableTypes list which values are 0 (for output) and/or 1 for input.
         """
-        self._updateNameMapping([v + 2 for v in variableTypes], nameMappingField)
+        self._updateNameMapping(nameMappingField, [v + 2 for v in variableTypes])
 
     def _getNewName(self, name, variableType, inverse):
         """! Return the change name(s).
@@ -82,7 +82,7 @@ class NameChanger(PhysicsDriverWrapper):
         @param variableType put 0 (self._valueO) if name is the name of an output value, 1 (self._valueI) if name is the name of an input value, 2 (self._field0) if it is the name of an output field, 3 (self._fieldI) if it is the name of an input field.
         @param inverse True to inverse research (old -> new), False to direct (new -> old).
 
-        @return the list of new names if inverse, and the single new name otherwise.
+        @return the list of new names if inverse, and the single old name otherwise.
         """
         dictionary = (self._invertNameMapping if inverse else self._nameMapping)[variableType]
 
@@ -105,16 +105,34 @@ class NameChanger(PhysicsDriverWrapper):
             return []
         elif self._exclusive:
             raise ValueError("name='{}' is not available here. Interface only has {}".format(
-                name, list(dictionary[name].keys())))
+                name, list(dictionary.keys())))
         return name
 
     def _getIONames(self, names, variableType):
+        """ INTERNAL """
         newNames = [newName for revNames in [
             self._getNewName(name, variableType=variableType, inverse=True) for name in names]
-                    for newName in revNames]
+                    for newName in revNames]    #Transforme une liste de listes en liste.
         if not self._exclusive:
             newNames += [name for name in names if name not in newNames]
         return newNames
+
+    def _getInfo(self, method, isValue, name):
+        """ INTERNAL """
+        inputEnum = self._valueI if isValue else self._fieldI
+        outputEnum = self._valueO if isValue else self._fieldO
+        oldName = ""
+        try:
+            oldName = self._getNewName(name, variableType=inputEnum, inverse=False)
+            return method(oldName)
+        except Exception as error1:
+            try:
+                oldName2 = self._getNewName(name, variableType=outputEnum, inverse=False)
+                if oldName2 != oldName:
+                    return method(oldName2)
+                raise ValueError("name='{}' seems not to be available here. We received the following error message from {} method from wrapped PhysicsDriver: \n {}".format(name, method.__name__, error1))
+            except Exception as error2:
+                raise ValueError("name='{}' seems not to be available here. We received the following error messages from {} method from wrapped PhysicsDriver (we try with {} as an input first, than as an output): \n {} \n and: {}".format(name, method.__name__, name, error1, error2))
 
     def getInputFieldsNames(self):
         """! See c3po.DataAccessor.DataAccessor.getInputFieldsNames(). """
@@ -126,15 +144,11 @@ class NameChanger(PhysicsDriverWrapper):
 
     def getFieldType(self, name):
         """! See c3po.DataAccessor.DataAccessor.getFieldType(). """
-        if name in self._nameMapping[self._fieldI]:
-            return self._physics.getFieldType(self._getNewName(name, variableType=self._fieldI, inverse=False))
-        return self._physics.getFieldType(self._getNewName(name, variableType=self._fieldO, inverse=False))
+        return self._getInfo(self._physics.getFieldType, False, name)
 
     def getFieldUnit(self, name):
         """! See c3po.DataAccessor.DataAccessor.getFieldUnit(). """
-        if name in self._nameMapping[self._fieldI]:
-            return self._physics.getFieldUnit(self._getNewName(name, variableType=self._fieldI, inverse=False))
-        return self._physics.getFieldUnit(self._getNewName(name, variableType=self._fieldO, inverse=False))
+        return self._getInfo(self._physics.getFieldUnit, False, name)
 
     def getInputMEDDoubleFieldTemplate(self, name):
         """! See c3po.DataAccessor.DataAccessor.getInputMEDDoubleFieldTemplate(). """
@@ -178,15 +192,11 @@ class NameChanger(PhysicsDriverWrapper):
 
     def getValueType(self, name):
         """! See c3po.DataAccessor.DataAccessor.getValueType(). """
-        if name in self._nameMapping[self._valueI]:
-            return self._physics.getValueType(self._getNewName(name, variableType=self._valueI, inverse=False))
-        return self._physics.getValueType(self._getNewName(name, variableType=self._valueO, inverse=False))
+        return self._getInfo(self._physics.getValueType, True, name)
 
     def getValueUnit(self, name):
         """! See c3po.DataAccessor.DataAccessor.getValueUnit(). """
-        if name in self._nameMapping[self._valueI]:
-            return self._physics.getValueUnit(self._getNewName(name, variableType=self._valueI, inverse=False))
-        return self._physics.getValueUnit(self._getNewName(name, variableType=self._valueO, inverse=False))
+        return self._getInfo(self._physics.getValueUnit, True, name)
 
     def setInputDoubleValue(self, name, value):
         """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue(). """

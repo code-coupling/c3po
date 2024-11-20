@@ -66,9 +66,11 @@ class Alphabetic(c3po.PhysicsDriver):
         return set(self.getOutputFieldsNames() + self.getInputFieldsNames())
 
     def getFieldType(self, name):
+        """ A devient a, B b etc. """
         return {_name: _name.lower() for _name in self._getAllFieldsNames()}[name]
 
     def getFieldUnit(self, name):
+        """ A devient A_a, B B_b etc. """
         return {_name: f"{_name}_{_name.lower()}" for _name in self._getAllFieldsNames()}[name]
 
     def _getAllValuesNames(self):
@@ -160,29 +162,24 @@ def test_name_changer():
             full theoretical range if API is not restricted
         """
 
-        for name in numeric_method():
+        for name in numeric_method(): #On verifie qu'avec les chiffres plutot que les lettres, que les listes renvoyees contiennent des elements licites.
             if not exclusive:
-                assert (name in [str(i) for i in io_range] or name in [chr(i) for i in full_range])
+                assert (name in [str(i) for i in io_range] or name in [chr(i) for i in full_range]) #chr(65) -> A
             else:
                 assert name in [str(i) for i in io_range]
 
-        for i in (full_range if full_range is not None else io_range):
-            assert chr(i) in alphabetic_method()
-            if i in io_range:
-                if not exclusive:
-                    assert chr(i) in numeric_method()
-                else:
-                    with pytest.raises(AssertionError):
-                        assert chr(i) in numeric_method()
-                assert str(i) in numeric_method()
+        for i in (full_range if full_range is not None else io_range):  #On va passer en revue tous les elements possibles.
+            assert chr(i) in alphabetic_method()        #On verifie que le retrouve bien dans la methode d'origine.
+            if not exclusive:
+                assert chr(i) in numeric_method()       #On verifie que 'A' est toujours renvoye
             else:
-                if not exclusive:
-                        assert chr(i) in numeric_method()
-                else:
-                    with pytest.raises(AssertionError):
-                        assert chr(i) in numeric_method()
                 with pytest.raises(AssertionError):
-                    assert str(i) in numeric_method()
+                    assert chr(i) in numeric_method()   #Et la on verifie que ce n'est pas le cas.
+            if i in io_range:
+                assert str(i) in numeric_method()       #S'il est dans la liste demandee, on verifie que 65 est bien renvoye.
+            else:
+                with pytest.raises(AssertionError):
+                    assert str(i) in numeric_method()   #Et la on verifie qu'il n'y est pas.
 
 
     def check_unit_or_type(numeric_method, alphabetic_method, io_range, exclusive, to_check, full_range):
@@ -204,29 +201,25 @@ def test_name_changer():
             full theoretical range if API is not restricted
         """
 
-        for i in (full_range if full_range is not None else io_range):
+        for i in (full_range if full_range is not None else io_range):  #On va passer en revue tous les elements possibles.
             alphabetic_name = chr(i)
             numeric_name = str(i)
             if to_check == "unit":
                 ref_name = f"{alphabetic_name}_{alphabetic_name.lower()}"
             elif to_check == "type":
                 ref_name = alphabetic_name.lower()
-            assert ref_name == alphabetic_method(alphabetic_name)
-            if i in io_range:
-                assert ref_name == numeric_method(numeric_name)
-                if not exclusive:
-                    assert ref_name == numeric_method(alphabetic_name)
-                else:
-                    with pytest.raises(KeyError):
-                        numeric_method(alphabetic_name)
+            assert ref_name == alphabetic_method(alphabetic_name)       #On verifie que le resultat est correct avec les methodes d'origine ('A').
+            if not exclusive:
+                assert ref_name == numeric_method(alphabetic_name)      #On verifie qu'on peut obtenir le meme resultat a partir des lettres si pas exclusif.
             else:
-                with pytest.raises(KeyError):
-                    numeric_method(numeric_name)
-                if not exclusive:
-                    assert ref_name == numeric_method(alphabetic_name)
-                else:
-                    with pytest.raises(KeyError):
-                        numeric_method(alphabetic_name)
+                with pytest.raises(ValueError):
+                    numeric_method(alphabetic_name)                     #et que sinon non.
+            if i in io_range:
+                assert ref_name == numeric_method(numeric_name)         #Si dans le range demande, on regarde que c'est aussi correct avec les chiffres.
+            else:
+                with pytest.raises(ValueError):
+                    numeric_method(numeric_name)                        #Indisponible avec les chiffres.
+
 
     def check_unit(numeric_method, alphabetic_method, io_range, exclusive, full_range = None):
         """check units of the numeric and alphabetic APIs"""
@@ -254,37 +247,25 @@ def test_name_changer():
             full theoretical range if API is not restricted
         """
 
-        for i in (full_range if full_range is not None else io_range):
+        for i in (full_range if full_range is not None else io_range):  #On va passer en revue tous les elements possibles.
             alphabetic_name = chr(i)
             numeric_name = str(i)
-            if i in io_range:
-                get_method(numeric_name)
-                set_method(numeric_name, "any")
-                if not exclusive:
-                    get_method(alphabetic_name)
-                    set_method(alphabetic_name, "any")
-                else:
-                    with pytest.raises(KeyError):
-                        get_method(alphabetic_name)
-                    with pytest.raises(KeyError):
-                        set_method(alphabetic_name, "any")
+            if not exclusive:
+                get_method(alphabetic_name)                             #On verifie qu'avec les lettres ca fonctionne toujours.
+                set_method(alphabetic_name, "any")
             else:
-                if not exclusive:
-                    get_method(alphabetic_name)
+                with pytest.raises(ValueError):
+                    get_method(alphabetic_name)                         #Ou pas.
+                with pytest.raises(ValueError):
                     set_method(alphabetic_name, "any")
-                    with pytest.raises(ValueError):
-                        get_method(numeric_name)
-                    with pytest.raises(ValueError):
-                        set_method(numeric_name, "any")
-                else:
-                    with pytest.raises(KeyError):
-                        get_method(alphabetic_name)
-                    with pytest.raises(KeyError):
-                        set_method(alphabetic_name, "any")
-                    with pytest.raises(KeyError):
-                        get_method(numeric_name)
-                    with pytest.raises(KeyError):
-                        set_method(numeric_name, "any")
+            if i in io_range:
+                get_method(numeric_name)                                #Si dans le range demande, on regarde que c'est aussi correct avec les chiffres.
+                set_method(numeric_name, "any")
+            else:                                                       #Et que ca ne marche pas sinon.
+                with pytest.raises(ValueError):
+                    get_method(numeric_name)
+                with pytest.raises(ValueError):
+                    set_method(numeric_name, "any")
 
 
     def check_values(set_method, get_method, o_range, i_range, exclusive, full_ranges):
@@ -311,34 +292,25 @@ def test_name_changer():
 
         for full_x_range, x_range, xet_method, args in [
                 (full_o_range, o_range, get_method, [None]),
-                (full_i_range, i_range, set_method, [None, "Any"])]:
+                (full_i_range, i_range, set_method, [None, "Any"])]:        #cote get puis cote set
 
-            for i in full_x_range:
+            for i in full_x_range:                                          #On va passer en revue tous les elements possibles.
                 alphabetic_name = chr(i)
                 numeric_name = str(i)
+                args[0] = alphabetic_name
+                if not exclusive:
+                    xet_method(*args)                                       #On verifie qu'avec les lettres ca fonctionne toujours.
+                else:
+                    with pytest.raises(ValueError):                           #Ou pas
+                        xet_method(*args)
                 if i in x_range:
                     args[0] = numeric_name
-                    xet_method(*args)
-                    args[0] = alphabetic_name
-                    if not exclusive:
+                    xet_method(*args)                                       #Si dans le range demande, on regarde que c'est aussi correct avec les chiffres.
+                else:                                                       #Et que ca ne marche pas sinon.
+                    args[0] = numeric_name
+                    with pytest.raises(ValueError):
                         xet_method(*args)
-                    else:
-                        with pytest.raises(KeyError):
-                            xet_method(*args)
-                else:
-                    if not exclusive:
-                        args[0] = numeric_name
-                        with pytest.raises(ValueError):
-                            xet_method(*args)
-                        args[0] = alphabetic_name
-                        xet_method(*args)
-                    else:
-                        args[0] = numeric_name
-                        with pytest.raises(KeyError):
-                            xet_method(*args)
-                        args[0] = alphabetic_name
-                        with pytest.raises(KeyError):
-                            xet_method(*args)
+
 
     # interface names are letters
     alphabetic = Alphabetic()
