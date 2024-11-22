@@ -15,7 +15,7 @@ def main_medmpi_collaborative():
     import c3po.medcouplingCompat as mc
     import c3po.multi1D
     import c3po.mpi
-    import c3po.mpi.multi1D
+    import c3po.multi1D.mpi
 
     world = mpi.COMM_WORLD
     rankWorld = world.Get_rank()
@@ -63,7 +63,7 @@ def main_medmpi_collaborative():
         grid = c3po.multi1D.CartesianGrid([0.5] * 2, [0.5] * 2)
         grid.setCorrespondences(list(range(4)))
 
-        myThermoDriver = c3po.mpi.multi1D.MPIMulti1DPhysicsDriver(myThermoDrivers, grid, mpiComm=commThermo)
+        myThermoDriver = c3po.multi1D.mpi.MPIMulti1DPhysicsDriver(myThermoDrivers, grid, mpiComm=commThermo)
         thermoData = c3po.mpi.MPIDomainDecompositionDataManager(commThermo)
 
     dataCoupler = c3po.mpi.MPICollaborativeDataManager([thermoData], world)

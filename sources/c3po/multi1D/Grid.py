@@ -81,11 +81,29 @@ class Grid(ABC):
         """
 
     @abstractmethod
+    def getMEDMesh(self):
+        """! Return a MEDCoupling mesh image of the grid (but without correspondences).
+
+        @note it should be the same result than toMED().getMesh().
+
+        @return a MEDCoupling 2D mesh.
+        """
+
     def toMED(self):
         """! Return a MEDCoupling field image of self.
 
         @return a MEDCoupling field image of self.
         """
+        mesh = self.getMEDMesh()
+        field = mc.MEDCouplingFieldInt(mc.ON_CELLS)
+        field.setMesh(mesh)
+        array = mc.DataArrayInt32()
+        array.alloc(mesh.getNumberOfCells())
+        for iCell in range(mesh.getNumberOfCells()):
+            array.setIJ(iCell, 0, self.getCorrespondence(iCell))
+        field.setArray(array)
+        field.setName("MEDGrid")
+        return field
 
 
 class MEDGrid(Grid):
@@ -153,17 +171,8 @@ class MEDGrid(Grid):
         """! See Grid.translate(). """
         self._medMesh.translate([xShift, yShift])
 
-    def toMED(self):
-        """! See Grid.toMED(). """
-        field = mc.MEDCouplingFieldInt(mc.ON_CELLS)
-        field.setMesh(self._medMesh)
-        array = mc.DataArrayInt32()
-        array.alloc(self._medMesh.getNumberOfCells())
-        for iCell in range(self._medMesh.getNumberOfCells()):
-            array.setIJ(iCell, 0, self.getCorrespondence(iCell))
-        field.setArray(array)
-        field.setName("MEDGrid")
-        return field
+    def getMEDMesh(self):
+        return self._medMesh
 
 
 class CartesianGrid(MEDGrid):
@@ -474,8 +483,7 @@ class MultiLevelGrid(Grid):
         """! See Grid.shift() """
         self._rootGrid.shift(xShift, yShift)
 
-    def toMED(self):
-        """! See Grid.toMED(). """
+    def getMEDMesh(self):
         medCells = []
         for iCell in range(self.getNumberOfCells()):
             coordinates = self.getNodeCoordinates(iCell)
@@ -501,13 +509,4 @@ class MultiLevelGrid(Grid):
         mesh = mc.MEDCouplingUMesh.MergeUMeshes(medCells)
         mesh.mergeNodes(1.E-8)
         mesh.setName(f"level{self.getCurrentLevel()}Mesh")
-
-        field = mc.MEDCouplingFieldInt(mc.ON_CELLS)
-        field.setMesh(mesh)
-        array = mc.DataArrayInt32()
-        array.alloc(mesh.getNumberOfCells())
-        for iCell in range(mesh.getNumberOfCells()):
-            array.setIJ(iCell, 0, self.getCorrespondence(iCell))
-        field.setArray(array)
-        field.setName("MEDGrid")
-        return field
+        return mesh

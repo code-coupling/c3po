@@ -57,11 +57,11 @@ class Multi1DPhysicsDriver(PhysicsDriverWrapper):
         """! Shift the hold PhysicsDriver according to shiftMap.
 
         @param shiftMap a list of integers of same length than physics. shiftMap[i] is the new position of physics[i].
-            'out' can be used to indicate that this element is no more used. In this case, the associated PhysicsDriver is moved to one of the free positions.
+            'wherever' can be used to indicate that this element is no more used. In this case, the associated PhysicsDriver is moved to one of the free positions.
 
-        @return the list of PhysicsDriver that were associated to 'out' in the shiftMap.
+        @return the list of PhysicsDriver that were associated to 'wherever' in the shiftMap.
 
-        For example, shiftMap=[3, 'out', 1, 2] indicates that at first call physics_0 goes to position 3, physics_1 is discharged, physics_2 goes to 1 and physics_3 goes to 2. It returns [physics_1] (and physics_1 goes to position 0).
+        For example, shiftMap=[3, 'wherever', 1, 2] indicates that at first call physics_0 goes to position 3, physics_1 is discharged, physics_2 goes to 1 and physics_3 goes to 2. It returns [physics_1] (and physics_1 goes to position 0).
         At the second call with the same input, physics_0 (now at position 3) goes to 2, physics_1 (at 0) goes to 3, physics_2 (at 1) is discharged and physics_3 (at 2) goes to 1. It returns [physics_2].
         The thrid call returns [physics_3], the fourth call [physics_0], the fifth call [physics_1].
         """
@@ -205,17 +205,17 @@ class DriversAPI(Multi1DAPI):
 
 
 def shiftList(listToShift, shiftMap):
-    """! Return a new list where elements of listToShift are shifted according to shiftMap.
+    """! Create a new list where elements of listToShift are shifted according to shiftMap.
 
     @note Users should not need to call this function directly.
 
     @param listToShift the list to shift.
     @param shiftMap a list of integers of same length than listToShift. shiftMap[i] is the new position of listToShift[i].
-        'out' can be used to indicate that this element is no more used. In this case, the associated element is moved to one of the free positions.
+        'wherever' can be used to indicate that an element can go to any free position. It is also returned by the function.
 
-    @return the list of listToShift elements that were associated to 'out' in the shiftMap and the new list with shifted elements.
+    @return the list of listToShift elements that were associated to 'wherever' in the shiftMap and the new list with shifted elements.
 
-    For example, shiftMap=[3, 'out', 1, 2] indicates that at first call listToShift[0] goes to position 3, listToShift[1] is discharged, listToShift[2] goes to 1 and listToShift[3] goes to 2. It returns ([listToShift[1]], newlist).
+    For example, shiftMap=[3, 'wherever', 1, 2] indicates that at first call listToShift[0] goes to position 3, listToShift[1] is discharged, listToShift[2] goes to 1 and listToShift[3] goes to 2. It returns ([listToShift[1]], newlist).
     At the second call with the same input, listToShift[0] (now at position 3) goes to 2, listToShift[1] (at 0) goes to 3, listToShift[2] (at 1) is discharged and listToShift[3] (at 2) goes to 1. Its first return is now [listToShift[2]].
     The thrid call first return is [listToShift[3]], the fourth call first return [listToShift[0]], the fifth call first return [listToShift[1]] etc.
     """
@@ -224,7 +224,7 @@ def shiftList(listToShift, shiftMap):
     newList = ["empty"] * len(listToShift)
     removedElems = []
     for i, toShift in enumerate(listToShift):
-        if shiftMap[i] == "out":
+        if shiftMap[i] == "wherever":
             removedElems.append(toShift)
         else:
             if newList[shiftMap[i]] != "empty":

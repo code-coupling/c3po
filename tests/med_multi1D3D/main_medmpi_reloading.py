@@ -9,7 +9,7 @@ import c3po.medcouplingCompat as mc
 import c3po
 import c3po.multi1D
 import c3po.mpi
-import c3po.mpi.multi1D
+import c3po.multi1D.mpi
 
 from tests.med_1D3D.NeutroDriver import NeutroDriver
 from tests.med_1D3D.ThermoDriver import ThermoDriver
@@ -66,7 +66,7 @@ def main_medmpi_reloading():
         grid = c3po.multi1D.CartesianGrid([0.5] * 2, [0.5] * 2)
         grid.setCorrespondences(list(range(4)))
 
-        myThermoDriver = c3po.mpi.multi1D.MPIMulti1DPhysicsDriver(myThermoDrivers, grid, mpiComm=commThermo)
+        myThermoDriver = c3po.multi1D.mpi.MPIMulti1DPhysicsDriver(myThermoDrivers, grid, mpiComm=commThermo)
         thermoData = c3po.mpi.MPIDomainDecompositionDataManager(commThermo)
 
     dataCoupler = c3po.mpi.MPICollaborativeDataManager([thermoData], world)
@@ -108,7 +108,7 @@ def main_medmpi_reloading():
                 assert pytest.approx(resuBu[i], abs=1.E-3) == refBuEnd[i]
 
         if rankWorld > 0:
-            shiftMap = [3, "out", 1, 2]
+            shiftMap = [3, "wherever", 1, 2]
             newThermo = myThermoDriver.shiftPhysicsDrivers(shiftMap)
             for thermo in newThermo:
                 thermo.term()

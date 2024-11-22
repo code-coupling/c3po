@@ -86,7 +86,7 @@ def test_unit():
     from c3po.multi1D.Multi1DPhysicsDriver import shiftList
 
     listToShift = [0, 1, 2, 3]
-    shiftMap = [3, "out", 1, 2]
+    shiftMap = [3, "wherever", 1, 2]
     shiftedFields = []
     for i in range(4):
         discharged, newList = shiftList(listToShift, shiftMap)
@@ -157,7 +157,7 @@ def test_cycles():
             assert pytest.approx(resuBu[i], abs=1.E-3) == refBu[icycle][i]
         #mc.WriteField("BurnUp" + str(icycle) + ".med", buField, True)
 
-        shiftMap = [3, "out", 1, 2]
+        shiftMap = [3, "wherever", 1, 2]
         newThermo = myThermoDriver.shiftPhysicsDrivers(shiftMap)
         for thermo in newThermo:
             thermo.term()
