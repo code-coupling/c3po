@@ -76,8 +76,9 @@ setup(
     package_dir={"": "sources"},
     install_requires=check_dependencies([
         "numpy>=1.9",
-        "mpi4py>=1.3",
-    ]),
+        "mpi4py>=1.3",]) + [
+        "icoco>=2.0.3",
+    ],
     extras_require={
         "pytest": ["pytest", "pytest-cov", "pytest-html"],
     },
