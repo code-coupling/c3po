@@ -14,7 +14,7 @@ import math
 
 import c3po.medcouplingCompat as mc
 
-NO_CORRESPONDENCE = 2**62
+NO_CORRESPONDENCE = 2**31-1     #int32 max
 
 
 class Grid(ABC):
@@ -348,13 +348,14 @@ class MultiLevelGrid(Grid):
         @param rootGrid Root level Grid. Cannot be a MultiLevelGrid.
         @param leafGrids List of second level grids. There must be as many leaf grids than cells in the rootGrid. /
         Leaf grids can be MultiLevelGrid: in this case, all of them should be MultiLevelGrid, and those that are non-empty should all have the same number of levels.
+
+        @note We store and use clones of the provided leaf grids.
         """
         if isinstance(rootGrid, MultiLevelGrid):
             raise ValueError("The root Grid cannot be a MultiLevelGrid.")
         if len(leafGrids) != rootGrid.getNumberOfCells():
             raise ValueError(f"There must be as many leaf Grids that there are cells in the root Grid. We found instead {len(leafGrids)} leaf grids and {rootGrid.getNumberOfCells()} cells in the root Grid.")
         self._rootGrid = rootGrid
-        self._leafGrids = leafGrids
         self._numLevels = 0
         if len(leafGrids) > 0:
             multiLevel = isinstance(leafGrids[0], MultiLevelGrid)
@@ -372,6 +373,7 @@ class MultiLevelGrid(Grid):
                             self._numLevels = leaf.getNumLevels() + 1
                         elif leaf.getNumLevels() + 1 > 1:
                             raise ValueError(f"In case leaf grids are non-empty MultiLevelGrid, they must all have the same number of levels (we found {self._numLevels - 1} and {leaf.getNumLevels()}).")
+        self._leafGrids = [leaf.clone() for leaf in leafGrids]
         self._currentLevel = self._numLevels
 
     def clone(self):
