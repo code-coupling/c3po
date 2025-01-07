@@ -88,12 +88,15 @@ This directory contains the definition of the following elements:
     2. It can save in .med files input or output MEDFields.
     3. It can redirect code standard and error outputs in text files.
     4. It can contribute (with c3po.services.ListingWriter.ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
-  - c3po.services.ListingWriter.ListingWriter allows, in association with c3po.services.tracer.tracer, to write a global coupling listing file with calculation time measurement. Three funtions complete this class:
-    1. mergeListing() that allows to merge listing files produced by c3po.services.ListingWriter.ListingWriter (or by previous call to mergeListing()). It is designed to produce a comprehensive view of a MPI calculation.
-    2. getTotalTimePhysicsDriver() that reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns the total time spent by one c3po.PhysicsDriver.PhysicsDriver in indicated methods.
-    3. getTimesExchanger() that reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns time information about a chosen exchanger.
+  - c3po.services.ListingWriter.ListingWriter allows, in association with c3po.services.tracer.tracer, to write a global coupling listing file with calculation time measurement. Three funtions work with this class:
+    1. mergeListing() which allows to merge listing files produced by c3po.services.ListingWriter.ListingWriter (or by previous call to mergeListing()). It is designed to produce a comprehensive view of a MPI calculation.
+    2. getTotalTimePhysicsDriver() which reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns the total time spent by one c3po.PhysicsDriver.PhysicsDriver in indicated methods.
+    3. getTimesExchanger() which reads a listing file produced by c3po.services.ListingWriter.ListingWriter or mergeListing() and returns time information about a chosen exchanger.
   - c3po.services.NameChanger.NameChanger wraps a c3po.PhysicsDriver.PhysicsDriver object and changes the names of the values and fields quantities that can be get/set through ICoCo methods. The idea is to improve the genericity of coupling scripts by using generic variable names without having to modify the names "by hand".
   - c3po.services.PhysicsDriverWrapper.PhysicsDriverWrapper is a skeleton, intended to be overloaded, for modifying the behavior of a PhysicsDriver by composition.
+  - c3po.services.wrapper contain two experimental functions:
+    1. c3po.services.wrapper.buildWrappingClass which returns a wrapping class for any provided one.
+    2. c3po.services.wrapper.wrapper which returns a wrapping object for any provided one.
   - c3po.services.TransientLogger.TransientLogger is a class interface (to be implemented) for logging (in standard output) information during a transient (method solveTransient() from c3po.PhysicsDriver.PhysicsDriver). There are two implementations of this class:
     1. c3po.services.TransientLogger.Timekeeper provides basic information about transient progress. It is the default implementation used by c3po.PhysicsDriver.PhysicsDriver (but logging is by default desactivated).
     2. c3po.services.TransientLogger.FortuneTeller derives from c3po.services.TransientLogger.Timekeeper and adds an evaluation of the remaining computing time to complete the transient.
