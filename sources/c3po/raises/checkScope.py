@@ -15,22 +15,25 @@ from types import FunctionType
 import icoco
 import icoco.utils
 
+
 def _scopeInit(self):
     """! INTERNAL """
     if not hasattr(self, 'problemName'):
         self.problemName = f"{self.__class__.__module__}.{self.__class__.__name__}"
     self.iCoCoEnsureScope = True
-    self._iCoCoInitialized = False
-    self._iCoCoTimeStepDefined = False
+    self._iCoCoInitialized = False          # pylint: disable=protected-access
+    self._iCoCoTimeStepDefined = False      # pylint: disable=protected-access
+
 
 def _decoratorInitialized(method):
     """! INTERNAL """
     # pylint: disable=protected-access
+
     def checkInitialized(self, *args, **kwargs):
         if self.iCoCoEnsureScope and not self._iCoCoInitialized:
             raise icoco.WrongContext(prob=self.problemName,
-                               method=method.__name__,
-                               precondition="called before initialize() or after terminate().")
+                                     method=method.__name__,
+                                     precondition="called before initialize() or after terminate().")
         result = method(self, *args, **kwargs)
         if method.__name__ == 'terminate':
             self._iCoCoInitialized = False
@@ -39,8 +42,8 @@ def _decoratorInitialized(method):
     def checkNotInitialized(self, *args, **kwargs):
         if self.iCoCoEnsureScope and self._iCoCoInitialized:
             raise icoco.WrongContext(prob=self.problemName,
-                               method=method.__name__,
-                               precondition="called between initialize() and terminate().")
+                                     method=method.__name__,
+                                     precondition="called between initialize() and terminate().")
         result = method(self, *args, **kwargs)
         if method.__name__ == 'initialize':
             self._iCoCoInitialized = True
@@ -56,14 +59,16 @@ def _decoratorInitialized(method):
     newMethod.__dict__.update(method.__dict__)
     return newMethod
 
+
 def _decoratorTimeStepContext(method):
     """! INTERNAL """
     # pylint: disable=protected-access
+
     def checkInsideTimeStep(self, *args, **kwargs):
         if self.iCoCoEnsureScope and not self._iCoCoTimeStepDefined:
             raise icoco.WrongContext(prob=self.problemName,
-                               method=method.__name__,
-                               precondition="called outside the TIME_STEP_DEFINED context.")
+                                     method=method.__name__,
+                                     precondition="called outside the TIME_STEP_DEFINED context.")
         result = method(self, *args, **kwargs)
         if method.__name__ in ['abortTimeStep', 'validateTimeStep']:
             self._iCoCoTimeStepDefined = False
@@ -72,8 +77,8 @@ def _decoratorTimeStepContext(method):
     def checkOutsideTimeStep(self, *args, **kwargs):
         if self.iCoCoEnsureScope and self._iCoCoTimeStepDefined:
             raise icoco.WrongContext(prob=self.problemName,
-                               method=method.__name__,
-                               precondition="called inside the TIME_STEP_DEFINED context.")
+                                     method=method.__name__,
+                                     precondition="called inside the TIME_STEP_DEFINED context.")
         result = method(self, *args, **kwargs)
         if method.__name__ == 'initTimeStep':
             self._iCoCoTimeStepDefined = True
@@ -90,9 +95,11 @@ def _decoratorTimeStepContext(method):
     newMethod.__dict__.update(method.__dict__)
     return newMethod
 
+
 def _decoratorInit(method):
     """! INTERNAL """
     # pylint: disable=protected-access
+
     def completedInit(self, *args, **kwargs):
         method(self, *args, **kwargs)
         _scopeInit(self)
@@ -101,15 +108,16 @@ def _decoratorInit(method):
     completedInit.__dict__.update(method.__dict__)
     return completedInit
 
+
 class CheckScopeMeta(type):
     """! Metaclass related to the use of checkScope. """
 
     def __new__(cls, name, bases, dct):
 
         toCheck = set()
-        for name in icoco.utils.ICoCoMethodContext.ONLY_INSIDE_TIME_STEP_DEFINED + icoco.utils.ICoCoMethodContext.ONLY_OUTSIDE_TIME_STEP_DEFINED + icoco.utils.ICoCoMethodContext.ONLY_BEFORE_INITIALIZE + icoco.utils.ICoCoMethodContext.ONLY_AFTER_INITIALIZE:
-            if name not in toCheck:
-                toCheck.add(name)
+        for methodName in icoco.utils.ICoCoMethodContext.ONLY_INSIDE_TIME_STEP_DEFINED + icoco.utils.ICoCoMethodContext.ONLY_OUTSIDE_TIME_STEP_DEFINED + icoco.utils.ICoCoMethodContext.ONLY_BEFORE_INITIALIZE + icoco.utils.ICoCoMethodContext.ONLY_AFTER_INITIALIZE:
+            if methodName not in toCheck:
+                toCheck.add(methodName)
 
         newDct = {}
         for nameattr, item in dct.items():
@@ -126,7 +134,7 @@ class CheckScopeMeta(type):
         if '__init__' not in newDct:
             def newInit(self):
                 for base in bases:
-                    super(base, self).__init__()
+                    super(base, self).__init__()    # pylint: disable=bad-super-call
                 _scopeInit(self)
             newInit.__name__ = "__init__"
             newDct['__init__'] = newInit
@@ -141,6 +149,7 @@ class CheckScopeMeta(type):
                         break
 
         return type.__new__(cls, name, bases, newDct)
+
 
 def checkScope(baseclass):
     """! Add a verification of the calling context of ICoCo methods.

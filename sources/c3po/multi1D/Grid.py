@@ -14,7 +14,7 @@ import math
 
 import c3po.medcouplingCompat as mc
 
-NO_CORRESPONDENCE = 2**31-1     #int32 max
+NO_CORRESPONDENCE = 2**31 - 1  # int32 max
 
 
 class Grid(ABC):

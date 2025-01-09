@@ -8,15 +8,12 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# pylint: disable=protected-access
+
 """ Contain the functions buildWrappingClass and wrapper. """
 from __future__ import print_function, division
-import re
 from types import FunctionType
-import time
-import sys
-import os
 
-import c3po.medcouplingCompat as mc
 
 def buildWrappingClass(baseclass, objectAttr):
     """! Return a wrapping class of baseclass.
@@ -54,6 +51,7 @@ def buildWrappingClass(baseclass, objectAttr):
 
     @return A wrapper class for baseclass.
     """
+
     def wrapperInit(self, wrappedObject):
         self._wrappedObject = wrappedObject
     wrapperInit.__name__ = "__init__"
@@ -84,10 +82,11 @@ def buildWrappingClass(baseclass, objectAttr):
 
     return type(baseclass.__name__, (baseclass,), newDct)
 
+
 def wrapper(toWrap):
     """! Return a wrapping object for toWrap.
 
-    wrapper uses buildWrappingClass in order to build a wrapping class for toWrap type,
+    wrapper uses c3po.services.wrapper.buildWrappingClass in order to build a wrapping class for toWrap type,
     and return an instance of this wrapping class (wrapping toWrap).
 
     @param toWrap Object instance (not class) to be wrapped.

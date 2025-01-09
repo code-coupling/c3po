@@ -59,7 +59,7 @@ class NameChanger(PhysicsDriverWrapper):
                 else:
                     self._invertNameMapping[variableType][val].append(key)
 
-    def updateNameMappingValue(self, nameMappingValue, variableTypes = (0, 1)):
+    def updateNameMappingValue(self, nameMappingValue, variableTypes=(0, 1)):
         """! Update (with the update() method of dict) the dictionary nameMappingValue previously provided.
 
         @param nameMappingValue the Python dictionary used for the update.
@@ -67,7 +67,7 @@ class NameChanger(PhysicsDriverWrapper):
         """
         self._updateNameMapping(nameMappingValue, variableTypes)
 
-    def updateNameMappingField(self, nameMappingField, variableTypes = (0, 1)):
+    def updateNameMappingField(self, nameMappingField, variableTypes=(0, 1)):
         """! Update (with the update() method of dict) the dictionary nameMappingField previously provided.
 
         @param nameMappingField the Python dictionary used for the update.
@@ -103,16 +103,16 @@ class NameChanger(PhysicsDriverWrapper):
                         return name.replace(key[:-wildcardLen], value[:-wildcardLen], 1)
         if inverse:
             return []
-        elif self._exclusive:
+        if self._exclusive:
             raise ValueError("name='{}' is not available here. Interface only has {}".format(
                 name, list(dictionary.keys())))
         return name
 
     def _getIONames(self, names, variableType):
         """ INTERNAL """
-        newNames = [newName for revNames in [
+        newNames = [newName for revNames in [   # liste de listes -> liste.
             self._getNewName(name, variableType=variableType, inverse=True) for name in names]
-                    for newName in revNames]    #Transforme une liste de listes en liste.
+            for newName in revNames]  # pylint: disable=bad-continuation
         if not self._exclusive:
             newNames += [name for name in names if name not in newNames]
         return newNames
@@ -132,7 +132,7 @@ class NameChanger(PhysicsDriverWrapper):
                     return method(oldName2)
                 raise ValueError("name='{}' seems not to be available here. We received the following error message from {} method from wrapped PhysicsDriver: \n {}".format(name, method.__name__, error1))
             except Exception as error2:
-                raise ValueError("name='{}' seems not to be available here. We received the following error messages from {} method from wrapped PhysicsDriver (we try with {} as an input first, than as an output): \n {} \n and: {}".format(name, method.__name__, name, error1, error2))
+                raise ValueError("name='{name}' seems not to be available here. We received the following error messages from {} method from wrapped PhysicsDriver (we try with {name} as an input first, than as an output): \n {} \n and: {}".format(method.__name__, error1, error2, name=name))
 
     def getInputFieldsNames(self):
         """! See c3po.DataAccessor.DataAccessor.getInputFieldsNames(). """

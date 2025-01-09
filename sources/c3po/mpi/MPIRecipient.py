@@ -12,7 +12,6 @@
 These classes recieve data from a remote process.
 """
 from __future__ import print_function, division
-from mpi4py import MPI
 
 import c3po.medcouplingCompat as mc
 from c3po.mpi.MPITag import MPITag
@@ -102,4 +101,3 @@ class MPIValueRecipient(object):
             self._storing.store(mpiComm.bcast(value, root=senderRank))
         else:
             self._storing.store(mpiComm.recv(source=senderRank, tag=MPITag.data))
-

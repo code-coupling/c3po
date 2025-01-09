@@ -73,6 +73,7 @@ def getArgsString(*args, **kwargs):
     stringArgs += ")"
     return stringArgs
 
+
 def buildTypeArgs(name, bases, dct):
     """! INTERNAL """
     def _wrapper(method):
@@ -96,7 +97,7 @@ def buildTypeArgs(name, bases, dct):
                 nameMEDFile = nameMEDFile + str(num) + ".med"
                 _, iteration, order = field.getTime()
                 medInfo = (field.getTypeOfField(), nameMEDFile, field.getMesh().getName(),
-                            0, field.getName(), iteration, order)
+                           0, field.getName(), iteration, order)
                 mc.WriteField(nameMEDFile, field, True)
                 if self.static_pythonFile is not None:
                     self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
@@ -179,8 +180,8 @@ def buildTypeArgs(name, bases, dct):
 
             if self.static_lWriter is not None:
                 if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
-                                        "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate", "exchange",
-                                        "save", "restore"]:
+                                       "validateTimeStep", "setStationaryMode", "abortTimeStep", "resetTime", "terminate", "exchange",
+                                       "save", "restore"]:
                     inputVar = 0.
                     if method.__name__ == "initTimeStep":
                         inputVar = getDtInput(*args, **kwargs)
@@ -316,7 +317,7 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
             delattr(baseclass, "static_wDir")
             return newclass
 
-        def objectWrapper(toWrap):
+        def objectWrapper(toWrap):  # pylint: disable=unused-variable
             wrappingClass = buildWrappingClass(type(toWrap), toWrap.__dict__.keys())
             wrappingClass.static_printinit = False
             tracedWrappingClass = classWrapper(wrappingClass)
@@ -326,8 +327,8 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
         if isinstance(toTrace, type):
             return classWrapper(toTrace)
         raise Exception("tracer: the provided object should be a class!")
-        #return objectWrapper(toTrace)      # Tant que la separation PhysicsDriver / ICoCo ne sera pas bien faite,
-                                            # il sera difficile d'utiliser le mecanisme de wrapper sans appliquer
-                                            # tracer aux methodes definies dans PhysicsDriver elle-meme (init(), solveTransient() etc.).
+        # return objectWrapper(toTrace)      # Tant que la separation PhysicsDriver / ICoCo ne sera pas bien faite,
+        # il sera difficile d'utiliser le mecanisme de wrapper sans appliquer
+        # tracer aux methodes definies dans PhysicsDriver elle-meme (init(), solveTransient() etc.).
 
     return tracerWrapper

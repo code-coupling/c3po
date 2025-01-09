@@ -141,4 +141,3 @@ class MPIValueSender(object):
             else:
                 mpiComm.send(value, dest=destination.rank, tag=MPITag.data)
         self._storing.store(value)
-
