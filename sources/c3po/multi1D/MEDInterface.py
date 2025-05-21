@@ -270,6 +270,8 @@ class MEDInterface:
         fieldNature = self._multi1DAPI.getNature(fieldName)
         isIntensive = fieldNature in (mc.IntensiveConservation, mc.IntensiveMaximum)
 
+        defaultValue = 0.
+
         requiredObjects = []
         try:
             requiredObjects = self._multi1DAPI.getObjectNamesInField(fieldName)
@@ -284,7 +286,7 @@ class MEDInterface:
             valuesArray.alloc(self._objectMEDMesh.getNumberOfCells(), numComponents)
         else:
             valuesArray.alloc(self._channelMEDMesh.getNumberOfCells(), numComponents)
-        valuesArray.fillWithValue(-1.)
+        valuesArray.fillWithValue(defaultValue)
 
         for iChannel, cellList in enumerate(self._channelCorrespondences):
             numCells = 0
@@ -301,7 +303,7 @@ class MEDInterface:
                                         valuesArray.setIJ(iCell + iAxialCell, iCompo, values[iCompo][iAxialCell] * extensiveFactor)
                                 else:
                                     for iAxialCell in range(numCells):
-                                        valuesArray.setIJ(iCell + iAxialCell, iCompo, -1.)
+                                        valuesArray.setIJ(iCell + iAxialCell, iCompo, defaultValue)
                     else:
                         for iObject, objectName in enumerate(requiredObjects):
                             if objectName in self._objectCorrespondences[iChannel]:
@@ -320,7 +322,7 @@ class MEDInterface:
                                 else:
                                     for iCell in range(numCells):
                                         for jCell in correspondences[iCell]:
-                                            valuesArray.setIJ(jCell, 0, -1.)
+                                            valuesArray.setIJ(jCell, 0, defaultValue)
                 else:
                     values = self._multi1DAPI.getValues(iChannel, fieldName)
                     for j, iCell in enumerate(cellList):

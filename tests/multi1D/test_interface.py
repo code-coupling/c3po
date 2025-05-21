@@ -97,7 +97,7 @@ def test_interface ():
         for iCell in range(iChannel):
             for iObject in range(4):
                 if iObject == 2:
-                    assert array[count] == -1.
+                    assert array[count] == 0.
                 else:
                     assert pytest.approx(array[count], abs=1.E-10) == iCell + iChannel * 100. + iObject * 10.
                 count += 1
@@ -131,7 +131,7 @@ def test_interface ():
         for iCell in range(iChannel):
             for iObject in range(4):
                 if iObject == 2:
-                    assert array[count] == -1.
+                    assert array[count] == 0.
                 else:
                     assert pytest.approx(array[count], abs=1.E-10) == (iCell + iChannel * 100. + iObject * 10.) * 10.
                 count += 1
