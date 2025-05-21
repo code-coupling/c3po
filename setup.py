@@ -66,7 +66,7 @@ setup(
     maintainer="Cyril Patricot",
     maintainer_email="cyril.patricot@cea.fr",
     description="Collaborative Code Coupling PlatfOrm",
-    url="https://sourceforge.net/projects/cea-c3po/",
+    url="https://github.com/code-coupling/c3po",
     packages=find_packages(where="sources"),
     package_data={
         "c3po": [
