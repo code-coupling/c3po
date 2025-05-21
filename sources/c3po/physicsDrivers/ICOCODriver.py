@@ -26,6 +26,7 @@ class ICOCODriver(PhysicsDriver):
         if problem.GetICoCoMajorVersion() != self.GetICoCoMajorVersion():
             raise AssertionError("The ICoCo major version of the provided object ({}) is not the expected one ({})".format(problem.GetICoCoMajorVersion(), self.GetICoCoMajorVersion()))
         self._problem = problem
+        self._mpiComm = None
 
     def getMEDCouplingMajorVersion(self):
         return self._problem.getMEDCouplingMajorVersion()
@@ -35,6 +36,13 @@ class ICOCODriver(PhysicsDriver):
 
     def setDataFile(self, datafile):
         self._problem.setDataFile(datafile)
+
+    def setMPIComm(self, mpicomm):
+        self._problem.setMPIComm(mpicomm)
+        self._mpiComm = mpicomm
+
+    def getMPIComm(self):
+        return self._mpiComm
 
     def initialize(self):
         return self._problem.initialize()
