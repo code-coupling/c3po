@@ -13,78 +13,85 @@ def main_medmpi_collaborative():
     from tests.med_Dussaix.MPINeutroDriver import MPINeutroDriver
     from tests.med_Dussaix.MPIThermoDriver import MPIThermoDriver
 
-    class OneIterationCoupler(c3po.mpi.MPICoupler):
-        def __init__(self, physics, exchangers, dataManagers=[]):
-            c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
+    commWorld = MPI.COMM_WORLD
+    rankWorld = commWorld.Get_rank()
+    # If COMM_WORLD size is 4, we use it directly.
+    # This is required by old MEDCoupling versions that did not support other communicators.
+    # It COMM_WORLD size is > 4, we split it: it tests the use of a communicator other than WORLD.
+    comm = commWorld if commWorld.Get_size() == 4 else commWorld.Split(color=MPI.UNDEFINED if rankWorld > 3 else 0)
 
-        def solveTimeStep(self):
-            self._physicsDrivers["neutro"].solve()
-            self._exchangers[0].exchange()
-            self._physicsDrivers["thermo"].solve()
-            return self.getSolveStatus()
+    if rankWorld <= 3:
+        rank = comm.Get_rank()
 
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
+        class OneIterationCoupler(c3po.mpi.MPICoupler):
+            def __init__(self, physics, exchangers, dataManagers=[]):
+                c3po.mpi.MPICoupler.__init__(self, physics, exchangers, dataManagers)
 
-    isThermo = rank < 2
-    codeMPIComm = comm.Split(isThermo)
+            def solveTimeStep(self):
+                self._physicsDrivers["neutro"].solve()
+                self._exchangers[0].exchange()
+                self._physicsDrivers["thermo"].solve()
+                return self.getSolveStatus()
 
-    myThermoDriver = c3po.mpi.MPIRemoteProcesses(comm, [0, 1])
-    myThermoData = c3po.mpi.MPIRemoteProcesses(comm, [0, 1])
-    myNeutroDriver = c3po.mpi.MPIRemoteProcesses(comm, [2, 3])
+        isThermo = rank < 2
+        codeMPIComm = comm.Split(isThermo)
 
-    if isThermo:
-        myThermoDriver = MPIThermoDriver()
-        myThermoDriver.setMPIComm(codeMPIComm)
-        myThermoData = c3po.mpi.MPIDomainDecompositionDataManager(codeMPIComm)
+        myThermoDriver = c3po.mpi.MPIRemoteProcesses(comm, [0, 1])
+        myThermoData = c3po.mpi.MPIRemoteProcesses(comm, [0, 1])
+        myNeutroDriver = c3po.mpi.MPIRemoteProcesses(comm, [2, 3])
 
-    else:
-        myNeutroDriver = MPINeutroDriver()
-        myNeutroDriver.setMPIComm(codeMPIComm)
+        if isThermo:
+            myThermoDriver = MPIThermoDriver()
+            myThermoDriver.setMPIComm(codeMPIComm)
+            myThermoData = c3po.mpi.MPIDomainDecompositionDataManager(codeMPIComm)
 
-    myThermoDriver.init()
-    myThermoDriver.setInputDoubleValue("Vv_Vl", 10.)
+        else:
+            myNeutroDriver = MPINeutroDriver()
+            myNeutroDriver.setMPIComm(codeMPIComm)
 
-    myNeutroDriver.init()
-    myNeutroDriver.setInputDoubleValue("meanT", 1000.)
+        myThermoDriver.init()
+        myThermoDriver.setInputDoubleValue("Vv_Vl", 10.)
 
-    basicTransformer = c3po.mpi.MPIRemapper()
-    Thermo2DataTransformer = c3po.DirectMatching()
-    Data2NeutroTransformer = c3po.mpi.MPISharedRemapping(basicTransformer, reverse=False)
-    Neutro2ThermoTransformer = c3po.mpi.MPISharedRemapping(basicTransformer, reverse=True)
+        myNeutroDriver.init()
+        myNeutroDriver.setInputDoubleValue("meanT", 1000.)
 
-    ExchangerNeutro2Thermo = c3po.mpi.MPIExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")])
-    ExchangerThermo2Data = c3po.mpi.MPIExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(myThermoData, "Densities")])
-    ExchangerData2Neutro = c3po.mpi.MPIExchanger(Data2NeutroTransformer, [(myThermoData, "Densities")], [(myNeutroDriver, "Densities")])
+        basicTransformer = c3po.mpi.MPIRemapper()
+        Thermo2DataTransformer = c3po.DirectMatching()
+        Data2NeutroTransformer = c3po.mpi.MPISharedRemapping(basicTransformer, reverse=False)
+        Neutro2ThermoTransformer = c3po.mpi.MPISharedRemapping(basicTransformer, reverse=True)
 
-    OneIteration = OneIterationCoupler({"neutro": myNeutroDriver, "thermo": myThermoDriver}, [ExchangerNeutro2Thermo])
+        ExchangerNeutro2Thermo = c3po.mpi.MPIExchanger(Neutro2ThermoTransformer, [(myNeutroDriver, "Temperatures")], [(myThermoDriver, "Temperatures")])
+        ExchangerThermo2Data = c3po.mpi.MPIExchanger(Thermo2DataTransformer, [(myThermoDriver, "Densities")], [(myThermoData, "Densities")])
+        ExchangerData2Neutro = c3po.mpi.MPIExchanger(Data2NeutroTransformer, [(myThermoData, "Densities")], [(myNeutroDriver, "Densities")])
 
-    DataCoupler = c3po.mpi.MPICollaborativeDataManager([myThermoData], comm)
-    mycoupler = c3po.FixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
-    mycoupler.init()
-    mycoupler.setDampingFactor(0.125)
-    mycoupler.setConvergenceParameters(1E-5, 100)
+        OneIteration = OneIterationCoupler({"neutro": myNeutroDriver, "thermo": myThermoDriver}, [ExchangerNeutro2Thermo])
 
-    mycoupler.solve()
+        DataCoupler = c3po.mpi.MPICollaborativeDataManager([myThermoData], comm)
+        mycoupler = c3po.FixedPointCoupler([OneIteration], [ExchangerThermo2Data, ExchangerData2Neutro], [DataCoupler])
+        mycoupler.init()
+        mycoupler.setDampingFactor(0.125)
+        mycoupler.setConvergenceParameters(1E-5, 100)
 
-    print("Convergence :", mycoupler.getSolveStatus())
-    if rank in [2, 3]:
-        ref = 1032.46971894 if rank == 2 else 967.530281064
-        FieldT = myNeutroDriver.getOutputMEDDoubleField("Temperatures")
-        ArrayT = FieldT.getArray()
-        print("Temperature (", rank - 2, "):", ArrayT.getIJ(0, 0))
-        assert pytest.approx(ArrayT.getIJ(0, 0), abs=1.E-3) == ref
-    if rank in [0, 1]:
-        ref = 822.372079129 if rank == 0 else 700.711939405
-        FieldRho = myThermoDriver.getOutputMEDDoubleField("Densities")
-        ArrayRho = FieldRho.getArray()
-        print("Density (", rank, "):", ArrayRho.getIJ(0, 0))
-        assert pytest.approx(ArrayRho.getIJ(0, 0), abs=1.E-3) == ref
+        mycoupler.solve()
 
-    mycoupler.term()
-    myNeutroDriver.term()
-    myThermoDriver.term()
-    basicTransformer.terminate()
+        print("Convergence :", mycoupler.getSolveStatus())
+        if rank in [2, 3]:
+            ref = 1032.46971894 if rank == 2 else 967.530281064
+            FieldT = myNeutroDriver.getOutputMEDDoubleField("Temperatures")
+            ArrayT = FieldT.getArray()
+            print("Temperature (", rank - 2, "):", ArrayT.getIJ(0, 0))
+            assert pytest.approx(ArrayT.getIJ(0, 0), abs=1.E-3) == ref
+        if rank in [0, 1]:
+            ref = 822.372079129 if rank == 0 else 700.711939405
+            FieldRho = myThermoDriver.getOutputMEDDoubleField("Densities")
+            ArrayRho = FieldRho.getArray()
+            print("Density (", rank, "):", ArrayRho.getIJ(0, 0))
+            assert pytest.approx(ArrayRho.getIJ(0, 0), abs=1.E-3) == ref
+
+        mycoupler.term()
+        myNeutroDriver.term()
+        myThermoDriver.term()
+        basicTransformer.terminate()
 
 
 if __name__ == "__main__":

@@ -124,7 +124,10 @@ class MPIRemapper(object):
         if mpiComm == mpi.COMM_WORLD:
             self._interpKernelDECs[nature] = mc.InterpKernelDEC(ranksToGet, ranksToSet)
         else:
-            self._interpKernelDECs[nature] = mc.InterpKernelDEC(ranksToGet, ranksToSet, mpiComm)
+            try:
+                self._interpKernelDECs[nature] = mc.InterpKernelDEC(ranksToGet, ranksToSet, mpiComm)
+            except TypeError:
+                self._interpKernelDECs[nature] = mc.InterpKernelDEC(ranksToGet, ranksToSet, mpi._addressof(mpiComm))
         self._interpKernelDECs[nature].setMethod("P0")
         self._interpKernelDECs[nature].attachLocalField(field)
         self._interpKernelDECs[nature].synchronize()
