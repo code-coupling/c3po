@@ -39,8 +39,8 @@ def main_medmpi_collaborative():
                 raise Exception("main : error in folder " + folder_name + " creation.")
         os.chdir(folder_name)
 
-    from tests.med_1D3D.NeutroDriver import NeutroDriver
-    from tests.med_1D3D.ThermoDriver import ThermoDriver
+    from tests.med_multi1D3D.NeutroDriver import NeutroDriver
+    from tests.med_multi1D3D.ThermoDriver import ThermoDriver
 
     tracedNeutro = c3po.tracer(saveInputMED=True, saveOutputMED=True)(NeutroDriver)
     tracedThermo = c3po.tracer(saveInputMED=True, saveOutputMED=True)(ThermoDriver)

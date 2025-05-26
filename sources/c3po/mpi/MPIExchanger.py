@@ -235,7 +235,10 @@ class MPIExchanger(LocalExchanger):
                 group = dataAccessor.mpiComm.Get_group().Incl(dataAccessor.ranks)
             else:
                 try:
-                    group = dataAccessor.getMPIComm().Get_group()
+                    comm = dataAccessor.getMPIComm()
+                    if comm is None:
+                        raise NotImplementedError()
+                    group = comm.Get_group()
                 except NotImplementedError:
                     return [exchangerMPIComm.Get_rank()]
             intersecGroup = mpi.Group.Intersection(group, exchangerMPIComm.Get_group())

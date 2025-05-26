@@ -30,6 +30,9 @@ class NeutroDriver(PhysicsDriver):
         self._stationaryMode = False
         return True
 
+    def getMPIComm(self):
+        return None
+
     def terminate(self):
         pass
 
