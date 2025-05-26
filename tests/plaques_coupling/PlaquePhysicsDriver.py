@@ -36,7 +36,7 @@ class PlaquePhysicsDriver(PhysicsDriver):
         """ Mise à jour de la jacobienne de F. """
         for i in range(0, NX):
             for j in range(0, NY):
-                jaco[i * NX + j, i * NX + j] = A[i * NX + j, i * NX + j] - 4 * cls.constanteSteph_ * U[j + i * NX]**3
+                jaco[i * NX + j, i * NX + j] = A[i * NX + j, i * NX + j] - 4 * cls.constanteSteph_ * U[j + i * NX, 0]**3
 
     @classmethod
     def calcul_F(cls, A, U, B, NX, NY, T_ext):
@@ -131,7 +131,7 @@ class PlaquePhysicsDriver(PhysicsDriver):
         self.jaco_ = np.copy(self.A_)
         for i in range(1, self.nombreNoeudsX_ - 1):
             for j in range(1, self.nombreNoeudsY_ - 1):
-                self.jaco_[i * self.nombreNoeudsX_ + j, i * self.nombreNoeudsX_ + j] -= 4 * self.constanteSteph_ * self.temperature_[j + i * self.nombreNoeudsX_]**3
+                self.jaco_[i * self.nombreNoeudsX_ + j, i * self.nombreNoeudsX_ + j] -= 4 * self.constanteSteph_ * self.temperature_[j + i * self.nombreNoeudsX_, 0]**3
         return True
 
     def terminate(self):

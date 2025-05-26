@@ -304,8 +304,8 @@ def couplage_plaque(coupler_type='FixedPoint'):
     temperature = np.zeros((nbrNoeuds, nbrNoeuds + nbrNoeuds))
     for i in range(nbrNoeuds):
         for j in range(nbrNoeuds):
-            temperature[j, i] = myPhysics1.temperature_[j + i * nbrNoeuds]
-            temperature[j, nbrNoeuds + i] = myPhysics2.temperature_[j + i * nbrNoeuds]
+            temperature[j, i] = myPhysics1.temperature_[j + i * nbrNoeuds, 0]
+            temperature[j, nbrNoeuds + i] = myPhysics2.temperature_[j + i * nbrNoeuds, 0]
 
     myPhysics1.term()
     myPhysics2.term()
