@@ -63,9 +63,9 @@ class LocalDataManager(DataManager, DataAccessor):
         self.checkBeforeOperator(other)
         for name in self.valuesDouble:
             self.valuesDouble[name] = other.valuesDouble[name]
-        for name in self.fieldsDouble:
+        for name, field in self.fieldsDouble.items():
             otherArray = other.fieldsDouble[name].getArray()
-            self.fieldsDouble[name].getArray().setPartOfValues1(other.fieldsDouble[name].getArray(), 0, otherArray.getNumberOfTuples(), 1, 0, otherArray.getNumberOfComponents(), 1)
+            field.getArray().setPartOfValues1(other.fieldsDouble[name].getArray(), 0, otherArray.getNumberOfTuples(), 1, 0, otherArray.getNumberOfComponents(), 1)
 
     def normMax(self):
         """! Return the infinite norm.
@@ -123,10 +123,10 @@ class LocalDataManager(DataManager, DataAccessor):
         """
         self.checkBeforeOperator(other)
         newData = self.cloneEmpty()
-        for name in self.valuesDouble:
-            newData.valuesDouble[name] = self.valuesDouble[name] + other.valuesDouble[name]
-        for name in self.fieldsDouble:
-            newData.fieldsDouble[name] = 1. * self.fieldsDouble[name]
+        for name, value in self.valuesDouble.items():
+            newData.valuesDouble[name] = value + other.valuesDouble[name]
+        for name, field in self.fieldsDouble.items():
+            newData.fieldsDouble[name] = 1. * field
             newData.fieldsDouble[name].getArray().addEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return newData
 
@@ -144,8 +144,8 @@ class LocalDataManager(DataManager, DataAccessor):
         self.checkBeforeOperator(other)
         for name in self.valuesDouble:
             self.valuesDouble[name] += other.valuesDouble[name]
-        for name in self.fieldsDouble:
-            self.fieldsDouble[name].getArray().addEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name, field in self.fieldsDouble.items():
+            field.getArray().addEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return self
 
     def __sub__(self, other):
@@ -161,10 +161,10 @@ class LocalDataManager(DataManager, DataAccessor):
         """
         self.checkBeforeOperator(other)
         newData = self.cloneEmpty()
-        for name in self.valuesDouble:
-            newData.valuesDouble[name] = self.valuesDouble[name] - other.valuesDouble[name]
-        for name in self.fieldsDouble:
-            newData.fieldsDouble[name] = 1. * self.fieldsDouble[name]
+        for name, value in self.valuesDouble.items():
+            newData.valuesDouble[name] = value - other.valuesDouble[name]
+        for name, field in self.fieldsDouble.items():
+            newData.fieldsDouble[name] = 1. * field
             newData.fieldsDouble[name].getArray().substractEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return newData
 
@@ -182,8 +182,8 @@ class LocalDataManager(DataManager, DataAccessor):
         self.checkBeforeOperator(other)
         for name in self.valuesDouble:
             self.valuesDouble[name] -= other.valuesDouble[name]
-        for name in self.fieldsDouble:
-            self.fieldsDouble[name].getArray().substractEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name, field in self.fieldsDouble.items():
+            field.getArray().substractEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
         return self
 
     def __mul__(self, scalar):
@@ -196,10 +196,10 @@ class LocalDataManager(DataManager, DataAccessor):
         @return a new (consistent with self) LocalDataManager where the data are multiplied by scalar.
         """
         newData = self.cloneEmpty()
-        for name in self.valuesDouble:
-            newData.valuesDouble[name] = scalar * self.valuesDouble[name]
-        for name in self.fieldsDouble:
-            newData.fieldsDouble[name] = scalar * self.fieldsDouble[name]
+        for name, value in self.valuesDouble.items():
+            newData.valuesDouble[name] = scalar * value
+        for name, field in self.fieldsDouble.items():
+            newData.fieldsDouble[name] = scalar * field
         return newData
 
     def __imul__(self, scalar):
@@ -250,13 +250,13 @@ class LocalDataManager(DataManager, DataAccessor):
         """
         self.checkBeforeOperator(other)
         result = 0.
-        for name in self.valuesDouble:
-            result += self.valuesDouble[name] * other.valuesDouble[name]
-        for name in self.fieldsDouble:
-            nparr1 = self.fieldsDouble[name].getArray().toNumPyArray()
+        for name, value in self.valuesDouble.items():
+            result += value * other.valuesDouble[name]
+        for name, field in self.fieldsDouble.items():
+            nparr1 = field.getArray().toNumPyArray()
             nparr2 = other.fieldsDouble[name].getArray().toNumPyArray()
             dim = 1
-            if self.fieldsDouble[name].getArray().getNumberOfComponents() > 1:
+            if field.getArray().getNumberOfComponents() > 1:
                 dim = 2
             result += numpy.tensordot(nparr1, nparr2, dim)
         return result

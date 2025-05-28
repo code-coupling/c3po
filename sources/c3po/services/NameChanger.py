@@ -112,7 +112,7 @@ class NameChanger(PhysicsDriverWrapper):
         """ INTERNAL """
         newNames = [newName for revNames in [   # liste de listes -> liste.
             self._getNewName(name, variableType=variableType, inverse=True) for name in names]
-            for newName in revNames]  # pylint: disable=bad-continuation
+            for newName in revNames]
         if not self._exclusive:
             newNames += [name for name in names if name not in newNames]
         return newNames

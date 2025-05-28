@@ -44,7 +44,7 @@ class CATHARE2Driver(C2, PhysicsDriver):
         self.io = 0
         self._timeShift = 0.
         self._stationaryMode = False
-        self._dt=-1
+        self._dt = -1
 
     def getMEDCouplingMajorVersion(self):
         return mc.MEDCouplingVersionMajMinRel()[0]
@@ -56,8 +56,8 @@ class CATHARE2Driver(C2, PhysicsDriver):
         return C2.solveTimeStep(self)
 
     def computeTimeStep(self):
-        dt,stop = C2.computeTimeStep(self)
-        return dt,stop
+        dt, stop = C2.computeTimeStep(self)
+        return dt, stop
 
     def initTimeStep(self, dt):
         self._dt = dt
@@ -107,7 +107,7 @@ class CATHARE2Driver(C2, PhysicsDriver):
         return C2.getValue(name)
 
     def setInputDoubleValue(self, name, value):
-        return C2.setValue(name,value)
+        return C2.setValue(name, value)
 
     def post(self):
         """! INTERNAL """
