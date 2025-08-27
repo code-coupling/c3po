@@ -1,0 +1,13 @@
+/* Casse les longues lignes dans la barre latérale du thème classic */
+div.sphinxsidebarwrapper a {
+    white-space: normal !important;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    display: block;
+}
+
+/* Optionnel : éviter que les blocs dépassent */
+div.sphinxsidebarwrapper li {
+    max-width: 120%;
+    overflow: hidden;
+}

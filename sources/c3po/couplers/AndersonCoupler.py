@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class AndersonCoupler. """
+""" Contain the class :class:`.AndersonCoupler`. """
 from __future__ import print_function, division
 import math
 import numpy as np
@@ -19,9 +19,12 @@ from c3po.services.Printer import Printer
 
 
 def deleteQRColumn(matrixQ, matrixR, dataTemp):
-    """! INTERNAL
+    """ INTERNAL
 
-    Return a new QR decomposition after deletion of one column.
+    Returns
+    -------
+
+        A new QR decomposition after deletion of one column.
     """
     dim = matrixR.shape[0]
     for i in range(dim - 1):
@@ -45,41 +48,59 @@ def deleteQRColumn(matrixQ, matrixR, dataTemp):
 
 
 class AndersonCoupler(Coupler):
-    """! AndersonCoupler inherits from Coupler and proposes a fixed point algorithm with Anderson acceleration. A QR decomposition is used for the optimization problem.
+    """ :class:`.AndersonCoupler` inherits from :class:`.Coupler` and proposes a fixed point
+    algorithm with Anderson acceleration.
 
-    The class proposes an algorithm for the resolution of F(X) = X. Thus AndersonCoupler is a Coupler working with :
+    A QR decomposition is used for the optimization problem.
 
-    - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
-    - A list of DataManager allowing to manipulate the data in the coupling (the X).
-    - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+    The class proposes an algorithm for the resolution of :math:`F(X) = X`. Thus
+    :class:`.AndersonCoupler` is a :class:`.Coupler` working with :
 
-    Each DataManager is normalized with its own norm got after the first iteration.
-    They are then used as a single DataManager using CollaborativeDataManager.
+    - A single :class:`.PhysicsDriver` (possibly a :class:`.Coupler`) defining the calculations to
+      be made each time :math:`F` is called.
+    - A list of :class:`.DataManager` allowing to manipulate the data in the coupling (the :math:`X`).
+    - Two :class:`.Exchanger` allowing to go from the :class:`.PhysicsDriver` to the
+      :class:`.DataManager` and vice versa.
 
-    The first two iterations just do (with n the iteration number):
+    Each :class:`.DataManager` is normalized with its own norm got after the first iteration.
+    They are then used as a single :class:`.DataManager` using :class:`.CollaborativeDataManager`.
+
+    The first two iterations just do (with :math:`n` the iteration number):
+    
+    .. math::
 
         X^{n+1} = F(X^{n})
 
-    Then the Anderson acceleration starts and computes X^{n+1} as a linear combination of [alpha * F(X^{n-i}) + (1. - alpha) * X^{n-i}].
+    Then the Anderson acceleration starts and computes :math:`X^{n+1}` as a linear combination of
+    :math:`[\\alpha.F(X^{n-i}) + (1. - \\alpha).X^{n-i}]`.
 
-    alpha, the relative fraction of F(X^{n-i}) and X^{n-i} can be set with setAndersonDampingFactor(). Default value is 1 (only F(X^{n-i})).
+    :math:`\\alpha`, the relative fraction of :math:`F(X^{n-i})` and :math:`X^{n-i}` can be set with
+    :meth:`setAndersonDampingFactor`. Default value is 1 (only :math:`F(X^{n-i})`).
 
-    The default order (number of previous states considered) is 2. Call setOrder() to change it.
+    The default order (number of previous states considered) is 2. Call :meth:`setOrder` to change it.
 
-    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < tolerance. The default norm used is the infinite norm. Coupler.setNormChoice() allows to choose another one.
+    The convergence criteria is : :math:`||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < \\rm{tolerance}`. The default
+    norm used is the infinite norm. :meth:`.Coupler.setNormChoice` allows to choose another one.
 
-    The default value of tolerance is 1.E-6. Call setConvergenceParameters() to change it.
+    The default value of tolerance is 1.E-6. Call :meth:`setConvergenceParameters` to change it.
 
-    The default maximum number of iterations is 100. Call setConvergenceParameters() to change it.
+    The default maximum number of iterations is 100. Call :meth:`setConvergenceParameters` to
+    change it.
 
     """
 
     def __init__(self, physics, exchangers, dataManagers):
-        """! Build a AndersonCoupler object.
+        """ Build a :class:`.AndersonCoupler` object.
 
-        @param physics list of only one PhysicsDriver (possibly a Coupler).
-        @param exchangers list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
-        @param dataManagers list of DataManager.
+        Parameters
+        ----------
+        physics : list[PhysicsDriver], list[Coupler]
+            List of only one :class:`.PhysicsDriver` (possibly a :class:`.Coupler`).
+        exchangers : list[Exchanger]
+            List of exactly two :class:`.Exchanger` allowing to go from the :class:`.PhysicsDriver`
+            to the :class:`.DataManager` and vice versa.
+        dataManagers : list[DataManager]
+            List of :class:`.DataManager`.
         """
         Coupler.__init__(self, physics, exchangers, dataManagers)
         self._tolerance = 1.E-6
@@ -97,54 +118,74 @@ class AndersonCoupler(Coupler):
             raise Exception("AndersonCoupler.__init__ There must be exactly two Exchanger")
 
     def setConvergenceParameters(self, tolerance, maxiter):
-        """! Set the convergence parameters (tolerance and maximum number of iterations).
+        """ Set the convergence parameters (``tolerance`` and maximum number of iterations).
 
-        @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
-        @param maxiter the maximal number of iterations.
+        Parameters
+        ----------
+        tolerance
+            The convergence threshold in
+            :math:`||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < \\rm{tolerance}`.
+        maxiter
+            The maximal number of iterations.
         """
         self._tolerance = tolerance
         self._maxiter = maxiter
 
     def setAndersonDampingFactor(self, andersonDampingFactor):
-        """! Set the damping factor of the method, the relative contribution of F(X^{k}) and X^{k} on the calculation of next step.
+        """ Set the damping factor of the method, the relative contribution of :math:`F(X^{k})` and
+        :math:`X^{k}` on the calculation of next step.
 
-        @param andersonDampingFactor the damping factor alpha in the formula alpha * F(X^{n-i}) + (1. - alpha) * X^{n-i}.
+        Parameters
+        ----------
+        andersonDampingFactor
+            The damping factor :math:`\\alpha` in the formula
+            :math:`\\alpha.F(X^{n-i}) + (1. - \\alpha).X^{n-i}`.
         """
         if andersonDampingFactor <= 0 or andersonDampingFactor > 1:
             raise Exception("AndersonCoupler.setAndersonDampingFactor Set a damping factor > 0 and <=1 !")
         self._andersonDampingFactor = andersonDampingFactor
 
     def setOrder(self, order):
-        """! Set the order of the method.
+        """ Set the order of the method.
 
-        @param order order of Anderson method. This is also the number of previous states stored by the algorithm.
+        Parameters
+        ----------
+        order
+            Order of Anderson method. This is also the number of previous states stored by the algorithm.
         """
         if order <= 0:
             raise Exception("AndersonCoupler.setOrder Set an order > 0 !")
         self._order = order
 
     def setPrintLevel(self, level):
-        """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
+        """ Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
 
-        @param level integer in range [0;2]. Default: 2.
+        Parameters
+        ----------
+        level : int
+            Integer in range ``[0;2]``. Default: 2.
         """
         if not level in [0, 1, 2]:
             raise Exception("AndersonCoupler.setPrintLevel level should be one of [0, 1, 2]!")
         self._iterationPrinter.setPrintLevel(level)
 
     def setFailureManagement(self, leaveIfSolvingFailed):
-        """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
+        """ Set if iterations should continue or not in case of solver failure
+        (:meth:`solveTimeStep` returns False).
 
-        @param leaveIfSolvingFailed set False to continue the iterations, True to stop. Default: False.
+        Parameters
+        ----------
+        leaveIfSolvingFailed : bool
+            Set False to continue the iterations, True to stop. Default: False.
         """
         self._leaveIfFailed = leaveIfSolvingFailed
 
     def solveTimeStep(self):
-        """! Solve a time step using the fixed point algorithm with Anderson acceleration.
+        """ Solve a time step using the fixed point algorithm with Anderson acceleration.
 
         Inspire de Homer Walker (walker@wpi.edu), 10/14/2011.
 
-        See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
+        See also :meth:`c3po.PhysicsDriver.PhysicsDriver.solveTimeStep`.
         """
         physics = self._physicsDrivers[0]
         physics2Data = self._exchangers[0]

@@ -1,0 +1,14 @@
+{#
+    COMMENT :
+    ---------
+    Création du menu principal de C3PO.
+    Génère une table des matières de tous les packages et modules de C3PO.
+#}
+Packages and modules
+====================
+
+.. toctree::
+   :maxdepth: 1
+{% for docname in docnames %}
+   {{ docname }}
+{%- endfor %}

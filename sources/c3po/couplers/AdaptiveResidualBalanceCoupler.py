@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the class AdaptiveResidualBalanceCoupler. """
+""" Contains the class :class:`.AdaptiveResidualBalanceCoupler`. """
 from __future__ import print_function, division
 
 from c3po.PhysicsDriver import PhysicsDriver
@@ -18,42 +18,67 @@ from c3po.services.Printer import Printer
 
 
 class AdaptiveResidualBalanceCoupler(Coupler):
-    """! AdaptiveResidualBalanceCoupler inherits from Coupler and proposes a adaptive residual balance algorithm.
+    """ :class:`.AdaptiveResidualBalanceCoupler` inherits from :class:`.Coupler` and proposes a
+    adaptive residual balance algorithm.
 
-    This algorithm is designed to coupled two solvers using an iterative procedure.
-    It controls the accuracy required to each solver in order to limit over-solving and make them converge together.
+    This algorithm is designed to coupled two solvers using an iterative procedure. It controls the
+    accuracy required to each solver in order to limit over-solving and make them converge together.
 
-    See Senecal J. "Development of an efficient tightly coupled method for multiphysics reactor transient analysis" for details (for instance: https://www.sciencedirect.com/science/article/pii/S0149197017302676).
+    See Senecal J. "Development of an efficient tightly coupled method for multiphysics reactor
+    transient analysis" for details (for instance: https://www.sciencedirect.com/science/article/pii/S0149197017302676).
 
-    AdaptiveResidualBalanceCoupler works with :
+    :class:`.AdaptiveResidualBalanceCoupler` works with :
 
-    - Two PhysicsDriver, one for each solver. They must implement the iterateTimeStep() method, together with the possibilities to get residual and set target accuracy.
-    - Four Exchanger: two for exchanges between the PhysicsDriver, and two to get residuals.
-    - One LocalDataManager (not just a DataManager) which contains the residuals got with the last two exchangers.
+    - Two :class:`.PhysicsDriver`, one for each solver. They must implement the
+      :meth:`iterateTimeStep` method, together with the possibilities to get residual and set
+      target accuracy.
+    - Four :class:`.Exchanger`: two for exchanges between the :class:`.PhysicsDriver`, and two to
+      get residuals.
+    - One :class:`.LocalDataManager` (not just a :class:`.DataManager`) which contains the
+      residuals got with the last two exchangers.
 
-    @note Two Exchanger and a DataManager are used to access the residuals in order to support all possible MPI schemes.
+    .. note::
+    
+        Two :class:`.Exchanger` and a :class:`.DataManager` are used to access the residuals in
+        order to support all possible MPI schemes.
 
-    The default target accuracies are 1e-4 and the default maximum number of iterations is 100. Use setConvergenceParameters() to change these values.
+    The default target accuracies are 1e-4 and the default maximum number of iterations is 100. Use
+    :meth:`setConvergenceParameters` to change these values.
 
-    The algorithm takes one parameter per solver, called initial convergence rate. They are set to 0.1 by default. Use setConvRateInit() to change them.
+    The algorithm takes one parameter per solver, called initial convergence rate. They are set
+    to 0.1 by default. Use :meth:`setConvRateInit` to change them.
 
-    It may be interesting to use a FixedPointCoupler to add a damping factor and to control the coupling error.
+    It may be interesting to use a :class:`.FixedPointCoupler` to add a damping factor and to
+    control the coupling error.
 
     In this case :
 
-    - The option setUseIterate(True) of FixedPointCoupler must be used.
-    - The maximal number of iterations provided to AdaptiveResidualBalanceCoupler.setTargetResiduals() is ignored.
-    - The exchanger '2to1' is also probably redondant with the FixedPointCoupler exchangers and, in this case, can be set to do nothing.
+    - The option ``setUseIterate(True)`` of :class:`.FixedPointCoupler` must be used.
+    - The maximal number of iterations provided to
+      ``AdaptiveResidualBalanceCoupler.setTargetResiduals`` is ignored.
+    - The exchanger '2to1' is also probably redondant with the :class:`.FixedPointCoupler`
+      exchangers and, in this case, can be set to do nothing.
     """
 
     def __init__(self, physics, exchangers, dataManagers):
-        """! Build a AdaptiveResidualBalanceCoupler object.
+        """ Build a :class:`.AdaptiveResidualBalanceCoupler` object.
 
-        @param physics list (or dict with keys ['Solver1', 'Solver2']) of two PhysicsDriver. If a list is used, it has to be provided in the same order than the keys here.
-            The provided PhysicsDriver must implement the iterateTimeStep() method (together with solveTimeStep()) and accept new accuracy (for the solveTimeStep() method) through setInputDoubleValue('Accuracy', value).
-        @param exchangers list (or dict with keys ['1to2', '2to1', 'Residual1', 'Residual2']) of four Exchanger. If a list is used, it has to be provided in the same order than the keys here.
-        @param dataManagers list (or dict with keys ['Residuals']) of one LocalDataManager (not just a DataManager).
-            The residuals must be stored in this DataManager as double values under the names 'Residual1' and 'Residual2'.
+        Parameters
+        ----------
+        physics : list, dict
+            List (or dict with keys ``['Solver1', 'Solver2']``) of two :class:`.PhysicsDriver`.
+            If a list is used, it has to be provided in the same order than the keys here. The provided
+            :class:`.PhysicsDriver` must implement the :meth:`iterateTimeStep` method (together with
+            :meth:`solveTimeStep`) and accept new accuracy (for the :meth:`solveTimeStep` method)
+            through ``setInputDoubleValue('Accuracy', value)``.
+        exchangers : list, dict
+            List (or dict with keys ``['1to2', '2to1', 'Residual1', 'Residual2']``) of four
+            :class:`.Exchanger`. If a list is used, it has to be provided in the same order than
+            the keys here.
+        dataManagers : list, dict
+            List (or dict with keys ``['Residuals']``) of one :class:`.LocalDataManager` (not just
+            a :class:`.DataManager`). The residuals must be stored in this :class:`.DataManager` as
+            double values under the names ``'Residual1'`` and ``'Residual2'``.
         """
         Coupler.__init__(self, physics, exchangers, dataManagers)
 
@@ -122,43 +147,60 @@ class AdaptiveResidualBalanceCoupler(Coupler):
         self._maxiter = 100
 
     def setConvergenceParameters(self, targetResidualSolver1, targetResidualSolver2, maxiter):
-        """! Set the convergence parameters (target residuals for each solver and maximum number of iterations).
+        """ Set the convergence parameters (target residuals for each solver and maximum number of
+        iterations).
 
-        @param targetResidualSolver1 target residual for solver 1. Default value: 1.E-4.
-        @param targetResidualSolver2 target residual for solver 2. Default value: 1.E-4.
-        @param maxiter the maximal number of iterations. Default value: 100.
+        Parameters
+        ----------
+        targetResidualSolver1
+            Target residual for solver 1. Default value: 1.E-4.
+        targetResidualSolver2
+            Target residual for solver 2. Default value: 1.E-4.
+        maxiter
+            The maximal number of iterations. Default value: 100.
         """
         self._epsSolver1Ref = targetResidualSolver1
         self._epsSolver2Ref = targetResidualSolver2
         self._maxiter = maxiter
 
     def setConvRateInit(self, convRateSolver1Initial, convRateSolver2Initial):
-        """! Set the initial convergence rates.
+        """ Set the initial convergence rates.
 
-        @param convRateSolver1Initial initial convergence rate for solver 1. Default value: 0.1
-        @param convRateSolver2Initial initial convergence rate for solver 2. Default value: 0.1
+        Parameters
+        ----------
+        convRateSolver1Initial
+            Initial convergence rate for solver 1. Default value: 0.1
+        convRateSolver2Initial
+            Initial convergence rate for solver 2. Default value: 0.1
         """
         self._convRateSolver1Initial = convRateSolver1Initial
         self._convRateSolver2Initial = convRateSolver2Initial
 
     def setPrintLevel(self, level):
-        """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
+        """ Set the print level during iterations (``0=None``, 1 keeps last iteration, 2 prints every iteration).
 
-        @param level integer in range [0;2]. Default: 2.
+        Parameters
+        ----------
+        level : int
+            Integer in range [0;2]. Default: 2.
         """
         if not level in [0, 1, 2]:
             raise Exception("AdaptiveResidualBalanceCoupler.setPrintLevel level should be one of [0, 1, 2]!")
         self._iterationPrinter.setPrintLevel(level)
 
     def setFailureManagement(self, leaveIfSolvingFailed):
-        """! Set if iterations should continue or not in case of solver failure (solveTimeStep returns False).
+        """ Set if iterations should continue or not in case of solver failure
+        (:meth:`solveTimeStep` returns False).
 
-        @param leaveIfSolvingFailed set False to continue the iterations, True to stop. Default: False.
+        Parameters
+        ----------
+        leaveIfSolvingFailed : bool
+            Set False to continue the iterations, True to stop. Default: False.
         """
         self._leaveIfFailed = leaveIfSolvingFailed
 
     def solveTimeStep(self):
-        """! See c3po.PhysicsDriver.PhysicsDriver.solveTimeStep(). """
+        """ See :meth:`c3po.PhysicsDriver.PhysicsDriver.solveTimeStep`. """
         converged = False
         succeed = True
 
@@ -172,7 +214,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
         return succeed and converged
 
     def iterateTimeStep(self):
-        """! See c3po.PhysicsDriver.PhysicsDriver.iterateTimeStep(). """
+        """ See :meth:`c3po.PhysicsDriver.PhysicsDriver.iterateTimeStep`. """
 
         converged = False
 
@@ -299,14 +341,14 @@ class AdaptiveResidualBalanceCoupler(Coupler):
         return succeed, converged
 
     def getIterateStatus(self):
-        """! See c3po.PhysicsDriver.PhysicsDriver.getSolveStatus(). """
+        """ See :meth:`c3po.PhysicsDriver.PhysicsDriver.getSolveStatus`. """
         return PhysicsDriver.getIterateStatus(self)
 
     def getSolveStatus(self):
-        """! See c3po.PhysicsDriver.PhysicsDriver.getSolveStatus(). """
+        """ See :meth:`c3po.PhysicsDriver.PhysicsDriver.getSolveStatus`. """
         return PhysicsDriver.getSolveStatus(self)
 
     def initTimeStep(self, dt):
-        """! See c3po.PhysicsDriver.PhysicsDriver.initTimeStep().  """
+        """ See :meth:`c3po.PhysicsDriver.PhysicsDriver.initTimeStep`.  """
         self._iter = 0
         return Coupler.initTimeStep(self, dt)

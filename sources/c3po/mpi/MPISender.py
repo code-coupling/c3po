@@ -8,8 +8,8 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the classes MPIFieldSender, MPIFileFieldSender and MPIValueSender.
-These classes send data to another process.
+""" Contain the classes :class:`.MPIFieldSender`, :class:`.MPIFileFieldSender` and
+:class:`.MPIValueSender`. These classes send data to another process.
 """
 from __future__ import print_function, division
 import os
@@ -22,7 +22,7 @@ from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
 
 
 class MPIFieldSender(object):
-    """! INTERNAL """
+    """ INTERNAL """
 
     def __init__(self, destinations, dataAccess, storing, isTemplate):
         self._destinations = destinations
@@ -32,7 +32,7 @@ class MPIFieldSender(object):
         self._isFirstSend = True
 
     def exchange(self):
-        """! INTERNAL """
+        """ INTERNAL """
         field = 0
         if self._isTemplate:
             field = self._dataAccess.getFieldTemplate()
@@ -55,13 +55,13 @@ class MPIFieldSender(object):
         self._storing.store(field)
 
     def clean(self):
-        """! INTERNAL """
+        """ INTERNAL """
         self._dataAccess.clean()
         self._isFirstSend = True
 
 
 class MPIFileFieldSender(object):
-    """! INTERNAL """
+    """ INTERNAL """
 
     def __init__(self, destinations, dataAccess, storing, isTemplate):
         self._destinations = destinations
@@ -72,7 +72,7 @@ class MPIFileFieldSender(object):
         self._fileName = None
 
     def exchange(self):
-        """! INTERNAL """
+        """ INTERNAL """
         field = 0
         if self._isTemplate:
             field = self._dataAccess.getFieldTemplate()
@@ -117,14 +117,14 @@ class MPIFileFieldSender(object):
         self._storing.store(field)
 
     def clean(self):
-        """! INTERNAL """
+        """ INTERNAL """
         self._dataAccess.clean()
         self._isFirstSend = True
         self._fileName = None
 
 
 class MPIValueSender(object):
-    """! INTERNAL """
+    """ INTERNAL """
 
     def __init__(self, destinations, dataAccess, storing):
         self._destinations = destinations
@@ -132,7 +132,7 @@ class MPIValueSender(object):
         self._storing = storing
 
     def exchange(self):
-        """! INTERNAL """
+        """ INTERNAL """
         value = self._dataAccess.get()
         for destination in self._destinations:
             mpiComm = destination.mpiComm

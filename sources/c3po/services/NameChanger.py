@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class wrapper nameChanger. """
+""" Contain the class wrapper :class:`.NameChanger`. """
 from __future__ import print_function, division
 from types import FunctionType
 
@@ -17,25 +17,40 @@ from c3po.services.Printer import warning
 
 
 class NameChanger(PhysicsDriverWrapper):
-    """! NameChanger wraps a PhysicsDriver object and changes the names of the values and fields quantities that can be get/set through ICoCo methods.
+    """ :class:`.NameChanger` wraps a :class:`.PhysicsDriver` object and changes the names of the
+    values and fields quantities that can be get/set through ICoCo methods.
 
-    This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
+    This allows to improve the genericity of coupling scripts by using generic variable names
+    without modifying the :class:`.PhysicsDriver` "by hand".
     """
 
     def __init__(self, physics, nameMappingValue={}, nameMappingField={}, wildcard=None, exclusive=False):
-        """! Build a NameChanger object.
+        """ Build a :class:`.NameChanger` object.
 
-        @param physics the PhysicsDriver to wrap.
-        @param nameMappingValue a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code) for values.
-            Names that are not in this mapping dictionary can still be used if exclusive=False.
-        @param nameMappingField a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code) for fields.
-            Names that are not in this mapping dictionary can still be used if exclusive=False.
-        @param wildcard a Python string. If both new and old names terminate by this wildcard (a wildcard in the middle of the names is not taken into account),
-            nameChanger will substitute only the preceding part. For example : c3po.NameChanger(nameMappingValue={"newName*" : "oldName*"}, wildcard="*") will substitute
-            newNameA05 in oldNameA05 and newNameB9 in oldNameB9.
-        @param exclusive set True to limit available names to the ones provided in the mapping.
+        .. note::
+        
+            ``nameMappingValue`` and ``nameMappingField`` are copied.
 
-        @note nameMappingValue and nameMappingField are copied.
+        Parameters
+        ----------
+        physics : PhysicsDriver
+            The :class:`.PhysicsDriver` to wrap.
+        nameMappingValue : dict
+            A Python dictionary with the mapping from the new names (the generic ones) to the old
+            ones (the names used by the code) for values. Names that are not in this mapping
+            dictionary can still be used if ``exclusive=False``.
+        nameMappingField : dict
+            A Python dictionary with the mapping from the new names (the generic ones) to the old
+            ones (the names used by the code) for fields. Names that are not in this mapping
+            dictionary can still be used if ``exclusive=False``.
+        wildcard : str
+            A Python string. If both new and old names terminate by this wildcard (a wildcard in
+            the middle of the names is not taken into account), :class:`.NameChanger` will
+            substitute only the preceding part. For example :
+            ``c3po.NameChanger(nameMappingValue={"newName*" : "oldName*"}, wildcard="*")`` will
+            substitute ``newNameA05`` in ``oldNameA05`` and ``newNameB9`` in ``oldNameB9``.
+        exclusive : bool
+            Set True to limit available names to the ones provided in the mapping.
         """
 
         PhysicsDriverWrapper.__init__(self, physics)
@@ -60,29 +75,49 @@ class NameChanger(PhysicsDriverWrapper):
                     self._invertNameMapping[variableType][val].append(key)
 
     def updateNameMappingValue(self, nameMappingValue, variableTypes=(0, 1)):
-        """! Update (with the update() method of dict) the dictionary nameMappingValue previously provided.
+        """ Update (with the ``update()`` method of ``dict``) the dictionary ``nameMappingValue`` previously
+        provided.
 
-        @param nameMappingValue the Python dictionary used for the update.
-        @param variableTypes list which values are 0 (for output) and/or 1 for input.
+        Parameters
+        ----------
+        nameMappingValue : dict
+            The Python dictionary used for the update.
+        variableTypes : list
+            List which values are 0 (for output) and/or 1 for input.
         """
         self._updateNameMapping(nameMappingValue, variableTypes)
 
     def updateNameMappingField(self, nameMappingField, variableTypes=(0, 1)):
-        """! Update (with the update() method of dict) the dictionary nameMappingField previously provided.
+        """ Update (with the ``update()`` method of ``dict``) the dictionary ``nameMappingField``
+        previously provided.
 
-        @param nameMappingField the Python dictionary used for the update.
-        @param variableTypes list which values are 0 (for output) and/or 1 for input.
+        Parameters
+        ----------
+        nameMappingField : dict
+            The Python dictionary used for the update.
+        variableTypes : list
+            List which values are 0 (for output) and/or 1 for input.
         """
         self._updateNameMapping(nameMappingField, [v + 2 for v in variableTypes])
 
     def _getNewName(self, name, variableType, inverse):
-        """! Return the change name(s).
+        """ Return the change name(s).
 
-        @param name (string) previous name.
-        @param variableType put 0 (self._valueO) if name is the name of an output value, 1 (self._valueI) if name is the name of an input value, 2 (self._field0) if it is the name of an output field, 3 (self._fieldI) if it is the name of an input field.
-        @param inverse True to inverse research (old -> new), False to direct (new -> old).
+        Parameters
+        ----------
+        name : str
+            Previous name.
+        variableType
+            Put 0 (``self._valueO``) if name is the name of an output value, 1 (``self._valueI``)
+            if name is the name of an input value, 2 (``self._field0``) if it is the name of an
+            output field, 3 (``self._fieldI``) if it is the name of an input field.
+        inverse : bool
+            True to inverse research (``old -> new``), False to direct (``new -> old``).
 
-        @return the list of new names if inverse, and the single old name otherwise.
+        Returns
+        -------
+        list
+            The list of new names if inverse, and the single old name otherwise.
         """
         dictionary = (self._invertNameMapping if inverse else self._nameMapping)[variableType]
 
@@ -135,96 +170,96 @@ class NameChanger(PhysicsDriverWrapper):
                 raise ValueError("name='{name}' seems not to be available here. We received the following error messages from {} method from wrapped PhysicsDriver (we try with {name} as an input first, than as an output): \n {} \n and: {}".format(method.__name__, error1, error2, name=name))
 
     def getInputFieldsNames(self):
-        """! See c3po.DataAccessor.DataAccessor.getInputFieldsNames(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getInputFieldsNames`. """
         return self._getIONames(self._physics.getInputFieldsNames(), self._fieldI)
 
     def getOutputFieldsNames(self):
-        """! See c3po.DataAccessor.DataAccessor.getOutputFieldsNames(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getOutputFieldsNames`. """
         return self._getIONames(self._physics.getOutputFieldsNames(), self._fieldO)
 
     def getFieldType(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getFieldType(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getFieldType`. """
         return self._getInfo(self._physics.getFieldType, False, name)
 
     def getFieldUnit(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getFieldUnit(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getFieldUnit`. """
         return self._getInfo(self._physics.getFieldUnit, False, name)
 
     def getInputMEDDoubleFieldTemplate(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getInputMEDDoubleFieldTemplate(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getInputMEDDoubleFieldTemplate`. """
         return self._physics.getInputMEDDoubleFieldTemplate(self._getNewName(name, variableType=self._fieldI, inverse=False))
 
     def setInputMEDDoubleField(self, name, field):
-        """! See c3po.DataAccessor.DataAccessor.setInputMEDDoubleField(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.setInputMEDDoubleField`. """
         self._physics.setInputMEDDoubleField(self._getNewName(name, variableType=self._fieldI, inverse=False), field)
 
     def getOutputMEDDoubleField(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getOutputMEDDoubleField(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getOutputMEDDoubleField`. """
         return self._physics.getOutputMEDDoubleField(self._getNewName(name, variableType=self._fieldO, inverse=False))
 
     def updateOutputMEDDoubleField(self, name, field):
-        """! See c3po.DataAccessor.DataAccessor.updateOutputMEDDoubleField(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.updateOutputMEDDoubleField`. """
         return self._physics.updateOutputMEDDoubleField(self._getNewName(name, variableType=self._fieldO, inverse=False), field)
 
     def getInputMEDIntFieldTemplate(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getInputMEDIntFieldTemplate(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getInputMEDIntFieldTemplate`. """
         return self._physics.getInputMEDIntFieldTemplate(self._getNewName(name, variableType=self._fieldI, inverse=False))
 
     def setInputMEDIntField(self, name, field):
-        """! See c3po.DataAccessor.DataAccessor.setInputMEDIntField(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.setInputMEDIntField`. """
         self._physics.setInputMEDIntField(self._getNewName(name, variableType=self._fieldI, inverse=False), field)
 
     def getOutputMEDIntField(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getOutputMEDIntField(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getOutputMEDIntField`. """
         return self._physics.getOutputMEDIntField(self._getNewName(name, variableType=self._fieldO, inverse=False))
 
     def updateOutputMEDIntField(self, name, field):
-        """! See c3po.DataAccessor.DataAccessor.updateOutputMEDIntField(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.updateOutputMEDIntField`. """
         return self._physics.updateOutputMEDIntField(self._getNewName(name, variableType=self._fieldO, inverse=False), field)
 
     def getInputValuesNames(self):
-        """! See c3po.DataAccessor.DataAccessor.getInputValuesNames(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getInputValuesNames`. """
         return self._getIONames(self._physics.getInputValuesNames(), self._valueI)
 
     def getOutputValuesNames(self):
-        """! See c3po.DataAccessor.DataAccessor.getOutputValuesNames(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getOutputValuesNames`. """
         return self._getIONames(self._physics.getOutputValuesNames(), self._valueO)
 
     def getValueType(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getValueType(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getValueType`. """
         return self._getInfo(self._physics.getValueType, True, name)
 
     def getValueUnit(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getValueUnit(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getValueUnit`. """
         return self._getInfo(self._physics.getValueUnit, True, name)
 
     def setInputDoubleValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.setInputDoubleValue`. """
         self._physics.setInputDoubleValue(self._getNewName(name, variableType=self._valueI, inverse=False), value)
 
     def getOutputDoubleValue(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getOutputDoubleValue(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getOutputDoubleValue`. """
         return self._physics.getOutputDoubleValue(self._getNewName(name, variableType=self._valueO, inverse=False))
 
     def setInputIntValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setInputIntValue(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.setInputIntValue`. """
         self._physics.setInputIntValue(self._getNewName(name, variableType=self._valueI, inverse=False), value)
 
     def getOutputIntValue(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getOutputIntValue(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getOutputIntValue`. """
         return self._physics.getOutputIntValue(self._getNewName(name, variableType=self._valueO, inverse=False))
 
     def setInputStringValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setInputStringValue(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.setInputStringValue`. """
         self._physics.setInputStringValue(self._getNewName(name, variableType=self._valueI, inverse=False), value)
 
     def getOutputStringValue(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getOutputStringValue(). """
+        """ See :meth:`c3po.DataAccessor.DataAccessor.getOutputStringValue`. """
         return self._physics.getOutputStringValue(self._getNewName(name, variableType=self._valueO, inverse=False))
 
 
 class NameChangerMeta(type):
-    """! Metaclass related to the use of nameChanger. """
+    """ Metaclass related to the use of :func:`nameChanger`. """
 
     def __init__(cls, clsname, superclasses, attributedict):
         type.__init__(cls, clsname, superclasses, attributedict)
@@ -232,7 +267,7 @@ class NameChangerMeta(type):
     def __new__(cls, clsname, superclasses, attributedict):
 
         def _getChangedName(self, name):
-            """! INTERNAL """
+            """ INTERNAL """
             if name in self.static_nameMapping:
                 return self.static_nameMapping[name]
             if self.static_wildcard:
@@ -290,23 +325,32 @@ class NameChangerMeta(type):
 
 
 def nameChanger(nameMapping, wildcard=None):
-    """! nameChanger is a class wrapper that allows to change the names of the variables used by the base class (usually a PhysicsDriver).
+    """ :func:`nameChanger` is a class wrapper that allows to change the names of the variables
+    used by the base class (usually a :class:`.PhysicsDriver`).
 
-    This allows to improve the genericity of coupling scripts by using generic variable names without modifying the PhysicsDriver "by hand".
+    This allows to improve the genericity of coupling scripts by using generic variable names
+    without modifying the :class:`.PhysicsDriver` "by hand".
 
     When a method of the base class is called there is two possibilities :
-    1. The call uses a named argument "name" (for example myObject.setInputDoubleValue(name="myName", value=0.)). In this case, the value passed to the argument "name" is modified (if this is a key of nameMapping).
-    2. There is no named argument "name" (for example myObject.setInputDoubleValue("myName", 0.)). In this case, the value of all arguments of type "str" is modified (if the value used is a key of nameMapping).
 
-    In both cases, nothing is done (no error) if the initial value is not in the keys of nameMapping.
+    1. The call uses a named argument "name" (for example
+       ``myObject.setInputDoubleValue(name="myName", value=0.)``). In this case, the value passed to
+       the argument "name" is modified (if this is a key of ``nameMapping``).
+    2. There is no named argument "name" (for example ``myObject.setInputDoubleValue("myName", 0.)``).
+       In this case, the value of all arguments of type "str" is modified (if the value used is a
+       key of ``nameMapping``).
 
-    @param nameMapping a Python dictionary with the mapping from the new names (the generic ones) to the old ones (the names used by the code).
-    @param wildcard a Python string. If both new and old names terminate by this wildcard (a wildcard in the middle of the names is not taken into account), nameChanger will substitute only the preceding part. For example : c3po.nameChanger({"newName*" : "oldName*"}, "*") will substitute newNameA05 in oldNameA05 and newNameB9 in oldNameB9.
+    In both cases, nothing is done (no error) if the initial value is not in the keys of
+    ``nameMapping``.
 
-    The parameters of nameChanger are added to the class ("static" attributes) with the names static_nameMapping and static_wildcard.
-    A new method is also added for internal use: _getChangedName(self, name).
+    The parameters of :func:`nameChanger` are added to the class ("static" attributes) with the
+    names ``static_nameMapping`` and ``static_wildcard``. A new method is also added for internal
+    use: ``_getChangedName(self, name)``.
 
-    nameChanger can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere. For example:
+    :func:`nameChanger` can be used either as a python decorator (where the class is defined) in
+    order to modify the class definition everywhere. For example:
+
+    .. code-block:: python
 
         @c3po.nameChanger({"newName" : "oldName", "newName2*" : "oldName2*"}, "*")
         class MyClass(...):
@@ -314,22 +358,47 @@ def nameChanger(nameMapping, wildcard=None):
 
     or it can be used in order to redefined only locally the class like that:
 
+    .. code-block:: python
+
         MyNewClass = c3po.nameChanger({"newName" : "oldName", "newName2*" : "oldName2*"}, "*")(MyClass)
 
-    afterward "newName" can be used in place of "oldName" everywhere with MyNewClass. "oldName" is still working.
+    afterward "newName" can be used in place of "oldName" everywhere with ``MyNewClass``. "oldName"
+    is still working.
 
-    @note nameMapping is copied.
+    .. note::
 
-    @warning nameChanger looks for ICoCo methods (the methods to implement in order to define a PhysicsDriver) in base classes and redefine
-            them. Other inherited methods are invisible to nameChanger.
-    @warning A class that inherits from a class wrapped by nameChanger will be wrapped as well, with the same parameters.
-            It may be a workaround for the previous warning.
-            The definition of the daughter class ("class Daughter(Mother): ...") must be done after the application of nameChanger on Mother.
-            Otherwise it will result in TypeError when the daughter class will try to call mother methods (since its mother class does
-            not exist anymore!). As a consequence, if nameChanger is to be applied to C3PO classes, it is recommended to change their name
-            "(MyNewClass = c3po.nameChanger(...)(MyClass)").
+        ``nameMapping`` is copied.
 
-    @throw Exception if applied to a class already modified by nameChanger, because it could result in an unexpected behavior.
+    .. warning::
+
+        :func:`nameChanger` looks for ICoCo methods (the methods to implement in order to define a
+        :class:`.PhysicsDriver`) in base classes and redefine them. Other inherited methods are
+        invisible to :func:`nameChanger`.
+
+        A class that inherits from a class wrapped by nameChanger will be wrapped as well, with the
+        same parameters. It may be a workaround for the previous warning. The definition of the
+        daughter class ("``class Daughter(Mother): ...``") must be done after the application of
+        :func:`nameChanger` on Mother. Otherwise it will result in ``TypeError`` when the
+        daughter class will try to call mother methods (since its mother class does not exist
+        anymore!). As a consequence, if :func:`nameChanger` is to be applied to C3PO classes, it
+        is recommended to change their name "(``MyNewClass = c3po.nameChanger(...)(MyClass)``").
+
+    Parameters
+    ----------
+    nameMapping : dict
+        A Python dictionary with the mapping from the new names (the generic ones) to the old ones
+        (the names used by the code).
+    wildcard : str
+        A Python string. If both new and old names terminate by this wildcard (a wildcard in the
+        middle of the names is not taken into account), :func:`nameChanger` will substitute only
+        the preceding part. For example : ``c3po.nameChanger({"newName*" : "oldName*"}, "*")`` will
+        substitute ``newNameA05`` in ``oldNameA05`` and ``newNameB9`` in ``oldNameB9``.
+
+    Raises
+    ------
+    Exception
+        If applied to a class already modified by :func:`nameChanger`, because it could result in
+        an unexpected behavior.
     """
 
     warning("The class wrapper nameChanger is deprecated and will soon by deleted. "

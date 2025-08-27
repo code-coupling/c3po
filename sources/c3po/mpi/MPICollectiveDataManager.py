@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class MPICollectiveDataManager. """
+""" Contain the class :class:`.MPICollectiveDataManager`. """
 from __future__ import print_function, division
 
 from c3po.mpi.MPICollectiveProcess import MPICollectiveProcess
@@ -16,24 +16,33 @@ from c3po.LocalDataManager import LocalDataManager
 
 
 class MPICollectiveDataManager(LocalDataManager, MPICollectiveProcess):
-    """! MPICollectiveDataManager is the MPI collaborative version of the c3po.DataManager.DataManager in which all processes have locally all data.
+    """ :class:`.MPICollectiveDataManager` is the MPI collaborative version of the
+    :class:`.c3po.DataManager.DataManager` in which all processes have locally all data.
 
-    Can replace, without impact, a c3po.LocalDataManager.LocalDataManager for a calculation on a single process, if the MPI environment is available.
+    Can replace, without impact, a :class:`.c3po.LocalDataManager.LocalDataManager` for a calculation
+    on a single process, if the MPI environment is available.
     """
 
     def __init__(self, mpiComm):
-        """! Build a MPICollectiveDataManager object.
+        """ Build a :class:`.MPICollectiveDataManager` object.
 
-        @param mpiComm MPI communicator. It must be shared by all processes involved in the MPICollectiveDataManager (and all
-        processes of this MPI communicator must be involed in the MPICollectiveDataManager).
+        Parameters
+        ----------
+        mpiComm
+            MPI communicator. It must be shared by all processes involved in the
+            :class:`.MPICollectiveDataManager` (and all processes of this MPI communicator must be
+            involed in the :class:`.MPICollectiveDataManager`).
         """
         LocalDataManager.__init__(self)
         MPICollectiveProcess.__init__(self, mpiComm)
 
     def cloneEmpty(self):
-        """! Return a clone of self without copying the data.
+        """ Return a clone of ``self`` without copying the data.
 
-        @return An empty clone of self.
+        Returns
+        -------
+        MPICollectiveDataManager
+            An empty clone of ``self``.
         """
         output = MPICollectiveDataManager(self.mpiComm)
         output.valuesInt = self.valuesInt

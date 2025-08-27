@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class SharedRemappingMulti1D3D. """
+""" Contain the class :class:`.SharedRemappingMulti1D3D`. """
 from __future__ import print_function, division
 
 import c3po.medcouplingCompat as mc
@@ -17,7 +17,7 @@ from c3po.services.Printer import warning
 
 
 def shift1DFields(shiftMap, shiftedFieldPositions, indexTable):
-    """! INTERNAL """
+    """ INTERNAL """
     newFieldPositions = [-1] * len(shiftedFieldPositions)
     availableFields = []
 
@@ -49,10 +49,12 @@ def shift1DFields(shiftMap, shiftedFieldPositions, indexTable):
 
 
 class Multi1D3DRemapper(Remapper):
-    """! Allow to share the mesh projection for different SharedRemappingMulti1D3D objects by building them with the same instance of this class. """
+    """ Allow to share the mesh projection for different :class:`.SharedRemappingMulti1D3D` objects
+    by building them with the same instance of this class.
+    """
 
     def __init__(self, xCoordinates, yCoordinates, indexTable, weights, meshAlignment=False, offset=None, rescaling=1., rotation=0., outsideCellsScreening=False, reverseTransformations=True):
-        """! Build a Multi1D3DRemapper object.
+        """ Build a :class:`.Multi1D3DRemapper` object.
 
         An intermediate inner 3D mesh is built from a 2D grid defined by the parameters.
 
@@ -60,21 +62,40 @@ class Multi1D3DRemapper(Remapper):
 
         Each cell of this 2D grid is associated to a 1D field.
 
-        @param xCoordinates x coordinates of the inner mesh to build.
-        @param yCoordinates y coordinates of the inner mesh to build.
-        @param indexTable For each position of the 2D grid (x coordinate changes first), the index of the 1D field to associate. Put -1 to
-        associate to nothing.
-        @param weights Weigh of each 1D field to take into account for extensive variables.
-        @param meshAlignment see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
-        @param offset see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
-        @param rescaling see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
-        @param rotation see Remapper. The source mesh is the multi1D one and the target mesh the 3D one.
-        @param outsideCellsScreening see Remapper.
-        @param reverseTransformations see Remapper.
+        .. warning::
 
-        @warning There seems to be a bug in MEDCoupling that may cause wrong results when rescaling is used with a source mesh (multi1D) of
-            nature ExtensiveMaximum or IntensiveConservation. In this case, using reverseTransformations=False should be enough to solve
-            the problem.
+            There seems to be a bug in MEDCoupling that may cause wrong results when rescaling is
+            used with a source mesh (:mod:`.multi1D`) of nature ExtensiveMaximum or
+            IntensiveConservation. In this case, using ``reverseTransformations=False`` should be
+            enough to solve the problem.
+
+        Parameters
+        ----------
+        xCoordinates
+            x coordinates of the inner mesh to build.
+        yCoordinates
+            y coordinates of the inner mesh to build.
+        indexTable
+            For each position of the 2D grid (x coordinate changes first), the index of the 1D
+            field to associate. Put -1 to associate to nothing.
+        weights
+            Weigh of each 1D field to take into account for extensive variables.
+        meshAlignment
+            See :class:`.Remapper`. The source mesh is the :mod:`.multi1D` one and the target mesh
+            the 3D one.
+        offset
+            See :class:`.Remapper`. The source mesh is the :mod:`.multi1D` one and the target mesh
+            the 3D one.
+        rescaling
+            See :class:`.Remapper`. The source mesh is the :mod:`.multi1D` one and the target mesh
+            the 3D one.
+        rotation
+            See :class:`.Remapper`. The source mesh is the :mod:`.multi1D` one and the target mesh
+            the 3D one.
+        outsideCellsScreening
+            See :class:`.Remapper`.
+        reverseTransformations
+            See :class:`.Remapper`.
         """
         Remapper.__init__(self, meshAlignment, offset, rescaling, rotation, outsideCellsScreening, reverseTransformations)
         self._indexTable = [[] for _ in range(max(indexTable) + 1)]
@@ -97,7 +118,7 @@ class Multi1D3DRemapper(Remapper):
         self.isInnerFieldBuilt = False
 
     def buildInnerField(self, meshes1D):
-        """! INTERNAL """
+        """ INTERNAL """
         internal1DMeshes = []
         if len(meshes1D) != len(self._indexTable):
             raise Exception("Multi1D3DRemapper.buildInnerField we give " + str(len(meshes1D)) + " 1D meshes instead of " + str(len(self._indexTable)) + ".")
@@ -128,11 +149,11 @@ class Multi1D3DRemapper(Remapper):
         self.isInit = False
 
     def getInnerField(self):
-        """! INTERNAL """
+        """ INTERNAL """
         return self._innerField
 
     def build3DField(self, fields1D, defaultValue=0.):
-        """! INTERNAL """
+        """ INTERNAL """
         resuField = self._innerField.clone(True)
         if len(fields1D) > 0:
             resuField.setNature(fields1D[0].getNature())
@@ -149,7 +170,7 @@ class Multi1D3DRemapper(Remapper):
         return resuField
 
     def build1DFields(self, field3D):
-        """! INTERNAL """
+        """ INTERNAL """
         array3D = field3D.getArray()
         fields1D = []
         indexMin = 0
@@ -176,59 +197,84 @@ class Multi1D3DRemapper(Remapper):
         return fields1D
 
     def getNumberOf1DFields(self):
-        """! INTERNAL """
+        """ INTERNAL """
         return len(self._indexTable)
 
     def shift1DFields(self, shiftMap):
-        """! This method allows to shift the index of the 1D fields provided through the indexTable parameter of constructor.
+        """ This method allows to shift the index of the 1D fields provided through the indexTable
+        parameter of constructor.
 
-        @param shiftMap a list providing for each 1D fields the index (in indexTable) of its new position (-1 can be used to indicate that the field is no more used).
+        For example, ``shiftMap=[3, -1, 1, 2]`` indicates that at first call ``field_0`` goes to
+        position 3, ``field_1`` is discharged, ``field_2`` goes to 1 and ``field_3`` goes to 2. It
+        returns ``[1]``. At the second call with the same input, ``field_0`` (now at position 3)
+        goes to 2, ``field_1`` (at 0) goes to 3, ``field_2`` (at 1) is discharged and ``field_3``
+        (at 2) goes to 1. It returns ``[2]``. The third call returns ``[3]``, the fourth call
+        ``[0]``.
 
-        @return the list of the indexes no more used.
+        Parameters
+        ----------
+        shiftMap : list
+            A list providing for each 1D fields the index (in indexTable) of its new position (-1
+            can be used to indicate that the field is no more used).
 
-        For example, shiftMap=[3, -1, 1, 2] indicates that at first call field_0 goes to position 3, field_1 is discharged, field_2 goes to 1 and field_3 goes to 2. It returns [1].
-        At the second call with the same input, field_0 (now at position 3) goes to 2, field_1 (at 0) goes to 3, field_2 (at 1) is discharged and field_3 (at 2) goes to 1. It returns [2].
-        The thrid call returns [3], the fourth call [0].
+        Returns
+        -------
+        list
+            The list of the indexes no more used.
         """
         availableFields, shiftedFieldPositions, indexTable = shift1DFields(shiftMap, self._shiftedFieldPositions, self._indexTable)
         self.setShiftedIndex(shiftedFieldPositions, indexTable)
         return availableFields
 
     def setShiftedIndex(self, shiftedFieldPositions, indexTable):
-        """ ! INTERNAL """
+        """ INTERNAL """
         self._shiftedFieldPositions = shiftedFieldPositions
         self._indexTable = indexTable
         self.isInnerFieldBuilt = False
 
 
 class SharedRemappingMulti1D3D(SharedRemapping):
-    """! SharedRemappingMulti1D3D is an ExchangeMethod which projects the input fields one by one before returning them as
-    outputs, in the same order.
+    """ :class:`.SharedRemappingMulti1D3D` is an ExchangeMethod which projects the input fields one
+    by one before returning them as outputs, in the same order.
 
-    See c3po.Exchanger.Exchanger.__init__().
+    See :meth:`c3po.Exchanger.Exchanger.__init__`.
 
-    1D fields are processed in packets using the intermediate mesh defined by the Multi1D3DRemapper object.
+    1D fields are processed in packets using the intermediate mesh defined by the
+    :class:`.Multi1D3DRemapper` object.
 
-    The method assumes that all input fields (or packets) have the same mesh, and produces output fields on identical meshes.
+    The method assumes that all input fields (or packets) have the same mesh, and produces output
+    fields on identical meshes.
 
-    This output mesh is the one of the first field (or packet) passed to the method (obtained by getInputMEDFieldTemplate).
+    This output mesh is the one of the first field (or packet) passed to the method (obtained by
+    ``getInputMEDFieldTemplate``).
 
     The input scalars are returned in the same order, without modification.
 
-    The initialization of the projection method (long operation) is done only once, and can be shared with other instances
-    of SharedRemappingMulti1D3D.
+    The initialization of the projection method (long operation) is done only once, and can be
+    shared with other instances of :class:`.SharedRemappingMulti1D3D`.
     """
 
     def __init__(self, remapper, reverse=False, defaultValue=0., linearTransform=(1., 0.)):
-        """! Build a SharedRemappingMulti1D3D object, to be given to an Exchanger.
+        """ Build a :class:`.SharedRemappingMulti1D3D` object, to be given to an :class:`.Exchanger`.
 
-        @param remapper A Multi1D3DRemapper object performing the projection. It can thus be shared with other instances of
-               SharedRemappingMulti1D3D (its initialization will always be done only once).
-        @param reverse see SharedRemapping. Direct is multi1D -> 3D, reverse is 3D -> multi1D.
-        @param defaultValue see SharedRemapping.
-        @param linearTransform see SharedRemapping.
+        .. warning::
+        
+            :class:`.SharedRemappingMulti1D3D` is deprecated and will soon by deleted. Please use
+            :mod:`c3po.multi1D` package instead.
 
-        @warning SharedRemappingMulti1D3D is deprecated and will soon by deleted. Please use c3po.multi1D package instead.
+        Parameters
+        ----------
+        remapper : Multi1D3DRemapper
+            A :class:`.Multi1D3DRemapper` object performing the projection. It can thus be shared
+            with other instances of :class:`.SharedRemappingMulti1D3D` (its initialization will
+            always be done only once).
+        reverse
+            See :class:`.SharedRemapping`. Direct is :mod:`.multi1D` -> 3D, reverse is 3D ->
+            :mod:`.multi1D`.
+        defaultValue
+            See :class:`.SharedRemapping`.
+        linearTransform
+            See :class:`.SharedRemapping`.
         """
         warning("SharedRemappingMulti1D3D is deprecated and will soon by deleted. Please use c3po.multi1D package instead.")
 
@@ -236,7 +282,7 @@ class SharedRemappingMulti1D3D(SharedRemapping):
         self._numberOf1DFields = self._remapper.getNumberOf1DFields()
 
     def __call__(self, fieldsToGet, fieldsToSet, valuesToGet):
-        """! Project the input fields one by one before returning them as outputs, in the same order. """
+        """ Project the input fields one by one before returning them as outputs, in the same order. """
         numberOf3DFields = len(fieldsToGet) if self._isReverse else len(fieldsToSet)
         numberOf1DFields = len(fieldsToSet) if self._isReverse else len(fieldsToGet)
         if numberOf3DFields * self._numberOf1DFields != numberOf1DFields:
@@ -266,11 +312,11 @@ class SharedRemappingMulti1D3D(SharedRemapping):
         return SharedRemapping.__call__(self, intermediate3DField, fieldsToSet, valuesToGet)
 
     def getPatterns(self):
-        """! See ExchangeMethod.getPatterns. """
+        """ See :meth:`.ExchangeMethod.getPatterns`. """
         if self._isReverse:
             return [(1, self._numberOf1DFields, 0, 0), (0, 0, 1, 1)]
         return [(self._numberOf1DFields, 1, 0, 0), (0, 0, 1, 1)]
 
     def clean(self):
-        """! See ExchangeMethod.clean. """
+        """ See :meth:`.ExchangeMethod.clean`. """
         self._remapper.isInnerFieldBuilt = False

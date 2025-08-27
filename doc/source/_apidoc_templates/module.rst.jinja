@@ -1,0 +1,101 @@
+{#
+    COMMENT :
+    ---------
+    Création de l'entête d'un module de C3PO.
+#}
+{%- if show_headings %}
+{{- [basename, "module"] | join(' ') | e | heading }}
+
+{% endif -%}
+{#
+    COMMENT :
+    ---------
+    Exceptions faites sur les diagrammes UML de classe.
+
+    Le module `tracer` ne possède pas de classe. Aucun diagramme ne doit être généré pour ce module.
+
+    Les modules `NameChanger` et `checkScope` possèdent des meta-classes. Pour éviter les erreurs
+    lors de la création des diagrammes de classe, il faut restreindre la taille du diagramme avec
+    l'option `top-classes`.
+#}
+{%- if "c3po.services.tracer" != qualname and "c3po.services.wrapper" != qualname %}
+.. inheritance-diagram:: {{ qualname }}
+{%- if "c3po.services.NameChanger" == qualname or "c3po.raises.checkScope" == qualname %}
+   :top-classes: {{ qualname }}
+{%- else %}
+   :include-subclasses:
+{%- endif %}
+   :parts: 1
+{%- endif %}
+{#
+    COMMENT :
+    ---------
+    Génère automatiquement la documentation du module `qualname`.
+
+    Les méthodes spéciales (encadrées par `__`) listées ci-dessous doivent être visibles dans la
+    documentation du module si elles existent.
+#}
+.. automodule:: {{ qualname }}
+{%- for option in automodule_options %}
+   :{{ option }}:
+{%- endfor %}
+   :special-members: __init__,__add__,__iadd__,__sub__,__isub__,__mul__,__imul__,__call__,__del__,__new__
+{#
+    COMMENT :
+    ---------
+    Cas particuliers : les substitutions
+
+    Si le module `qualname` rempli au moins une condition `if` parmis celles en dessous,
+    alors des substitutions seront écritent à la fin de son fichier `.rst`.
+
+    Syntaxe d'une substitution :
+
+    .. |<MA_SUBSTITUTION>| replace:: <EXPRESSION_A_REMPLACER_LORS_DE_LA_LECTURE>
+
+    Chaque occurence de |<MA_SUBSTITUTION>| dans une docstring du module `qualname` sera
+    remplacée par une expression lors de la génération de la documentation.
+#}
+{% if "c3po.PhysicsDriver" == qualname %}
+.. |PD_setMPIComm| replace:: :meth:`~PhysicsDriver.setMPIComm`
+.. |PD_setDataFile| replace:: :meth:`~PhysicsDriver.setDataFile`
+.. |PD_init| replace:: :meth:`~PhysicsDriver.init`
+.. |PD_getInitStatus| replace:: :meth:`~PhysicsDriver.getInitStatus`
+.. |PD_iterate| replace:: :meth:`~PhysicsDriver.iterate`
+.. |PD_getIterateStatus| replace:: :meth:`~PhysicsDriver.getIterateStatus`
+.. |PD_solve| replace:: :meth:`~PhysicsDriver.solve`
+.. |PD_getSolveStatus| replace:: :meth:`~PhysicsDriver.getSolveStatus`
+{% elif "c3po.physicsDrivers.ALCYONE2Driver" == qualname -%}
+.. |PD_setMPIComm| replace:: :meth:`~ALCYONE2Driver.setMPIComm`
+.. |PD_setDataFile| replace:: :meth:`setDataFile() <.PhysicsDriver.setDataFile>`
+{% elif "c3po.physicsDrivers.ICOCODriver" == qualname -%}
+.. |PD_setMPIComm| replace:: :meth:`~ICOCODriver.setMPIComm`
+.. |PD_setDataFile| replace:: :meth:`~ICOCODriver.setDataFile`
+{% elif "c3po.physicsDrivers.FLICA4Driver" == qualname -%}
+.. |PD_setMPIComm| replace:: :meth:`setMPIComm() <.PhysicsDriver.setMPIComm>`
+.. |PD_setDataFile| replace:: :meth:`~FLICA4Driver.setDataFile`
+{% endif %}
+
+{%- if "c3po.physicsDrivers.ALCYONE2Driver" == qualname or
+      "c3po.physicsDrivers.ICOCODriver" == qualname -%}
+.. |PD_iterate| replace:: :meth:`iterate() <.PhysicsDriver.iterate>`
+.. |PD_getIterateStatus| replace:: :meth:`getIterateStatus() <.PhysicsDriver.getIterateStatus>`
+{%- endif -%}
+
+{%- if "c3po.physicsDrivers.CATHARE2Driver" == qualname or
+      "c3po.physicsDrivers.CATHARE3Driver" == qualname or
+      "c3po.physicsDrivers.TRUSTDriver" == qualname -%}
+.. |PD_setMPIComm| replace:: :meth:`setMPIComm() <.PhysicsDriver.setMPIComm>`
+.. |PD_setDataFile| replace:: :meth:`setDataFile() <.PhysicsDriver.setDataFile>`
+{%- endif -%}
+
+{%- if "c3po.physicsDrivers.ALCYONE2Driver" == qualname or 
+       "c3po.physicsDrivers.CATHARE2Driver" == qualname or 
+       "c3po.physicsDrivers.CATHARE3Driver" == qualname or 
+       "c3po.physicsDrivers.ICOCODriver" == qualname or 
+       "c3po.physicsDrivers.TRUSTDriver" == qualname or 
+       "c3po.physicsDrivers.FLICA4Driver" == qualname %}
+.. |PD_init| replace:: :meth:`init() <.PhysicsDriver.init>`
+.. |PD_getInitStatus| replace:: :meth:`getInitStatus() <.PhysicsDriver.getInitStatus>`
+.. |PD_solve| replace:: :meth:`solve() <.PhysicsDriver.solve>`
+.. |PD_getSolveStatus| replace:: :meth:`getSolveStatus() <.PhysicsDriver.getSolveStatus>`
+{%- endif %}

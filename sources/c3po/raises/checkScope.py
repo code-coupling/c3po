@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the meta-class CheckScopeMeta and class wrapper checkScope. """
+""" Contain the meta-class :class:`.CheckScopeMeta` and class wrapper :func:`checkScope`. """
 
 from types import FunctionType
 
@@ -17,7 +17,7 @@ import icoco.utils
 
 
 def _scopeInit(self):
-    """! INTERNAL """
+    """ INTERNAL """
     if not hasattr(self, 'problemName'):
         self.problemName = f"{self.__class__.__module__}.{self.__class__.__name__}"
     self.iCoCoEnsureScope = True
@@ -26,7 +26,7 @@ def _scopeInit(self):
 
 
 def _decoratorInitialized(method):
-    """! INTERNAL """
+    """ INTERNAL """
     # pylint: disable=protected-access
 
     def checkInitialized(self, *args, **kwargs):
@@ -61,7 +61,7 @@ def _decoratorInitialized(method):
 
 
 def _decoratorTimeStepContext(method):
-    """! INTERNAL """
+    """ INTERNAL """
     # pylint: disable=protected-access
 
     def checkInsideTimeStep(self, *args, **kwargs):
@@ -97,7 +97,7 @@ def _decoratorTimeStepContext(method):
 
 
 def _decoratorInit(method):
-    """! INTERNAL """
+    """ INTERNAL """
     # pylint: disable=protected-access
 
     def completedInit(self, *args, **kwargs):
@@ -110,7 +110,7 @@ def _decoratorInit(method):
 
 
 class CheckScopeMeta(type):
-    """! Metaclass related to the use of checkScope. """
+    """ Metaclass related to the use of :func:`checkScope`. """
 
     def __new__(cls, name, bases, dct):
 
@@ -152,41 +152,62 @@ class CheckScopeMeta(type):
 
 
 def checkScope(baseclass):
-    """! Add a verification of the calling context of ICoCo methods.
+    """ Add a verification of the calling context of ICoCo methods.
 
-    checkScope is to be applied on a class (not an object) and return a new class that inherits from the provided one.
+    :func:`checkScope` is to be applied on a class (not an object) and return a new class that
+    inherits from the provided one.
 
-    checkScope has the following effects:
-      - It raises icoco.WrongContext errors when an ICoCo method is called in a wrong context (see ICoCo documentation).
-      - It adds an object attribute 'problemName' used in the message of these icoco.WrongContext errors. Default: f"{self.__class__.__module__}.{self.__class__.__name__}"
-      - It also adds the object attribute 'iCoCoEnsureScope' that can be used to activate / desactivate these checks. Default: iCoCoEnsureScope=True which means activated.
+    :func:`checkScope` has the following effects:
 
-    Two additional object attributes are added for internal use: _iCoCoInitialized and _iCoCoTimeStepDefined.
+    - It raises :class:`icoco.exception.WrongContext` errors when an ICoCo method is called in a wrong
+      context (see ICoCo documentation).
+    - It adds an object attribute 'problemName' used in the message of these
+      :class:`icoco.exception.WrongContext` errors. Default:
+      ``f"{self.__class__.__module__}.{self.__class__.__name__}``"
+    - It also adds the object attribute 'iCoCoEnsureScope' that can be used to activate /
+      desactivate these checks. Default: ``iCoCoEnsureScope=True`` which means activated.
 
-    @param baseclass the class to modify.
+    Two additional object attributes are added for internal use: ``_iCoCoInitialized`` and
+    ``_iCoCoTimeStepDefined``.
 
-    @return A new class, with modified methods.
+    :func:`checkScope` can be used either as a python decorator (where the class is defined) in
+    order to modify the class definition everywhere:
 
-    checkScope can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
+    .. code-block:: python
 
-    ```
-    @c3po.raises.checkScope
-    class MyClass(...):
-        ...
-    ```
+        @c3po.raises.checkScope
+        class MyClass(...):
+            ...
 
     or it can be used in order to redefined only locally the class like that:
 
-    ```
-    MyNewClass = c3po.raises.checkScope(MyClass)
-    ```
+    .. code-block:: python
 
-    @note checkScope looks for ICoCo methods definitions in base classes in order to overload them.
-    @note checkScope relies on a metaclass (c3po.raises.checkScope.CheckScopeMeta). That means that daughter classes will also be modified by checkScope.
+        MyNewClass = c3po.raises.checkScope(MyClass)
 
-    @warning It is recommended not to overload a class:
-            use "MyNewClass = c3po.raises.checkScope(MyClass)" and not "MyClass = c3po.raises.checkScope(MyClass)".
-            Overloading a class may lead to TypeError, in particular in case of inheritance, if the mother class is not accessible any more.
+    .. note::
+
+        :func:`checkScope` looks for ICoCo methods definitions in base classes in order to
+        overload them.
+
+        :func:`checkScope` relies on a metaclass (:class:`c3po.raises.checkScope.CheckScopeMeta`).
+        That means that daughter classes will also be modified by :func:`checkScope`.
+
+    .. warning::
+
+        It is recommended not to overload a class: use "``MyNewClass =
+        c3po.raises.checkScope(MyClass)``" and not "``MyClass = c3po.raises.checkScope(MyClass)``".
+        Overloading a class may lead to ``TypeError``, in particular in case of inheritance, if
+        the mother class is not accessible any more.
+
+    Parameters
+    ----------
+    baseclass
+        The class to modify.
+
+    Returns
+    -------
+        A new class, with modified methods.
     """
     newclass = CheckScopeMeta(baseclass.__name__, (baseclass,), baseclass.__dict__)
     newclass.__doc__ = baseclass.__doc__

@@ -8,7 +8,9 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the classes Grid, MEDGrid, CartesianGrid, HexagonalGrid and MultiLevelGrid. """
+""" Contain the classes :class:`.Grid`, :class:`.MEDGrid`, :class:`.CartesianGrid`,
+:class:`.HexagonalGrid` and :class:`.MultiLevelGrid`.
+"""
 from abc import ABC, abstractmethod
 import math
 
@@ -18,81 +20,121 @@ NO_CORRESPONDENCE = 2**31 - 1  # int32 max
 
 
 class Grid(ABC):
-    """! Grid is an abstract class defining a 2D mesh to be used by MEDInterface.
+    """ :class:`.Grid` is an abstract class defining a 2D mesh to be used by :class:`.MEDInterface`.
 
     Each cell is associated with an integer (correspondence) that will be used to identify a 1D object.
     """
 
     @abstractmethod
     def clone(self):
-        """! Return a clone of self.
+        """ Return a clone of ``self``.
 
-        @return a clone of self.
+        Returns
+        -------
+        Grid
+            A clone of ``self``.
         """
 
     @abstractmethod
     def getCorrespondence(self, cellId):
-        """! Return the correspondence associated with the required cell.
+        """ Return the correspondence associated with the required cell.
 
-        @param cellId Index of the cell in the mesh.
-        @return correspondence associated with the cell.
+        Parameters
+        ----------
+        cellId
+            Index of the cell in the mesh.
+
+        Returns
+        -------
+            Correspondence associated with the cell.
         """
 
     @abstractmethod
     def getNumberOfCells(self):
-        """! Return the number of cells in the grid.
+        """ Return the number of cells in the grid.
 
-        @return the number of cells in the grid.
+        Returns
+        -------
+            The number of cells in the grid.
         """
 
     @abstractmethod
     def setCorrespondences(self, correspondences):
-        """! Set the whole table of correspondences.
+        """ Set the whole table of correspondences.
 
-        @note Use c3po.multi1D.NO_CORRESPONDENCE as correspondence value in empty positions.
+        .. note::
+        
+            Use ``c3po.multi1D.NO_CORRESPONDENCE`` as correspondence value in empty positions.
 
-        @param correspondences Table of correspondence to be copied. correspondences[i] will be associated with the cell i.
+        Parameters
+        ----------
+        correspondences
+            Table of correspondence to be copied. ``correspondences[i]`` will be associated with the
+            cell ``i``.
         """
 
     @abstractmethod
     def setCorrespondence(self, cellId, correspondence):
-        """! Set one correspondence in one cell.
+        """ Set one correspondence in one cell.
 
-        @note Use c3po.multi1D.NO_CORRESPONDENCE as correspondence value in empty positions.
+        .. note::
 
-        @param cellId Index of the cell in the mesh.
-        @param correspondence value to set in the cell.
+            Use ``c3po.multi1D.NO_CORRESPONDENCE`` as correspondence value in empty positions.
+
+        Parameters
+        ----------
+        cellId
+            Index of the cell in the mesh.
+        correspondence
+            Value to set in the cell.
         """
 
     @abstractmethod
     def getNodeCoordinates(self, cellId):
-        """! Return the coordinate of the nodes of one cell.
+        """ Return the coordinate of the nodes of one cell.
 
-        @param cellId Index of the cell in the mesh.
-        @return a list with the 2D coordinates of the nodes of the cell.
+        Parameters
+        ----------
+        cellId
+            Index of the cell in the mesh.
+
+        Returns
+        -------
+        list
+            A list with the 2D coordinates of the nodes of the cell.
         """
 
     @abstractmethod
     def shift(self, xShift, yShift):
-        """! Shift (geometric translation) the grid.
+        """ Shift (geometric translation) the grid.
 
-        @param xShift shift to be applied on x coordinate.
-        @param yShift shift to be applied on y coordinate.
+        Parameters
+        ----------
+        xShift
+            Shift to be applied on x coordinate.
+        yShift
+            Shift to be applied on y coordinate.
         """
 
     @abstractmethod
     def getMEDMesh(self):
-        """! Return a MEDCoupling mesh image of the grid (but without correspondences).
+        """ Return a MEDCoupling mesh image of the grid (but without correspondences).
 
-        @note it should be the same result than toMED().getMesh().
+        .. note::
+        
+            It should be the same result than :meth:`toMED`.getMesh().
 
-        @return a MEDCoupling 2D mesh.
+        Returns
+        -------
+            A MEDCoupling 2D mesh.
         """
 
     def toMED(self):
-        """! Return a MEDCoupling field image of self.
+        """ Return a MEDCoupling field image of ``self``.
 
-        @return a MEDCoupling field image of self.
+        Returns
+        -------
+            A MEDCoupling field image of ``self``.
         """
         mesh = self.getMEDMesh()
         field = mc.MEDCouplingFieldInt(mc.ON_CELLS)
@@ -107,12 +149,17 @@ class Grid(ABC):
 
 
 class MEDGrid(Grid):
-    """! @brief MEDGrid allows to handle a 2D grid defined with a MEDCoupling mesh or field. """
+    """ MEDGrid allows to handle a 2D grid defined with a MEDCoupling mesh or field. """
 
     def __init__(self, field):
-        """! Build a MEDgrid from the provided MEDCoupling field. This field could have been written by Grid.toMED().
+        """ Build a MEDgrid from the provided MEDCoupling field. This field could have been written
+        by :meth:`.Grid.toMED`.
 
-        @param field MEDCoupling field (should be a MEDCouplingFieldInt). It may have one component providing the correspondences (see Grid).
+        Parameters
+        ----------
+        field
+            MEDCoupling field (should be a ``MEDCouplingFieldInt``). It may have one component
+            providing the correspondences (see :class:`.Grid`).
         """
         if field.getArray().getNumberOfComponents() > 1:
             raise ValueError(f"The number of field components must be less than or equal to 1. We found {field.getNumberOfComponents()} of then.")
@@ -128,37 +175,37 @@ class MEDGrid(Grid):
                 self._correspondences[i] = array[i]
 
     def clone(self):
-        """! See Grid.clone(). """
+        """ See :meth:`.Grid.clone`. """
         output = MEDGrid(self.toMED())
         output._medMesh = output._medMesh.deepCopy()  # pylint: disable=protected-access
         return output
 
     def getCorrespondence(self, cellId):
-        """! See Grid.getCorrespondence(). """
+        """ See :meth:`.Grid.getCorrespondence`. """
         try:
             return self._correspondences[cellId]
         except IndexError:
             raise ValueError(f"The provided cell index ({cellId}) is greater than the number of cells ({self.getNumberOfCells()})")
 
     def getNumberOfCells(self):
-        """! See Grid.getNumberOfCells(). """
+        """ See :meth:`.Grid.getNumberOfCells`. """
         return len(self._correspondences)
 
     def setCorrespondences(self, correspondences):
-        """! See Grid.setCorrespondences(). """
+        """ See :meth:`.Grid.setCorrespondences`. """
         if len(correspondences) != self.getNumberOfCells():
             raise ValueError(f"The size of the provided table ({len(correspondences)}) is not equal to the number of cells ({self.getNumberOfCells()})")
         self._correspondences[:] = correspondences[:]
 
     def setCorrespondence(self, cellId, correspondence):
-        """! See Grid.setCorrespondence(). """
+        """ See :meth:`.Grid.setCorrespondence`. """
         try:
             self._correspondences[cellId] = correspondence
         except IndexError:
             raise ValueError(f"The provided cell index ({cellId}) is greater than the number of cells ({self.getNumberOfCells()})")
 
     def getNodeCoordinates(self, cellId):
-        """! See Grid.getNodeCoordinates(). """
+        """ See :meth:`.Grid.getNodeCoordinates`. """
         coordinates = []
         nodeList = self._medMesh.getNodeIdsOfCell(cellId)
         for iNode in nodeList:
@@ -168,7 +215,7 @@ class MEDGrid(Grid):
         return coordinates
 
     def shift(self, xShift, yShift):
-        """! See Grid.translate(). """
+        """ See :meth:`.Grid.translate`. """
         self._medMesh.translate([xShift, yShift])
 
     def getMEDMesh(self):
@@ -176,17 +223,22 @@ class MEDGrid(Grid):
 
 
 class CartesianGrid(MEDGrid):
-    """! CartesianGrid allows to define and handle a cartesian 2D mesh.
+    """ :class:`.CartesianGrid` allows to define and handle a cartesian 2D mesh.
 
-    Cells are numbered along the x axis first, then along the y axis ( loop(yDim){ loop(xDim) {i++}} ).
-    The mesh is centered on (0., 0.).
+    Cells are numbered along the x axis first, then along the y axis ( ``loop(yDim){ loop(xDim)
+    {i++}}`` ).
+    The mesh is centered on ``(0., 0.)``.
     """
 
     def __init__(self, xSizes, ySizes):
-        """! Build a cartesian grid (centered on (0., 0.)) from the sizes of the cells.
+        """ Build a cartesian grid (centered on ``(0., 0.)``) from the sizes of the cells.
 
-        @param xSizes List with the sizes of the cells in the x direction.
-        @param ySizes List with the sizes of the cells in the y direction.
+        Parameters
+        ----------
+        xSizes : list
+            List with the sizes of the cells in the x direction.
+        ySizes : list
+            List with the sizes of the cells in the y direction.
         """
         self._xSizes = []
         self._xSizes[:] = xSizes[:]
@@ -223,36 +275,48 @@ class CartesianGrid(MEDGrid):
         super().__init__(field)
 
     def clone(self):
-        """! see Grid.clone() """
+        """ see :meth:`.Grid.clone` """
         output = CartesianGrid(self._xSizes, self._ySizes)
         output._correspondences[:] = self._correspondences[:]  # pylint: disable=protected-access
         return output
 
     def setCorrespondenceCartesian(self, xIndex, yIndex, correspondence):
-        """! Set one correspondence from the indexes of the cell in the cartesian grid.
+        """ Set one correspondence from the indexes of the cell in the cartesian grid.
 
-        @note Use c3po.multi1D.NO_CORRESPONDENCE as correspondence value in empty positions.
+        .. note::
+        
+            Use ``c3po.multi1D.NO_CORRESPONDENCE`` as correspondence value in empty positions.
 
-        @param xIndex Index of the cell along the x axis.
-        @param yIndex Index of the cell along the y axis.
-        @param correspondence value to associate with the cell.
+        Parameters
+        ----------
+        xIndex
+            Index of the cell along the x axis.
+        yIndex
+            Index of the cell along the y axis.
+        correspondence
+            Value to associate with the cell.
         """
         cellId = xIndex + len(self._xSizes) * yIndex
         self.setCorrespondence(cellId, correspondence)
 
 
 class HexagonalGrid(MEDGrid):
-    """! HexagonalGrid allows to define and handle an hexagonal 2D mesh.
+    """ :class:`.HexagonalGrid` allows to define and handle an hexagonal 2D mesh.
 
-    Cells are numbered in a "snail" way, from inside to outside. The central cell is numbered 0. The first cell of each ring makes an angle of -pi/6 with x axis.
-    The mesh is centered on (0., 0.).
+    Cells are numbered in a "snail" way, from inside to outside. The central cell is numbered 0. The
+    first cell of each ring makes an angle of ``-pi/6`` with x axis. The mesh is centered on ``(0.,
+    0.)``.
     """
 
     def __init__(self, numRings, pitch):
-        """! Build a hexagonal grid (centered on (0., 0.)).
+        """ Build a hexagonal grid (centered on ``(0., 0.)``).
 
-        @param numRings Number of rings (use 0 for only one cell, 1 to get 7 etc.)
-        @param pitch flat-to-flat distance.
+        Parameters
+        ----------
+        numRings
+            Number of rings (use 0 for only one cell, 1 to get 7 etc.)
+        pitch
+            flat-to-flat distance.
         """
         self._numRings = numRings
         self._pitch = pitch
@@ -318,19 +382,26 @@ class HexagonalGrid(MEDGrid):
         super().__init__(field)
 
     def clone(self):
-        """! see Grid.clone() """
+        """ see :meth:`.Grid.clone` """
         output = HexagonalGrid(self._numRings, self._pitch)
         output._correspondences[:] = self._correspondences[:]  # pylint: disable=protected-access
         return output
 
     def setCorrespondenceHexagonal(self, ringIndex, positionIndex, correspondence):
-        """! Set one correspondence from the indexes of the cell in the hexagonal grid.
+        """ Set one correspondence from the indexes of the cell in the hexagonal grid.
 
-        @note Use c3po.multi1D.NO_CORRESPONDENCE as correspondence value in empty positions.
+        .. note::
+        
+            Use ``c3po.multi1D.NO_CORRESPONDENCE`` as correspondence value in empty positions.
 
-        @param ringIndex Index of the ring.
-        @param positionIndex Index of the cell on the ring.
-        @param correspondence value to associate with the cell.
+        Parameters
+        ----------
+        ringIndex
+            Index of the ring.
+        positionIndex
+            Index of the cell on the ring.
+        correspondence
+            Value to associate with the cell.
         """
         numCells = 0
         for i in range(1, ringIndex):
@@ -340,16 +411,24 @@ class HexagonalGrid(MEDGrid):
 
 
 class MultiLevelGrid(Grid):
-    """! MultiLevelGrid allows to define and handle grids inside other grids. """
+    """ :class:`.MultiLevelGrid` allows to define and handle grids inside other grids. """
 
     def __init__(self, rootGrid, leafGrids):
-        """! Build a multi-level grid.
+        """ Build a multi-level grid.
 
-        @param rootGrid Root level Grid. Cannot be a MultiLevelGrid.
-        @param leafGrids List of second level grids. There must be as many leaf grids than cells in the rootGrid. /
-        Leaf grids can be MultiLevelGrid: in this case, all of them should be MultiLevelGrid, and those that are non-empty should all have the same number of levels.
+        .. note::
+        
+            We store and use clones of the provided leaf grids.
 
-        @note We store and use clones of the provided leaf grids.
+        Parameters
+        ----------
+        rootGrid
+            Root level :class:`.Grid`. Cannot be a :class:`.MultiLevelGrid`.
+        leafGrids : list
+            List of second level grids. There must be as many leaf grids than cells in the rootGrid.
+            Leaf grids can be :class:`.MultiLevelGrid`: in this case, all of them should be
+            :class:`.MultiLevelGrid`, and those that are non-empty should all have the same number
+            of levels.
         """
         if isinstance(rootGrid, MultiLevelGrid):
             raise ValueError("The root Grid cannot be a MultiLevelGrid.")
@@ -377,25 +456,37 @@ class MultiLevelGrid(Grid):
         self._currentLevel = self._numLevels
 
     def clone(self):
-        """! see Grid.clone() """
+        """ see :meth:`.Grid.clone` """
         return MultiLevelGrid(self._rootGrid.clone(), [leaf.clone() for leaf in self._leafGrids])
 
     def getNumLevels(self):
-        """! Return the number of level.
+        """ Return the number of level.
 
-        @details level = 0 if empty (rootGrid with no cells), 1 if leaf grids are not themselves MultiLevelGrid, and n + 1 with n the level of leaf grids otherwise.
+        .. note::
+        
+            ``level = 0`` if empty (``rootGrid`` with no cells), 1 if leaf grids are not themselves
+            :class:`.MultiLevelGrid`, and ``n + 1`` with ``n`` the level of leaf grids otherwise.
 
-        @return Number of level.
+        Returns
+        -------
+            Number of level.
         """
         return self._numLevels
 
     def setCurrentLevel(self, level):
-        """! Set the current level.
+        """ Set the current level.
 
-        @details all methods inherited from Grid will address this level. At level 0, the MultiLevelGrid behaves like the rootGrid. /
-        At level n > 0, it behaves like the juxtaposition of leaf grids with current level n - 1. Defaut : the value returned be getNumLevels().
+        .. note::
+        
+            All methods inherited from :class:`.Grid` will address this level. At level 0, the
+            :class:`.MultiLevelGrid` behaves like the ``rootGrid``. At level ``n > 0``, it behaves
+            like the juxtaposition of leaf grids with current level ``n - 1``. Defaut : the value
+            returned be :meth:`.getNumLevels`.
 
-        @param level New current level.
+        Parameters
+        ----------
+        level
+            Level New current level.
         """
         if level > self._numLevels and len(self._leafGrids) > 0:
             raise ValueError(f"The required level ({level}) is higher than maximal one ({self._numLevels}).")
@@ -406,14 +497,18 @@ class MultiLevelGrid(Grid):
                     leaf.setCurrentLevel(level - 1)
 
     def getCurrentLevel(self):
-        """! Return the current level (see setCurrentLevel()).
+        """ Return the current level (see :meth:`.setCurrentLevel`).
 
-        @return The current level.
+        Returns
+        -------
+            The current level.
         """
         return self._currentLevel
 
     def _shiftIndex(self, cellId):
-        """! Return the leaf grid index and cell index (in this leaf grid) associated with a provided global cell index (for current level). """
+        """ Return the leaf grid index and cell index (in this leaf grid) associated with a provided
+        global cell index (for current level).
+        """
         leafId = 0
         if cellId < 0 or cellId >= self.getNumberOfCells():
             raise ValueError(f"The required cellId, {cellId}, is invalid. It should be >= 0 and < {self.getNumberOfCells()}.")
@@ -425,14 +520,14 @@ class MultiLevelGrid(Grid):
         return leafId, cellId
 
     def getCorrespondence(self, cellId):
-        """! See Grid.getCorrespondence() """
+        """ See :meth:`.Grid.getCorrespondence` """
         if self._currentLevel == 0:
             return self._rootGrid.getCorrespondence(cellId)
         leafId, cellId = self._shiftIndex(cellId)
         return self._leafGrids[leafId].getCorrespondence(cellId)
 
     def getNumberOfCells(self):
-        """! See Grid.getNumberOfCells() """
+        """ See :meth:`.Grid.getNumberOfCells` """
         if self._currentLevel == 0:
             return self._rootGrid.getNumberOfCells()
         numCells = 0
@@ -441,7 +536,7 @@ class MultiLevelGrid(Grid):
         return numCells
 
     def setCorrespondences(self, correspondences):
-        """! See Grid.setCorrespondences() """
+        """ See :meth:`.Grid.setCorrespondences` """
         if len(correspondences) != self.getNumberOfCells():
             raise ValueError(f"The size of the provided table ({len(correspondences)}) is not equal to the number of cells ({self.getNumberOfCells()})")
         if self._currentLevel == 0:
@@ -453,7 +548,7 @@ class MultiLevelGrid(Grid):
                 shift += leaf.getNumberOfCells()
 
     def setCorrespondence(self, cellId, correspondence):
-        """! See Grid.setCorrespondence() """
+        """ See :meth:`.Grid.setCorrespondence` """
         if self._currentLevel == 0:
             self._rootGrid.setCorrespondence(cellId, correspondence)
         else:
@@ -461,7 +556,7 @@ class MultiLevelGrid(Grid):
             self._leafGrids[leafId].setCorrespondence(cellId, correspondence)
 
     def getNodeCoordinates(self, cellId):
-        """! See Grid.getNodeCoordinates() """
+        """ See :meth:`.Grid.getNodeCoordinates` """
         if self._currentLevel == 0:
             return self._rootGrid.getNodeCoordinates(cellId)
         leafId, cellId = self._shiftIndex(cellId)
@@ -482,7 +577,7 @@ class MultiLevelGrid(Grid):
         return leafCoordinates
 
     def shift(self, xShift, yShift):
-        """! See Grid.shift() """
+        """ See :meth:`.Grid.shift` """
         self._rootGrid.shift(xShift, yShift)
 
     def getMEDMesh(self):

@@ -81,6 +81,7 @@ setup(
     ],
     extras_require={
         "pytest": ["pytest", "pytest-cov", "pytest-html"],
+        "doc": ["graphviz", "sphinx>=8.2.0", "sphinx-rtd-theme"],
     },
     python_requires=">=2.7, !=3.0.*, !=3.1.*",
     licence="3-Clause BSD"

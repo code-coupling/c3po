@@ -8,7 +8,9 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contains the classes LocalExchanger and ShortcutToData. ShortcutToData is for internal use only.  """
+""" Contains the classes :class:`.LocalExchanger`, :class:`.ShortcutToField` and :class:`.ShortcutToValue`.
+:class:`.ShortcutToData` is for internal use only.
+"""
 from __future__ import print_function, division
 
 from c3po.Exchanger import Exchanger
@@ -16,10 +18,10 @@ from c3po.CollaborativeObject import CollaborativeObject
 
 
 class ShortcutToField(object):
-    """! INTERNAL. """
+    """ INTERNAL. """
 
     def __init__(self, container, name, type_=None):
-        """! INTERNAL."""
+        """ INTERNAL."""
         self._container = container
         self._name = name
         self._type = type_
@@ -32,7 +34,7 @@ class ShortcutToField(object):
         self._fieldTemplate = None
 
     def initialize(self):
-        """! INTERNAL."""
+        """ INTERNAL."""
         if self._type is None:
             try:
                 self._type = self._container.getFieldType(self._name)
@@ -57,7 +59,7 @@ class ShortcutToField(object):
             raise Exception("ShortcutToField.initialize unknown field type.")
 
     def get(self):
-        """! INTERNAL."""
+        """ INTERNAL."""
         if self._getMethod is None:
             self.initialize()
         if self._fieldToUpdate is not None and self._update:
@@ -71,7 +73,7 @@ class ShortcutToField(object):
         return self._fieldToUpdate
 
     def getFieldTemplate(self):
-        """! INTERNAL."""
+        """ INTERNAL."""
         if self._getTemplateMethod is None:
             self.initialize()
         if self._fieldTemplate is None:
@@ -79,22 +81,22 @@ class ShortcutToField(object):
         return self._fieldTemplate
 
     def set(self, field):
-        """! INTERNAL."""
+        """ INTERNAL."""
         if self._setMethod is None:
             self.initialize()
         self._setMethod(self._name, field)
 
     def clean(self):
-        """! INTERNAL."""
+        """ INTERNAL."""
         self._fieldTemplate = None
         self._fieldToUpdate = None
 
 
 class ShortcutToValue(object):
-    """! INTERNAL. """
+    """ INTERNAL. """
 
     def __init__(self, container, name, type_=None):
-        """! INTERNAL."""
+        """ INTERNAL."""
         self._container = container
         self._name = name
         self._type = type_
@@ -102,7 +104,7 @@ class ShortcutToValue(object):
         self._getMethod = None
 
     def initialize(self):
-        """! INTERNAL."""
+        """ INTERNAL."""
         if self._type is None:
             try:
                 self._type = self._container.getValueType(self._name)
@@ -121,47 +123,68 @@ class ShortcutToValue(object):
             raise Exception("ShortcutToValue.initialize unknown value type.")
 
     def get(self):
-        """! INTERNAL."""
+        """ INTERNAL."""
         if self._getMethod is None:
             self.initialize()
         return self._getMethod(self._name)
 
     def set(self, value):
-        """! INTERNAL."""
+        """ INTERNAL."""
         if self._setMethod is None:
             self.initialize()
         self._setMethod(self._name, value)
 
 
 class LocalExchanger(Exchanger):
-    """! LocalExchanger is an Exchanger for local data exchanges between DataAccessor objects (PhysicsDriver or LocalDataManager).
+    """ :class:`.LocalExchanger` is an :class:`.Exchanger` for local data exchanges between
+    :class:`.DataAccessor` objects (:class:`.PhysicsDriver` or :class:`.LocalDataManager`).
 
-    Once the object has been constructed, a call to exchange() triggers the exchanges of data.
+    Once the object has been constructed, a call to :meth:`exchange` triggers the exchanges of data.
     """
 
     def __init__(self, method, fieldsToGet, fieldsToSet, valuesToGet=[], valuesToSet=[]):
-        """! Build an LocalExchanger object.
+        """ Build a :class:`.LocalExchanger` object.
 
-        @param method a user-defined function (or class with the special method __call__).
+        Parameters
+        ----------
+        method : 
+            A user-defined function (or class with the special method ``__call__``).
 
-        * method must have three input lists:
-            * The MED fields obtained by (get/update)OutputMED(Double/Int/String)Field() from the fieldsToGet objects, in the same order.
-            * The MED fields obtained by getInputMED(Double/Int/String)FieldTemplate() from the fieldsToSet objects, in the same order.
-            * The scalars obtained by (get/update)Output(Double/Int/String)Value() from the valuesToGet objects, in the same order.
+            - method must have three input lists:
+                - The MED fields obtained by ``(get/update)OutputMED(Double/Int/String)Field()``
+                  from the ``fieldsToGet`` objects, in the same order.
+                - The MED fields obtained by ``getInputMED(Double/Int/String)FieldTemplate()`` from
+                  the ``fieldsToSet`` objects, in the same order.
+                - The scalars obtained by ``(get/update)Output(Double/Int/String)Value()`` from the
+                  ``valuesToGet`` objects, in the same order.
 
-        * It must have two ouput lists:
-            * The MED fields to impose by setInputMED(Double/Int/String)Field() to the fieldsToSet objects, in the same order.
-            * The scalars to impose by setIntput(Double/Int/String)Value() to the valuesToSet objects, in the same order.
+            - It must have two ouput lists:
+                - The MED fields to impose by ``setInputMED(Double/Int/String)Field()`` to the
+                  ``fieldsToSet`` objects, in the same order.
+                - The scalars to impose by ``setIntput(Double/Int/String)Value()`` to the
+                  ``valuesToSet`` objects, in the same order.
 
-        @param fieldsToGet a list of tuples (object, name, type).
-            * object must be either a DataAccessor (PhysicsDriver or a LocalDataManager), or a CollaborativeObject with DataAccessor objects.
-            * name is the name of the field to get from object.
-            * type is either 'Double', 'Int' or 'String' (see c3po.DataAccessor.DataAccessor.ValueType).
-            type can be omitted: in this case, LocalExchanger uses getFieldType() to get the type. If getFieldType() is not
-            implemented, 'Double' is tried.
-        @param fieldsToSet a list of tuples in the same format as fieldsToGet. name is the name of the field to set in object.
-        @param valuesToGet idem fieldsToGet but for scalars.
-        @param valuesToSet idem fieldsToSet but for scalars.
+        fieldsToGet : list[tuple]
+            A list of tuples ``(object, name, type)``.
+
+            - ``object`` must be either a :class:`.DataAccessor` (:class:`.PhysicsDriver` or a
+              :class:`.LocalDataManager`), or a :class:`.CollaborativeObject` with
+              :class:`.DataAccessor` objects.
+            - ``name`` is the name of the field to get from object.
+            - ``type`` is either 'Double', 'Int' or 'String' (see
+              :class:`.c3po.DataAccessor.DataAccessor.ValueType`).
+
+              ``type`` can be omitted: in this case, :class:`.LocalExchanger` uses
+              ``getFieldType`` to get the type. If ``getFieldType`` is not
+              implemented, 'Double' is tried.
+
+        fieldsToSet : list[tuple]
+            A list of tuples in the same format as ``fieldsToGet``. ``name`` is the name of the
+            field to set in object.
+        valuesToGet : list[tuple]
+            Idem ``fieldsToGet`` but for scalars.
+        valuesToSet : list[tuple]
+            Idem ``fieldsToSet`` but for scalars.
         """
         fieldsToGet = self._expandInputList(fieldsToGet)
         fieldsToSet = self._expandInputList(fieldsToSet)
@@ -178,7 +201,7 @@ class LocalExchanger(Exchanger):
         self._method = method
 
     def exchange(self):
-        """! Trigger the exchange of data. """
+        """ Trigger the exchange of data. """
         fieldsToSet = [ds.getFieldTemplate() for ds in self._fieldsToSet]
         fieldsToGet = [ds.get() for ds in self._fieldsToGet]
         valuesToGet = [ds.get() for ds in self._valuesToGet]
@@ -196,7 +219,7 @@ class LocalExchanger(Exchanger):
             self._valuesToSet[i].set(value)
 
     def clean(self):
-        """! See Exchanger.clean. """
+        """ See :meth:`.Exchanger.clean`. """
         for shortcut in self._fieldsToSet:
             shortcut.clean()
         for shortcut in self._fieldsToGet:
@@ -205,7 +228,7 @@ class LocalExchanger(Exchanger):
 
     @staticmethod
     def _expandInputList(inputList):
-        """! INTERNAL. """
+        """ INTERNAL. """
         newList = []
         for tupleData in inputList:
             if isinstance(tupleData[0], CollaborativeObject):
@@ -217,7 +240,7 @@ class LocalExchanger(Exchanger):
 
     @staticmethod
     def _divideInputsAccordingToPatterns(method, fieldsToGet, fieldsToSet, valuesToGet, valuesToSet):
-        """! INTERNAL. """
+        """ INTERNAL. """
         elements = [fieldsToGet, fieldsToSet, valuesToGet, valuesToSet]
         index = [0, 0, 0, 0]
 

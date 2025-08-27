@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class MPIRemote. """
+""" Contain the class :class:`.MPIRemote`. """
 from __future__ import print_function, division
 
 from c3po.PhysicsDriver import PhysicsDriver
@@ -16,15 +16,19 @@ from c3po.DataManager import DataManager
 
 
 class MPIRemote(PhysicsDriver, DataManager):
-    """! MPIRemote replaces a remote PhysicsDriver or a remote DataManager.
+    """ :class:`.MPIRemote` replaces a remote :class:`.PhysicsDriver` or a remote :class:`.DataManager`.
 
-    Inherits from c3po.PhysicsDriver.PhysicsDriver and c3po.DataManager.DataManager but passes most of the methods: it does nothing.
+    Inherits from :class:`.c3po.PhysicsDriver.PhysicsDriver` and :class:`.c3po.DataManager.DataManager`
+    but passes most of the methods: it does nothing.
     """
 
     def __init__(self, mpiComm):
-        """! Build a MPIRemote object.
+        """ Build a :class:`.MPIRemote` object.
 
-        @param mpiComm MPI communicator.
+        Parameters
+        ----------
+        mpiComm
+            MPI communicator.
         """
         PhysicsDriver.__init__(self)
         self.mpiComm = mpiComm
@@ -33,66 +37,66 @@ class MPIRemote(PhysicsDriver, DataManager):
         self._stationaryMode = False
 
     def setMPIComm(self, mpicomm):
-        """! pass """
+        """ Pass """
         pass
 
     def setDataFile(self, datafile):
-        """! pass """
+        """ Pass """
         pass
 
     def initialize(self):
-        """! return True """
+        """ ``return True`` """
         return True
 
     def terminate(self):
-        """! pass """
+        """ Pass """
         pass
 
     def presentTime(self):
-        """! return the time. """
+        """ Return the time. """
         return self._time
 
     def computeTimeStep(self):
-        """! return (1.e30, True) """
+        """ ``return (1.e30, True)`` """
         return (1.e30, False)
 
     def initTimeStep(self, dt):
-        """! self._dt = dt and return True """
+        """ ``self._dt = dt`` and ``return True`` """
         self._dt = dt
         return True
 
     def solveTimeStep(self):
-        """! return True """
+        """ ``return True`` """
         return True
 
     def validateTimeStep(self):
-        """! self._time += self._dt """
+        """ ``self._time += self._dt`` """
         if self._dt > 0.:
             self._time += self._dt
             self._dt = 0.
 
     def setStationaryMode(self, stationaryMode):
-        """! self._stationaryMode = stationaryMode """
+        """ ``self._stationaryMode = stationaryMode`` """
         self._stationaryMode = stationaryMode
 
     def getStationaryMode(self):
-        """! return self._stationaryMode """
+        """ ``return self._stationaryMode`` """
         return self._stationaryMode
 
     def abortTimeStep(self):
-        """! self._dt = 0. """
+        """ ``self._dt = 0.`` """
         self._dt = 0.
 
     def isStationary(self):
-        """! return True """
+        """ ``return True`` """
         return True
 
     def resetTime(self, time_):
-        """! reset time. """
+        """ Reset time. """
         self._time = time_
 
     def iterateTimeStep(self):
-        """! return (True, True) """
+        """ ``return (True, True)`` """
         return (True, True)
 
     def save(self, label, method):
@@ -105,30 +109,30 @@ class MPIRemote(PhysicsDriver, DataManager):
         pass
 
     def setInputMEDDoubleField(self, name, field):
-        """! pass """
+        """ Pass """
         pass
 
     def setInputMEDIntField(self, name, field):
-        """! pass """
+        """ Pass """
         pass
 
     def setInputMEDStringField(self, name, field):
-        """! pass """
+        """ Pass """
         pass
 
     def setInputDoubleValue(self, name, value):
-        """! pass """
+        """ Pass """
         pass
 
     def setInputIntValue(self, name, value):
-        """! pass """
+        """ Pass """
         pass
 
     def setInputStringValue(self, name, value):
-        """! pass """
+        """ Pass """
         pass
 
     def cloneEmpty(self):
-        """! return a clone. """
+        """ Return a clone. """
         new = MPIRemote(self.mpiComm)
         return new

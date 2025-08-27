@@ -8,39 +8,46 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class Coupler. """
+""" Contain the class :class:`.Coupler`. """
 from __future__ import print_function, division
 
 from c3po.PhysicsDriver import PhysicsDriver
 
 
 class NormChoice(object):
-    """! Enum definition of norm choice.
+    """ Enum definition of norm choice.
 
     Values :
-        - normMax
-        - norm2
+        - :attr:`normMax`
+        - :attr:`norm2`
     """
     normMax = 0
     norm2 = 1
 
 
 class Coupler(PhysicsDriver):
-    """! Coupler is the base class for the definition of a coupling.
+    """ :class:`.Coupler` is the base class for the definition of a coupling.
 
-    A coupling is defined using PhysicsDriver, DataManager and Exchanger objects.
-    A user needs to define his own class inheriting from Coupler and to define its solveTimeStep() method.
-    It may also be necessary to overload the I/O methods (for fields and/or of scalars) inherited from PhysicsDriver.
+    A coupling is defined using :class:`.PhysicsDriver`, :class:`.DataManager` and :class:`.Exchanger` objects.
+    A user needs to define his own class inheriting from :class:`.Coupler` and to define its :meth:`solveTimeStep() <.PhysicsDriver.solveTimeStep>` method.
+    It may also be necessary to overload the I/O methods (for fields and/or of scalars) inherited
+    from :class:`.PhysicsDriver`.
 
-    @note Coupler inherits from PhysicsDriver, it is therefore possible to couple of Coupler objects!
+    .. note:: :class:`.Coupler` inherits from :class:`.PhysicsDriver`, it is therefore possible to couple
+        of :class:`.Coupler` objects!
     """
 
     def __init__(self, physics, exchangers, dataManagers=[]):
-        """! Build an Coupler object.
+        """ Build an :class:`.Coupler` object.
 
-        @param physics a list (or dictionary) of PhysicsDriver objects to be coupled.
-        @param exchangers a list (or dictionary) of Exchanger for the coupling.
-        @param dataManagers a list (or dictionary) of DataManager used in the coupling.
+        Parameters
+        ----------
+        physics : list[PhysicsDriver], dict
+            A list (or dictionary) of :class:`.PhysicsDriver` objects to be coupled.
+        exchangers : list[Exchanger], dict
+            A list (or dictionary) of :class:`.Exchanger` for the coupling.
+        dataManagers : list[DataManager], dict
+            A list (or dictionary) of :class:`.DataManager` used in the coupling.
         """
         PhysicsDriver.__init__(self)
         self._physicsDrivers = physics
@@ -51,7 +58,7 @@ class Coupler(PhysicsDriver):
         self._dt = 1.e30
 
     def getMEDCouplingMajorVersion(self):
-        """! See PhysicsDriver.getMEDCouplingMajorVersion(). """
+        """ See :meth:`.PhysicsDriver.getMEDCouplingMajorVersion`. """
         version = 0
         for physics in self._physicsDriversList:
             localVersion = version
@@ -69,7 +76,7 @@ class Coupler(PhysicsDriver):
         return version
 
     def isMEDCoupling64Bits(self):
-        """! See PhysicsDriver.isMEDCoupling64Bits(). """
+        """ See :meth:`.PhysicsDriver.isMEDCoupling64Bits`. """
         resu = None
         for physics in self._physicsDriversList:
             localResu = resu
@@ -87,7 +94,7 @@ class Coupler(PhysicsDriver):
         return resu
 
     def initialize(self):
-        """! See PhysicsDriver.initialize(). """
+        """ See :meth:`.PhysicsDriver.initialize`. """
         for physics in self._physicsDriversList:
             physics.init()
         resu = True
@@ -96,18 +103,18 @@ class Coupler(PhysicsDriver):
         return resu
 
     def terminate(self):
-        """! See PhysicsDriver.terminate(). """
+        """ See :meth:`.PhysicsDriver.terminate`. """
         for physics in self._physicsDriversList:
             physics.term()
 
     def presentTime(self):
-        """! See PhysicsDriver.presentTime(). """
+        """ See :meth:`.PhysicsDriver.presentTime`. """
         if len(self._physicsDriversList) > 0:
             return self._physicsDriversList[0].presentTime()
         return 0.
 
     def computeTimeStep(self):
-        """! See PhysicsDriver.computeTimeStep(). """
+        """ See :meth:`.PhysicsDriver.computeTimeStep`. """
         (dt, stop) = (1.e30, False)
         for physics in self._physicsDriversList:
             (dtPhysics, stopPhysics) = physics.computeTimeStep()
@@ -117,7 +124,7 @@ class Coupler(PhysicsDriver):
         return (dt, stop)
 
     def initTimeStep(self, dt):
-        """! See PhysicsDriver.initTimeStep(). """
+        """ See :meth:`.PhysicsDriver.initTimeStep`. """
         self._dt = dt
         resu = True
         for physics in self._physicsDriversList:
@@ -125,24 +132,24 @@ class Coupler(PhysicsDriver):
         return resu
 
     def getSolveStatus(self):
-        """! See PhysicsDriver.getSolveStatus(). """
+        """ See :meth:`.PhysicsDriver.getSolveStatus`. """
         resu = True
         for physics in self._physicsDriversList:
             resu = physics.getSolveStatus() and resu
         return resu
 
     def validateTimeStep(self):
-        """! See PhysicsDriver.validateTimeStep(). """
+        """ See :meth:`.PhysicsDriver.validateTimeStep`. """
         for physics in self._physicsDriversList:
             physics.validateTimeStep()
 
     def setStationaryMode(self, stationaryMode):
-        """! See PhysicsDriver.setStationaryMode(). """
+        """ See :meth:`.PhysicsDriver.setStationaryMode`. """
         for physics in self._physicsDriversList:
             physics.setStationaryMode(stationaryMode)
 
     def getStationaryMode(self):
-        """! See PhysicsDriver.getStationaryMode(). """
+        """ See :meth:`.PhysicsDriver.getStationaryMode`. """
         resu = False
         if len(self._physicsDriversList) > 0:
             resu = self._physicsDriversList[0].getStationaryMode()
@@ -152,24 +159,24 @@ class Coupler(PhysicsDriver):
         return resu
 
     def abortTimeStep(self):
-        """! See PhysicsDriver.abortTimeStep(). """
+        """ See :meth:`.PhysicsDriver.abortTimeStep`. """
         for physics in self._physicsDriversList:
             physics.abortTimeStep()
 
     def isStationary(self):
-        """! See PhysicsDriver.isStationary(). """
+        """ See :meth:`.PhysicsDriver.isStationary`. """
         resu = True
         for physics in self._physicsDriversList:
             resu = physics.isStationary() and resu
         return resu
 
     def resetTime(self, time_):
-        """! See PhysicsDriver.resetTime(). """
+        """ See :meth:`.PhysicsDriver.resetTime`. """
         for physics in self._physicsDriversList:
             physics.resetTime(time_)
 
     def getIterateStatus(self):
-        """! See PhysicsDriver.getSolveStatus(). """
+        """ See :meth:`.PhysicsDriver.getSolveStatus`. """
         succeed = True
         converged = True
         for physics in self._physicsDriversList:
@@ -179,20 +186,29 @@ class Coupler(PhysicsDriver):
         return (succeed, converged)
 
     def setNormChoice(self, choice):
-        """! Choose a norm for future use.
+        """ Choose a norm for future use.
 
-        @param choice to be choosen between :
-            - NormChoice.normMax : infinite norm. This is the default choice.
-            - NormChoice.norm2 : norm 2 ( sqrt(sum_i(val[i] * val[i])) ).
+        Parameters
+        ----------
+        choice : :attr:`.NormChoice.normMax`, :attr:`.NormChoice.norm2`
+            To be choosen between :
+            
+            - :attr:`.NormChoice.normMax` : infinite norm. This is the default choice.
+            - :attr:`.NormChoice.norm2` : norm 2 ( ``sqrt(sum_i(val[i] * val[i]))`` ).
         """
         self._norm = choice
 
     def getNorm(self, data):
-        """! Return the norm choosen by setNormChoice of data (a DataManager).
+        """ Return the norm choosen by :meth:`setNormChoice` of ``data`` (a :class:`.DataManager`).
 
-        @param data a DataManager object.
+        Parameters
+        ----------
+        data : DataManager
+            A :class:`.DataManager` object.
 
-        @return the asked norm of data.
+        Returns
+        -------
+            The asked norm of data.
         """
         if self._norm == NormChoice.normMax:
             return data.normMax()
@@ -201,9 +217,12 @@ class Coupler(PhysicsDriver):
         raise Exception("Coupler.getNorm The required norm is unknown.")
 
     def readNormData(self):
-        """! Return a list of the norms of the DataManager objects hold by self.
+        """ Return a list of the norms of the :class:`.DataManager` objects hold by ``self``.
 
-        @return list of the norm of the DataManager objects.
+        Returns
+        -------
+        list
+            List of the norm of the :class:`.DataManager` objects.
         """
         normData = []
         for data in self._dataManagers:
@@ -211,18 +230,24 @@ class Coupler(PhysicsDriver):
         return normData
 
     def normalizeData(self, norms):
-        """! Divide the DataManager objects by the scalar values provided.
+        """ Divide the :class:`.DataManager` objects by the scalar values provided.
 
-        @param norms list of scalar values. The DataManager are divided by these scalars.
+        Parameters
+        ----------
+        norms : list
+            List of scalar values. The :class:`.DataManager` are divided by these scalars.
         """
         for i, norm in enumerate(norms):
             if norm > 0.:
                 self._dataManagers[i] *= 1. / norm
 
     def denormalizeData(self, norms):
-        """! Multiply the DataManager objects by the scalar values provided.
+        """ Multiply the :class:`.DataManager` objects by the scalar values provided.
 
-        @param norms list of scalar values. The DataManager are multiplied by these scalars.
+        Parameters
+        ----------
+        norms : list
+            List of scalar values. The :class:`.DataManager` are multiplied by these scalars.
         """
         for i, norm in enumerate(norms):
             if norm > 0.:

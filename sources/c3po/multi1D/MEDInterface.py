@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class MEDInterface. """
+""" Contain the class :class:`.MEDInterface`. """
 import c3po.medcouplingCompat as mc
 
 from c3po.multi1D.Multi1DAPI import Multi1DAPI, Multi1DWithObjectsAPI
@@ -16,16 +16,24 @@ from c3po.multi1D.Grid import NO_CORRESPONDENCE
 
 
 def _buildColumnMesh(nameMesh, numCells, numBaseNodes, coordinates):
-    """! INTERNAL
+    """ INTERNAL
 
     Return a MEDCoupling "column" mesh, built on a 2D base (with only one cell).
 
-    @param nameMesh name of the mesh to be built.
-    @param numCells number of axial cells of the column.
-    @param numBaseNodes number of nodes of the base.
-    @param coordinates 3D coordinates of all nodes of the mesh to be built.
+    Parameters
+    ----------
+    nameMesh
+        name of the mesh to be built.
+    numCells
+        number of axial cells of the column.
+    numBaseNodes
+        number of nodes of the base.
+    coordinates
+        3D coordinates of all nodes of the mesh to be built.
 
-    @return The required mesh.
+    Returns
+    -------
+        The required mesh.
     """
     mesh = mc.MEDCouplingUMesh(nameMesh, 3)
     mesh.allocateCells(numCells)
@@ -43,14 +51,20 @@ def _buildColumnMesh(nameMesh, numCells, numBaseNodes, coordinates):
 
 
 def _buildGridMesh(grid, height):
-    """! INTERNAL
+    """ INTERNAL
 
     Return a MEDCoupling "flat" mesh, from a 2D grid, and with only one cell in z.
 
-    @param grid a c3po.multi1D.Grid object.
-    @param height Size in z of the mesh to built.
+    Parameters
+    ----------
+    grid
+        A :class:`c3po.multi1D.Grid` object.
+    height
+        Size in z of the mesh to built.
 
-    @return The required mesh (or None if grid is empty).
+    Returns
+    -------
+        The required mesh (or None if grid is empty).
     """
     meshes = []
     for iObjectCell in range(grid.getNumberOfCells()):
@@ -75,16 +89,27 @@ def _buildGridMesh(grid, height):
 
 
 class MEDInterface:
-    """! @brief MEDInterface links a set of 1D objects with 3D MEDCoupling meshes. """
+    """ MEDInterface links a set of 1D objects with 3D MEDCoupling meshes. """
 
     def __init__(self, multi1DAPI, baseGrid, objectGrids=None):
-        """! Build a MEDInterface object.
+        """ Build a :class:`.MEDInterface` object.
 
-        @param multi1DAPI a Multi1DAPI object holding the 1D objects. Should derive from c3po.multi1D.Multi1DAPI.Multi1DWithObjectsAPI if objectGrids is provided.
-        @param baseGrid a Grid object positioning the components of multi1DAPI in space.
-        @param objectGrids a list of list of Grid objects. The first dimension is associated with baseGrid : len(objectGrids) should be == baseGrid.getNumberOfCells().
-               The second dimension is associated with the mesh of the associated component of multi1DAPI : len(objectGrids[i]) should be == multi1DAPI.getNumberOfCells(j) where j = baseGrid.getCorrespondence(i).
-               Finally, the grid objects provide the positioning in space of the "internal objects" (see c3po.multi1D.Multi1DAPI.Multi1DWithObjectsAPI) hold by the associated component of multi1DAPI, at the given position.
+        Parameters
+        ----------
+        multi1DAPI
+            A :class:`.Multi1DAPI` object holding the 1D objects. Should derive from
+            :class:`c3po.multi1D.Multi1DAPI.Multi1DWithObjectsAPI` if objectGrids is provided.
+        baseGrid
+            A :class:`.Grid` object positioning the components of ``multi1DAPI`` in space.
+        objectGrids : list[list[Grid]]
+            A list of list of :class:`.Grid` objects. The first dimension is associated with
+            ``baseGrid`` : ``len(objectGrids)`` should be ``== baseGrid.getNumberOfCells()``. 
+            The second dimension is associated with the mesh of the associated component of
+            ``multi1DAPI`` : ``len(objectGrids[i])`` should be ``== multi1DAPI.getNumberOfCells(j)``
+            where ``j = baseGrid.getCorrespondence(i)``. Finally, the grid objects provide the
+            positioning in space of the "internal objects" (see
+            :class:`c3po.multi1D.Multi1DAPI.Multi1DWithObjectsAPI`) hold by the associated component
+            of ``multi1DAPI``, at the given position.
         """
         if not isinstance(multi1DAPI, Multi1DAPI):
             raise ValueError("The provided multi1DAPI object should derive from multi1DAPI.Multi1DAPI.")
@@ -227,24 +252,36 @@ class MEDInterface:
                                 extensiveFactors[iAxialCell][iCell] /= objectVolume
 
     def getBaseMEDMesh(self):
-        """! Return the 3D MEDCouling first level mesh (whose 2D base is baseGrid).
+        """ Return the 3D MEDCouling first level mesh (whose 2D base is ``baseGrid``).
 
-        @return the 3D MEDCouling first level mesh.
+        Returns
+        -------
+            The 3D MEDCouling first level mesh.
         """
         return self._channelMEDMesh
 
     def getObjectMEDMesh(self):
-        """! Return the 3D MEDCouling second level mesh (built using objectGrids[i][j] at each cell of the BaseMEDMesh).
+        """ Return the 3D MEDCouling second level mesh (built using ``objectGrids[i][j]`` at each
+        cell of the :class:`.BaseMEDMesh`).
 
-        @return the 3D MEDCouling second level mesh (and None if not defined).
+        Returns
+        -------
+            The 3D MEDCouling second level mesh (and None if not defined).
         """
         return self._objectMEDMesh
 
     def getPartOfObjectMEDMesh(self, objectNames):
-        """! Return the part of the 3D MEDCouling second level mesh associated with the provided object names.
+        """ Return the part of the 3D MEDCouling second level mesh associated with the provided
+        object names.
 
-        @param objectNames list of object names for which the mesh is required.
-        @return the part of the 3D MEDCouling second level mesh, associated with the provided object names.
+        Parameters
+        ----------
+        objectNames : list
+            List of object names for which the mesh is required.
+
+        Returns
+        -------
+            The part of the 3D MEDCouling second level mesh, associated with the provided object names.
         """
         if self._objectMEDMesh is None:
             return self.getBaseMEDMesh()
@@ -260,12 +297,21 @@ class MEDInterface:
         return meshPart
 
     def getField(self, fieldName):
-        """! Return the 3D MEDCoupling field associated with fieldName.
+        """ Return the 3D MEDCoupling field associated with fieldName.
 
-        @note the field underlying mesh is either the same than getBaseMEDMesh(), or the same than getObjectMEDMesh(), depending on fieldName.
+        .. note::
+        
+            The field underlying mesh is either the same than :meth:`getBaseMEDMesh`, or the same
+            than :meth:`getObjectMEDMesh`, depending on fieldName.
 
-        @param fieldName name of the required field.
-        @return the required 3D MEDCoupling field.
+        Parameters
+        ----------
+        fieldName
+            name of the required field.
+
+        Returns
+        -------
+            The required 3D MEDCoupling field.
         """
         fieldNature = self._multi1DAPI.getNature(fieldName)
         isIntensive = fieldNature in (mc.IntensiveConservation, mc.IntensiveMaximum)
@@ -343,12 +389,19 @@ class MEDInterface:
         return field
 
     def setField(self, fieldName, field):
-        """! Set a 3D MEDCoupling field.
+        """ Set a 3D MEDCoupling field.
 
-        @note The field underlying mesh must be the base one (getBaseMEDMesh()) or the object one (getObjectMEDMesh()), depending on fieldName. No projection is made.
+        .. note::
+            
+            The field underlying mesh must be the base one (:meth:`getBaseMEDMesh`) or the object
+            one (:meth:`getObjectMEDMesh`), depending on ``fieldName``. No projection is made.
 
-        @param fieldName name of the field to set.
-        @param field MEDCoupling field with data to be set.
+        Parameters
+        ----------
+        fieldName
+            Name of the field to set.
+        field
+            MEDCoupling field with data to be set.
         """
         fieldNature = field.getNature()
         if fieldNature == mc.NoNature:

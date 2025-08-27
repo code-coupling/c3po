@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class CATHARE3Driver. """
+""" Contain the class :class:`.CATHARE3Driver`. """
 from __future__ import print_function, division
 
 import c3po.medcouplingCompat as mc
@@ -26,12 +26,12 @@ from c3po.PhysicsDriver import PhysicsDriver
 
 
 def shortName(name):
-    """! INTERNAL """
+    """ INTERNAL """
     return name.split("__")[1] if (name.startswith("reconstruction") or name.startswith("sommewall__")) else name
 
 
 def buildName(keyword, cname, loc, irad=-1):
-    """! INTERNAL """
+    """ INTERNAL """
     newName = "{}@{}@{}".format(keyword, cname, loc)
     if int(irad) > 0:
         newName += "@{}".format(irad)
@@ -39,7 +39,7 @@ def buildName(keyword, cname, loc, irad=-1):
 
 
 class CATHARE3Driver(C3, PhysicsDriver):
-    """! This is the implementation of PhysicsDriver for CATHARE3. """
+    """ This is the implementation of :class:`.PhysicsDriver` for CATHARE3. """
 
     def __init__(self, dtPost=0.0):
         C3.__init__(self)
@@ -95,7 +95,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
         self._timeShift = C3.presentTime(self) - time_
 
     def getOutputMEDFieldDriver(self, name):
-        """! INTERNAL """
+        """ INTERNAL """
         separator = "@"
         if name.find(separator) == -1:
             separator = "_"
@@ -106,7 +106,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
         return C3.getOutputMEDField(self, name)
 
     def getRowland(self, cname, loc):
-        """! INTERNAL """
+        """ INTERNAL """
         fieldC = self.getOutputMEDDoubleField(buildName("UO2CTEMP", cname, loc))
         fieldS = self.getOutputMEDDoubleField(buildName("UO2STEMP", cname, loc))
         fieldC *= 4. / 9.
@@ -115,7 +115,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
         return fieldC
 
     def getWeightedVolume(self, cname, loc, irad=-1):
-        """! INTERNAL """
+        """ INTERNAL """
         field = self.getOutputMEDDoubleField(buildName("VOLMED", cname, loc, irad))
         field *= float(self.getIValue("IWPOI@{}".format(cname)))
         return field
@@ -169,7 +169,7 @@ class CATHARE3Driver(C3, PhysicsDriver):
         return field
 
     def post(self, postMED):
-        """! INTERNAL """
+        """ INTERNAL """
         # ecriture des maillages et entete fichier colonne
         if self.io == 0:
             for name in self.post_names["fields"]:

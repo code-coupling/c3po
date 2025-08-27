@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class MPICollaborativeDataManager. """
+""" Contain the class :class:`.MPICollaborativeDataManager`. """
 from __future__ import print_function, division
 import math
 from mpi4py import MPI
@@ -21,29 +21,39 @@ from c3po.mpi.MPICollectiveDataManager import MPICollectiveDataManager
 
 
 class MPICollaborativeDataManager(CollaborativeDataManager):
-    """! MPICollaborativeDataManager is the MPI collaborative version of c3po.CollaborativeDataManager.CollaborativeDataManager
-    (for collaborative MPI paradigm).
+    """ :class:`.MPICollaborativeDataManager` is the MPI collaborative version of
+    :class:`.c3po.CollaborativeDataManager.CollaborativeDataManager` (for collaborative MPI
+    paradigm).
 
-    It allows to handle a set of c3po.DataManager.DataManager (some of then being remote) as a single one. Thanks to this class,
-    data can be distributed on different MPI processes but still used in the same way.
+    It allows to handle a set of :class:`.c3po.DataManager.DataManager` (some of then being remote)
+    as a single one. Thanks to this class, data can be distributed on different MPI processes but
+    still used in the same way.
 
-    When at least one MPIRemote is present, MPICollaborativeDataManager uses collective MPI communications: the object must
-    be built and used in the same way for all the involved processes. They must all share the same communicator, and all the processes
-    of that communicator must be involved.
+    When at least one :class:`.MPIRemote` is present, :class:`.MPICollaborativeDataManager` uses
+    collective MPI communications: the object must be built and used in the same way for all the
+    involved processes. They must all share the same communicator, and all the processes of that
+    communicator must be involved.
     """
 
     def __init__(self, dataManagers, mpiComm=None):
-        """! Build a MPICollaborativeDataManager object.
+        """ Build a :class:`.MPICollaborativeDataManager` object.
 
-        Has the same form than CollaborativeDataManager.__init__() but can also contain MPIRemote objects.
+        Has the same form than :meth:`.CollaborativeDataManager.__init__` but can also contain
+        :class:`.MPIRemote` objects.
 
-        When at least one MPIRemote is present (or if mpiComm is not None), MPICollaborativeDataManager uses collective MPI
-        communications: the object must be built and used in the same way for all the involved processes. They must all share the same
-        communicator, and all the processes of that communicator must be involved.
+        When at least one :class:`.MPIRemote` is present (or if ``mpiComm`` is not None),
+        :class:`.MPICollaborativeDataManager` uses collective MPI
+        communications: the object must be built and used in the same way for all the involved
+        processes. They must all share the same communicator, and all the processes of that
+        communicator must be involved.
 
-        @param dataManagers a list of c3po.DataManager.DataManager.
-        @param mpiComm If not None, forces MPICollaborativeDataManager to use collective MPI communications and to use this
-        communicator.
+        Parameters
+        ----------
+        dataManagers : list[DataManager]
+            A list of :class:`c3po.DataManager.DataManager`.
+        mpiComm
+            If not None, forces :class:`.MPICollaborativeDataManager` to use collective MPI
+            communications and to use this communicator.
         """
         localData = []
         self.mpiComm = mpiComm
@@ -76,9 +86,12 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         CollaborativeObject.__init__(self, dataManagers)    # pylint: disable=non-parent-init-called
 
     def cloneEmpty(self):
-        """! Return a clone of self without copying the data.
+        """ Return a clone of ``self`` without copying the data.
 
-        @return An empty clone of self.
+        Returns
+        -------
+        MPICollaborativeDataManager
+            An empty clone of ``self``.
         """
         notMPIoutput = CollaborativeDataManager.cloneEmpty(self)
         output = MPICollaborativeDataManager(notMPIoutput.dataManagers)
@@ -87,9 +100,11 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         return output
 
     def normMax(self):
-        """! Return the infinite norm.
+        """ Return the infinite norm.
 
-        @return The max of the absolute values of the scalars and of the infinite norms of the MED fields.
+        Returns
+        -------
+        The max of the absolute values of the scalars and of the infinite norms of the MED fields.
         """
         norm = CollaborativeDataManager.normMax(self)
         if self.isMPI:
@@ -97,9 +112,11 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         return norm
 
     def norm2(self):
-        """! Return the norm 2.
+        """ Return the norm 2.
 
-        @return sqrt(sum_i(val[i] * val[i])) where val[i] stands for each scalar and each component of the MED fields.
+        Returns
+        -------
+        ``sqrt(sum_i(val[i] * val[i]))`` where ``val[i]`` stands for each scalar and each component of the MED fields.
         """
         norm = CollaborativeDataManager.norm2(self)
         # print("local :", self, norm)
@@ -110,13 +127,21 @@ class MPICollaborativeDataManager(CollaborativeDataManager):
         return norm
 
     def dot(self, other):
-        """! Return the scalar product of self with other.
+        """ Return the scalar product of ``self`` with ``other``.
 
-        @param other a MPICollaborativeDataManager consistent with self.
+        Parameters
+        ----------
+        other : MPICollaborativeDataManager
+            A :class:`.MPICollaborativeDataManager` consistent with ``self``.
 
-        @return the scalar product of self with other.
+        Returns
+        -------
+            The scalar product of ``self`` with ``other``.
 
-        @throw Exception if self and other are not consistent.
+        Raises
+        ------
+        Exception
+            If ``self`` and ``other`` are not consistent.
         """
         result = CollaborativeDataManager.dot(self, other)
         if self.isMPI:

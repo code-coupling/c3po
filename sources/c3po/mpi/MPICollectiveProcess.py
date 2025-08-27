@@ -8,21 +8,26 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class MPICollectiveProcess. """
+""" Contain the class :class:`.MPICollectiveProcess`. """
 from __future__ import print_function, division
 
 
 class MPICollectiveProcess(object):
-    """! MPICollectiveProcess defines a collective process.
+    """ :class:`.MPICollectiveProcess` defines a collective process.
 
-    In particuler, it allows, by inheritance (a new class that inherits from MPICollectiveProcess but be defined), to define a
-    collective c3po.PhysicsDriver.PhysicsDriver: all processors will locally launch this component.
+    In particuler, it allows, by inheritance (a new class that inherits from
+    :class:`.MPICollectiveProcess` but be defined), to define a collective
+    :class:`.c3po.PhysicsDriver.PhysicsDriver`: all processors will locally launch this component.
     """
 
     def __init__(self, mpiComm):
-        """! Build a MPICollectiveProcess object.
+        """ Build a :class:`.MPICollectiveProcess` object.
 
-        @param mpiComm MPI communicator. It must be shared by all processes involved in the MPICollectiveProcess (and all processes
-        of this MPI communicator must be involed in the MPICollectiveProcess).
+        Parameters
+        ----------
+        mpiComm
+            MPI communicator. It must be shared by all processes involved in the
+            :class:`.MPICollectiveProcess` (and all processes of this MPI communicator must be
+            involed in the :class:`.MPICollectiveProcess`).
         """
         self.mpiComm = mpiComm

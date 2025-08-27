@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class MPIMasterPhysicsDriver. """
+""" Contain the class :class:`.MPIMasterPhysicsDriver`. """
 from __future__ import print_function, division
 
 import sys
@@ -22,25 +22,36 @@ from c3po.mpi.MPITag import MPITag
 
 
 class MPIMasterPhysicsDriver(PhysicsDriver):
-    """! MPIMasterPhysicsDriver is used by a master process to control a (set of) remote c3po.PhysicsDriver.PhysicsDriver(s) as a local one.
+    """ :class:`.MPIMasterPhysicsDriver` is used by a master process to control a (set of)
+    remote :class:`.c3po.PhysicsDriver.PhysicsDriver` as a local one.
 
-    It can, in addition, be in charge of a local one (can be usefull for codes using an internal collaborative MPI parallelization).
+    It can, in addition, be in charge of a local one (can be usefull for codes using an internal
+    collaborative MPI parallelization).
 
-    Inherits from c3po.PhysicsDriver.PhysicsDriver. All the methods of c3po.PhysicsDriver.PhysicsDriver are implemented and consist
-    in commanding the worker to execute them. Methods inherited from c3po.DataAccessor.DataAccessor are NOT implemented (apart from
-    the setInput(Double/Int/String)Value methods, for convenience). Use an c3po.mpi.MPIMasterExchanger.MPIMasterExchanger to exchange
-    data with the worker.
+    Inherits from :class:`.c3po.PhysicsDriver.PhysicsDriver`. All the methods of
+    :class:`.c3po.PhysicsDriver.PhysicsDriver` are implemented and consist in commanding the worker
+    to execute them. Methods inherited from :class:`.c3po.DataAccessor.DataAccessor` are NOT
+    implemented (apart from the ``setInput(Double/Int/String)Value`` methods, for convenience).
+    Use an :class:`.c3po.mpi.MPIMasterExchanger.MPIMasterExchanger` to exchange data with the worker.
     """
 
     def __init__(self, workerProcess, localPhysicsDriver=None):
-        """! Build a MPIMasterPhysicsDriver object.
+        """ Build a :class:`.MPIMasterPhysicsDriver` object.
 
-        @param workerProcess a c3po.mpi.MPIRemoteProcess.MPIRemoteProcess, a c3po.mpi.MPIRemoteProcesses.MPIRemoteProcesses or
-        a c3po.mpi.MPICollectiveProcess.MPICollectiveProcess identifying the worker process(es). Each worker process can be in
-        charge of only one c3po.PhysicsDriver.PhysicsDriver. In case of a c3po.mpi.MPICollectiveProcess.MPICollectiveProcess, the
-        MPIComm must include all the workers + the master, and only them.
-        @param localPhysicsDriver a c3po.PhysicsDriver.PhysicsDriver the MPIMasterPhysicsDriver object will run in the same
-        time than the workers. It enables the master to contribute to a collaborative calculations.
+        Parameters
+        ----------
+        workerProcess : MPIRemoteProcess, MPIRemoteProcesses or MPICollectiveProcess
+            A :class:`.c3po.mpi.MPIRemoteProcess.MPIRemoteProcess`, a
+            :class:`.c3po.mpi.MPIRemoteProcesses.MPIRemoteProcesses` or
+            a :class:`.c3po.mpi.MPICollectiveProcess.MPICollectiveProcess` identifying the worker
+            process(es). Each worker process can be in charge of only one
+            :class:`.c3po.PhysicsDriver.PhysicsDriver`. In case of a
+            :class:`.c3po.mpi.MPICollectiveProcess.MPICollectiveProcess`, the MPIComm must include
+            all the workers + the master, and only them.
+        localPhysicsDriver :
+            A :class:`.c3po.PhysicsDriver.PhysicsDriver` the :class:`.MPIMasterPhysicsDriver`
+            object will run in the same time than the workers. It enables the master to contribute
+            to a collaborative calculations.
         """
         PhysicsDriver.__init__(self)
         self.mpiComm = workerProcess.mpiComm
@@ -57,7 +68,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         self._dataManagersToFree = []
 
     def sendData(self, tag, data=None):
-        """! INTERNAL """
+        """ INTERNAL """
         if self._isCollective:
             toSend = (tag,) if data is None else (tag, data)
             self.mpiComm.bcast(toSend, root=self._masterRank)
@@ -68,7 +79,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
                 self.mpiComm.send(data, dest=workerRank, tag=tag)
 
     def recvData(self, data, collectiveOperator=MPI.MIN):
-        """! INTERNAL """
+        """ INTERNAL """
         if self._isCollective:
             return self.mpiComm.reduce(data, op=collectiveOperator, root=self._masterRank)
         resu = data
@@ -77,23 +88,23 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return resu
 
     def setDataManagerToFree(self, idDataManager):
-        """! INTERNAL """
+        """ INTERNAL """
         self._dataManagersToFree.append(idDataManager)
 
     def setDataFile(self, datafile):
-        """! See PhysicsDriver.setDataFile(). """
+        """ See :meth:`.PhysicsDriver.setDataFile`. """
         self.sendData(MPITag.setDataFile, datafile)
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setDataFile(datafile)
 
     def getMPIComm(self):
-        """! See PhysicsDriver.getMPIComm(). """
+        """ See :meth:`.PhysicsDriver.getMPIComm`. """
         if self._isCollective and self._localPhysicsDriver is not None:
             return self.mpiComm
         raise NotImplementedError
 
     def init(self):
-        """! See PhysicsDriver.init(). """
+        """ See :meth:`.PhysicsDriver.init`. """
         if self._initNb == 0:
             self.sendData(MPITag.init)
             if self._localPhysicsDriver is not None:
@@ -101,7 +112,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         self._initNb += 1
 
     def getInitStatus(self):
-        """! See PhysicsDriver.getInitStatus(). """
+        """ See :meth:`.PhysicsDriver.getInitStatus`. """
         self.sendData(MPITag.getInitStatus)
         data = True
         if self._localPhysicsDriver is not None:
@@ -109,20 +120,20 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data)
 
     def initialize(self):
-        """! See PhysicsDriver.initialize(). """
+        """ See :meth:`.PhysicsDriver.initialize`. """
         self.sendData(MPITag.init)
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.init()
         return self.getInitStatus()
 
     def terminate(self):
-        """! See PhysicsDriver.terminate(). """
+        """ See :meth:`.PhysicsDriver.terminate`. """
         self.sendData(MPITag.terminate)
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.terminate()
 
     def presentTime(self):
-        """! See PhysicsDriver.presentTime(). """
+        """ See :meth:`.PhysicsDriver.presentTime`. """
         self.sendData(MPITag.presentTime)
         data = 1.E30
         if self._localPhysicsDriver is not None:
@@ -130,7 +141,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data)
 
     def computeTimeStep(self):
-        """! See PhysicsDriver.computeTimeStep(). """
+        """ See :meth:`.PhysicsDriver.computeTimeStep`. """
         self.sendData(MPITag.computeTimeStep)
         dt = 1.E30
         stop = False
@@ -141,7 +152,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return (dt, stop)
 
     def initTimeStep(self, dt):
-        """! See PhysicsDriver.initTimeStep(). """
+        """ See :meth:`.PhysicsDriver.initTimeStep`. """
         self.sendData(MPITag.initTimeStep, dt)
         data = True
         if self._localPhysicsDriver is not None:
@@ -149,7 +160,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data)
 
     def solve(self):
-        """! See PhysicsDriver.solve(). """
+        """ See :meth:`.PhysicsDriver.solve`. """
         if len(self._dataManagersToFree) > 0:
             self.sendData(MPITag.deleteDataManager, self._dataManagersToFree)
             self._dataManagersToFree = []
@@ -158,7 +169,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
             self._localPhysicsDriver.solve()
 
     def getSolveStatus(self):
-        """! See PhysicsDriver.getSolveStatus(). """
+        """ See :meth:`.PhysicsDriver.getSolveStatus`. """
         self.sendData(MPITag.getSolveStatus)
         data = True
         if self._localPhysicsDriver is not None:
@@ -166,24 +177,24 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data)
 
     def solveTimeStep(self):
-        """! See PhysicsDriver.solveTimeStep(). """
+        """ See :meth:`.PhysicsDriver.solveTimeStep`. """
         self.solve()
         return self.getSolveStatus()
 
     def validateTimeStep(self):
-        """! See PhysicsDriver.validateTimeStep(). """
+        """ See :meth:`.PhysicsDriver.validateTimeStep`. """
         self.sendData(MPITag.validateTimeStep)
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.validateTimeStep()
 
     def setStationaryMode(self, stationaryMode):
-        """! See PhysicsDriver.setStationaryMode(). """
+        """ See :meth:`.PhysicsDriver.setStationaryMode`. """
         self.sendData(MPITag.setStationaryMode, stationaryMode)
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setStationaryMode(stationaryMode)
 
     def getStationaryMode(self):
-        """! See PhysicsDriver.getStationaryMode(). """
+        """ See :meth:`.PhysicsDriver.getStationaryMode`. """
         self.sendData(MPITag.getStationaryMode)
         data = None
         if self._localPhysicsDriver is not None:
@@ -195,13 +206,13 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return resuMin
 
     def abortTimeStep(self):
-        """! See PhysicsDriver.abortTimeStep(). """
+        """ See :meth:`.PhysicsDriver.abortTimeStep`. """
         self.sendData(MPITag.abortTimeStep)
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.abortTimeStep()
 
     def isStationary(self):
-        """! See PhysicsDriver.isStationary(). """
+        """ See :meth:`.PhysicsDriver.isStationary`. """
         self.sendData(MPITag.isStationary)
         data = True
         if self._localPhysicsDriver is not None:
@@ -209,13 +220,13 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data)
 
     def resetTime(self, time_):
-        """! See PhysicsDriver.resetTime(). """
+        """ See :meth:`.PhysicsDriver.resetTime`. """
         self.sendData(MPITag.resetTime, time_)
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.resetTime(time_)
 
     def iterate(self):
-        """! See PhysicsDriver.iterate(). """
+        """ See :meth:`.PhysicsDriver.iterate`. """
         if len(self._dataManagersToFree) > 0:
             self.sendData(MPITag.deleteDataManager, self._dataManagersToFree)
             self._dataManagersToFree = []
@@ -224,7 +235,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
             self._localPhysicsDriver.iterate()
 
     def getIterateStatus(self):
-        """! See PhysicsDriver.getIterateStatus(). """
+        """ See :meth:`.PhysicsDriver.getIterateStatus`. """
         self.sendData(MPITag.getIterateStatus)
         (succeed, converged) = (True, True)
         if self._localPhysicsDriver is not None:
@@ -234,48 +245,48 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return (succeed, converged)
 
     def iterateTimeStep(self):
-        """! See PhysicsDriver.iterateTimeStep(). """
+        """ See :meth:`.PhysicsDriver.iterateTimeStep`. """
         self.iterate()
         return self.getIterateStatus()
 
     def save(self, label, method):
-        """! See PhysicsDriver.save(). """
+        """ See :meth:`.PhysicsDriver.save`. """
         self.sendData(MPITag.save, (label, method))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.save(label, method)
 
     def restore(self, label, method):
-        """! See PhysicsDriver.restore(). """
+        """ See :meth:`.PhysicsDriver.restore`. """
         self.sendData(MPITag.restore, (label, method))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.restore(label, method)
 
     def forget(self, label, method):
-        """! See PhysicsDriver.forget(). """
+        """ See :meth:`.PhysicsDriver.forget`. """
         self.sendData(MPITag.forget, (label, method))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.forget(label, method)
 
     def setInputDoubleValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setInputDoubleValue(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.setInputDoubleValue`. """
         self.sendData(MPITag.setInputDoubleValue, (name, value))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setInputDoubleValue(name, value)
 
     def setInputIntValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setInputIntValue(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.setInputIntValue`. """
         self.sendData(MPITag.setInputIntValue, (name, value))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setInputIntValue(name, value)
 
     def setInputStringValue(self, name, value):
-        """! See c3po.DataAccessor.DataAccessor.setInputStringValue(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.setInputStringValue`. """
         self.sendData(MPITag.setInputStringValue, (name, value))
         if self._localPhysicsDriver is not None:
             self._localPhysicsDriver.setInputStringValue(name, value)
 
     def getInputValuesNames(self):
-        """! See c3po.DataAccessor.DataAccessor.getInputValuesNames(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.getInputValuesNames`. """
         self.sendData(MPITag.getInputValuesNames)
         data = []
         if self._localPhysicsDriver is not None:
@@ -283,7 +294,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data, collectiveOperator=MPI.MAX)
 
     def getOutputValuesNames(self):
-        """! See c3po.DataAccessor.DataAccessor.getOutputValuesNames(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.getOutputValuesNames`. """
         self.sendData(MPITag.getOutputValuesNames)
         data = []
         if self._localPhysicsDriver is not None:
@@ -291,7 +302,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data, collectiveOperator=MPI.MAX)
 
     def getValueType(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getValueType(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.getValueType`. """
         self.sendData(MPITag.getValueType, name)
         data = ""
         if self._localPhysicsDriver is not None:
@@ -299,7 +310,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data, collectiveOperator=MPI.MAX)
 
     def getValueUnit(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getValueUnit(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.getValueUnit`. """
         self.sendData(MPITag.getValueUnit, name)
         data = ""
         if self._localPhysicsDriver is not None:
@@ -307,7 +318,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data, collectiveOperator=MPI.MAX)
 
     def getOutputDoubleValue(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getOutputDoubleValue(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.getOutputDoubleValue`. """
         self.sendData(MPITag.getOutputDoubleValue, name)
         data = -sys.float_info.max
         if self._localPhysicsDriver is not None:
@@ -315,7 +326,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data, collectiveOperator=MPI.MAX)
 
     def getOutputIntValue(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getOutputIntValue(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.getOutputIntValue`. """
         self.sendData(MPITag.getOutputIntValue, name)
         data = -sys.float_info.max
         if self._localPhysicsDriver is not None:
@@ -323,7 +334,7 @@ class MPIMasterPhysicsDriver(PhysicsDriver):
         return self.recvData(data, collectiveOperator=MPI.MAX)
 
     def getOutputStringValue(self, name):
-        """! See c3po.DataAccessor.DataAccessor.getOutputStringValue(). """
+        """ See :meth:`.c3po.DataAccessor.DataAccessor.getOutputStringValue`. """
         self.sendData(MPITag.getOutputStringValue, name)
         data = ""
         if self._localPhysicsDriver is not None:

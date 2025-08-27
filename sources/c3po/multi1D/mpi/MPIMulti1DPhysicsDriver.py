@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the classes MPIMulti1DPhysicsDriver. """
+""" Contain the classes :class:`.MPIMulti1DPhysicsDriver`. """
 from c3po.multi1D.MEDInterface import MEDInterface
 from c3po.multi1D.Multi1DPhysicsDriver import DriversAPI, Multi1DPhysicsDriver
 from c3po.mpi.MPIRemote import MPIRemote
@@ -16,15 +16,23 @@ from c3po.mpi.MPICollaborativePhysicsDriver import MPICollaborativePhysicsDriver
 
 
 class MPIMulti1DPhysicsDriver(Multi1DPhysicsDriver):
-    """! MPIMulti1DPhysicsDriver is the MPI collaborative version of c3po.multi1D.Multi1DPhysicsDriver. """
+    """ :class:`.MPIMulti1DPhysicsDriver` is the MPI collaborative version of
+    :class:`c3po.multi1D.Multi1DPhysicsDriver`. """
 
     def __init__(self, physics, grid, weights=None, mpiComm=None):
-        """! Build a MPIMulti1DPhysicsDriver.
+        """ Build a :class:`.MPIMulti1DPhysicsDriver`.
 
-        @param physics same than in Multi1DPhysicsDriver.__init__(), but some elements can be MPIRemote.
-        @param grid see Multi1DPhysicsDriver.__init__().
-        @param weights see Multi1DPhysicsDriver.__init__().
-        @param mpiComm If not None, forces MPIMulti1DPhysicsDriver to make MPI communications and to use this communicator (can also be done with setMPIComm()).
+        Parameters
+        ----------
+        physics
+            Same than in :meth:`.Multi1DPhysicsDriver.__init__`, but some elements can be MPIRemote.
+        grid
+            See :meth:`.Multi1DPhysicsDriver.__init__`.
+        weights
+            See :meth:`.Multi1DPhysicsDriver.__init__`.
+        mpiComm
+            If not None, forces :class:`.MPIMulti1DPhysicsDriver` to make MPI communications and
+            to use this communicator (can also be done with :meth:`setMPIComm`).
         """
         super().__init__(physics, grid, weights)
         self._physics = MPICollaborativePhysicsDriver(physics, mpiComm=mpiComm)
@@ -34,7 +42,7 @@ class MPIMulti1DPhysicsDriver(Multi1DPhysicsDriver):
                 break
 
     def _initMEDInterface(self, withTemplateField, fieldName):
-        """! See Multi1DPhysicsDriver._initMEDInterface(). """
+        """ See :meth:`.Multi1DPhysicsDriver._initMEDInterface`. """
         if self._medInterface is None:
             meshes = []
             for physics in self.getPhysicsDrivers():
@@ -47,7 +55,7 @@ class MPIMulti1DPhysicsDriver(Multi1DPhysicsDriver):
             self._medInterface = MEDInterface(self._driverAPI, self._grid)
 
     def shiftPhysicsDrivers(self, shiftMap):
-        """! See Multi1DPhysicsDriver.shiftPhysicsDrivers(). """
+        """ See :meth:`.Multi1DPhysicsDriver.shiftPhysicsDrivers`. """
         removed = super().shiftPhysicsDrivers(shiftMap)
         for i, physics in enumerate(self.getPhysicsDrivers()):
             if not isinstance(physics, MPIRemote):

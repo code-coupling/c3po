@@ -21,42 +21,42 @@ from c3po.services.wrapper import buildWrappingClass
 
 
 def getRegularName(name):
-    """! INTERNAL """
+    """ INTERNAL """
     return re.sub("[^a-zA-Z0-9_]", "_", "_" + name)
 
 
 def getNameFieldInput(name, field):
-    """! INTERNAL """
+    """ INTERNAL """
     return (name, field)
 
 
 def getNameInput(name):
-    """! INTERNAL """
+    """ INTERNAL """
     return name
 
 
 def getDtInput(dt):
-    """! INTERNAL """
+    """ INTERNAL """
     return dt
 
 
 def getStationaryModeInput(stationaryMode):
-    """! INTERNAL """
+    """ INTERNAL """
     return stationaryMode
 
 
 def getTimeInput(time_):
-    """! INTERNAL """
+    """ INTERNAL """
     return time_
 
 
 def getSaveInput(label, method):
-    """! INTERNAL """
+    """ INTERNAL """
     return label, method
 
 
 def getArgsString(*args, **kwargs):
-    """! INTERNAL """
+    """ INTERNAL """
     stringArgs = "("
     for arg in args:
         strArg = str(arg)
@@ -75,7 +75,7 @@ def getArgsString(*args, **kwargs):
 
 
 def buildTypeArgs(name, bases, dct):
-    """! INTERNAL """
+    """ INTERNAL """
     def _wrapper(method):
         def _trace(self, *args, **kwargs):
             if hasattr(self, "tracerRecurrenceDepth") and self.tracerRecurrenceDepth > 0:
@@ -226,66 +226,96 @@ def buildTypeArgs(name, bases, dct):
 
 
 def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=None, stderrFile=None, listingWriter=None, workingDir=None):
-    """! tracer is a class wrapper allowing to trace the calls of the methods of the base class.
+    """ :func:`tracer` is a class wrapper allowing to trace the calls of the methods of the base class.
 
-    tracer is to be applied on a class (not an object) and return a new class that inherits from the provided one.
+    :func:`tracer` is to be applied on a class (not an object) and return a new class that inherits
+    from the provided one.
 
     It has different functions:
 
-    1. It can write all calls of the methods of the base class in a text file in python format in order to allow to replay what
-        happened from the code point of view outside of the coupling.
+    1. It can write all calls of the methods of the base class in a text file in python format in
+       order to allow to replay what happened from the code point of view outside of the coupling.
     2. It can save in .med files input or output MEDFields.
     3. It can redirect code standard and error outputs in text files.
-    4. It can contribute (with ListingWriter) to the writing of a global coupling listing file with calculation time measurement.
+    4. It can contribute (with :class:`.ListingWriter`) to the writing of a global coupling
+       listing file with calculation time measurement.
 
-    @param pythonFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The python script
-        is written there. It has to be closed (file.close()) by caller. The script can be run only if saveInputMED is set to True:
-        otherwise, input MED fields are not stored.
-    @param saveInputMED if set to True, every time setInputMED(Double/Int/String)Field is called, the input MED field is stored in
-        a .med file. If pythonFile is activated, a MEDLoader reading instruction is also written in the Python file.
-    @param saveOutputMED if set to True, every time getOutputMED(Double/Int/String)Field is called, the output MED field is stored
-        in a .med file.
-    @param stdoutFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The standard output
-        is redirected there. It has to be closed (file.close()) by caller.
-    @param stderrFile a file object which has to be already open in written mode (file = open("file.txt", "w")). The error output is
-        redirected there. It has to be closed (file.close()) by caller.
-    @param listingWriter a ListingWriter object which will manage the writing of the coupling listing file. Refer to the documentation
-        of ListingWriter.
-    @param workingDir Path to an existing directory which is used as working directory when calling the methods of the traced object.
+    The parameters of tracer are added to the returned class ("static" attributes) with the names
+    ``static_pythonFile``, ``static_saveInputMED``, ``static_saveOutputMED``, ``static_stdout``,
+    ``static_stderr``, ``static_lWriter`` and ``static_wDir``.
 
-    The parameters of tracer are added to the returned class ("static" attributes) with the names static_pythonFile, static_saveInputMED,
-    static_saveOutputMED, static_stdout, static_stderr, static_lWriter and static_wDir.
+    One additional static attribute is added for internal use: ``static_Objectcounter``.
 
-    One additional static attribute is added for internal use: static_Objectcounter.
+    Two additional attributes (not static!) are added for internal use: ``tracerObjectName`` and
+    ``tracerRecurrenceDepth``.
 
-    Two additional attributes (not static!) are added for internal use: tracerObjectName and tracerRecurrenceDepth.
+    :func:`tracer` can be used either as a python decorator (where the class is defined) in order
+    to modify the class definition everywhere:
 
-    tracer can be used either as a python decorator (where the class is defined) in order to modify the class definition everywhere:
+    .. code-block:: python
 
-    ```
-    @c3po.tracer(...)
-    class MyClass(...):
-        ...
-    ```
+        @c3po.tracer(...)
+        class MyClass(...):
+            ...
 
     or it can be used in order to redefined only locally the class like that:
 
-    ```
-    MyNewClass = c3po.tracer(...)(MyClass)
-    ```
+    .. code-block:: python
 
-    @note In case a method calls another method of self, tracer modifies only to the first method call.
+        MyNewClass = c3po.tracer(...)(MyClass)
 
-    @warning tracer can be applied to any class, but it is design for standard C3PO objects: PhysicsDriver, DataManager and Exchanger.
-            It may be hazardous to use on "similar but not identical" classes (typically with the same methods but different inputs and/or
-            outputs).
-    @warning tracer looks for ICoCo methods (the methods to implement in order to define a PhysicsDriver) (plus `__init__`) in base classes and
-            redefine them. Other inherited methods are invisible to tracer.
-    @warning It is recommended not to overload a class:
-            use "MyNewClass = c3po.tracer(...)(MyClass)" and not "MyClass = c3po.tracer(...)(MyClass)".
-            Overloading a class may lead to TypeError, in particular in case of inheritance, if the mother class is not accessible any more.
+    .. note::
 
-    @throw Exception if applied to a class already modified by tracer, because it could result in an unexpected behavior.
+        In case a method calls another method of self, tracer modifies only to the first method call.
+
+    .. warning::
+
+        :func:`tracer` can be applied to any class, but it is design for standard C3PO objects:
+        :class:`.PhysicsDriver`, :class:`.DataManager` and :class:`.Exchanger`. It may be
+        hazardous to use on "similar but not identical" classes (typically with the same methods
+        but different inputs and/or outputs).
+
+        :func:`tracer` looks for ICoCo methods (the methods to implement in order to define a
+        :class:`.PhysicsDriver`) (plus ``__init__``) in base classes and redefine them. Other
+        inherited methods are invisible to :func:`tracer`.
+
+        It is recommended not to overload a class: use "``MyNewClass = c3po.tracer(...)(MyClass)``"
+        and not "``MyClass = c3po.tracer(...)(MyClass)``". Overloading a class may lead
+        to ``TypeError``, in particular in case of inheritance, if the mother class is not
+        accessible any more.
+
+    Parameters
+    ----------
+    pythonFile
+        A file object which has to be already open in written mode (``file = open("file.txt", "w")``).
+        The python script is written there. It has to be closed (``file.close()``) by caller. The
+        script can be run only if ``saveInputMED`` is set to True: otherwise, input MED fields are
+        not stored.
+    saveInputMED : bool
+        If set to True, every time ``setInputMED(Double/Int/String)Field`` is called, the input
+        MED field is stored in a ``.med`` file. If ``pythonFile`` is activated, a MEDLoader
+        reading instruction is also written in the Python file.
+    saveOutputMED : bool
+        If set to True, every time ``getOutputMED(Double/Int/String)Field`` is called, the output
+        MED field is stored in a ``.med`` file.
+    stdoutFile
+        A file object which has to be already open in written mode (``file = open("file.txt", "w")``).
+        The standard output is redirected there. It has to be closed (``file.close()``) by caller.
+    stderrFile
+        A file object which has to be already open in written mode (``file = open("file.txt", "w")``).
+        The error output is redirected there. It has to be closed (``file.close()``) by caller.
+    listingWriter : ListingWriter
+        A :class:`.ListingWriter` object which will manage the writing of the coupling listing file.
+        Refer to the documentation of :class:`.ListingWriter`.
+    workingDir
+        Path to an existing directory which is used as working directory when calling the methods
+        of the traced object.
+
+    Raises
+    -------
+    Exception
+        If applied to a class already modified by :func:`tracer`, because it could result in an
+        unexpected behavior.
     """
 
     def tracerWrapper(toTrace):

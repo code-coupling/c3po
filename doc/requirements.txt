@@ -1,0 +1,7 @@
+sphinx>=8.2.0
+graphviz
+sphinx-rtd-theme
+
+# c3po requirements
+icoco>=2.0.3
+numpy>=1.9

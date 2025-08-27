@@ -10,46 +10,55 @@
 
 # pylint: disable=protected-access
 
-""" Contain the functions buildWrappingClass and wrapper. """
+""" Contain the functions :func:`buildWrappingClass` and :func:`wrapper`. """
 from __future__ import print_function, division
 from types import FunctionType
 
 
 def buildWrappingClass(baseclass, objectAttr):
-    """! Return a wrapping class of baseclass.
+    """ Return a wrapping class of baseclass.
 
-    The `__init__` method of the returned class writes:
+    The ``__init__`` method of the returned class writes:
 
-    ```
-    def __init__(self, wrappedObject):
-        self._wrappedObject = wrappedObject
-    ```
+    .. code-block:: python
 
-    _wrappedObject is the only attribute of instances of the returned class.
+        def __init__(self, wrappedObject):
+            self._wrappedObject = wrappedObject
+
+    ``_wrappedObject`` is the only attribute of instances of the returned class.
 
     All methods of baseclass (inherited methods are also treated) are wrapped this way:
 
-    ```
-    def methodA(self, *args, **kwargs):
-        return self._wrappedObject.methodA(*args, **kwargs)
-    ```
+    .. code-block:: python
 
-    Instance attributes of the wrapped class can be provided using objectAttr.
+        def methodA(self, *args, **kwargs):
+            return self._wrappedObject.methodA(*args, **kwargs)
+
+    Instance attributes of the wrapped class can be provided using ``objectAttr``.
     They are made available in reading and writing using Python property.
 
     For example:
-    ```
-    ClassAWrapper = c3po.buildWrappingClass(ClassA, ["toto"])
-    objectA = ClassA(...)
-    wrapperA = ClassAWrapper(objectA)
-    ```
-    Now, wrapperA.toto gives access to the same variable than objectA.toto or
-    wrapperA._wrappedObject.toto.
 
-    @param baseclass The class we want a wrapper for.
-    @param objectAttr List of the names of baseclass instance attributes for which you wish to retain direct access.
+    .. code-block:: python
 
-    @return A wrapper class for baseclass.
+        ClassAWrapper = c3po.buildWrappingClass(ClassA, ["toto"])
+        objectA = ClassA(...)
+        wrapperA = ClassAWrapper(objectA)
+
+    Now, ``wrapperA.toto`` gives access to the same variable than ``objectA.toto`` or
+    ``wrapperA._wrappedObject.toto``.
+
+    Parameters
+    ----------
+    baseclass
+        The class we want a wrapper for.
+    objectAttr : list
+        List of the names of ``baseclass`` instance attributes for which you wish to retain direct
+        access.
+
+    Returns
+    -------
+        A wrapper class for baseclass.
     """
 
     def wrapperInit(self, wrappedObject):
@@ -84,14 +93,20 @@ def buildWrappingClass(baseclass, objectAttr):
 
 
 def wrapper(toWrap):
-    """! Return a wrapping object for toWrap.
+    """ Return a wrapping object for ``toWrap``.
 
-    wrapper uses c3po.services.wrapper.buildWrappingClass in order to build a wrapping class for toWrap type,
-    and return an instance of this wrapping class (wrapping toWrap).
+    :func:`wrapper` uses :class:`c3po.services.wrapper.buildWrappingClass` in order to build a
+    wrapping class for ``toWrap`` type, and return an instance of this wrapping class (wrapping
+    ``toWrap``).
 
-    @param toWrap Object instance (not class) to be wrapped.
+    Parameters 
+    ----------
+    toWrap
+        Object instance (not class) to be wrapped.
 
-    @return a wrapping object.
+    Returns
+    -------
+        A wrapping object.
     """
     wrappingClass = buildWrappingClass(type(toWrap), toWrap.__dict__.keys())
     return wrappingClass(toWrap)

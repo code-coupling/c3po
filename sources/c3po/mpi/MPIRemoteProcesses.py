@@ -8,28 +8,32 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class MPIRemoteProcesses. """
+""" Contain the class :class:`.MPIRemoteProcesses`. """
 from __future__ import print_function, division
 
 from c3po.mpi.MPIRemote import MPIRemote
 
 
 class MPIRemoteProcesses(MPIRemote):
-    """! MPIRemoteProcesses identifies remote processes in charge of the same task.
+    """ :class:`.MPIRemoteProcesses` identifies remote processes in charge of the same task.
 
-    Inherits from MPIRemote and add a list of ranks.
+    Inherits from :class:`.MPIRemote` and add a list of ranks.
     """
 
     def __init__(self, mpiComm, ranks):
-        """! Build a MPIRemoteProcesses object.
+        """ Build a :class:`.MPIRemoteProcesses` object.
 
-        @param mpiComm MPI communicator.
-        @param ranks List of ranks of the remote processes on mpiComm.
+        Parameters
+        ----------
+        mpiComm
+            MPI communicator.
+        ranks :
+            List of ranks of the remote processes on ``mpiComm``.
         """
         MPIRemote.__init__(self, mpiComm)
         self.ranks = ranks
 
     def cloneEmpty(self):
-        """! return a clone. """
+        """ return a clone. """
         new = MPIRemoteProcesses(self.mpiComm, self.ranks)
         return new

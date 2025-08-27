@@ -8,7 +8,7 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class CrossedSecantCoupler. """
+""" Contain the class :class:`.CrossedSecantCoupler`. """
 from __future__ import print_function, division
 
 from c3po.Coupler import Coupler
@@ -17,34 +17,49 @@ from c3po.services.Printer import Printer
 
 
 class CrossedSecantCoupler(Coupler):
-    """! CrossedSecantCoupler inherits from Coupler and proposes a fixed point algorithm with crossed secant acceleration.
+    """ :class:`.CrossedSecantCoupler` inherits from :class:`.Coupler` and proposes a fixed point
+    algorithm with crossed secant acceleration.
 
-    The class proposes an algorithm for the resolution of F(X) = X. Thus CrossedSecantCoupler is a Coupler working with :
+    The class proposes an algorithm for the resolution of :math:`F(X) = X`. Thus
+    :class:`.CrossedSecantCoupler` is a :class:`.Coupler` working with :
 
-    - A single PhysicsDriver (possibly a Coupler) defining the calculations to be made each time F is called.
-    - A list of DataManager allowing to manipulate the data in the coupling (the X).
-    - Two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
+    - A single :class:`.PhysicsDriver` (possibly a :class:`.Coupler`) defining the calculations to
+      be made each time :math:`F` is called.
+    - A list of :class:`.DataManager` allowing to manipulate the data in the coupling (the :math:`X`).
+    - Two :class:`.Exchanger` allowing to go from the :class:`.PhysicsDriver` to the
+      :class:`.DataManager` and vice versa.
 
-    Each DataManager is normalized with its own norm got after the first iteration.
-    They are then used as a single DataManager using CollaborativeDataManager.
+    Each :class:`.DataManager` is normalized with its own norm got after the first iteration.
+    They are then used as a single :class:`.DataManager` using :class:`.CollaborativeDataManager`.
 
-    At each iteration we do (with n the iteration number):
+    At each iteration we do (with :math:`n` the iteration number):
 
-        X^{n+1} = F(X^{n}) - ( F(X^{n}) - X^{n} ) * [ ( F(X^{n}) - F(X^{n-1}) ) .dot. ( F(X^{n}) - X^{n} - ( F(X^{n-1}) - X^{n-1} ) )  ] / (|| F(X^{n}) - X^{n} - ( F(X^{n-1}) - X^{n-1} ) ||**2)
+    .. math::
+        
+        X^{n+1} = F(X^{n}) - (F(X^{n}) - X^{n}).[(F(X^{n}) - F(X^{n-1})).(F(X^{n}) - X^{n} -
 
-    The convergence criteria is : ||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < tolerance. The default norm used is the infinite norm. setNormChoice() allows to choose another one.
+        (F(X^{n-1}) - X^{n-1}))]/(||F(X^{n}) - X^{n} - (F(X^{n-1}) - X^{n-1})||^2)
 
-    The default value of tolerance is 1.E-6. Call setConvergenceParameters() to change it.
+    The convergence criteria is : :math:`||F(X^{n}) - X^{n}|| / ||F(X^{n})|| < \\rm{tolerance}`. The default
+    norm used is the infinite norm. :meth:`setNormChoice() <.Coupler.setNormChoice>` allows to choose another one.
 
-    The default maximum number of iterations is 100. Call setConvergenceParameters() to change it.
+    The default value of tolerance is 1.E-6. Call :meth:`setConvergenceParameters` to change it.
+
+    The default maximum number of iterations is 100. Call :meth:`setConvergenceParameters` to change it.
     """
 
     def __init__(self, physics, exchangers, dataManagers):
-        """! Build a CrossedSecantCoupler object.
+        """ Build a :class:`.CrossedSecantCoupler` object.
 
-        @param physics list of only one PhysicsDriver (possibly a Coupler).
-        @param exchangers list of exactly two Exchanger allowing to go from the PhysicsDriver to the DataManager and vice versa.
-        @param dataManagers list of DataManager.
+        Parameters
+        ----------
+        physics : list[PhysicsDriver], list[Coupler]
+            List of only one :class:`.PhysicsDriver` (possibly a :class:`.Coupler`).
+        exchangers : list[Exchanger]
+            List of exactly two :class:`.Exchanger` allowing to go from the :class:`.PhysicsDriver`
+            to the :class:`.DataManager` and vice versa.
+        dataManagers : list[DataManager]
+            List of :class:`.DataManager`.
         """
         Coupler.__init__(self, physics, exchangers, dataManagers)
         self._tolerance = 1.E-6
@@ -59,27 +74,34 @@ class CrossedSecantCoupler(Coupler):
             raise Exception("CrossedSecantCoupler.__init__ There must be exactly two Exchanger")
 
     def setConvergenceParameters(self, tolerance, maxiter):
-        """! Set the convergence parameters (tolerance and maximum number of iterations).
+        """ Set the convergence parameters (``tolerance`` and maximum number of iterations).
 
-        @param tolerance the convergence threshold in ||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < tolerance.
-        @param maxiter the maximal number of iterations.
+        Parameters
+        ----------
+        tolerance
+            The convergence threshold in :math:`||F(X^{n}) - X^{n}|| / ||X^{n+1}|| < \\rm{tolerance}`.
+        maxiter
+            The maximal number of iterations.
         """
         self._tolerance = tolerance
         self._maxiter = maxiter
 
     def setPrintLevel(self, level):
-        """! Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
+        """ Set the print level during iterations (0=None, 1 keeps last iteration, 2 prints every iteration).
 
-        @param level integer in range [0;2]. Default: 2.
+        Parameters
+        ----------
+        level : int
+            Integer in range [0;2]. Default: 2.
         """
         if not level in [0, 1, 2]:
             raise Exception("FixedPointCoupler.setPrintLevel level should be one of [0, 1, 2]!")
         self._iterationPrinter.setPrintLevel(level)
 
     def solveTimeStep(self):
-        """! Solve a time step using the damped fixed-point algorithm.
+        """ Solve a time step using the damped fixed-point algorithm.
 
-        See also c3po.PhysicsDriver.PhysicsDriver.solveTimeStep().
+        See also :meth:`c3po.PhysicsDriver.PhysicsDriver.solveTimeStep`.
         """
         iiter = 0
         error = self._tolerance + 1.

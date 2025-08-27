@@ -8,22 +8,27 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the class MPIExchangeMethod. """
+""" Contain the class :class:`.MPIExchangeMethod`. """
 from __future__ import print_function, division
 
 from c3po.exchangeMethods.ExchangeMethod import ExchangeMethod
 
 
 class MPIExchangeMethod(ExchangeMethod):
-    """! MPIExchangeMethod is a class interface (to be implemented) which standardizes MPI exchange methods
-    (they also deal with MPI exchanges).
+    """ :class:`.MPIExchangeMethod` is a class interface (to be implemented) which standardizes MPI
+    exchange methods (they also deal with MPI exchanges).
     """
 
     def setRanks(self, ranksToGet, ranksToSet, mpiComm):
-        """! Set the MPI communicator and the related ranks to use for the exchanges.
+        """ Set the MPI communicator and the related ranks to use for the exchanges.
 
-        @param ranksToGet list of the ranks of the processes on the get side.
-        @param ranksToSet list of the ranks of the processes on the set side.
-        @param mpiComm MPI communicator related to the previous ranks.
+        Parameters
+        ----------
+        ranksToGet
+            List of the ranks of the processes on the get side.
+        ranksToSet
+            List of the ranks of the processes on the set side.
+        mpiComm
+            MPI communicator related to the previous ranks.
         """
         raise NotImplementedError

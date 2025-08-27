@@ -22,12 +22,19 @@ pip install --user -e .
 
 ## Documentation ##
 
-C3PO's Doxygen documentation can be generated from **doc** directory using:
+C3PO's Sphinx documentation can be generated from **doc** directory using:
 ```sh
-./makedoc.sh
+make html
 ```
 
-It can also be found here: https://salome-c3po.readthedocs.io/ .
+> **WARNING**: To generate C3PO documentation, use a Python version higher than 3.11.
+
+Python modules `graphviz`, `sphinx-rtd-theme` and `sphinx` have to be installed using pip:
+```sh
+pip install -r ./doc/requirements.txt
+```
+
+It can also be found here: https://salome-c3po.readthedocs.io .
 
 ## Tests ##
 

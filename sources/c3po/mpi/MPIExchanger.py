@@ -8,7 +8,9 @@
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" Contain the classes MPIExchanger and MPIShortcutToData. MPIShortcutToData is for internal use only. """
+""" Contain the classes :class:`.MPIExchanger` and :class:`.MPIShortcutToData`.
+:class:`.MPIShortcutToData` is for internal use only.
+"""
 from __future__ import print_function, division
 from mpi4py import MPI as mpi
 
@@ -24,75 +26,93 @@ from c3po.mpi.mpiExchangeMethods.MPIExchangeMethod import MPIExchangeMethod
 
 
 class MPIShortcutToData(object):
-    """! INTERNAL """
+    """ INTERNAL """
 
     def __init__(self, containerToSet):
-        """! INTERNAL """
+        """ INTERNAL """
         self._something = 0
         self._containerToSet = containerToSet
 
     def store(self, something):
-        """! INTERNAL """
+        """ INTERNAL """
         self._something = something
 
     def get(self):
-        """! INTERNAL """
+        """ INTERNAL """
         return self._something
 
     def getFieldTemplate(self):
-        """! INTERNAL """
+        """ INTERNAL """
         return self._something
 
     def set(self, something):
-        """! INTERNAL """
+        """ INTERNAL """
         self._containerToSet.set(something)
 
     def clean(self):
-        """! INTERNAL """
+        """ INTERNAL """
         self._something = 0
 
 
 class MPIExchanger(LocalExchanger):
-    """! MPIExchanger is the MPI version of c3po.LocalExchanger.LocalExchanger.
+    """ :class:`.MPIExchanger` is the MPI version of :class:`c3po.LocalExchanger.LocalExchanger`.
 
-    MPIExchanger can replace, without impact, a c3po.LocalExchanger.LocalExchanger for a calculation on a single process, if
-    the MPI environment is available.
+    :class:`.MPIExchanger` can replace, without impact, a
+    :class:`c3po.LocalExchanger.LocalExchanger` for a calculation on a single process, if the MPI
+    environment is available.
     """
 
     def __init__(self, method, fieldsToGet, fieldsToSet, valuesToGet=[], valuesToSet=[], exchangeWithFiles=False, mpiComm=None):    # pylint: disable=super-init-not-called
-        """! Build a MPIExchanger object.
+        """ Build a :class:`.MPIExchanger` object.
 
-        The constructor has the same form than LocalExchanger.__init__() with two additional optionnal parameters:
-        exchangeWithFiles and mpiComm.
+        The constructor has the same form than :meth:`.LocalExchanger.__init__` with two additional
+        optionnal parameters: ``exchangeWithFiles`` and ``mpiComm``.
 
-        MPIExchanger must be built in the same way for all the processes involved in the exchanges. Likewise, the exchange()
-        method must be called at the same time by all processes.
+        :class:`.MPIExchanger` must be built in the same way for all the processes involved in the
+        exchanges. Likewise, the :meth:`exchange` method must be called at the same time by all
+        processes.
 
-        The first parameter, method, can be either a c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod or not:
+        The first parameter, ``method``, can be either a
+        :class:`c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod` or not:
 
-          - In the first case, the exchange method has to deal with data exchanges between MPI processes (in addition to
-        local data processing such as unit change). MPIRemoteProcess and MPIRemoteProcesses are accepted, but not
-        MPICollectiveProcess.
+        - In the first case, the exchange method has to deal with data exchanges between MPI
+          processes (in addition to local data processing such as unit change).
+          :class:`.MPIRemoteProcess` and :class:`.MPIRemoteProcesses` are accepted, but not
+          :class:`.MPICollectiveProcess`.
 
-          - In the second case, these exchanges between MPI processes are done by MPIExchanger. The class manages MPI
-        exchanges and then uses the local exchange method with the mother class. In this case, it is assumed that an object
-        is either held by a single process (and is replace by a MPIRemoteProcess in others), or collectively (MPICollectiveProcess).
-        When there is an MPICollectiveProcess on the set side, all the processes of the communicator of this object must be involved
-        in the exchanges. MPIRemoteProcesses are accepted only if no exchange are required.
+        - In the second case, these exchanges between MPI processes are done by
+          :class:`.MPIExchanger`. The class manages MPI exchanges and then uses the local exchange
+          method with the mother class. In this case, it is assumed that an object is either held
+          by a single process (and is replace by a :class:`.MPIRemoteProcess` in others), or
+          collectively (:class:`.MPICollectiveProcess`). When there is an
+          :class:`.MPICollectiveProcess` on the set side, all the processes of the communicator of
+          this object must be involved in the exchanges. :class:`.MPIRemoteProcesses` are accepted
+          only if no exchange are required.
 
-        @param method see LocalExchanger.__init__().
-        @param fieldsToGet LocalExchanger.__init__().
-        @param fieldsToSet LocalExchanger.__init__().
-        @param valuesToGet LocalExchanger.__init__().
-        @param valuesToSet LocalExchanger.__init__().
-        @param exchangeWithFiles (bool) (Only available with an exchange method that is not of type
-            c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod.) When exchangeWithFiles is set to True, exchanged
-            MEDField are written on files and read by the recipient process(es). Only basic data (such as the file path) are
-            exchanged via MPI.
-        @param mpiComm (Only available with an exchange method that is of type
-            c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod.) If not None, it indicated to the exchange method
-            to use this communicator for data exchange. Otherwise, all MPIRemoteProcess and MPIRemoteProcesses must use the same
-            communicator, which is then used by the exchange method.
+        Parameters
+        ----------
+        method
+            See :meth:`.LocalExchanger.__init__`.
+        fieldsToGet
+            :meth:`.LocalExchanger.__init__`.
+        fieldsToSet
+            :meth:`.LocalExchanger.__init__`.
+        valuesToGet
+            :meth:`.LocalExchanger.__init__`.
+        valuesToSet
+            :meth:`.LocalExchanger.__init__`.
+        exchangeWithFiles : bool
+            (Only available with an exchange method that is not of type
+            :class:`c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod`.) When
+            ``exchangeWithFiles`` is set to True, exchanged MEDField are written on files and read
+            by the recipient process(es). Only basic data (such as the file path) are exchanged via
+            MPI.
+        mpiComm
+            (Only available with an exchange method that is of type
+            :class:`c3po.mpi.mpiExchangeMethods.MPIExchangeMethod.MPIExchangeMethod`.) If not None,
+            it indicated to the exchange method to use this communicator for data exchange.
+            Otherwise, all :class:`.MPIRemoteProcess` and :class:`.MPIRemoteProcesses` must use the
+            same communicator, which is then used by the exchange method.
         """
 
         self._subExchangers = None
@@ -114,7 +134,7 @@ class MPIExchanger(LocalExchanger):
             self._initWithLocalExchangeMethod(method, fieldsToGet, fieldsToSet, valuesToGet, valuesToSet, exchangeWithFiles)
 
     def _initWithLocalExchangeMethod(self, method, fieldsToGet, fieldsToSet, valuesToGet=[], valuesToSet=[], exchangeWithFiles=False):
-        """! INTERNAL """
+        """ INTERNAL """
         dividedInputs = self._divideInputsAccordingToPatterns(method, fieldsToGet, fieldsToSet, valuesToGet, valuesToSet)
 
         self._dataNeeded = False
@@ -211,7 +231,7 @@ class MPIExchanger(LocalExchanger):
                         self._mpiExchanges.append(MPIValueRecipient(toGet, self._valuesToGet[i], isCollective))
 
     def _initWithMPIExchangeMethod(self, method, fieldsToGet, fieldsToSet, valuesToGet=[], valuesToSet=[], mpiComm=None):
-        """! INTERNAL """
+        """ INTERNAL """
         ranksToGet = []
         ranksToSet = []
         exchangerMPIComm = mpiComm
@@ -228,7 +248,7 @@ class MPIExchanger(LocalExchanger):
             raise Exception("MPIExchanger.__init__: No MPI communicator found.")
 
         def _readRanks(dataAccessor):
-            """! INTERNAL """
+            """ INTERNAL """
             if isinstance(dataAccessor, MPIRemoteProcess):
                 return mpi.Group.Translate_ranks(dataAccessor.mpiComm.Get_group(), [dataAccessor.rank], exchangerMPIComm.Get_group())
             if isinstance(dataAccessor, MPIRemoteProcesses):
@@ -245,7 +265,7 @@ class MPIExchanger(LocalExchanger):
             return mpi.Group.Translate_ranks(intersecGroup, list(range(intersecGroup.Get_size())), exchangerMPIComm.Get_group())
 
         def _initObjectList(initialList, ranks):
-            """! INTERNAL """
+            """ INTERNAL """
             newList = []
             for elem in initialList:
                 newRanks = _readRanks(elem[0])
@@ -264,7 +284,7 @@ class MPIExchanger(LocalExchanger):
         method.setRanks(ranksToGet, ranksToSet, exchangerMPIComm)
 
     def exchange(self):
-        """! Trigger the exchange of data.
+        """ Trigger the exchange of data.
 
         Must be called at the same time by all processes.
         """
@@ -277,7 +297,7 @@ class MPIExchanger(LocalExchanger):
             self._subExchangers.exchange()
 
     def clean(self):
-        """! See c3po.Exchanger.clean. """
+        """ See :meth:`c3po.Exchanger.clean`. """
         if self._subExchangers is None:
             for exc in self._mpiExchanges:
                 exc.clean()

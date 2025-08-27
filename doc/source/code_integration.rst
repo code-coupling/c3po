@@ -1,0 +1,151 @@
+.. _Code_integration_pag:
+
+===========================
+How to use a code with C3PO
+===========================
+
+In order to be usable with C3PO, a code must be wrapped into a Python class that implements a
+precise Application Programming Interface (API), called ICoCo (Interface for Code Coupling) [1].
+It includes all required capabilities for multiphysics simulations such as initialization,
+termination, time-step control, solving, exchange of variables etc.
+:class:`c3po.PhysicsDriver.PhysicsDriver` class lists these methods with related documentation.
+Since the :class:`c3po.PhysicsDriver.PhysicsDriver` class provides some additional services, the
+wrapping class should inherit from :class:`c3po.PhysicsDriver.PhysicsDriver` class.
+
+This wrapping has four main consequences listed below.
+
+.. note::
+
+    It is possible to add a CORBA or a socket exchange layer between the Python wrapping class and
+    the code itself. This would further alleviate the compatibility requirements (compared to what
+    follows). This additional layer may however degrade the performance of the coupling of codes
+    using MPI parallelization.
+
+.. _Python_sec:
+
+Use of Python as high-level language
+====================================
+
+Every code has to be wrapped into a Python class, which allows to coordinate them in a homogeneous
+way regardless of their native programming language. The required API being very macroscopic (e.g.
+asking a code to solve its problem), this wrapping should not alter significantly codes performance.
+
+SWIG [2] is, for example, a well-known and easy to use tool to wrap a C, C++ or a FORTRAN code into a
+Python interface. Other examples are F2PY [3] for FORTRAN and pybind11 [4] for C++.
+
+C3PO is compatible with both Python 2 and Python 3, but all codes involved in a coupling should be wrapped
+using the same Python version. We recommend Python 3.
+
+.. _MEDCoupling_sec:
+
+Use of MEDCoupling for data exchanges
+=====================================
+
+ICoCo requires the use of a common format for space-dependent exchanged data: MEDCoupling. MEDCoupling
+is a C++ library, with Python binding, provided by the open-source SALOME platform [5]. It implements
+unstructured meshes and fields defined on them, as well as advanced interpolation methods. Mapping of
+variables between codes is done with MEDCoupling using mesh-based interpolation at runtime and not through
+index-based mappings.
+
+Codes must be able to provide their output space-dependent variables in MEDCoupling fields, and,
+conversely, to get their input space-dependent variables from MEDCoupling fields. Note that this
+capability can be provided by the Python wrapping class rather than by the code itself.
+
+Ideally, all codes involved in a coupling should use the same version of MEDCoupling. Some flexibility
+is nevertheless provided by the use of MPI to separate computing processes: the compatibility for MPI
+exchanges of MEDCoupling fields is guaranteed on ranges of MEDCoupling versions.
+
+.. _MPI_sec:
+
+Use of MPI as distributed memory parallelization standard
+=========================================================
+
+ICoCo is compatible with the use of MPI, but does not support other distributed memory parallelization
+standards (MPI is by far the dominant one). Full flexibility is given for the intra-code shared memory
+parallelization.
+
+MPI can be used for intra-code parallelization, inter-code parallelization, or just to separate
+computing processes (in case of incompatibility between codes for example), but it is not mandatory.
+If used, because it has to be managed consistently in the whole calculation, the same implementation of
+MPI (the same dynamic library) must be shared by all codes and by C3PO (through mpi4py). In particular,
+mpi4py has to be compiled with the same MPI dynamic library as the codes.
+
+.. _ICOCO_sec:
+
+Use of an ICoCo API
+===================
+
+Finally, the methods listed in Appendix A must be implemented by the python wrapping class. Not all of
+them are compulsory. Their absence would only limit the possible applications.
+
+These methods are always required:
+
+- initialize;
+- terminate;
+- presentTime;
+- computeTimeStep;
+- initTimeStep;
+- solveTimeStep;
+- validateTimeStep;
+- setStationaryMode;
+- getStationaryMode
+
+In order to exchange space-dependent data, codes must provide at least:
+
+- getInputMED(Double/Int/String)FieldTemplate;
+- setInputMED(Double/Int/String)Field;
+- getOutputMED(Double/Int/String)Field.
+
+In order to speed-up space-dependant data exchanges, codes can provide:
+
+- updateOutputMED(Double/Int/String)Field.
+
+In order to exchange scalars, codes must provide at least:
+
+- setInput(Double/Int/String)Value;
+- getOutput(Double/Int/String)Value.
+
+If a code uses MPI parallelization (for its own needs), it must provide:
+
+- setMPIComm.
+
+Note that C3PO is designed mainly for codes following the Single Program Multiple Data (SPMD)
+parallelism paradigm (all processes involved in a calculation call the same methods at the same
+time), but can adapt to other situations.
+
+These methods have to be provided for some coupling algorithms:
+
+- abortTimeStep (for non-explicit coupling time-scheme);
+- isStationary (for coupled asymptotic calculations);
+- resetTime (to modify current time seen by the code);
+- iterateTimeStep (for some advanced coupling algorithms between not fully converged solvers);
+
+Finally, these methods are for specific uses:
+
+- setDataFile (a way to provide initialization data to a code);
+
+- save, restore, forget (for save and restore capabilities);
+
+- getMEDCouplingMajorVersion, isMEDCoupling64Bits (for code compatibility checks);
+
+- getInputFieldsNames, getOutputFieldsNames, getFieldType, getMeshUnit, getFieldUnit (for code
+  introspection about fields);
+
+- getInputValuesNames, getOutputValuesNames, getValueType, getValueUnit (for code
+  introspection about values).
+
+.. _ref_integration_sec:
+
+References
+==========
+
+[1] E. Deville, F. Perdu, “Documentation of the Interface for Code Coupling : ICoCo”, NURISP technical report D3.3.1.2 (2012).
+
+[2] “SWIG website”, www.swig.org.
+
+[3] “F2PY website”, www.f2py.com.
+
+[4] “pybind11 github access”, https://github.com/pybind/pybind11.
+
+[5] “Salomé: The Open Source Integration Platform for Numerical Simulation”, http://www.salome-platform.org.
+
