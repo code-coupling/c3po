@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
-import os
 import math
-import glob
+from pathlib import Path
+import shutil
 import pytest
 
 import c3po.medcouplingCompat as mc
@@ -60,8 +60,13 @@ def test_sequential():
     from tests.med_1D3D.NeutroDriver import NeutroDriver
     from tests.med_1D3D.ThermoDriver import ThermoDriver
 
-    tracedNeutro = c3po.tracer(saveInputMED=True, saveOutputMED=True)(NeutroDriver)
-    tracedThermo = c3po.tracer(saveInputMED=True, saveOutputMED=True)(ThermoDriver)
+    workingDir = Path("./results/med_multi1D3D/test_sequential/test_sequential")
+    if workingDir.exists():
+        shutil.rmtree(workingDir)
+    workingDir.mkdir(parents=True)
+
+    tracedNeutro = c3po.tracer(saveInputMED=True, saveOutputMED=True, workingDir=workingDir)(NeutroDriver)
+    tracedThermo = c3po.tracer(saveInputMED=True, saveOutputMED=True, workingDir=workingDir)(ThermoDriver)
 
     myThermoDrivers = []
     for i in range(4):
@@ -98,9 +103,9 @@ def test_sequential():
 
     try:
         num = 0
-        while os.path.exists("NeutroDriver_input_Temperature_" + str(num) + ".med"):
+        while (workingDir / f"NeutroDriver_input_Temperature_{num}.med").exists():
             num += 1
-        fieldT = mc.ReadField(mc.ON_CELLS, "NeutroDriver_input_Temperature_" + str(num - 1) + ".med", "3DMesh", 0, "Temperature", 1, 0)
+        fieldT = mc.ReadField(mc.ON_CELLS, str(workingDir / f"NeutroDriver_input_Temperature_{num - 1}.med"), "3DMesh", 0, "Temperature", 1, 0)
         resuT = fieldT.getArray().toNumPyArray().tolist()
 
         assert len(refT) == len(resuT)
@@ -108,9 +113,9 @@ def test_sequential():
             assert pytest.approx(resuT[i], abs=1.E-3) == refT[i]
 
         num = 0
-        while os.path.exists("NeutroDriver_output_Power_" + str(num) + ".med"):
+        while (workingDir / f"NeutroDriver_output_Power_{num}.med").exists():
             num += 1
-        fieldP = mc.ReadField(mc.ON_CELLS, "NeutroDriver_output_Power_" + str(num - 1) + ".med", "3DMesh", 0, "3DField", -1, -1)
+        fieldP = mc.ReadField(mc.ON_CELLS, str(workingDir / f"NeutroDriver_output_Power_{num - 1}.med"), "3DMesh", 0, "3DField", -1, -1)
         resuP = fieldP.getArray().toNumPyArray().tolist()
 
         assert len(refP) == len(resuP)
@@ -119,15 +124,18 @@ def test_sequential():
     except:
         raise
     finally:
-        medFiles = glob.glob("*.med")
-        for medFile in medFiles:
-            os.remove(medFile)
+        shutil.rmtree(workingDir)
 
-    myRemapper.exportMatrix("matrix_remapper.med")
+    myRemapper.exportMatrix(workingDir.parent / "matrix_remapper.med")
 
 def test_load_matrix():
     from tests.med_1D3D.NeutroDriver import NeutroDriver
     from tests.med_1D3D.ThermoDriver import ThermoDriver
+
+    workingDir = Path("./results/med_multi1D3D/test_sequential/test_load_matrix")
+    if workingDir.exists():
+        shutil.rmtree(workingDir)
+    workingDir.mkdir(parents=True)
 
     myThermoDrivers = []
     for i in range(4):
@@ -140,7 +148,7 @@ def test_load_matrix():
     myThermoDriver = c3po.multi1D.Multi1DPhysicsDriver(myThermoDrivers, grid)
 
     myRemapper = c3po.Remapper(meshAlignment=True, offset=[0., 0., -1.], rescaling=1. / 100., rotation=math.pi / 2., outsideCellsScreening=True)
-    myRemapper.loadMatrix("matrix_remapper.med")
+    myRemapper.loadMatrix(workingDir.parent / "matrix_remapper.med")
 
     neutroToThermo = c3po.SharedRemapping(myRemapper, reverse=True)
     thermoToNeutro = c3po.SharedRemapping(myRemapper, reverse=False, defaultValue=273.15, linearTransform=(1., -273.15))
@@ -171,7 +179,7 @@ def test_load_matrix():
     except:
         raise
     finally:
-        os.remove("matrix_remapper.med")
+        shutil.rmtree(workingDir.parent)
 
     mycoupler.term()
 

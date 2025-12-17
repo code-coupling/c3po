@@ -7,3 +7,6 @@ dist/
 build/
 .eggs/
 *.egg-info/
+
+# resultats des tests
+/results/

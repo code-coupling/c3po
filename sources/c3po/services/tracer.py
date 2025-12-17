@@ -10,6 +10,7 @@
 
 """ Contain the class wrapper tracer. """
 from __future__ import print_function, division
+from pathlib import Path
 import re
 from types import FunctionType
 import time
@@ -22,7 +23,7 @@ from c3po.services.wrapper import buildWrappingClass
 
 def getRegularName(name):
     """ INTERNAL """
-    return re.sub("[^a-zA-Z0-9_]", "_", "_" + name)
+    return re.sub("[^a-zA-Z0-9_]", "_", f"_{name}")
 
 
 def getNameFieldInput(name, field):
@@ -57,21 +58,12 @@ def getSaveInput(label, method):
 
 def getArgsString(*args, **kwargs):
     """ INTERNAL """
-    stringArgs = "("
-    for arg in args:
-        strArg = str(arg)
-        if isinstance(arg, str):
-            strArg = "'" + arg + "'"
-        stringArgs += strArg + ","
-    for nameattr, arg in kwargs.items():
-        strArg = str(arg)
-        if isinstance(arg, str):
-            strArg = "'" + arg + "'"
-        stringArgs += nameattr + " = " + strArg + ","
-    if len(stringArgs) > 1:
-        stringArgs = stringArgs[:-1]
-    stringArgs += ")"
-    return stringArgs
+    stringArgs = ", ".join(
+        [f"'{arg}'" if isinstance(arg, (str, Path)) else f"{arg}"
+         for arg in args] +
+        [f"{nameattr}='{arg}'" if isinstance(arg, (str, Path)) else f"{nameattr}={arg}"
+         for nameattr, arg in kwargs.items()])
+    return f"({stringArgs})"
 
 
 def buildTypeArgs(name, bases, dct):
@@ -84,41 +76,42 @@ def buildTypeArgs(name, bases, dct):
             if method.__name__ == "__init__":
                 if name not in self.static_Objectcounter:
                     self.static_Objectcounter[name] = 0
-                self.tracerObjectName = "my" + name + str(self.static_Objectcounter[name])
+                self.tracerObjectName = f"my{name}{self.static_Objectcounter[name]}"
                 self.static_Objectcounter[name] += 1
                 self.tracerRecurrenceDepth = 0
 
+            medFilePrefix = self.static_wDir if self.static_wDir else Path()
+
             if self.static_saveInputMED and method.__name__.startswith("setInputMED"):
                 (nameField, field) = getNameFieldInput(*args, **kwargs)
-                nameMEDFile = name + "_input_" + nameField + "_"
-                num = 0
-                while os.path.exists(nameMEDFile + str(num) + ".med"):
-                    num += 1
-                nameMEDFile = nameMEDFile + str(num) + ".med"
+                num = max([int(p.stem.split("_")[-1])
+                           for p in medFilePrefix.glob(f"{name}_input_{nameField}_*.med")],
+                          default=-1) + 1
+                nameMEDFile = str(medFilePrefix / f"{name}_input_{nameField}_{num}.med")
                 _, iteration, order = field.getTime()
                 medInfo = (field.getTypeOfField(), nameMEDFile, field.getMesh().getName(),
                            0, field.getName(), iteration, order)
                 mc.WriteField(nameMEDFile, field, True)
                 if self.static_pythonFile is not None:
-                    self.static_pythonFile.write("readField = mc.ReadField" + str(medInfo) + "\n")
+                    self.static_pythonFile.write(f"readField = mc.ReadField{medInfo}\n")
 
             if self.static_pythonFile is not None:
                 toWritePython = ""
                 if method.__name__ == "__init__" and (not hasattr(self, "static_printinit") or self.static_printinit):
                     stringArgs = getArgsString(*args, **kwargs)
-                    toWritePython = self.tracerObjectName + " = " + name + stringArgs + "\n"
+                    toWritePython = f"{self.tracerObjectName} = {name}{stringArgs}\n"
                 elif method.__name__.startswith("setInputMED"):
                     (nameField, _) = getNameFieldInput(*args, **kwargs)
-                    toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', readField)" + "\n"
+                    toWritePython = f"{self.tracerObjectName}.{method.__name__}('{nameField}', readField)\n"
                 elif method.__name__.startswith("getOutputMED"):
                     nameField = getNameInput(*args, **kwargs)
-                    toWritePython = getRegularName(nameField) + "_" + self.tracerObjectName + " = " + self.tracerObjectName + "." + method.__name__ + "('" + nameField + "')" + "\n"
+                    toWritePython = f"{getRegularName(nameField)}_{self.tracerObjectName} = {self.tracerObjectName}.{method.__name__}('{nameField}')\n"
                 elif method.__name__.startswith("updateOutputMED"):
                     (nameField, _) = getNameFieldInput(*args, **kwargs)
-                    toWritePython = self.tracerObjectName + "." + method.__name__ + "('" + nameField + "', " + getRegularName(nameField) + "_" + self.tracerObjectName + ")" + "\n"
+                    toWritePython = f"{self.tracerObjectName}.{method.__name__}('{nameField}', {getRegularName(nameField)}_{self.tracerObjectName})\n"
                 else:
                     stringArgs = getArgsString(*args, **kwargs)
-                    toWritePython = self.tracerObjectName + "." + method.__name__ + stringArgs + "\n"
+                    toWritePython = f"{self.tracerObjectName}.{method.__name__}{stringArgs}\n"
 
             prevIdstdout = 0
             prevIdstderr = 0
@@ -143,7 +136,7 @@ def buildTypeArgs(name, bases, dct):
                 result = method(self, *args, **kwargs)
             except:
                 if self.static_pythonFile is not None:
-                    toWritePython = "try: " + toWritePython + "except: pass" + "\n"
+                    toWritePython = f"try: {toWritePython}except: pass\n"
                 raise
             else:
                 end = time.time()
@@ -171,12 +164,10 @@ def buildTypeArgs(name, bases, dct):
                     field = result
                 else:
                     (nameField, field) = getNameFieldInput(*args, **kwargs)
-                nameMEDFile = name + "_output_" + nameField + "_"
-                num = 0
-                while os.path.exists(nameMEDFile + str(num) + ".med"):
-                    num += 1
-                nameMEDFile = nameMEDFile + str(num) + ".med"
-                mc.WriteField(nameMEDFile, field, True)
+                num = max([int(p.stem.split("_")[-1])
+                           for p in medFilePrefix.glob(f"{name}_output_{nameField}_*.med")],
+                          default=-1) + 1
+                mc.WriteField(str(medFilePrefix / f"{name}_output_{nameField}_{num}.med"), field, True)
 
             if self.static_lWriter is not None:
                 if method.__name__ in ["initialize", "computeTimeStep", "initTimeStep", "solveTimeStep", "iterateTimeStep",
@@ -321,20 +312,20 @@ def tracer(pythonFile=None, saveInputMED=False, saveOutputMED=False, stdoutFile=
     def tracerWrapper(toTrace):
         def classWrapper(baseclass):
             if pythonFile is not None:
-                pythonFile.write("# -*- coding: utf-8 -*-" + "\n")
-                pythonFile.write("from __future__ import print_function, division" + "\n")
-                pythonFile.write("import c3po.medcouplingCompat as mc" + "\n")
-                pythonFile.write("from " + baseclass.__module__ + " import " + baseclass.__name__ + "\n" + "\n")
+                pythonFile.write("# -*- coding: utf-8 -*-\n")
+                pythonFile.write("import c3po.medcouplingCompat as mc\n")
+                pythonFile.write(f"from {baseclass.__module__ } import {baseclass.__name__}\n\n")
 
             if hasattr(baseclass, "static_pythonFile"):
-                raise Exception("tracer: the class " + baseclass.__name__ + " has already been modified by tracer. It is not allowed.")
+                raise AssertionError(
+                    f"tracer: the class {baseclass.__name__} has already been modified by tracer. It is not allowed.")
             baseclass.static_pythonFile = pythonFile
             baseclass.static_saveInputMED = saveInputMED
             baseclass.static_saveOutputMED = saveOutputMED
             baseclass.static_stdout = stdoutFile
             baseclass.static_stderr = stderrFile
             baseclass.static_lWriter = listingWriter
-            baseclass.static_wDir = workingDir if workingDir is None else os.path.abspath(workingDir)
+            baseclass.static_wDir = workingDir if workingDir is None else Path(workingDir).resolve()
             newclass = type(*buildTypeArgs(baseclass.__name__, (baseclass,), baseclass.__dict__))
             newclass.static_Objectcounter = {}
             newclass.__doc__ = baseclass.__doc__
