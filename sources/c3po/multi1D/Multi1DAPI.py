@@ -43,7 +43,7 @@ class Multi1DAPI(ABC):
         """ Return the list of the sizes of the cells of the 1D object with the required index.
 
         .. note::
-        
+
             The length of the returned list should be equal to :meth:`getNumberOfCells`.
 
         Parameters
@@ -77,7 +77,7 @@ class Multi1DAPI(ABC):
         """ Return the values of the field ``fieldName`` for the 1D object with the required index.
 
         .. note::
-        
+
             The length of the returned list should be equal to :meth:`getNumberOfCells`.
 
         Parameters
@@ -98,7 +98,7 @@ class Multi1DAPI(ABC):
         """ Set the values of the field ``fieldName`` to the 1D object with the required index.
 
         .. note::
-        
+
             The length of ``values`` should be equal to :meth:`getNumberOfCells`.
 
         Parameters
@@ -127,7 +127,7 @@ class Multi1DWithObjectsAPI(Multi1DAPI):
         the required index at each cell.
 
         .. note::
-        
+
             The length of the returned list should be equal to :meth:`getNumberOfCells`.
 
         Parameters
@@ -147,12 +147,18 @@ class Multi1DWithObjectsAPI(Multi1DAPI):
         methods for the field ``fieldName``.
 
         .. note::
-        
+
             The names of all involved internal object should be listed, even if they appear in only
             one cell of one 1D object.
-        
+
             The ordering of the names must be coherent with :meth:`getObjectValues` and
             :meth:`setObjectValues` behavior.
+
+        .. note::
+
+            This method returns an empty list if the field is known but does not involve any
+            internal object. It means that the field should be handled using Multi1DAPI methods.
+            If the field is totally unknown, an exception is raised.
 
         Parameters
         ----------
@@ -171,10 +177,10 @@ class Multi1DWithObjectsAPI(Multi1DAPI):
         the required index (for each object and for each cell).
 
         .. note::
-        
+
             The length of the returned list should be equal to the lenght of the list returned by
             ``getObjectNamesInField(fieldName)``.
-        
+
             For every ``i``, the length of the ``i``-th components of the return list should be
             equal to ``getNumberOfCells(index)``.
 
@@ -197,10 +203,10 @@ class Multi1DWithObjectsAPI(Multi1DAPI):
         (for each object and for each cell).
 
         .. note::
-        
+
             The length of values should be equal to the lenght of the list returned by
             ``getObjectNamesInField(fieldName)``.
-        
+
             For every ``i``, the length of ``values[i]`` should be equal to
             ``getNumberOfCells(index)``.
 

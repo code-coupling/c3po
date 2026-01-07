@@ -103,7 +103,7 @@ class MEDInterface:
             A :class:`.Grid` object positioning the components of ``multi1DAPI`` in space.
         objectGrids : list[list[Grid]]
             A list of list of :class:`.Grid` objects. The first dimension is associated with
-            ``baseGrid`` : ``len(objectGrids)`` should be ``== baseGrid.getNumberOfCells()``. 
+            ``baseGrid`` : ``len(objectGrids)`` should be ``== baseGrid.getNumberOfCells()``.
             The second dimension is associated with the mesh of the associated component of
             ``multi1DAPI`` : ``len(objectGrids[i])`` should be ``== multi1DAPI.getNumberOfCells(j)``
             where ``j = baseGrid.getCorrespondence(i)``. Finally, the grid objects provide the
@@ -300,7 +300,7 @@ class MEDInterface:
         """ Return the 3D MEDCoupling field associated with fieldName.
 
         .. note::
-        
+
             The field underlying mesh is either the same than :meth:`getBaseMEDMesh`, or the same
             than :meth:`getObjectMEDMesh`, depending on fieldName.
 
@@ -319,10 +319,8 @@ class MEDInterface:
         defaultValue = 0.
 
         requiredObjects = []
-        try:
+        if isinstance(self._multi1DAPI, Multi1DWithObjectsAPI):
             requiredObjects = self._multi1DAPI.getObjectNamesInField(fieldName)
-        except:
-            pass
         isObjectField = len(requiredObjects) > 0
         numComponents = len(requiredObjects) if isObjectField else 1
 
@@ -392,7 +390,7 @@ class MEDInterface:
         """ Set a 3D MEDCoupling field.
 
         .. note::
-            
+
             The field underlying mesh must be the base one (:meth:`getBaseMEDMesh`) or the object
             one (:meth:`getObjectMEDMesh`), depending on ``fieldName``. No projection is made.
 
@@ -411,10 +409,8 @@ class MEDInterface:
         valuesArray = field.getArray()
 
         requiredObjects = []
-        try:
+        if isinstance(self._multi1DAPI, Multi1DWithObjectsAPI):
             requiredObjects = self._multi1DAPI.getObjectNamesInField(fieldName)
-        except:
-            pass
         isObjectField = len(requiredObjects) > 0
         numComponents = len(requiredObjects) if isObjectField and self._objectMEDMesh is None else 1
 
