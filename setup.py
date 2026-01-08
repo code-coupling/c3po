@@ -10,14 +10,19 @@
 
 """Installation script of the package."""
 
-import os
+import pathlib
 from setuptools import find_packages, setup
 
+here = pathlib.Path(__file__).parent.resolve()
+
+# Get the long description from the README file
+def get_long_description():
+    """Extract README content"""
+    return (here / "sources" / "README.md").read_text(encoding="utf-8")
 
 def get_version():
     """Extract the package's version number from the ``VERSION`` file."""
-    filename = os.path.join(os.path.dirname(__file__), "sources", "c3po", "VERSION")
-    with open(filename) as file:
+    with open(here / "sources" / "c3po" / "VERSION") as file:
         return file.read().strip()
 
 
@@ -66,6 +71,8 @@ setup(
     maintainer="Cyril Patricot",
     maintainer_email="cyril.patricot@cea.fr",
     description="Collaborative Code Coupling PlatfOrm",
+    long_description=get_long_description(),
+    long_description_content_type="text/markdown",
     url="https://github.com/code-coupling/c3po",
     packages=find_packages(where="sources"),
     package_data={
