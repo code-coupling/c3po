@@ -1,3 +1,5 @@
+name: Python CI/CD
+
 on:
   push:
     branches: ["**"]
@@ -26,26 +28,19 @@ jobs:
       - name: Install package and test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[pytest]
+          pip install .[pytest]  # Installs: pytest, pytest-cov, pytest-html, pylint
 
-      - name: Make test script executable
-        run: chmod +x run_tests.sh
-
-      - name: Run tests with coverage and HTML report
+      - name: Run pytest with coverage and HTML report
         run: |
-          ./run_tests.sh --cov --html --pylint
-
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: coverage-reports
-          path: |
-            reports/
-            .coverage
-            .coverage.*
-            coverage.xml
-          retention-days: 7
+          # Run pytest with coverage and HTML report
+          pytest \
+            --cov=c3po \
+            --cov-report=html \
+            --cov-report=term \
+            --html=report.html \
+            --self-contained-html \
+            -v \
+            tests/
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
@@ -57,13 +52,29 @@ jobs:
             reports/
           retention-days: 7
 
+      - name: Run pylint
+        run: |
+          pylint c3po --output-format=parseable > pylint-report.txt
+          echo "Pylint report generated."
+
       - name: Upload pylint report
         uses: actions/upload-artifact@v4
         if: success()
         with:
           name: pylint-report
+          path: pylint-report.txt
+          retention-days: 7
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: coverage-reports
           path: |
-            pylint-report.txt
+            .coverage
+            .coverage.*
+            coverage.xml
+            reports/
           retention-days: 7
 
       - name: Upload coverage to Codecov
