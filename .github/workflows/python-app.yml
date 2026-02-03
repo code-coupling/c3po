@@ -1,0 +1,80 @@
+name: Python CI/CD
+
+on:
+  push:
+    branches:
+      - "**"  # This matches all branches
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  test:
+    name: Run Tests & Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11, 3.12]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for coverage history
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[pytest]  # Installs: numpy, mpi4py, icoco, pytest, pytest-cov, pytest-html, pylint
+
+      - name: Make test script executable
+        run: chmod +x test.sh
+
+      - name: Run tests with coverage and HTML report
+        run: |
+          # Run your test script with coverage, HTML, and pylint
+          ./test.sh --cov --html --pylint
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: coverage-reports
+          path: |
+            reports/
+            .coverage
+            .coverage.*
+            coverage.xml
+          retention-days: 7
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: pytest-html-report
+          path: |
+            report.html
+            reports/
+          retention-days: 7
+
+      - name: Upload pylint report
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: pylint-report
+          path: |
+            pylint-report.txt
+          retention-days: 7
+
+      # Optional: Upload coverage to Codecov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: .coverage
+          flags: unittests
+          name: codecov-umbrella
