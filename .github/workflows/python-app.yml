@@ -55,8 +55,9 @@ jobs:
 
       - name: Run pylint
         run: |
-          pylint c3po --output-format=parseable > pylint-report.txt
-          echo "Pylint report generated."
+          pylint c3po 
+      #     pylint c3po --output-format=parseable > pylint-report.txt
+      #     echo "Pylint report generated."
 
       # - name: Upload pylint report
       #   uses: actions/upload-artifact@v4
