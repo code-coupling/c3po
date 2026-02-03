@@ -80,7 +80,7 @@ setup(
         "icoco>=2.0.3",
     ],
     extras_require={
-        "pytest": ["pytest", "pytest-cov", "pytest-html"],
+        "pytest": ["pytest", "pytest-cov", "pytest-html", "pylint"],
         "med": ["medcoupling"],
     },
     python_requires=">=2.7, !=3.0.*, !=3.1.*",
