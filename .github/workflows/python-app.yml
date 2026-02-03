@@ -55,7 +55,7 @@ jobs:
 
       - name: Run pylint
         run: |
-          pylint c3po 
+          pylint --rcfile=./sources/.pylintrc c3po
       #     pylint c3po --output-format=parseable > pylint-report.txt
       #     echo "Pylint report generated."
 
