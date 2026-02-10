@@ -26,43 +26,6 @@ def get_version():
         return file.read().strip()
 
 
-def check_dependencies(requirements):
-    """Check if the dependencies of the package are available in the current
-    environment and print a warning message if not.
-
-    The ``setup`` functions can do the same thing using its ``install_requires``
-    parameter. But it interupts the installation process if any dependency is
-    missing and cannot be installed. As C3PO is mainly used in on-the-fly
-    defined environment, we just want to warn the user without preventing him
-    from installing the package.
-
-    Parameters
-    ----------
-    requirements = list of str
-
-    Returns
-    -------
-    list of str
-        List of the requirements available in the current environment.
-    """
-    from pkg_resources import WorkingSet, Requirement, VersionConflict
-    available_requirements = []
-    working_set = WorkingSet()
-    for requirement in requirements:
-        print("Searching for {}".format(requirement))
-        try:
-            distribution = working_set.find(Requirement(requirement))
-        except VersionConflict:
-            distribution = None
-        if distribution is None:
-            print("warning: Could not find suitable distribution for {}".format(
-                requirement))
-        else:
-            print("Best match: {}".format(distribution))
-            available_requirements.append(requirement)
-    return available_requirements
-
-
 setup(
     name="c3po",
     version=get_version(),
@@ -81,15 +44,15 @@ setup(
         ],
     },
     package_dir={"": "sources"},
-    install_requires=check_dependencies([
+    install_requires=[
         "numpy>=1.9",
-        "mpi4py>=1.3",]) + [
         "icoco>=2.0.3",
     ],
     extras_require={
         "pytest": ["pytest", "pytest-cov", "pytest-html"],
         "doc": ["graphviz", "sphinx>=8.2.0", "sphinx-rtd-theme"],
+        "mpi": ["mpi4py>=1.3"],
     },
-    python_requires=">=2.7, !=3.0.*, !=3.1.*",
+    python_requires=">=3.7",
     licence="3-Clause BSD"
 )
