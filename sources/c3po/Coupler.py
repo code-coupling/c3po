@@ -56,6 +56,7 @@ class Coupler(PhysicsDriver):
         self._dataManagers = dataManagers
         self._norm = NormChoice.normMax
         self._dt = 1.e30
+        self._stationaryMode = False
 
     def getMEDCouplingMajorVersion(self):
         """ See :meth:`.PhysicsDriver.getMEDCouplingMajorVersion`. """
@@ -147,16 +148,14 @@ class Coupler(PhysicsDriver):
         """ See :meth:`.PhysicsDriver.setStationaryMode`. """
         for physics in self._physicsDriversList:
             physics.setStationaryMode(stationaryMode)
+        self._stationaryMode = stationaryMode
 
     def getStationaryMode(self):
         """ See :meth:`.PhysicsDriver.getStationaryMode`. """
-        resu = False
-        if len(self._physicsDriversList) > 0:
-            resu = self._physicsDriversList[0].getStationaryMode()
-        for physics in self._physicsDriversList[1:]:
-            if physics.getStationaryMode() != resu:
+        for physics in self._physicsDriversList:
+            if physics.getStationaryMode() != self._stationaryMode:
                 raise Exception("Coupler.getStationaryMode Not a unique stationary mode.")
-        return resu
+        return self._stationaryMode
 
     def abortTimeStep(self):
         """ See :meth:`.PhysicsDriver.abortTimeStep`. """
@@ -192,7 +191,7 @@ class Coupler(PhysicsDriver):
         ----------
         choice : :attr:`.NormChoice.normMax`, :attr:`.NormChoice.norm2`
             To be choosen between :
-            
+
             - :attr:`.NormChoice.normMax` : infinite norm. This is the default choice.
             - :attr:`.NormChoice.norm2` : norm 2 ( ``sqrt(sum_i(val[i] * val[i]))`` ).
         """
