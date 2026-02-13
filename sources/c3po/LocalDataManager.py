@@ -30,6 +30,7 @@ class LocalDataManager(DataManager, DataAccessor):
         self.valuesDouble = {}
         self.valuesInt = {}
         self.valuesString = {}
+        self.fields = {}
         self.fieldsDouble = {}
         self.fieldsInt = {}
         self.fieldsDoubleTemplates = {}
@@ -66,6 +67,8 @@ class LocalDataManager(DataManager, DataAccessor):
         for name, field in self.fieldsDouble.items():
             otherArray = other.fieldsDouble[name].getArray()
             field.getArray().setPartOfValues1(other.fieldsDouble[name].getArray(), 0, otherArray.getNumberOfTuples(), 1, 0, otherArray.getNumberOfComponents(), 1)
+        for name in self.fields:
+            self.fields[name].copy(other.fields[name])
 
     def normMax(self):
         """! Return the infinite norm.
@@ -84,6 +87,10 @@ class LocalDataManager(DataManager, DataAccessor):
                 pass
             if normMED > norm:
                 norm = normMED
+        for field in self.fields.values():
+            normField = field.normMax()
+            if normField > norm:
+                norm = normField
         return norm
 
     def norm2(self):
@@ -97,6 +104,9 @@ class LocalDataManager(DataManager, DataAccessor):
         for med in self.fieldsDouble.values():
             localNorm = med.norm2()
             norm += localNorm * localNorm
+        for field in self.fields.values():
+            normField = field.norm2()
+            norm += normField * normField
         return math.sqrt(norm)
 
     def checkBeforeOperator(self, other):
@@ -105,10 +115,13 @@ class LocalDataManager(DataManager, DataAccessor):
             raise Exception("LocalDataManager.checkBeforeOperator : we cannot call an operator between two LocalDataManager with different number of stored data.")
         for name in self.valuesDouble:
             if name not in other.valuesDouble:
-                raise Exception("LocalDataManager.checkBeforeOperator : we cannot call an operator between two LocalDataManager with different data.")
+                raise Exception(f"LocalDataManager.checkBeforeOperator : we cannot call an operator between two LocalDataManager with different data, {name} found in valuesDouble is absent in other.")
         for name in self.fieldsDouble:
             if name not in other.fieldsDouble:
-                raise Exception("LocalDataManager.checkBeforeOperator : we cannot call an operator between two LocalDataManager with different data.")
+                raise Exception(f"LocalDataManager.checkBeforeOperator : we cannot call an operator between two LocalDataManager with different data, {name} found in fieldsDouble is absent in other.")
+        for name in self.fields:
+            if name not in other.fields:
+                raise Exception(f"LocalDataManager.checkBeforeOperator : we cannot call an operator between two LocalDataManager with different data, {name} found in fields is absent in other.")
 
     def __add__(self, other):
         """! Return self + other.
@@ -128,6 +141,8 @@ class LocalDataManager(DataManager, DataAccessor):
         for name, field in self.fieldsDouble.items():
             newData.fieldsDouble[name] = 1. * field
             newData.fieldsDouble[name].getArray().addEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name, field in self.fields.items():
+            newData.fields[name] = field + other.fields[name]
         return newData
 
     def __iadd__(self, other):
@@ -146,6 +161,8 @@ class LocalDataManager(DataManager, DataAccessor):
             self.valuesDouble[name] += other.valuesDouble[name]
         for name, field in self.fieldsDouble.items():
             field.getArray().addEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name, field in self.fields.items():
+            self.fields[name] += other.fields[name]
         return self
 
     def __sub__(self, other):
@@ -166,6 +183,8 @@ class LocalDataManager(DataManager, DataAccessor):
         for name, field in self.fieldsDouble.items():
             newData.fieldsDouble[name] = 1. * field
             newData.fieldsDouble[name].getArray().substractEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name, field in self.fields.items():
+            newData.fields[name] = field - other.fields[name]
         return newData
 
     def __isub__(self, other):
@@ -184,6 +203,8 @@ class LocalDataManager(DataManager, DataAccessor):
             self.valuesDouble[name] -= other.valuesDouble[name]
         for name, field in self.fieldsDouble.items():
             field.getArray().substractEqual(other.fieldsDouble[name].getArray())  # On passe par les dataArray pour eviter la verification d'identite des maillages des operateurs des champs !
+        for name, field in self.fields.items():
+            self.fields[name] -= other.fields[name]
         return self
 
     def __mul__(self, scalar):
@@ -200,6 +221,8 @@ class LocalDataManager(DataManager, DataAccessor):
             newData.valuesDouble[name] = scalar * value
         for name, field in self.fieldsDouble.items():
             newData.fieldsDouble[name] = scalar * field
+        for name, field in self.fields.items():
+            newData.fields[name] = field * scalar
         return newData
 
     def __imul__(self, scalar):
@@ -215,6 +238,8 @@ class LocalDataManager(DataManager, DataAccessor):
             self.valuesDouble[name] *= scalar
         for name in self.fieldsDouble:
             self.fieldsDouble[name] *= scalar
+        for name, field in self.fields.items():
+            self.fields[name] *= scalar
         return self
 
     def imuladd(self, scalar, other):
@@ -259,6 +284,9 @@ class LocalDataManager(DataManager, DataAccessor):
             if field.getArray().getNumberOfComponents() > 1:
                 dim = 2
             result += numpy.tensordot(nparr1, nparr2, dim)
+        for name, field in self.fields.items():
+            result += self.fields[name].dot(other.fields[name])
+
         return result
 
     def setInputMEDDoubleField(self, name, field):
@@ -371,3 +399,30 @@ class LocalDataManager(DataManager, DataAccessor):
         if name not in self.fieldsDoubleTemplates:
             return 0
         return self.fieldsDoubleTemplates[name]
+
+    def setInputObject(self, name: str, value):
+        """Setting the value from a Field as defined in the ShortcutToDict class
+
+        Parameters
+        ----------
+        name : str
+            value name
+        value : Any
+            value
+        """
+        self.fields[name] = value
+
+    def getOutputObject(self, name: str):
+        """Returns a Field as defined in the ShortcutToDict class
+
+        Parameters
+        ----------
+        name : str
+            Value name
+
+        Returns
+        -------
+        Any
+            Value
+        """
+        return self.fields[name]
