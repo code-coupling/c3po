@@ -27,7 +27,7 @@ def get_version():
 
 
 setup(
-    name="c3po",
+    name="salome-c3po",
     version=get_version(),
     author="CEA",
     author_email="cyril.patricot@cea.fr",
