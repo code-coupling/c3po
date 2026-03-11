@@ -52,7 +52,7 @@ class ExchangeMethod(object):
         meshes do not vary.
 
         .. note::
-        
+
             The method is usually called by the :class:`c3po.Exchanger` object that holds ``self``.
         """
         raise NotImplementedError

@@ -32,7 +32,7 @@ class MPIMulti1D3DRemapper(MPIRemapper):
         additional mandatory parameter: ``physics``.
 
         .. warning::
-        
+
             There seems to be a bug in MEDCoupling that may cause wrong results when rescaling is
             used with a source mesh (:mod:`.multi1D`) of nature IntensiveConservation. In this case, using
             ``reverseTransformations=False`` should be enough to solve the problem.
@@ -150,7 +150,7 @@ class MPISharedRemappingMulti1D3D(MPISharedRemapping):
         :class:`c3po.mpi.MPIExchanger.MPIExchanger`.
 
         .. warning::
-        
+
             :class:`.MPISharedRemappingMulti1D3D` is deprecated and will soon by deleted. Please
             use :mod:`c3po.mpi.multi1D` package instead.
 

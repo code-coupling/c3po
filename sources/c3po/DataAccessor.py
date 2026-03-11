@@ -27,7 +27,7 @@ class DataAccessor(object):
 
     def getMPIComm(self):
         """ (Optional) Return the MPI communicator used by the code for parallel computations.
-        
+
         Returns
         -------
         mpi4py.MPI.Comm
@@ -294,7 +294,7 @@ class DataAccessor(object):
         """ Similar to :meth:`setInputMEDDoubleField` but for ``MEDCouplingFieldString``.
 
         .. warning::
-                
+
             At the time of writing, ``MEDCouplingFieldString`` are not yet implemented anywhere.
         """
         raise NotImplementedError

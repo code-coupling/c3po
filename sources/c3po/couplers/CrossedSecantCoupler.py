@@ -35,7 +35,7 @@ class CrossedSecantCoupler(Coupler):
     At each iteration we do (with :math:`n` the iteration number):
 
     .. math::
-        
+
         X^{n+1} = F(X^{n}) - (F(X^{n}) - X^{n}).[(F(X^{n}) - F(X^{n-1})).(F(X^{n}) - X^{n} -
 
         (F(X^{n-1}) - X^{n-1}))]/(||F(X^{n}) - X^{n} - (F(X^{n-1}) - X^{n-1})||^2)

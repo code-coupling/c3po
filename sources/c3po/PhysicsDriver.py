@@ -317,7 +317,7 @@ class PhysicsDriver(DataAccessor):
 
     def solve(self):
         """ Call :meth:`solveTimeStep` but store its return value instead of returning it.
-        
+
         The output is accessible with |PD_getSolveStatus|.
 
         .. warning:: This method, in association with |PD_getSolveStatus|,
@@ -482,7 +482,7 @@ class PhysicsDriver(DataAccessor):
 
         Parameters
         ----------
-        time\_ : float
+        time\\_ : float
             The new current time.
 
         Raises

@@ -35,7 +35,7 @@ class MPIMasterExchanger(Exchanger):
             The list of :class:`.MPIRemoteProcess`, :class:`.MPIRemoteProcesses` or :class:`.MPICollectiveProcess`
             identifying the remote processes involved in the exchange. In the case of :class:`.MPICollectiveProcess`,
             the mpiComm must include all the workers + the master, and only them.
-        idExchangerWorker : 
+        idExchangerWorker :
             Number identifying the controlled :class:`.c3po.Exchanger.Exchanger` in the involved workers
             (see :class:`.c3po.mpi.MPIWorker.MPIWorker`).
         localExchanger : Exchanger

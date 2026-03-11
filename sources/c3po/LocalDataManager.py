@@ -19,7 +19,7 @@ from c3po.DataAccessor import DataAccessor
 
 class LocalDataManager(DataManager, DataAccessor):
     """ :class:`.LocalDataManager` is the implementation of :class:`.DataManager` for local data.
-    
+
     It also implements :class:`.DataAccessor`.
 
     Data can be double, int, string, fields of double of fields of int.
@@ -352,7 +352,7 @@ class LocalDataManager(DataManager, DataAccessor):
         ----------
         name
             The name given to the field to store.
-        field 
+        field
             A field to store.
         """
         self.fieldsDouble[name] = field

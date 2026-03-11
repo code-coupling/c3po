@@ -38,7 +38,7 @@ class AdaptiveResidualBalanceCoupler(Coupler):
       residuals got with the last two exchangers.
 
     .. note::
-    
+
         Two :class:`.Exchanger` and a :class:`.DataManager` are used to access the residuals in
         order to support all possible MPI schemes.
 

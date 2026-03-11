@@ -28,7 +28,7 @@ class NameChanger(PhysicsDriverWrapper):
         """ Build a :class:`.NameChanger` object.
 
         .. note::
-        
+
             ``nameMappingValue`` and ``nameMappingField`` are copied.
 
         Parameters

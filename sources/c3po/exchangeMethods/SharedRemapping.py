@@ -72,7 +72,7 @@ class Remapper(object):
             :meth:`initialize`.
 
         .. warning::
-        
+
             There seems to be a bug in MEDCoupling that may cause wrong results when rescaling is
             used with a source mesh of nature ExtensiveMaximum or IntensiveConservation. In this
             case, it is necessary to use ``reverseTransformations=False`` and to never perform a
@@ -167,7 +167,7 @@ class Remapper(object):
         method in order to save initialization time.
 
         .. note::
-        
+
             This method requires scipy.
 
         Returns
@@ -184,7 +184,7 @@ class Remapper(object):
         This matrix is usually obtained by :meth:`exportMatrix` method.
 
         .. note::
-        
+
             This method requires scipy.
 
         Parameters
@@ -216,7 +216,7 @@ class Remapper(object):
         This file is usually written by :meth:`exportMatrix` method.
 
         .. note::
-        
+
             This method requires scipy.
 
         Parameters

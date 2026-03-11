@@ -66,7 +66,7 @@ class AndersonCoupler(Coupler):
     They are then used as a single :class:`.DataManager` using :class:`.CollaborativeDataManager`.
 
     The first two iterations just do (with :math:`n` the iteration number):
-    
+
     .. math::
 
         X^{n+1} = F(X^{n})

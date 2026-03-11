@@ -258,7 +258,7 @@ class SharedRemappingMulti1D3D(SharedRemapping):
         """ Build a :class:`.SharedRemappingMulti1D3D` object, to be given to an :class:`.Exchanger`.
 
         .. warning::
-        
+
             :class:`.SharedRemappingMulti1D3D` is deprecated and will soon by deleted. Please use
             :mod:`c3po.multi1D` package instead.
 

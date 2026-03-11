@@ -63,7 +63,7 @@ class Grid(ABC):
         """ Set the whole table of correspondences.
 
         .. note::
-        
+
             Use ``c3po.multi1D.NO_CORRESPONDENCE`` as correspondence value in empty positions.
 
         Parameters
@@ -121,7 +121,7 @@ class Grid(ABC):
         """ Return a MEDCoupling mesh image of the grid (but without correspondences).
 
         .. note::
-        
+
             It should be the same result than :meth:`toMED`.getMesh().
 
         Returns
@@ -284,7 +284,7 @@ class CartesianGrid(MEDGrid):
         """ Set one correspondence from the indexes of the cell in the cartesian grid.
 
         .. note::
-        
+
             Use ``c3po.multi1D.NO_CORRESPONDENCE`` as correspondence value in empty positions.
 
         Parameters
@@ -391,7 +391,7 @@ class HexagonalGrid(MEDGrid):
         """ Set one correspondence from the indexes of the cell in the hexagonal grid.
 
         .. note::
-        
+
             Use ``c3po.multi1D.NO_CORRESPONDENCE`` as correspondence value in empty positions.
 
         Parameters
@@ -417,7 +417,7 @@ class MultiLevelGrid(Grid):
         """ Build a multi-level grid.
 
         .. note::
-        
+
             We store and use clones of the provided leaf grids.
 
         Parameters
@@ -463,7 +463,7 @@ class MultiLevelGrid(Grid):
         """ Return the number of level.
 
         .. note::
-        
+
             ``level = 0`` if empty (``rootGrid`` with no cells), 1 if leaf grids are not themselves
             :class:`.MultiLevelGrid`, and ``n + 1`` with ``n`` the level of leaf grids otherwise.
 
@@ -477,7 +477,7 @@ class MultiLevelGrid(Grid):
         """ Set the current level.
 
         .. note::
-        
+
             All methods inherited from :class:`.Grid` will address this level. At level 0, the
             :class:`.MultiLevelGrid` behaves like the ``rootGrid``. At level ``n > 0``, it behaves
             like the juxtaposition of leaf grids with current level ``n - 1``. Defaut : the value

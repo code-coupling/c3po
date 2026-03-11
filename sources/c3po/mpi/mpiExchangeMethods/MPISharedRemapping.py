@@ -25,11 +25,11 @@ class MPIRemapper(object):
         """ Build a :class:`.MPIRemapper` object.
 
         .. warning::
-        
+
             It is mandatory to call the :meth:`terminate` method after use, otherwise MPI may be badly ended.
 
         .. warning::
-        
+
             The option ``outsideCellsScreening`` is not ready to use yet.
 
             There seems to be a bug in MEDCoupling that may cause wrong results when rescaling is
@@ -147,7 +147,7 @@ class MPIRemapper(object):
             try:
                 self._interpKernelDECs[nature] = mc.InterpKernelDEC(ranksToGet, ranksToSet, mpiComm)
             except TypeError:
-                self._interpKernelDECs[nature] = mc.InterpKernelDEC(ranksToGet, ranksToSet, mpi._addressof(mpiComm)) # pylint: disable=protected-access
+                self._interpKernelDECs[nature] = mc.InterpKernelDEC(ranksToGet, ranksToSet, mpi._addressof(mpiComm))  # pylint: disable=protected-access
         self._interpKernelDECs[nature].setMethod("P0")
         self._interpKernelDECs[nature].attachLocalField(field)
         self._interpKernelDECs[nature].synchronize()
@@ -172,7 +172,7 @@ class MPIRemapper(object):
         """ Release all allocated resources.
 
         .. warning::
-        
+
             This method must be called once the object is no more needed in order to properly
             release MPI resources.
         """
@@ -212,7 +212,7 @@ class MPISharedRemapping(MPIExchangeMethod):
         :class:`c3po.mpi.MPIExchanger.MPIExchanger`.
 
         .. warning::
-        
+
             At the present time, ``defaultValue`` has to be 0.
 
         Parameters

@@ -22,7 +22,7 @@ class ICOCODriver(PhysicsDriver):
 
         Parameters
         ----------
-        problem 
+        problem
             Implementation of the ICoCo Problem.
         """
         PhysicsDriver.__init__(self)

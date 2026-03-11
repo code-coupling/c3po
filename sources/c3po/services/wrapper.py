@@ -99,7 +99,7 @@ def wrapper(toWrap):
     wrapping class for ``toWrap`` type, and return an instance of this wrapping class (wrapping
     ``toWrap``).
 
-    Parameters 
+    Parameters
     ----------
     toWrap
         Object instance (not class) to be wrapped.

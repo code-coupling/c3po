@@ -147,7 +147,7 @@ class LocalExchanger(Exchanger):
 
         Parameters
         ----------
-        method : 
+        method :
             A user-defined function (or class with the special method ``__call__``).
 
             - method must have three input lists:
