@@ -51,7 +51,8 @@ def scan(path: Path, workdir: Path) -> Tuple[List[Path], List[Path]]:
             if path_name.suffix == ".py" and path_name.name != "__init__.py":
                 list_py.append(path_name)
         if path_name.is_dir():
-            if path_name.name != "__pycache__" and path_name.name != "c3po.egg-info":
+            dir_pattern = re.match(r'(__pycache__)|(\w+.egg-info)', path_name.name, flags=0)
+            if not dir_pattern:
                 modulepathdir = workdir / path_name.name
                 if not modulepathdir.is_dir():
                     modulepathdir.mkdir()
