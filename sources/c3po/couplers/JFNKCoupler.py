@@ -13,6 +13,7 @@ from __future__ import print_function, division
 import math
 import numpy as np
 
+from c3po.PhysicsDriver import PhysicsDriver
 from c3po.Coupler import Coupler
 from c3po.CollaborativeDataManager import CollaborativeDataManager
 from c3po.services.Printer import Printer
@@ -324,3 +325,7 @@ class JFNKCoupler(Coupler):
 
         self.denormalizeData(normData)
         return physics.getSolveStatus() and errorNewton <= self._newtonTolerance
+
+    def getSolveStatus(self):
+        """ See :meth:`.PhysicsDriver.getSolveStatus`. """
+        return PhysicsDriver.getSolveStatus(self)
